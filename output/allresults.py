@@ -57,10 +57,10 @@ class Results:
         """Here we set up some of the variables which will be global to this
         class."""
 
-        self.BoxSize = 62.5     # Mpc/h
-        self.MaxTreeFiles = 8   # FilesPerSnapshot
-        # self.BoxSize = 500      # Mpc/h
-        # self.MaxTreeFiles = 512 # FilesPerSnapshot
+        # self.BoxSize = 62.5     # Mpc/h
+        # self.MaxTreeFiles = 8   # FilesPerSnapshot
+        self.BoxSize = 500      # Mpc/h
+        self.MaxTreeFiles = 512 # FilesPerSnapshot
 
         self.Hubble_h = 0.73
         # This is to allow for variable size random tree files

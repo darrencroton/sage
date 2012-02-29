@@ -1,0 +1,20 @@
+#!/bin/csh
+#PBS -N Sage
+#PBS -z
+#PBS -l nodes=8,walltime=23:59:59,pmem=1940mb
+#PBS -S /bin/csh
+#PBS -V
+#PBS -d /home/ssi/dcroton/Science/models/sage/output/results/
+# #PBS -m ae
+# #PBS -M dcroton@astro.swin.edu.au
+
+set PATH            = /usr/local/gnu/x86_64/openmpi-1.4/bin:$PATH
+set LD_LIBRARY_PATH = /usr/local/gnu/x86_64/openmpi-1.4/lib:$LD_LIBRARY_PATH
+
+cd $PBS_O_WORKDIR
+
+touch mpi.start
+echo "running SAGE" | tee ./sage_output.txt
+/usr/local/gnu/x86_64/openmpi-1.4/bin/mpiexec -mca btl tcp,self ./sage ./input/input.par | tee ./sage_output.txt
+touch mpi.stop
+

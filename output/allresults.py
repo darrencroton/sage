@@ -57,10 +57,10 @@ class Results:
         """Here we set up some of the variables which will be global to this
         class."""
 
-        # self.BoxSize = 62.5     # Mpc/h
-        # self.MaxTreeFiles = 8   # FilesPerSnapshot
-        self.BoxSize = 500      # Mpc/h
-        self.MaxTreeFiles = 512 # FilesPerSnapshot
+        self.BoxSize = 62.5     # Mpc/h
+        self.MaxTreeFiles = 8   # FilesPerSnapshot
+        # self.BoxSize = 500      # Mpc/h
+        # self.MaxTreeFiles = 512 # FilesPerSnapshot
 
         self.Hubble_h = 0.73
         # This is to allow for variable size random tree files
@@ -280,15 +280,8 @@ class Results:
         plt.yscale('log', nonposy='clip')
         
         # Finally plot the data
-        # plt.errorbar(
-        #     Baldry[:, 0],
-        #     Baldry[:, 1],
-        #     yerr=Baldry[:, 2],
-        #     color='g',
-        #     linestyle=':',
-        #     lw = 1.5,
-        #     label='Baldry et al. 2008',
-        #     )
+        # plt.errorbar(Baldry[:, 0], Baldry[:, 1], yerr=Baldry[:, 2],
+        #     color='g', linestyle=':', lw = 1.5, label='Baldry et al. 2008')
 
         plt.fill_between(Baldry[:, 0], Baldry[:, 1]+Baldry[:, 2], Baldry[:, 1]-Baldry[:, 2], 
             facecolor='purple', alpha=0.25, label='Baldry et al. 2008')
@@ -402,16 +395,8 @@ class Results:
         plt.yscale('log', nonposy='clip')
 
         # Finally plot the data
-        # plt.errorbar(
-        #     Panter[:, 0],
-        #     Panter[:, 1],
-        #     yerr=Panter[:, 2],
-        #     color='g',
-        #     lw=1.5,
-        #     marker='o',
-        #     ls='none',
-        #     label='Panter et al. 2004',
-        #     )
+        # plt.errorbar(Panter[:, 0], Panter[:, 1], yerr=Panter[:, 2],
+        #     color='g', lw=1.5, marker='o', ls='none', label='Panter et al. 2004')
 
         plt.fill_between(Panter[:, 0], Panter[:, 1]+Panter[:, 2], Panter[:, 1]-Panter[:, 2], 
              facecolor='purple', alpha=0.25, label='Panter et al. 2004')
@@ -695,120 +680,29 @@ class Results:
         seed(2222)
     
         plt.figure()  # New figure
-        ax = plt.subplot(221)  # 4 plots on the figure
+        ax = plt.subplot(111)  # 1 plot on the figure
     
         w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.StellarMass > 0.0))[0]
         if(len(w) > dilute): w = sample(w, dilute)
     
-        # mvir = np.log10(G.Mvir[w] * 1.0e10)
-        # plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.1, c='k', alpha=0.5, label='Stars')
-        # plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.1, color='blue', alpha=0.5, label='Cold gas')
-        # plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.1, color='red', alpha=0.5, label='Hot gas')
-        # plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.1, color='green', alpha=0.5, label='Ejected gas')
-        # plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=10, color='yellow', alpha=0.5, label='Intracluster stars')    
         mvir = np.log10(G.Mvir[w] * 1.0e10)
-        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.1, c='k', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.1, color='blue', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.1, color='red', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.1, color='green', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=2, color='yellow', alpha=0.5)
+        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.3, c='k', alpha=0.5, label='Stars')
+        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.3, color='blue', alpha=0.5, label='Cold gas')
+        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.3, color='red', alpha=0.5, label='Hot gas')
+        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.3, color='green', alpha=0.5, label='Ejected gas')
+        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=10, color='yellow', alpha=0.5, label='Intracluster stars')    
 
-        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$', size='x-small')  # Set the y...
-        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$', size='x-small')  # and the x-axis labels
+        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$')  # Set the y...
+        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$')  # and the x-axis labels
         
-        plt.text(10.3, 11.8, r'$\mathrm{All}', size='x-small')
-        
-        # Set the x and y axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
-        for t in ax.xaxis.get_ticklabels(): t.set_fontsize('x-small')            
-        for t in ax.yaxis.get_ticklabels(): t.set_fontsize('x-small')            
-
         plt.axis([10.0, 14.0, 7.5, 12.5])
 
-        # leg = plt.legend(loc='upper left', labelspacing=0.0001)
-        # leg.draw_frame(False)  # Don't want a box frame
-        # for t in leg.get_texts():  # Reduce the size of the text
-        #     t.set_fontsize('xx-small')
+        leg = plt.legend(loc='upper left')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
 
-
-        ax = plt.subplot(222)  # 4 plots on the figure
-
-        w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.BulgeMass / G.StellarMass <= 0.1))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
-
-        mvir = np.log10(G.Mvir[w] * 1.0e10)
-        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.1, c='k', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.1, color='blue', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.1, color='red', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.1, color='green', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=2, color='yellow', alpha=0.5)
-
-        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$', size='x-small')  # Set the y...
-        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$', size='x-small')  # and the x-axis labels
-            
-        plt.text(10.3, 11.8, r'$\mathrm{B/T} < 0.1$', size='x-small')
-            
-        # Set the x and y axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
-        for t in ax.xaxis.get_ticklabels(): t.set_fontsize('x-small')            
-        for t in ax.yaxis.get_ticklabels(): t.set_fontsize('x-small')            
-            
-        plt.axis([10.0, 14.0, 7.5, 12.5])
-
-
-        ax = plt.subplot(223)  # 4 plots on the figure
-
-        w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.BulgeMass / G.StellarMass > 0.1) & (G.BulgeMass / G.StellarMass <= 0.5))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
-    
-        mvir = np.log10(G.Mvir[w] * 1.0e10)
-        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.1, c='k', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.1, color='blue', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.1, color='red', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.1, color='green', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=2, color='yellow', alpha=0.5)
-
-        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$', size='x-small')  # Set the y...
-        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$', size='x-small')  # and the x-axis labels
-
-        plt.text(10.3, 11.8, r'$0.1 < \mathrm{B/T} < 0.5$', size='x-small')
-            
-        # Set the x and y axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
-        for t in ax.xaxis.get_ticklabels(): t.set_fontsize('x-small')            
-        for t in ax.yaxis.get_ticklabels(): t.set_fontsize('x-small')            
-            
-        plt.axis([10.0, 14.0, 7.5, 12.5])
-
-
-        ax = plt.subplot(224)  # 4 plots on the figure
-
-        w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.BulgeMass / G.StellarMass > 0.5))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
-
-        mvir = np.log10(G.Mvir[w] * 1.0e10)
-        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.1, c='k', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.1, color='blue', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.1, color='red', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.1, color='green', alpha=0.5)
-        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=2, color='yellow', alpha=0.5)
-
-        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$', size='x-small')  # Set the y...
-        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$', size='x-small')  # and the x-axis labels
-
-        plt.text(10.3, 11.8, r'$\mathrm{B/T} > 0.5$', size='x-small')
-            
-        # Set the x and y axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
-        for t in ax.xaxis.get_ticklabels(): t.set_fontsize('x-small')            
-        for t in ax.yaxis.get_ticklabels(): t.set_fontsize('x-small')            
-            
-        plt.axis([10.0, 14.0, 7.5, 12.5])
-
+        plt.text(13.5, 8.0, r'$\mathrm{All}')
             
         outputFile = OutputDir + '8.MassReservoirScatter' + OutputFormat
         plt.savefig(outputFile)  # Save the figure

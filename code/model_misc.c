@@ -76,16 +76,18 @@ void init_galaxy(int p, int halonr)
 
 double get_disk_radius(int halonr, int p)
 {
-  double SpinParameter;
-
   // See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.  Since this is the scale length
   // we take the typical star forming region as 3.0 times this using the Milky Way as an approximate guide
 
+  double SpinParameter;
+  
   SpinParameter =
     sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + Halo[halonr].Spin[1] * Halo[halonr].Spin[1] +
     Halo[halonr].Spin[2] * Halo[halonr].Spin[2]) / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
     
   return (SpinParameter / 1.414) * Gal[p].Rvir;
+
+  // return 0.1 * Gal[p].Rvir; 
 
 }
 

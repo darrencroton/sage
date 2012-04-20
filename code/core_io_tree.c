@@ -55,7 +55,7 @@ void load_tree_table(int filenr)
     for(i = 0; i < Ntrees; i++)
       TreeNgals[n][i] = 0;
 
-    sprintf(buf, "%s/%s_z%1.2f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if(!(fd = fopen(buf, "w")))
     {
@@ -339,7 +339,7 @@ void write_galaxy_data_snap(int n, int filenr)
   char buf[2000];
   FILE *fd;
 
-  sprintf(buf, "%s/%s_z%1.2f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+  sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
   if(!(fd = fopen(buf, "w")))
   {

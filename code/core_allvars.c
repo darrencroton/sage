@@ -46,7 +46,6 @@ double Omega;
 double OmegaLambda;
 double Hubble_h;
 double PartMass;
-double BoxSideLength;
 double EnergySNcode, EnergySN;
 double EtaSNcode, EtaSN;
 

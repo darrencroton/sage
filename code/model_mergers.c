@@ -12,44 +12,18 @@
 double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 {
   double coulomb, mergtime, SatelliteMass, SatelliteRadius;
-  double distx, disty, distz;
 
+  if(sat_halo == mother_halo) 
+  {
+    printf("\t\tSnapNum, Type, IDs, sat radius:\t%i\t%i\t%i\t%i\t--- sat/cent have the same ID\n", 
+      Gal[ngal].SnapNum, Gal[ngal].Type, sat_halo, mother_halo);
+    return -1.0;
+  }
+  
   coulomb = log(Halo[mother_halo].Len / ((double) Halo[sat_halo].Len) + 1);
 
   SatelliteMass = get_virial_mass(sat_halo) + Gal[ngal].StellarMass + Gal[ngal].ColdGas;
-
-  distx = fabs(Halo[mother_halo].Pos[0] - Halo[sat_halo].Pos[0]);
-  if(distx > 20.0) distx = BoxSideLength - distx;
-  
-  disty = fabs(Halo[mother_halo].Pos[1] - Halo[sat_halo].Pos[1]);
-  if(disty > 20.0) disty = BoxSideLength - disty;
-
-  distz = fabs(Halo[mother_halo].Pos[2] - Halo[sat_halo].Pos[2]);
-  if(distz > 20.0) distz = BoxSideLength - distz;
-
-  SatelliteRadius = sqrt(distx*distx + disty*disty + distz*distz);
-  
-  if(SatelliteRadius <= 0.0 || SatelliteRadius > 20.0) 
-  {
-    printf("\t\tSnapNum, Type, IDs, sat radius:\t%i\t%i\t%i\t%i\t%f\t", 
-      Gal[ngal].SnapNum, Gal[ngal].Type, sat_halo, mother_halo, SatelliteRadius);
-    if(SatelliteRadius > 20.0)
-    { 
-      printf("||| galaxies not spatially associated\n");
-      return 999.0;
-    }
-    if(sat_halo == mother_halo)
-    {
-      printf("--- sat/cent have the same ID\n");
-      Gal[ngal].AlreadyMerged = 1;
-      return -1.0;
-    }
-    printf("\n");
-    ABORT(66);
-  }
-
-  // convert to physical length 
-  SatelliteRadius /= (1 + ZZ[Halo[sat_halo].SnapNum]);
+  SatelliteRadius = get_virial_radius(mother_halo);
 
   if(SatelliteMass > 0.0)
     mergtime = 

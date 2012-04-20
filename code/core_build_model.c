@@ -151,6 +151,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {
+            // central galaxy
             Gal[ngal].AlreadyMerged = 0;
             Gal[ngal].Type = 0;
 
@@ -165,14 +166,10 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           }
           else
           {
+            // subhalo satellite galaxy
             if(Gal[ngal].Type == 0 || Gal[ngal].MergTime > 999.0)
-            {                                                            // XXX- FIX MERGER TIMES HERE AND BELOW
-              // watch out for cases where type 1 has no progenitor
-              // if(Halo[Halo[halonr].FirstHaloInFOFgroup].FirstProgenitor != -1)
-              //   Gal[ngal].MergTime = estimate_merging_time(prog, Halo[Halo[halonr].FirstHaloInFOFgroup].FirstProgenitor, ngal);
-              // else
-                Gal[ngal].MergTime = estimate_merging_time(halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
-            }
+              // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.
+              Gal[ngal].MergTime = estimate_merging_time(halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
             Gal[ngal].Type = 1;
 
             // // XXX - New stable galaxy growth: type 1 halos are allowed to decay
@@ -184,17 +181,16 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
         }
         else
         {
-          // here we deal with a galaxy where we lose tracking. Need to estimate 
-          // remaining merging timescale, and make the galaxy a type=2 object
-          Gal[ngal].Type = 2;
+          // orhpan satellite galaxy
           if(Gal[ngal].MergTime > 999.0)
-            // Gal[ngal].MergTime = estimate_merging_time(prog, mother_halo, ngal);
-            Gal[ngal].MergTime = estimate_merging_time(prog, Halo[Halo[halonr].FirstHaloInFOFgroup].FirstProgenitor, ngal);
+            // Here the galaxy has gone from type 0 to type 2. Merge it!
+            Gal[ngal].MergTime = 0.0;
+          Gal[ngal].Type = 2;
           Gal[ngal].Mvir = 0.0;
         }
       }
 
-      // Note: Galaxies that are already type=2 do not need special treatment at this point 
+      // Note: Galaxies that are already type 2 do not need special treatment at this point 
       if(Gal[ngal].Type < 0 || Gal[ngal].Type > 2)
       {
         printf("what's that????\n");
@@ -314,31 +310,34 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
           ABORT(77);
         }
 
-        // check for satellite disruption to ICS
+        deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
+        Gal[p].MergTime -= deltaT / STEPS;
+
+        // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        if( Gal[p].Type == 1 && galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons < ThresholdSatDisruption) )
+        if(galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons <= ThresholdSatDisruption))
         {
-          disrupt_satellite_to_ICS(centralgal, p);
-          Gal[p].AlreadyMerged = 1;
-        }
-        else  // check for merger
-        {
-          deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-          Gal[p].MergTime -= deltaT / STEPS;
-
-          if(Gal[p].MergTime < 0.0)  // a merger has occured! 
+          if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {
-            merger_centralgal = Gal[p].CentralGal;
-            if(Gal[merger_centralgal].AlreadyMerged == 1) 
-              merger_centralgal = Gal[merger_centralgal].CentralGal;
-
-            time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
-            deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+            disrupt_satellite_to_ICS(centralgal, p);
             Gal[p].AlreadyMerged = 1;
+          }
+          else
+          {
+            if(Gal[p].MergTime < 0.0)  // a merger has occured! 
+            {
+              merger_centralgal = Gal[p].CentralGal;
+              if(Gal[merger_centralgal].AlreadyMerged == 1) 
+                merger_centralgal = Gal[merger_centralgal].CentralGal;
 
-          // flag galaxy as finished 
-            if(Gal[p].Type == 2) 
-              Gal[p].Type = 3;
+              time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+              Gal[p].AlreadyMerged = 1;
+
+            // flag galaxy as finished 
+              if(Gal[p].Type == 2) 
+                Gal[p].Type = 3;
+            }
           }
         }
 

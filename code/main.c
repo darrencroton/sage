@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
   {
-    sprintf(bufz0, "%s/%s_z%1.2f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+    sprintf(bufz0, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)	 // seems to exist 
       continue;
 

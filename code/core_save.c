@@ -24,7 +24,7 @@ void save_galaxies(int filenr, int tree)
     fd = (FILE *) (size_t)(10 + n);
     offset_galsnapdata[n] = 0;
 #else
-    sprintf(buf, "%s/%s_z%1.2f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if(!(fd = fopen(buf, "r+")))
     {
@@ -135,7 +135,7 @@ void finalize_galaxy_file(int filenr)
     fd = (FILE *) (size_t)(10 + n);
     offset_galsnapdata[n] = 0;
 #else
-    sprintf(buf, "%s/%s_z%1.2f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
     if(!(fd = fopen(buf, "r+")))
     {
       printf("can't open file `%s'\n", buf);

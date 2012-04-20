@@ -27,24 +27,15 @@ void read_parameter_file(char *fname)
   {
     // Print out the neceassary Makefile flags to allow us to identify what properties should be in the output binary files. 
     printf ("\nMakefile flags:\n\n");
-#ifdef DUST_HI
-    printf("\tDUST_HI\n");
+
+#ifdef MILLENNIUM
+    printf("\tMILLENNIUM flag selected\n");
 #endif
-#ifdef MODEL3
-    printf("\tMODEL3\n");
+
+#ifdef BOLSHOI
+    printf("\tBOLSHOI flag selected\n");
 #endif
-#ifdef CHABRIER
-    printf("\tCHABRIER\n");
-#endif
-#ifdef SDSS
-    printf("\tSDSS\n");
-#endif
-#ifdef DEEP2
-    printf("\tDEEP2\n");
-#endif
-#ifdef COSMOS
-    printf("\tCOSMOS\n");
-#endif
+   
   }
 
   if(ThisTask == 0)
@@ -152,10 +143,6 @@ void read_parameter_file(char *fname)
 
   strcpy(tag[nt], "PartMass");
   addr[nt] = &PartMass;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "BoxSideLength");
-  addr[nt] = &BoxSideLength;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "EnergySN");

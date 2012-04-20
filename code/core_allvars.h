@@ -178,7 +178,6 @@ extern char *ThisNode;
 extern double Omega;
 extern double OmegaLambda;
 extern double PartMass;
-extern double BoxSideLength;
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
 extern double EtaSNcode, EtaSN;

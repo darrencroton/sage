@@ -24,20 +24,17 @@ INCL   =	./code/core_allvars.h  \
 			./Makefile
 
 
-OPT += -DNOUT=1 				  # This sets the number of galaxy output times
-
-OPT += -DMILLENNIUM       # Millennium simulation trees
-# OPT += -DBOLSHOI          # Bolshoi simulation trees
-
-# OPT += -DMINIMIZE_IO    # tree files will be preloaded, galaxy data will be written in one go
-
+OPT += -DNOUT=64	      # This sets the number of galaxy output times
+OPT += -DMILLENNIUM           # Millennium simulation trees
+# OPT += -DBOLSHOI            # Bolshoi simulation trees
+# OPT += -DMINIMIZE_IO        # tree files will be preloaded, galaxy data will be written in one go
 
 SYSTYPE = "mac"
 # SYSTYPE = "green"
 
 
-CC       =   mpicc          # sets the C-compiler (default)
-OPTIMIZE =   -g -O2 -Wall    # optimization and warning flags (default)
+CC       =   mpicc            # sets the C-compiler (default)
+OPTIMIZE =   -pg -O2 -Wall    # optimization and warning flags (default)
 
 ifeq ($(SYSTYPE),"mac")
 CC       =  mpicc
@@ -53,12 +50,14 @@ GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
 endif
 
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+LIBS   =   -pg -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
-CFLAGS =   -g $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS =   -pg $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+
+default: all
 
 $(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)  
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)  -pg
 
 $(OBJS): $(INCL) 
 
@@ -67,3 +66,5 @@ clean:
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
+
+all:  tidy $(EXEC) clean

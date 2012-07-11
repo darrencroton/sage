@@ -20,7 +20,7 @@ LastFile					7
 %SimulationDir				/nfs/dset/shrek070/millenium/simulations/millennium_full   ; Full Millennium
 %FileWithSnapList			/nfs/dset/shrek070/millenium/simulations/millennium.a_list
 
-% MAC
+% MAC - darren
 %SimulationDir				/Users/dcroton/Science/data/millennium/millennium_mini     ; Mini Millennium
 %SimulationDir				/Users/dcroton/Science/data/millennium/millennium_full     ; Full Millennium
 %SimulationDir				/Volumes/Data/millennium/millennium_full                   ; Full Millennium
@@ -29,7 +29,6 @@ LastFile					7
 % MAC - tibo
 SimulationDir                           /Users/tgarel/Simulations/millenium/millenium_mini    
 FileWithSnapList                        /Users/tgarel/Simulations/millenium/millennium.a_list
-
 
 LastSnapShotNr				63
 FilesPerSnapshot       		        8    ; Mini Millennium

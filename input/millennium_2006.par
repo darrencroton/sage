@@ -6,7 +6,6 @@ FileNameGalaxies			model
 FileWithOutputSnaps			./input/desired_outputsnaps.txt
 
 OutputDir					./output/results/minimillennium_2006
-% OutputDir					./output/results/fullmillennium_2006
 
 FirstFile					0
 LastFile					7

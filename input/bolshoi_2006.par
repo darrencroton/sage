@@ -42,7 +42,7 @@ DiskInstabilityOn			0		;0: switch off; 1: bulge and BH growth through instabilit
 %----- Parameters of physical model -------
 %------------------------------------------
 
-SfrEfficiency				0.07	;efficiency of SF (SFprescription=0)
+SfrEfficiency				0.1		;efficiency of SF (SFprescription=0)
 ClumpingFactor				3.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
 
 FeedbackReheatingEpsilon	2.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
@@ -50,7 +50,7 @@ FeedbackEjectionEfficiency	0.2 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		1.0		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			1.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
+RadioModeEfficiency			5.0e-4	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.00	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
 BlackHoleGrowthRate			0.01	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
 

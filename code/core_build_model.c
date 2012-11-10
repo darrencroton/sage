@@ -331,8 +331,18 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
                 merger_centralgal = Gal[merger_centralgal].CentralGal;
 
               time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
-              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+	 
+	      // TIBO: deal with embarrassing case where galaxy merge with itself... merger_centralgal = p
+	      // deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+              // Gal[p].AlreadyMerged = 1;
+	      
+	      //////////////////////// Make sure that it no longer happens
+	      if (p != merger_centralgal)
+		{
+		  deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+		}
               Gal[p].AlreadyMerged = 1;
+	      ////////////////////////
 
             // flag galaxy as finished 
               if(Gal[p].Type == 2) 

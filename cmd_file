@@ -1,17 +1,22 @@
 #!/bin/csh
 
-# 1 - Edit parameter file in input/ 
+# 1 - Edit parameter file in ./input
 # NB: Make sure the string 'OutputDir' appears ONLY ONCE in your param file (on the left side of the Output directory path)
 
 # 2 - Edit Makefile and type 'make'
+
 # 3 - Enter input parameter file's path here:
-set input_path = "./input/millennium_2006.par"
+set input_path = "./input/millennium.par"
+#set input_path = "./input/bolshoi.par"
+#set input_path = "./input/gigglez.par"
 
 # 4 - Enter SAGE executable file's path here:
 set exec_path        = "./sage"
 
 # 5 - Close this file and type 'chmod u+x cmd_file' (only if it is the 1st time you run cmd_file)
+
 # 6 - Launch run with './cmd_file'
+
 # 7 - Go grab a coffee
 
 

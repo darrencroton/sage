@@ -1,3 +1,4 @@
 sage
+gmon.out
+input/treefiles
 output/results
-output/old

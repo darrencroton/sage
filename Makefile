@@ -25,12 +25,16 @@ INCL   =	./code/core_allvars.h  \
 
 
 OPT += -DNOUT=1	      # This sets the number of galaxy output times
-OPT += -DMILLENNIUM           # Millennium simulation trees
+
+OPT += -DMILLENNIUM         # Millennium simulation trees
 # OPT += -DBOLSHOI            # Bolshoi simulation trees
+# OPT += -DGIGGLEZ						# GiggleZ simulation trees
+
 # OPT += -DMINIMIZE_IO        # tree files will be preloaded, galaxy data will be written in one go
 
 SYSTYPE = "mac"
 # SYSTYPE = "green"
+# SYSTYPE = "gstar"
 
 
 CC       =   mpicc            # sets the C-compiler (default)
@@ -49,6 +53,13 @@ GSL_INCL = -I/usr/local/gnu/x86_64/gsl/include
 GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
 endif
 
+ifeq ($(SYSTYPE),"gstar")
+CC       = /usr/local/x86_64/gnu/openmpi-1.4.5/bin/mpicc
+OPTIMIZE = -O3 -Wall
+GSL_INCL = -I/usr/local/x86_64/gnu/gsl-1.9/include
+GSL_LIBS = -L/usr/local/x86_64/gnu/gsl-1.9/lib
+endif
+
 
 LIBS   =   -pg -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
@@ -57,7 +68,7 @@ CFLAGS =   -pg $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 default: all
 
 $(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)  -pg
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) -pg
 
 $(OBJS): $(INCL) 
 

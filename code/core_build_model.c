@@ -148,11 +148,14 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].Vvir = get_virial_velocity(halonr);
 
           Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
+          Gal[ngal].Cooling = 0.0;
+          Gal[ngal].Heating = 0.0;
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {
             // central galaxy
             Gal[ngal].AlreadyMerged = 0;
+            Gal[ngal].MergTime = 999.9;            
             Gal[ngal].Type = 0;
 
             // // XXX - New stable galaxy growth: type 0 halos retain their maximum values
@@ -326,25 +329,20 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
           {
             if(Gal[p].MergTime < 0.0)  // a merger has occured! 
             {
-              merger_centralgal = Gal[p].CentralGal;
+              if(Gal[p].Type==1) 
+                merger_centralgal = centralgal;
+              else
+                merger_centralgal = Gal[p].CentralGal;
+
               if(Gal[merger_centralgal].AlreadyMerged == 1) 
                 merger_centralgal = Gal[merger_centralgal].CentralGal;
 
               time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
-	 
-	      // TIBO: deal with embarrassing case where galaxy merge with itself... merger_centralgal = p
-	      // deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
-              // Gal[p].AlreadyMerged = 1;
-	      
-	      //////////////////////// Make sure that it no longer happens
-	      if (p != merger_centralgal)
-		{
-		  deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
-		}
+   
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
               Gal[p].AlreadyMerged = 1;
-	      ////////////////////////
 
-            // flag galaxy as finished 
+              // flag galaxy as finished 
               if(Gal[p].Type == 2) 
                 Gal[p].Type = 3;
             }

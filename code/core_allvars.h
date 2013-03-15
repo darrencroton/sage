@@ -11,7 +11,7 @@ do {                                                                \
   myexit(sigterm);                                                \
 } while(0)
 
-#define  STEPS 20         // Number of integration intervals between two snapshots 
+#define  STEPS 10         // Number of integration intervals between two snapshots 
 #define  MAXGALFAC 10     
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50

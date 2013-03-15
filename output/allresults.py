@@ -704,8 +704,8 @@ if __name__ == '__main__':
         '-d',
         '--dir_name',
         dest='DirName',
-        default='./results/sage/millennium/',
-        help='input directory name (default: ./results/sage/millennium/)',
+        default='./results/millennium/',
+        help='input directory name (default: ./results/millennium/)',
         metavar='DIR',
         )
     parser.add_option(

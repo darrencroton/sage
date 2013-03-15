@@ -32,31 +32,17 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     {
       metallicity = get_metallicity(Gal[p].StellarMass, Gal[p].MetalsStellarMass);
 
-      // tibo: 2 lines below sometimes lead to BulgeMass > StellarMass... 
-      // Gal[p].BulgeMass += unstable_stars;
-      // Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
-
-      //////////////////// Make sure that it no longer happens
+      // ensure that the bulge doesn't end up bigger than the galaxy itself
       if (Gal[p].BulgeMass + unstable_stars > Gal[p].StellarMass)
-	{
-	  Gal[p].BulgeMass = Gal[p].StellarMass;
-	}
+        Gal[p].BulgeMass = Gal[p].StellarMass;
       else
-	{
-	  Gal[p].BulgeMass += unstable_stars;
-	}
+        Gal[p].BulgeMass += unstable_stars;
       
       if (Gal[p].MetalsBulgeMass + metallicity * unstable_stars > Gal[p].MetalsStellarMass)
-	{
-	  Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
-	}
+        Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
       else 
-	{
-	  Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
-	}   
+        Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
 
     // burst excess gas and feed black hole (really need a dedicated model for bursts and BH growth here)
     if(unstable_gas > 0.0)

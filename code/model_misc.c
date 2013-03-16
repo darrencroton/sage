@@ -41,6 +41,7 @@ void init_galaxy(int p, int halonr)
   Gal[p].Mvir = get_virial_mass(halonr);
   Gal[p].Rvir = get_virial_radius(halonr);
 
+  Gal[p].deltaMvir = 0.0;
 
   Gal[p].ColdGas = 0.0;
   Gal[p].StellarMass = 0.0;

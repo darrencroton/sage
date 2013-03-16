@@ -8,7 +8,7 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/bolshoi
 
 FirstFile					1000
-LastFile					1199
+LastFile					1099
 
 
 %------------------------------------------

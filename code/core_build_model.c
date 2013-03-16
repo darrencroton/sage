@@ -141,7 +141,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
 
-          // Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;  // XXX - New infall mass determination
+          Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
           if(get_virial_mass(halonr) > Gal[ngal].Mvir)
           {
@@ -199,14 +199,8 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   if(ngal == 0)
   {
     // We have no progenitors with galaxies. This means we create a new galaxy. 
-    // However, if it's a subhalo, we don't place a galaxy in it,
-    // because it would stay at zero luminosity anyway.
-
-    if(Halo[halonr].FirstHaloInFOFgroup == halonr)
-    {
-      init_galaxy(ngal, halonr);
-      ngal++;
-    }
+    init_galaxy(ngal, halonr);
+    ngal++;
   }
 
   // Per Halo there can be only one Type 0 or 1 galaxy, all others are Type 2 

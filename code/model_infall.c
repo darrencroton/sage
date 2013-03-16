@@ -57,8 +57,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     reionization_modifier = 1.0;
 
   infallingMass =
-    reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
-    // reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;  // XXX - New infall mass determination
+    // reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
+    reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;
 
   // the central galaxy keeps all the ejected mass 
   Gal[centralgal].EjectedMass = tot_ejected;
@@ -100,8 +100,8 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
     reionization_modifier = 1.0;
   
   strippedGas = -1.0 *
-    (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
-    // ( reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir ) / STEPS;  // XXX - New infall mass determination
+    // (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
+    ( reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir ) / STEPS;
 
   if(strippedGas > 0.0)
   {
@@ -179,6 +179,19 @@ double do_reionization(int gal, double Zcurr)
 
 void add_infall_to_hot(int gal, double infallingGas)
 {
+
+  // if the halo has lost mass, subtract baryons from the ejected mass first, then the hot gas
+  if(infallingGas < 0.0 && Gal[gal].EjectedMass > 0.0)
+  {  
+    Gal[gal].EjectedMass += infallingGas;
+    if(Gal[gal].EjectedMass < 0.0)
+    {
+      infallingGas = Gal[gal].EjectedMass;
+      Gal[gal].EjectedMass = Gal[gal].MetalsEjectedMass = 0.0;
+    }
+    else
+      infallingGas -= 0.0;
+  }
 
   // add the ambient infalling gas to the central galaxy hot component 
   Gal[gal].HotGas += infallingGas;

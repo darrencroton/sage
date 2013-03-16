@@ -63,7 +63,7 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   int j;
 
   o->Type = g->Type;
-  o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;;
+  o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;
   o->HaloIndex = g->HaloNr;
   o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
   o->TreeIndex = tree;

@@ -101,7 +101,7 @@ struct GALAXY
   float Vel[3];
   int   Len;   
   float Mvir;
-  // float deltaMvir;  // XXX - New infall mass determination
+  float deltaMvir;
   float Rvir;
   float Vvir;
   float Vmax;

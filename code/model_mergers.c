@@ -230,7 +230,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   if(SupernovaRecipeOn == 1)
   {
     ejected_mass = 
-      // 0.5 *  // XXX - New ejection/reincorporation scheme
+      0.5 * 
       (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (CentralVvir * CentralVvir) - 
       FeedbackReheatingEpsilon) * stars;
     if(ejected_mass < 0.0)

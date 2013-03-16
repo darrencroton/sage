@@ -151,6 +151,8 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
     Gal[centralgal].MetalsHotGas -= metallicityHot * ejected_mass;
     Gal[centralgal].EjectedMass += ejected_mass;
     Gal[centralgal].MetalsEjectedMass += metallicityHot * ejected_mass;
+
+    Gal[p].OutflowRate += reheated_mass;    
   }
 
 }

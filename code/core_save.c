@@ -117,6 +117,9 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   else
     o->Heating = 0.0;
 
+  o->LastMajorMerger = g->LastMajorMerger * UnitTime_in_Megayears;
+  o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+
 }
 
 

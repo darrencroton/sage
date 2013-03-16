@@ -81,6 +81,8 @@ struct GALAXY_OUTPUT
   float DiskScaleRadius;
   float Cooling;
   float Heating;
+  float LastMajorMerger;
+  float OutflowRate;
 };
 
 
@@ -130,6 +132,8 @@ struct GALAXY
   int AlreadyMerged;
   double Cooling;
   double Heating;
+  float LastMajorMerger;
+  float OutflowRate;
 }
 *Gal, *HaloGal;
 

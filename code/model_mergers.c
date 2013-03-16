@@ -68,7 +68,10 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0);
   if(mass_ratio > ThreshMajorMerger)
+  {
     make_bulge_from_burst(merger_centralgal);
+    Gal[merger_centralgal].LastMajorMerger = time;
+  }
 
 }
 

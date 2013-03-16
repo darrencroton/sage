@@ -150,6 +150,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
+          Gal[ngal].OutflowRate = 0.0;
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {
@@ -362,6 +363,7 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
   {
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
+    Gal[p].OutflowRate /= deltaT;    
   }
 
 

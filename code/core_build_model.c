@@ -142,11 +142,14 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].Vmax = Halo[halonr].Vmax;
 
           // Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;  // XXX - New infall mass determination
-          
-          Gal[ngal].Mvir = get_virial_mass(halonr);
-          Gal[ngal].Rvir = get_virial_radius(halonr);
-          Gal[ngal].Vvir = get_virial_velocity(halonr);
 
+          if(get_virial_mass(halonr) > Gal[ngal].Mvir)
+          {
+            Gal[ngal].Rvir = get_virial_radius(halonr);  //use the maximum Rvir in model
+            Gal[ngal].Vvir = get_virial_velocity(halonr);  //use the maximum Vvir in model
+          }
+          Gal[ngal].Mvir = get_virial_mass(halonr);
+          
           Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
@@ -158,15 +161,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].AlreadyMerged = 0;
             Gal[ngal].MergTime = 999.9;            
             Gal[ngal].Type = 0;
-
-            // // XXX - New stable galaxy growth: type 0 halos retain their maximum values
-            // if(get_virial_mass(halonr) > Gal[ngal].Mvir) 
-            // {
-            //   Gal[ngal].Mvir = get_virial_mass(halonr);
-            //   Gal[ngal].Rvir = get_virial_radius(halonr);
-            //   Gal[ngal].Vvir = get_virial_velocity(halonr);
-            // }
-
           }
           else
           {
@@ -175,12 +169,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
               // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.
               Gal[ngal].MergTime = estimate_merging_time(halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
             Gal[ngal].Type = 1;
-
-            // // XXX - New stable galaxy growth: type 1 halos are allowed to decay
-            // Gal[ngal].Mvir = get_virial_mass(halonr);
-            // Gal[ngal].Rvir = get_virial_radius(halonr);
-            // Gal[ngal].Vvir = get_virial_velocity(halonr);
-
           }
         }
         else

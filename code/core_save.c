@@ -81,8 +81,8 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
 
   o->Len = g->Len;
   o->Mvir = g->Mvir;
-  o->Rvir = g->Rvir;
-  o->Vvir = g->Vvir;
+  o->Rvir = get_virial_radius(g->HaloNr);  //output the actual Rvir, not the maximum Rvir
+  o->Vvir = get_virial_velocity(g->HaloNr);  //output the actual Vvir, not the maximum Vvir
   o->Vmax = g->Vmax;
   o->VelDisp = Halo[g->HaloNr].VelDisp;
 

@@ -300,8 +300,9 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
         Gal[p].MergTime -= deltaT / STEPS;
 
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
+        // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        if(galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons <= ThresholdSatDisruption))
+        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons <= ThresholdSatDisruption)))
         {
           if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {

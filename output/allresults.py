@@ -13,6 +13,8 @@ from os.path import getsize as getFileSize
 # Basic variables
 # ================================================================================
 
+whichsimulation = 0
+
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
     'k',
@@ -43,6 +45,7 @@ dilute = 3500  # Number of galaxies to plot in scatter plots
 sSFRcut = -11.0  # Divide quiescent from star forming galaxies
 
 # NOTE: Salpeter IMF has been assumed. For Chabrier search for "IMF" and uncomment lines.
+#       Be careful however and check the conversions yourself for all figures here!
 
 # ================================================================================
 
@@ -58,17 +61,22 @@ class Results:
 
         self.Hubble_h = 0.73
 
-        self.BoxSize = 62.5     # Mpc/h
-        self.MaxTreeFiles = 8   # FilesPerSnapshot
+        if whichsimulation == 0:    # Mini-Millennium
+          self.BoxSize = 62.5       # Mpc/h
+          self.MaxTreeFiles = 8     # FilesPerSnapshot
 
-        # self.BoxSize = 500      # Mpc/h
-        # self.MaxTreeFiles = 512 # FilesPerSnapshot
+        elif whichsimulation == 1:  # Millennium
+          self.BoxSize = 500        # Mpc/h
+          self.MaxTreeFiles = 512   # FilesPerSnapshot
 
-        # self.BoxSize = 250.0     # Mpc/h
-        # self.MaxTreeFiles = 12987   # FilesPerSnapshot
+        elif whichsimulation == 2:  # Bolshoi
+          self.BoxSize = 250.0      # Mpc/h
+          self.MaxTreeFiles = 12987 # FilesPerSnapshot
 
-        # self.BoxSize = 125.0     # Mpc/h
-        # self.MaxTreeFiles = 1   # FilesPerSnapshot
+        else:
+          print "Please pick a valid simulation!"
+          exit(1)
+
 
 
     def read_gals(self, model_name, first_file, last_file):
@@ -660,7 +668,7 @@ class Results:
     
         w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.StellarMass > 0.0))[0]
         if(len(w) > dilute): w = sample(w, dilute)
-    
+
         mvir = np.log10(G.Mvir[w] * 1.0e10)
         plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.3, c='k', alpha=0.5, label='Stars')
         plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.3, color='blue', alpha=0.5, label='Cold gas')

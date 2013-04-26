@@ -64,7 +64,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   if(SupernovaRecipeOn == 1)
   {
     ejected_mass = 
-      0.5 * 
+      // 0.5 * 
       (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -
       FeedbackReheatingEpsilon) * stars;
     if(ejected_mass < 0.0)

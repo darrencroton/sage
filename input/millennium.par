@@ -19,12 +19,12 @@ FileWithSnapList			./input/treefiles/millennium/millennium.a_list
 LastSnapShotNr				63
 
 % Milli-Millennium
-SimulationDir					./input/treefiles/millennium/millennium_mini
-FilesPerSnapshot			8    ; Mini Millennium
+%SimulationDir					./input/treefiles/millennium/millennium_mini
+%FilesPerSnapshot			8    ; Mini Millennium
 
 % Full Millennium
-%SimulationDir					./input/treefiles/millennium/millennium_full
-%FilesPerSnapshot			512  ; Full Millennium
+SimulationDir					./input/treefiles/millennium/millennium_full
+FilesPerSnapshot			512  ; Full Millennium
 
 
 %------------------------------------------
@@ -48,16 +48,16 @@ ClumpingFactor					5.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescri
 FeedbackReheatingEpsilon		3.5		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
 FeedbackEjectionEfficiency	0.35 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.5		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor		0.1		;fraction of ejected mass reincorporated per dynamical time to hot
 
 RadioModeEfficiency			1.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
 BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
-ThresholdSatDisruption	0.5		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
+ThresholdSatDisruption	3.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
 
-Yield										0.03	;fraction of SF mass produced as metals
+Yield										0.025	;fraction of SF mass produced as metals
 RecycleFraction					0.3		;fraction of SF mass instantaneously recycled back to cold
 FracZleaveDisk					0.0		;fraction of metals produced directly to hot component
 

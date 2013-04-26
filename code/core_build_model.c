@@ -310,7 +310,7 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
           }
           else
           {
-            if(Gal[p].MergTime < 0.0)  // a merger has occured! 
+            if(Gal[p].MergTime <= 0.0)  // a merger has occured! 
             {
               if(Gal[p].Type==1) 
                 merger_centralgal = centralgal;

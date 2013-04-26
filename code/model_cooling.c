@@ -15,7 +15,7 @@ double cooling_recipe(int gal, double dt)
 
   if(Gal[gal].HotGas > 1.0e-6)
   {
-    tcool = Gal[gal].Rvir / Gal[gal].Vvir;
+    tcool = Gal[gal].Rvir / Gal[gal].Vvir * 10.0;
     temp = 35.9 * Gal[gal].Vvir * Gal[gal].Vvir;         // in Kelvin 
 
     if(Gal[gal].MetalsHotGas > 0)

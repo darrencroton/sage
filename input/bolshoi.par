@@ -8,7 +8,7 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/bolshoi
 
 FirstFile					1000
-LastFile					1099
+LastFile					1999
 
 
 %------------------------------------------
@@ -37,13 +37,13 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 %----- Parameters of physical model -------
 %------------------------------------------
 
-SfrEfficiency						0.05	;efficiency of SF (SFprescription=0)
+SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
 ClumpingFactor					3.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
 
-FeedbackReheatingEpsilon		3.5		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
-FeedbackEjectionEfficiency	0.35 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
+FeedbackReheatingEpsilon		1.5		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
+FeedbackEjectionEfficiency	0.15 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.5		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor		0.2		;fraction of ejected mass reincorporated per dynamical time to hot
 
 RadioModeEfficiency			1.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)

@@ -26,7 +26,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
   SatelliteRadius = get_virial_radius(mother_halo);
 
   if(SatelliteMass > 0.0)
-    mergtime = 
+    mergtime = 2.0 *
     1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
   else
     mergtime = -1.0;
@@ -230,7 +230,6 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   if(SupernovaRecipeOn == 1)
   {
     ejected_mass = 
-      0.5 * 
       (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (CentralVvir * CentralVvir) - 
       FeedbackReheatingEpsilon) * stars;
     if(ejected_mass < 0.0)

@@ -179,10 +179,15 @@ double do_reionization(int gal, double Zcurr)
 
 void add_infall_to_hot(int gal, double infallingGas)
 {
+  float metallicity;
 
   // if the halo has lost mass, subtract baryons from the ejected mass first, then the hot gas
   if(infallingGas < 0.0 && Gal[gal].EjectedMass > 0.0)
   {  
+    metallicity = get_metallicity(Gal[gal].EjectedMass, Gal[gal].MetalsEjectedMass);
+    Gal[gal].MetalsEjectedMass += infallingGas*metallicity;
+    if(Gal[gal].MetalsEjectedMass < 0.0) Gal[gal].MetalsEjectedMass = 0.0;
+
     Gal[gal].EjectedMass += infallingGas;
     if(Gal[gal].EjectedMass < 0.0)
     {
@@ -190,16 +195,20 @@ void add_infall_to_hot(int gal, double infallingGas)
       Gal[gal].EjectedMass = Gal[gal].MetalsEjectedMass = 0.0;
     }
     else
-      infallingGas -= 0.0;
+      infallingGas = 0.0;
   }
 
-  // add the ambient infalling gas to the central galaxy hot component 
-  Gal[gal].HotGas += infallingGas;
+  // if the halo has lost mass, subtract hot metals mass next, then the hot gas
+  if(infallingGas < 0.0 && Gal[gal].MetalsHotGas > 0.0)
+  {
+    metallicity = get_metallicity(Gal[gal].HotGas, Gal[gal].MetalsHotGas);
+    Gal[gal].MetalsHotGas += infallingGas*metallicity;
+    if(Gal[gal].MetalsHotGas < 0.0) Gal[gal].MetalsHotGas = 0.0;
+  }
 
-  if(Gal[gal].HotGas < 0.0)
-    Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;
-  else if(Gal[gal].MetalsHotGas < 0.0)
-    Gal[gal].MetalsHotGas = 0.0;
+  // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
+  Gal[gal].HotGas += infallingGas;
+  if(Gal[gal].HotGas < 0.0) Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;
 
 }
 

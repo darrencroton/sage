@@ -83,20 +83,11 @@ double get_disk_radius(int halonr, int p)
 
   double SpinParameter;
   
-#ifdef BOLSHOI  
-  // Bolshoi spins currently have a problem with the x component. This will be fixed and the below removed.
-  SpinParameter =
-    sqrt(Halo[halonr].Spin[0]/1000.0 * Halo[halonr].Spin[0]/1000.0 + Halo[halonr].Spin[1] * Halo[halonr].Spin[1] +
-    Halo[halonr].Spin[2] * Halo[halonr].Spin[2]) / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-#else
   SpinParameter =
     sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + Halo[halonr].Spin[1] * Halo[halonr].Spin[1] +
     Halo[halonr].Spin[2] * Halo[halonr].Spin[2]) / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-#endif  
     
   return (SpinParameter / 1.414) * Gal[p].Rvir;
-
-  // return 0.1 * Gal[p].Rvir; 
 
 }
 

@@ -149,7 +149,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].Vvir = get_virial_velocity(halonr);  //use the maximum Vvir in model
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
-          
+
           Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;

@@ -45,7 +45,7 @@ FeedbackEjectionEfficiency	0.15 	;mixing efficiency of SN energy with hot gas to
 
 ReIncorporationFactor		0.2		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			1.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
+RadioModeEfficiency			2.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
 BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
 

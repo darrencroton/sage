@@ -8,7 +8,7 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/bolshoi
 
 FirstFile					1000
-LastFile					1999
+LastFile					1499
 
 
 %------------------------------------------
@@ -18,7 +18,7 @@ LastFile					1999
 FileWithSnapList			./input/treefiles/bolshoi/bolshoi.a_list
 LastSnapShotNr				180
 
-SimulationDir					./input/treefiles/bolshoi
+SimulationDir					./input/treefiles/bolshoi/
 FilesPerSnapshot			12987
 
 
@@ -38,12 +38,12 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 %------------------------------------------
 
 SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
-ClumpingFactor					3.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
+ClumpingFactor					3.0		;gas clumping factor in Krumholz & Dekel 2011 (SFprescription=1)
 
-FeedbackReheatingEpsilon		1.5		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
-FeedbackEjectionEfficiency	0.15 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
+FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
+FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.2		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
 RadioModeEfficiency			2.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
@@ -52,7 +52,7 @@ BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
 ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
 
-Yield										0.03	;fraction of SF mass produced as metals
+Yield										0.025	;fraction of SF mass produced as metals
 RecycleFraction					0.43	;fraction of SF mass instantaneously recycled back to cold
 FracZleaveDisk					0.0		;fraction of metals produced directly to hot component
 

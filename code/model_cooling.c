@@ -15,7 +15,7 @@ double cooling_recipe(int gal, double dt)
 
   if(Gal[gal].HotGas > 1.0e-6)
   {
-    tcool = Gal[gal].Rvir / Gal[gal].Vvir * 10.0;
+    tcool = Gal[gal].Rvir / Gal[gal].Vvir;
     temp = 35.9 * Gal[gal].Vvir * Gal[gal].Vvir;         // in Kelvin 
 
     if(Gal[gal].MetalsHotGas > 0)
@@ -26,8 +26,7 @@ double cooling_recipe(int gal, double dt)
     lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
     x = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
     x /= (UnitDensity_in_cgs * UnitTime_in_s);         // now in internal units 
-    // note that in the below 0.885 = 3/2 * mu , with mu=0.59 for a fully ionized gas
-    rho_rcool = x / tcool * 0.885;
+    rho_rcool = x / tcool * 0.885;  // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
     // an isothermal density profile for the hot gas is assumed here 
     rho0 = Gal[gal].HotGas / (4 * M_PI * Gal[gal].Rvir);

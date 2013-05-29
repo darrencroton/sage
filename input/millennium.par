@@ -23,7 +23,7 @@ LastSnapShotNr				63
 %FilesPerSnapshot			8    ; Mini Millennium
 
 % Full Millennium
-SimulationDir					./input/treefiles/millennium/millennium_full
+SimulationDir					./input/treefiles/millennium/millennium_full/
 FilesPerSnapshot			512  ; Full Millennium
 
 
@@ -34,7 +34,7 @@ FilesPerSnapshot			512  ; Full Millennium
 SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011
 AGNrecipeOn						1		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
-ReionizationOn				1		;0: switch off
+ReionizationOn				0		;0: switch off
 DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
 
 
@@ -45,20 +45,20 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
 ClumpingFactor					5.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
 
-FeedbackReheatingEpsilon		3.5		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
-FeedbackEjectionEfficiency	0.35 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
+FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
+FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.1		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			1.0e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
+RadioModeEfficiency			5.0e-4	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
 BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
-ThresholdSatDisruption	3.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
+ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
 
 Yield										0.025	;fraction of SF mass produced as metals
-RecycleFraction					0.3		;fraction of SF mass instantaneously recycled back to cold
+RecycleFraction					0.43	;fraction of SF mass instantaneously recycled back to cold
 FracZleaveDisk					0.0		;fraction of metals produced directly to hot component
 
 Reionization_z0					8.0		;these parameter choices give the best fit to Genedin (2000)...

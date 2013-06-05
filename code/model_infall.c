@@ -101,7 +101,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
   
   strippedGas = -1.0 *
     // (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
-    ( reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir ) / STEPS;
+    ( reionization_modifier * BaryonFrac * Gal[gal].deltaMvir ) / STEPS;
 
   if(strippedGas > 0.0)
   {

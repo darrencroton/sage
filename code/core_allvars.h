@@ -83,6 +83,10 @@ struct GALAXY_OUTPUT
   float Heating;
   float LastMajorMerger;
   float OutflowRate;
+
+  float infallMvir;  //infall properties
+  float infallVvir;
+  float infallVmax;
 };
 
 
@@ -134,6 +138,10 @@ struct GALAXY
   double Heating;
   float LastMajorMerger;
   float OutflowRate;
+
+  float infallMvir;  //infall properties
+  float infallVvir;
+  float infallVmax;
 }
 *Gal, *HaloGal;
 

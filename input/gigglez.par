@@ -8,18 +8,18 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/gigglez
 
 FirstFile					0
-LastFile					0
+LastFile					7
 
 
 %------------------------------------------
 %----- Simulation input files  ------------
 %------------------------------------------
 
-FileWithSnapList			./input/treefiles/gigglez/gigglez.a_list
-LastSnapShotNr				60
+FileWithSnapList			./input/treefiles/gigglez/gigglez_mr/gigglez.a_list
+LastSnapShotNr				116
 
-SimulationDir					./input/treefiles/gigglez
-FilesPerSnapshot			1
+SimulationDir					./input/treefiles/gigglez/gigglez_mr
+FilesPerSnapshot			8
 
 
 %------------------------------------------
@@ -29,28 +29,28 @@ FilesPerSnapshot			1
 SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011
 AGNrecipeOn						1		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
-ReionizationOn				1		;0: switch off
-DiskInstabilityOn			0		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
+ReionizationOn				0		;0: switch off
+DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
 
 
 %------------------------------------------
 %----- Parameters of physical model -------
 %------------------------------------------
 
-SfrEfficiency						0.05	;efficiency of SF (SFprescription=0)
-ClumpingFactor					5.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
+SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
+ClumpingFactor					3.0		;gas clumping factor in Krunholz & Dekel 2011 (SFprescription=1)
 
-FeedbackReheatingEpsilon		2.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
-FeedbackEjectionEfficiency	0.03 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
+FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
+FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.1		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			5.0e-5	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
-QuasarModeEfficiency		0.00	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
-BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
+RadioModeEfficiency			3.0e-4	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
+QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
+BlackHoleGrowthRate			0.025	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
-ThresholdSatDisruption	0.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
+ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
 
 Yield										0.025	;fraction of SF mass produced as metals
 RecycleFraction					0.43	;fraction of SF mass instantaneously recycled back to cold
@@ -73,8 +73,8 @@ BaryonFrac			0.17
 Hubble_h				0.71
 
 %PartMass				0.7516436		;GiggleZ_NR
-%PartMass				0.09395545	;GiggleZ_MR
-PartMass				0.01174443	;GiggleZ_HR
+PartMass				0.09395545	;GiggleZ_MR
+%PartMass				0.01174443	;GiggleZ_HR
 
 UnitLength_in_cm					3.08568e+24	;WATCH OUT: Mpc/h
 UnitMass_in_g							1.989e+43		;WATCH OUT: 10^10Msun

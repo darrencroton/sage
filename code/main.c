@@ -100,8 +100,14 @@ int main(int argc, char **argv)
 
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
   {
+    sprintf(bufz0, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
+    if(!(fd = fopen(bufz0, "r")))
+      continue;  // tree file does not exist, move along
+    else
+      fclose(fd);
+
     sprintf(bufz0, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
-    if(stat(bufz0, &filestatus) == 0)	 // seems to exist 
+    if(stat(bufz0, &filestatus) == 0)	 // seems to exist, move along
       continue;
 
     if((fd = fopen(bufz0, "w")))

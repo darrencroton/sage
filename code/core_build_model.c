@@ -164,6 +164,13 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           }
           else
           {
+            if(Gal[ngal].Type == 0)  //infall properties
+            {
+              Gal[ngal].infallMvir = Gal[ngal].Mvir;
+              Gal[ngal].infallVvir = Gal[ngal].Vvir;
+              Gal[ngal].infallVmax = Gal[ngal].Vmax;
+            }
+
             // subhalo satellite galaxy
             if(Gal[ngal].Type == 0 || Gal[ngal].MergTime > 999.0)
               // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.

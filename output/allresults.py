@@ -13,7 +13,7 @@ from os.path import getsize as getFileSize
 # Basic variables
 # ================================================================================
 
-whichsimulation = 0
+whichsimulation = 1
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
@@ -73,6 +73,10 @@ class Results:
           self.BoxSize = 250.0      # Mpc/h
           self.MaxTreeFiles = 12987 # FilesPerSnapshot
 
+        elif whichsimulation == 3:  # GiggleZ MR
+          self.BoxSize = 125.0      # Mpc/h
+          self.MaxTreeFiles = 8 # FilesPerSnapshot
+
         else:
           print "Please pick a valid simulation!"
           exit(1)
@@ -120,7 +124,10 @@ class Results:
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
             ('LastMajorMerger'              , np.float32),
-            ('OutflowRate'                  , np.float32)
+            ('OutflowRate'                  , np.float32),
+            ('infallMvir'                  , np.float32),
+            ('infallVvir'                  , np.float32),
+            ('infallVmax'                  , np.float32)
             ]
         names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
@@ -198,16 +205,19 @@ class Results:
 
         print
         print "Total galaxies considered:", TotNGals
-        print
 
         # Convert the Galaxy array into a recarray
         G = G.view(np.recarray)
+
+        w = np.where(G.StellarMass > 1.0)[0]
+        print "Galaxies more massve than 10^10Msun/h:", len(w)
+
+        print
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
 
         return G
-
 
 # --------------------------------------------------------
 
@@ -341,6 +351,8 @@ class Results:
 
         plt.ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')  # Set the y...
         plt.xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')  # and the x-axis labels
+
+        plt.text(12.2, 0.03, whichsimulation, size = 'large')
 
         leg = plt.legend(loc='lower left', numpoints=1,
                          labelspacing=0.1)
@@ -697,6 +709,125 @@ class Results:
         OutputList.append(outputFile)
 
 
+# --------------------------------------------------------
+
+    def SpatialDistribution(self, G):
+    
+        print 'Plotting the spatial distribution of all galaxies'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+    
+        w = np.where((G.Mvir > 0.0) & (G.StellarMass > 0.1))[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+
+        xx = G.Pos[w,0]
+        yy = G.Pos[w,1]
+        zz = G.Pos[w,2]
+
+        buff = self.BoxSize*0.1
+
+        ax = plt.subplot(221)  # 1 plot on the figure
+        plt.scatter(xx, yy, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+
+        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{y}$')  # and the x-axis labels
+        
+        ax = plt.subplot(222)  # 1 plot on the figure
+        plt.scatter(xx, zz, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+
+        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+        
+        ax = plt.subplot(223)  # 1 plot on the figure
+        plt.scatter(yy, zz, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+        plt.ylabel(r'$\mathrm{y}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+            
+        outputFile = OutputDir + '9.SpatialDistribution' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# --------------------------------------------------------
+
+    def VelocityDistribution(self, G):
+    
+        print 'Plotting the velocity distribution of all galaxies'
+    
+        seed(2222)
+    
+        mi = -40.0
+        ma = 40.0
+        binwidth = 0.5
+        NB = (ma - mi) / binwidth
+
+        # set up figure
+        plt.figure()
+        ax = plt.subplot(111)
+
+        pos_x = G.Pos[:,0] / self.Hubble_h
+        pos_y = G.Pos[:,1] / self.Hubble_h
+        pos_z = G.Pos[:,2] / self.Hubble_h
+
+        vel_x = G.Vel[:,0]
+        vel_y = G.Vel[:,1]
+        vel_z = G.Vel[:,2]
+
+        dist_los = np.sqrt(pos_x*pos_x + pos_y*pos_y + pos_z*pos_z)
+        vel_los = (pos_x/dist_los)*vel_x + (pos_y/dist_los)*vel_y + (pos_z/dist_los)*vel_z
+        dist_red = dist_los + vel_los/(self.Hubble_h*100.0)
+
+        tot_gals = len(pos_x)
+
+
+        (counts, binedges) = np.histogram(vel_los/(self.Hubble_h*100.0), range=(mi, ma), bins=NB)
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        plt.plot(xaxeshisto, counts / binwidth / tot_gals, 'k-', label='los-velocity')
+
+        (counts, binedges) = np.histogram(vel_x/(self.Hubble_h*100.0), range=(mi, ma), bins=NB)
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        plt.plot(xaxeshisto, counts / binwidth / tot_gals, 'r-', label='x-velocity')
+
+        (counts, binedges) = np.histogram(vel_y/(self.Hubble_h*100.0), range=(mi, ma), bins=NB)
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        plt.plot(xaxeshisto, counts / binwidth / tot_gals, 'g-', label='y-velocity')
+
+        (counts, binedges) = np.histogram(vel_z/(self.Hubble_h*100.0), range=(mi, ma), bins=NB)
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        plt.plot(xaxeshisto, counts / binwidth / tot_gals, 'b-', label='z-velocity')
+
+
+        plt.yscale('log', nonposy='clip')
+        plt.axis([mi, ma, 1e-5, 0.5])
+        # plt.axis([mi, ma, 0, 0.13])
+
+        plt.ylabel(r'$\mathrm{Box\ Normalised\ Count}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{Velocity / H}_{0}$')  # and the x-axis labels
+
+        leg = plt.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+        outputFile = OutputDir + '10.VelocityDistribution' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+
 
 # =================================================================
 
@@ -765,5 +896,7 @@ if __name__ == '__main__':
     res.Metallicity(G)
     res.BlackHoleBulgeRelationship(G)
     res.MassReservoirScatter(G)
+    res.SpatialDistribution(G)
+    res.VelocityDistribution(G)
 
 

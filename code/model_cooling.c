@@ -44,14 +44,20 @@ double cooling_recipe(int gal, double dt)
     else if(coolingGas < 0.0)
       coolingGas = 0.0;
 
-    if (coolingGas > 0.0)
-      Gal[gal].Cooling += 0.5 * coolingGas * Gal[gal].Vvir * Gal[gal].Vvir;
+    if(AGNrecipeOn > 0 && coolingGas > 0.0)
+			do_AGN_heating(coolingGas, gal, dt, x, rcool);
 
-    if(AGNrecipeOn > 0 && Gal[gal].Type == 0)
-      coolingGas -= do_AGN_heating(coolingGas, gal, dt, x, rcool);
-
+		// update the cooling rate based on current AGN heating
+		if(Gal[gal].r_heat < Gal[gal].Rvir)
+			coolingGas = (1.0 - Gal[gal].r_heat / Gal[gal].Rvir) * coolingGas;
+		else
+			coolingGas = 0.0;
+	
     if(coolingGas < 0.0)
       coolingGas = 0.0;
+
+    if (coolingGas > 0.0)
+      Gal[gal].Cooling += 0.5 * coolingGas * Gal[gal].Vvir * Gal[gal].Vvir;
   }
   else
     coolingGas = 0.0;
@@ -64,15 +70,15 @@ double cooling_recipe(int gal, double dt)
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool)
 {
-  double AGNrate, EDDrate, AGNaccreted, AGNcoeff, AGNheating, metallicity;
+  double AGNrate, EDDrate, AGNaccreted, AGNcoeff, AGNheating, metallicity, r_heat_new;
 
   if(Gal[centralgal].HotGas > 0.0)
   {
 
     if(AGNrecipeOn == 2)
     {
-      // Bondi-Hoyle accretion recipe -- efficiency = 0.3 
-      AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * 0.3;
+      // Bondi-Hoyle accretion recipe
+      AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * RadioModeEfficiency;
     }
     else if(AGNrecipeOn == 3)
     {
@@ -129,6 +135,11 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
 
   if (AGNheating > 0.0)
     Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
+  
+  // update the heating radius as needed
+  r_heat_new = (AGNheating / coolingGas) * Gal[centralgal].Rvir;
+  if(r_heat_new > Gal[centralgal].r_heat)
+	  Gal[centralgal].r_heat = r_heat_new;
 
   return AGNheating;
 

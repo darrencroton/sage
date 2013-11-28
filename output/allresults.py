@@ -13,7 +13,7 @@ from os.path import getsize as getFileSize
 # Basic variables
 # ================================================================================
 
-whichsimulation = 1
+whichsimulation = 0
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
@@ -29,7 +29,7 @@ plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
 plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
-plt.rc('text', usetex=True)
+#plt.rc('text', usetex=True)
 
 OutputDir = '' # set in main below
 
@@ -369,6 +369,8 @@ class Results:
         OutputList.append(outputFile)
 
 # ---------------------------------------------------------
+
+
     def GasMassFunction(self, G):
 
         print 'Plotting the stellar mass function'
@@ -391,15 +393,6 @@ class Results:
         # Set the x-axis values to be the centre of the bins
         xaxeshisto = binedges[:-1] + 0.5 * binwidth
         
-        # additionally calculate red
-        w = np.where(sSFR < 10.0**sSFRcut)[0]
-        massRED = mass[w]
-        (countsRED, binedges) = np.histogram(massRED, range=(mi, ma), bins=NB)
-
-        # additionally calculate blue
-        w = np.where(sSFR > 10.0**sSFRcut)[0]
-        massBLU = mass[w]
-        (countsBLU, binedges) = np.histogram(massBLU, range=(mi, ma), bins=NB)
 
         # Baldry+ 2008 modified data used for the MCMC fitting
         Zwaan = np.array([[6.933,   -0.333],
@@ -494,7 +487,6 @@ class Results:
 
         # Add this plot to our output list
         OutputList.append(outputFile)
-
 
 
 # ---------------------------------------------------------
@@ -1001,7 +993,7 @@ if __name__ == '__main__':
     if opt.DirName[-1] != '/':
         opt.DirName += '/'
 
-    OutputDir = opt.DirName + '/plots/'
+    OutputDir = opt.DirName + 'plots/'
 
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
@@ -1017,6 +1009,7 @@ if __name__ == '__main__':
     G = res.read_gals(fin_base, FirstFile, LastFile)
 
     res.StellarMassFunction(G)
+    res.GasMassFunction(G)
     res.BaryonicMassFunction(G)
     res.BaryonicTullyFisher(G)
     res.SpecificStarFormationRate(G)

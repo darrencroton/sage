@@ -368,6 +368,134 @@ class Results:
         # Add this plot to our output list
         OutputList.append(outputFile)
 
+# ---------------------------------------------------------
+    def GasMassFunction(self, G):
+
+        print 'Plotting the stellar mass function'
+
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+
+        binwidth = 0.1  # mass function histogram bin width
+
+        # calculate all
+        w = np.where(G.ColdGas > 0.0)[0]
+        mass = np.log10(G.ColdGas[w] * 1.0e10 / self.Hubble_h)
+        sSFR = G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        mi = np.floor(min(mass)) - 2
+        ma = np.floor(max(mass)) + 2
+        NB = (ma - mi) / binwidth
+
+        (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
+
+        # Set the x-axis values to be the centre of the bins
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        
+        # additionally calculate red
+        w = np.where(sSFR < 10.0**sSFRcut)[0]
+        massRED = mass[w]
+        (countsRED, binedges) = np.histogram(massRED, range=(mi, ma), bins=NB)
+
+        # additionally calculate blue
+        w = np.where(sSFR > 10.0**sSFRcut)[0]
+        massBLU = mass[w]
+        (countsBLU, binedges) = np.histogram(massBLU, range=(mi, ma), bins=NB)
+
+        # Baldry+ 2008 modified data used for the MCMC fitting
+        Zwaan = np.array([[6.933,   -0.333],
+            [7.057,   -0.490],
+            [7.209,   -0.698],
+            [7.365,   -0.667],
+            [7.528,   -0.823],
+            [7.647,   -0.958],
+            [7.809,   -0.917],
+            [7.971,   -0.948],
+            [8.112,   -0.927],
+            [8.263,   -0.917],
+            [8.404,   -1.062],
+            [8.566,   -1.177],
+            [8.707,   -1.177],
+            [8.853,   -1.312],
+            [9.010,   -1.344],
+            [9.161,   -1.448],
+            [9.302,   -1.604],
+            [9.448,   -1.792],
+            [9.599,   -2.021],
+            [9.740,   -2.406],
+            [9.897,   -2.615],
+            [10.053,  -3.031],
+            [10.178,  -3.677],
+            [10.335,  -4.448],
+            [10.492,  -5.083]        ], dtype=np.float32)
+        
+        ObrRaw = np.array([
+            [7.300,   -1.104],
+            [7.576,   -1.302],
+            [7.847,   -1.250],
+            [8.133,   -1.240],
+            [8.409,   -1.344],
+            [8.691,   -1.479],
+            [8.956,   -1.792],
+            [9.231,   -2.271],
+            [9.507,   -3.198],
+            [9.788,   -5.062 ]        ], dtype=np.float32)
+
+        ObrCold = np.array([
+            [8.009,   -1.042],
+            [8.215,   -1.156],
+            [8.409,   -0.990],
+            [8.604,   -1.156],
+            [8.799,   -1.208],
+            [9.020,   -1.333],
+            [9.194,   -1.385],
+            [9.404,   -1.552],
+            [9.599,   -1.677],
+            [9.788,   -1.812],
+            [9.999,   -2.312],
+            [10.172,  -2.656],
+            [10.362,  -3.500],
+            [10.551,  -3.635],
+            [10.740,  -5.010]        ], dtype=np.float32)
+
+        ObrCold_xval = np.log10(10**(ObrCold[:, 0])  /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        ObrCold_yval = (10**(ObrCold[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
+        Zwaan_xval = np.log10(10**(Zwaan[:, 0]) /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        Zwaan_yval = (10**(Zwaan[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
+        ObrRaw_xval = np.log10(10**(ObrRaw[:, 0])  /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        ObrRaw_yval = (10**(ObrRaw[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
+
+        plt.plot(ObrCold_xval, ObrCold_yval, color='black', lw = 7, alpha=0.25, label='Obr. & Raw. 2009 (Cold Gas)')
+        plt.plot(Zwaan_xval, Zwaan_yval, color='cyan', lw = 7, alpha=0.25, label='Zwaan et al. 2005 (HI)')
+        plt.plot(ObrRaw_xval, ObrRaw_yval, color='magenta', lw = 7, alpha=0.25, label='Obr. & Raw. 2009 (H2)')
+
+        
+        # Overplot the model histograms
+        plt.plot(xaxeshisto, counts    / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h / binwidth, 'k-', label='Model - Cold Gas')
+
+        plt.yscale('log', nonposy='clip')
+        plt.axis([8.0, 11.5, 1.0e-6, 1.0e-1])
+
+        # Set the x-axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+        plt.ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')  # Set the y...
+        plt.xlabel(r'$\log_{10} M_{\mathrm{X}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='lower left', numpoints=1,
+                         labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+        outputFile = OutputDir + '2.GasMassFunction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
 
 # ---------------------------------------------------------
 
@@ -423,7 +551,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
 
-        outputFile = OutputDir + '2.BaryonicMassFunction' + OutputFormat
+        outputFile = OutputDir + '3.BaryonicMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -472,7 +600,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + '3.BaryonicTullyFisher' + OutputFormat
+        outputFile = OutputDir + '4.BaryonicTullyFisher' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -518,7 +646,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + '4.SpecificStarFormationRate' + OutputFormat
+        outputFile = OutputDir + '5.SpecificStarFormationRate' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -561,7 +689,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + '5.GasFraction' + OutputFormat
+        outputFile = OutputDir + '6.GasFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -611,7 +739,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + '6.Metallicity' + OutputFormat
+        outputFile = OutputDir + '7.Metallicity' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -658,7 +786,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + '7.BlackHoleBulgeRelationship' + OutputFormat
+        outputFile = OutputDir + '8.BlackHoleBulgeRelationship' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -700,7 +828,7 @@ class Results:
 
         plt.text(13.5, 8.0, r'$\mathrm{All}')
             
-        outputFile = OutputDir + '8.MassReservoirScatter' + OutputFormat
+        outputFile = OutputDir + '9.MassReservoirScatter' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -748,7 +876,7 @@ class Results:
         plt.ylabel(r'$\mathrm{y}$')  # Set the y...
         plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
             
-        outputFile = OutputDir + '9.SpatialDistribution' + OutputFormat
+        outputFile = OutputDir + '10.SpatialDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -818,7 +946,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize('medium')
 
-        outputFile = OutputDir + '10.VelocityDistribution' + OutputFormat
+        outputFile = OutputDir + '11.VelocityDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()

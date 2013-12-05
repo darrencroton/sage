@@ -6,10 +6,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
 
+
+/* Keep a static file handle to remove the need to
+   do constant seeking. */
+FILE* load_fd = NULL;
 
 
 void load_tree_table(int filenr)
@@ -23,26 +28,28 @@ void load_tree_table(int filenr)
   fd = (FILE *) 1;
   offset_treedata = 0;
 #else
+
+  /* Open the file each time this function is called. */
   sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
-  if(!(fd = fopen(buf, "r")))
+  if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
     ABORT(1);
   }
 #endif
 
-  myfread(&Ntrees, 1, sizeof(int), fd);
-  myfread(&totNHalos, 1, sizeof(int), fd);
+  myfread(&Ntrees, 1, sizeof(int), load_fd);
+  myfread(&totNHalos, 1, sizeof(int), load_fd);
 
   TreeNHalos = mymalloc(sizeof(int) * Ntrees);
   TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
 
   for(n = 0; n < NOUT; n++)
     TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
-  myfread(TreeNHalos, Ntrees, sizeof(int), fd);
+  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
 
 #ifndef MINIMIZE_IO
-  fclose(fd);
+  /* fclose(fd); */
 #endif
 
   if(Ntrees)
@@ -97,28 +104,30 @@ void load_tree(int filenr, int nr)
   char buf[1000];
 #endif
 
+  /* Must have a FD. */
+  assert( load_fd );
 
 #ifdef MINIMIZE_IO
   fd = (FILE *) 1;
   offset_treedata = 0;
 #else
-  sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
-  if(!(fd = fopen(buf, "r")))
-  {
-    printf("can't open file `%s'\n", buf);
-    ABORT(1);
-  }
+  /* sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr); */
+  /* if(!(fd = fopen(buf, "r"))) */
+  /* { */
+  /*   printf("can't open file `%s'\n", buf); */
+  /*   ABORT(1); */
+  /* } */
 #endif
 
-  myfseek(fd, sizeof(int) * (2 + Ntrees), SEEK_CUR);
-  myfseek(fd, sizeof(struct halo_data) * TreeFirstHalo[nr], SEEK_CUR);
+  /* myfseek(fd, sizeof(int) * (2 + Ntrees), SEEK_CUR); */
+  /* myfseek(fd, sizeof(struct halo_data) * TreeFirstHalo[nr], SEEK_CUR); */
 
   Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);
 
-  myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), fd);
+  myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
 
 #ifndef MINIMIZE_IO
-  fclose(fd);
+  /* fclose(fd); */
 #endif
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);

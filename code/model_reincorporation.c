@@ -19,8 +19,8 @@ void reincorporate_gas(int centralgal, double dt)
   if(Gal[centralgal].Vvir > Vcrit)
   {
     reincorporated = 
-      ( pow(Gal[centralgal].Vvir / Vcrit, 1.0) - 1.0 ) *
-      Gal[centralgal].EjectedMass / (Gal[centralgal].Rvir / Gal[centralgal].Vvir) * dt; 
+      ( Gal[centralgal].Vvir / Vcrit - 1.0 ) *
+				Gal[centralgal].EjectedMass / (Gal[centralgal].Rvir / Gal[centralgal].Vvir) * dt; 
 
     if(reincorporated > Gal[centralgal].EjectedMass)
       reincorporated = Gal[centralgal].EjectedMass;

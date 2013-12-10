@@ -8,7 +8,7 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/millennium
 
 FirstFile					0
-LastFile					7
+LastFile					15
 
 
 %------------------------------------------
@@ -23,7 +23,7 @@ LastSnapShotNr				63
 %FilesPerSnapshot			8    ; Mini Millennium
 
 % Full Millennium
-SimulationDir					./input/treefiles/millennium/millennium_full/
+SimulationDir					./input/treefiles/millennium/millennium_full/local/
 FilesPerSnapshot			512  ; Full Millennium
 
 
@@ -32,7 +32,7 @@ FilesPerSnapshot			512  ; Full Millennium
 %------------------------------------------
 
 SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011
-AGNrecipeOn						1		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
+AGNrecipeOn						2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
 ReionizationOn				0		;0: switch off
 DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
@@ -50,9 +50,9 @@ FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			5.0e-4	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
-QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
-BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
+RadioModeEfficiency			0.5		;AGN radio mode efficiency (AGNrecipeOn>0) -- 5.0e-4 / 0.5
+QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
+BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
 ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM

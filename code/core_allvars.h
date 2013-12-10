@@ -87,6 +87,7 @@ struct GALAXY_OUTPUT
   float infallMvir;  //infall properties
   float infallVvir;
   float infallVmax;
+  float r_heat;
 };
 
 
@@ -142,6 +143,7 @@ struct GALAXY
   float infallMvir;  //infall properties
   float infallVvir;
   float infallVmax;
+  float r_heat;
 }
 *Gal, *HaloGal;
 

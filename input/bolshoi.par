@@ -18,7 +18,7 @@ LastFile					1499
 FileWithSnapList			./input/treefiles/bolshoi/bolshoi.a_list
 LastSnapShotNr				180
 
-SimulationDir					./input/treefiles/bolshoi/
+SimulationDir					./input/treefiles/bolshoi/local/
 FilesPerSnapshot			12987
 
 
@@ -27,7 +27,7 @@ FilesPerSnapshot			12987
 %------------------------------------------
 
 SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011
-AGNrecipeOn						1		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
+AGNrecipeOn						2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
 ReionizationOn				1		;0: switch off
 DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
@@ -45,9 +45,9 @@ FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			1.5e-3	;AGN radio mode efficiency - in Msun/yr for MW-type galaxy (AGNrecipeOn=1)
-QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn=1)
-BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn=1)
+RadioModeEfficiency			0.5		;AGN radio mode efficiency (AGNrecipeOn>0) -- 1.5e-3 / 0.5
+QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
+BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
 ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM

@@ -24,7 +24,7 @@ INCL   =	./code/core_allvars.h  \
 			./Makefile
 
 
-OPT += -DNOUT=1	      # This sets the number of galaxy output times
+OPT += -DNOUT=64	      # This sets the number of galaxy output times
 
 OPT += -DMILLENNIUM         # Millennium simulation trees
 # OPT += -DBOLSHOI            # Bolshoi simulation trees
@@ -38,7 +38,8 @@ SYSTYPE = "mac"
 
 
 CC       =   mpicc            # sets the C-compiler (default)
-OPTIMIZE =   -pg -O2 -Wall    # optimization and warning flags (default)
+# OPTIMIZE =   -pg -O2 -Wall    # optimization and warning flags (default)
+OPTIMIZE = -g -O0 -Wall
 
 ifeq ($(SYSTYPE),"mac")
 CC       =  mpicc

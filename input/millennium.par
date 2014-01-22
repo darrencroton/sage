@@ -8,7 +8,7 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 OutputDir					./output/results/millennium
 
 FirstFile					0
-LastFile					15
+LastFile					7
 
 
 %------------------------------------------
@@ -18,20 +18,20 @@ LastFile					15
 FileWithSnapList			./input/treefiles/millennium/millennium.a_list
 LastSnapShotNr				63
 
-% Milli-Millennium
-%SimulationDir					./input/treefiles/millennium/millennium_mini
-%FilesPerSnapshot			8    ; Mini Millennium
+% Mini-Millennium
+SimulationDir					./input/treefiles/millennium/millennium_mini
+FilesPerSnapshot			8    ; Mini Millennium
 
 % Full Millennium
-SimulationDir					./input/treefiles/millennium/millennium_full/local/
-FilesPerSnapshot			512  ; Full Millennium
+%SimulationDir					./input/treefiles/millennium/millennium_full
+%FilesPerSnapshot			512  ; Full Millennium
 
 
 %------------------------------------------
 %----- Code options -----------------------
 %------------------------------------------
 
-SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011
+SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2011; 2: Blitz & Rosolowski 2006
 AGNrecipeOn						2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
 ReionizationOn				0		;0: switch off
@@ -50,9 +50,9 @@ FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			0.5		;AGN radio mode efficiency (AGNrecipeOn>0) -- 5.0e-4 / 0.5
+RadioModeEfficiency			1.0		;AGN radio mode efficiency (AGNrecipeOn>0) -- 5.0e-4 / 1.0
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
-BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
+BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
 ThresholdSatDisruption	2.0		;Mvir-to-baryonic mass ratio threshold for satellite disruption to ICM
@@ -82,5 +82,4 @@ PartMass				0.0860657
 UnitLength_in_cm					3.08568e+24	;WATCH OUT: Mpc/h
 UnitMass_in_g							1.989e+43		;WATCH OUT: 10^10Msun
 UnitVelocity_in_cm_per_s	100000			;WATCH OUT: km/s
-
 

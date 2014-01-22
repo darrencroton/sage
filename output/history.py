@@ -13,7 +13,11 @@ from os.path import getsize as getFileSize
 # Basic variables
 # ================================================================================
 
-whichsimulation = 1
+# Set up some basic attributes of the run
+
+whichsimulation = 0
+whichimf = 1        # 0=Slapeter; 1=Chabrier
+
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
@@ -37,15 +41,6 @@ OutputFormat = '.png'
 TRANSPARENT = False
 
 OutputList = []
-
-# ================================================================================
-# Set up some basic attributes of the run
-
-
-# NOTE: Salpeter IMF has been assumed. For Chabrier search for "IMF" and uncomment lines.
-#       Be careful however and check the conversions yourself for all figures here!
-
-# ================================================================================
 
 
 class Results:
@@ -253,14 +248,18 @@ class Results:
 
         binwidth = 0.1  # mass function histogram bin width
 
-        # Marchesini et al. 2009ApJ...701.1765M SMF, h=0.7 convrted to Salpeter IMF
+        # Marchesini et al. 2009ApJ...701.1765M SMF, h=0.7
         M = np.arange(7.0, 11.8, 0.01)
         Mstar = np.log10(10.0**10.96)
         alpha = -1.18
         phistar = 30.87*1e-4
         xval = 10.0 ** (M-Mstar)
         yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
-        plt.plot(np.log10(10.0**M *1.6), yval, ':', lw=10, alpha=0.5, label='Marchesini et al. 2009 z=[0.1]')
+        if(whichimf == 0):
+            plt.plot(np.log10(10.0**M *1.6), yval, ':', lw=10, alpha=0.5, label='Marchesini et al. 2009 z=[0.1]')
+        elif(whichimf == 1):
+            plt.plot(np.log10(10.0**M *1.6 /1.8), yval, ':', lw=10, alpha=0.5, label='Marchesini et al. 2009 z=[0.1]')
+            
 
         M = np.arange(9.3, 11.8, 0.01)
         Mstar = np.log10(10.0**10.91)
@@ -268,7 +267,10 @@ class Results:
         phistar = 10.17*1e-4
         xval = 10.0 ** (M-Mstar)
         yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
-        plt.plot(np.log10(10.0**M *1.6), yval, 'b:', lw=10, alpha=0.5, label='... z=[1.3,2.0]')
+        if(whichimf == 0):
+            plt.plot(np.log10(10.0**M *1.6), yval, 'b:', lw=10, alpha=0.5, label='... z=[1.3,2.0]')
+        elif(whichimf == 1):
+            plt.plot(np.log10(10.0**M *1.6/1.8), yval, 'b:', lw=10, alpha=0.5, label='... z=[1.3,2.0]')
 
         M = np.arange(9.7, 11.8, 0.01)
         Mstar = np.log10(10.0**10.96)
@@ -276,7 +278,10 @@ class Results:
         phistar = 3.95*1e-4
         xval = 10.0 ** (M-Mstar)
         yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
-        plt.plot(np.log10(10.0**M *1.6), yval, 'g:', lw=10, alpha=0.5, label='... z=[2.0,3.0]')
+        if(whichimf == 0):
+            plt.plot(np.log10(10.0**M *1.6), yval, 'g:', lw=10, alpha=0.5, label='... z=[2.0,3.0]')
+        elif(whichimf == 1):
+            plt.plot(np.log10(10.0**M *1.6/1.8), yval, 'g:', lw=10, alpha=0.5, label='... z=[2.0,3.0]')
 
         M = np.arange(10.0, 11.8, 0.01)
         Mstar = np.log10(10.0**11.38)
@@ -284,7 +289,10 @@ class Results:
         phistar = 0.53*1e-4
         xval = 10.0 ** (M-Mstar)
         yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
-        plt.plot(np.log10(10.0**M *1.6), yval, 'r:', lw=10, alpha=0.5, label='... z=[3.0,4.0]')
+        if(whichimf == 0):
+            plt.plot(np.log10(10.0**M *1.6), yval, 'r:', lw=10, alpha=0.5, label='... z=[3.0,4.0]')
+        elif(whichimf == 1):
+            plt.plot(np.log10(10.0**M *1.6/1.8), yval, 'r:', lw=10, alpha=0.5, label='... z=[3.0,4.0]')
 
 
         ###### z=0
@@ -359,7 +367,7 @@ class Results:
 
         plt.yscale('log', nonposy='clip')
 
-        plt.axis([8.5, 12.5, 1.0e-6, 1.0e-1])
+        plt.axis([8.0, 12.5, 1.0e-6, 1.0e-1])
 
         # Set the x-axis minor ticks
         ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
@@ -472,7 +480,7 @@ class Results:
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
 
-        # SMD observations taken from Marchesini+ 2009, h=0.7 convrted to Salpeter IMF
+        # SMD observations taken from Marchesini+ 2009, h=0.7
         # Values are (minz, maxz, rho,-err,+err)
         dickenson2003 = np.array(((0.6,1.4,8.26,0.08,0.08),
                          (1.4,2.0,7.86,0.22,0.33),
@@ -524,7 +532,11 @@ class Results:
 
         for o in obs:
             xval = ((o[:,1]-o[:,0])/2.)+o[:,0]
-            ax.errorbar(xval, np.log10(10**o[:,2] *1.6), xerr=(xval-o[:,0], o[:,1]-xval), yerr=(o[:,3], o[:,4]), alpha=0.3, lw=1.0, marker='o', ls='none')
+            if(whichimf == 0):
+                ax.errorbar(xval, np.log10(10**o[:,2] *1.6), xerr=(xval-o[:,0], o[:,1]-xval), yerr=(o[:,3], o[:,4]), alpha=0.3, lw=1.0, marker='o', ls='none')
+            elif(whichimf == 1):
+                ax.errorbar(xval, np.log10(10**o[:,2] *1.6/1.8), xerr=(xval-o[:,0], o[:,1]-xval), yerr=(o[:,3], o[:,4]), alpha=0.3, lw=1.0, marker='o', ls='none')
+                
 
         smd = np.zeros((LastSnap+1-FirstSnap))       
 

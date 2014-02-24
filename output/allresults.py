@@ -13,7 +13,13 @@ from os.path import getsize as getFileSize
 # Basic variables
 # ================================================================================
 
+# Set up some basic attributes of the run
+
 whichsimulation = 0
+whichimf = 1        # 0=Slapeter; 1=Chabrier
+dilute = 7500       # Number of galaxies to plot in scatter plots
+sSFRcut = -11.0     # Divide quiescent from star forming galaxies (when plotmags=0)
+
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
@@ -29,7 +35,7 @@ plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
 plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
-#plt.rc('text', usetex=True)
+plt.rc('text', usetex=True)
 
 OutputDir = '' # set in main below
 
@@ -37,17 +43,6 @@ OutputFormat = '.png'
 TRANSPARENT = False
 
 OutputList = []
-
-# ================================================================================
-# Set up some basic attributes of the run
-
-dilute = 3500  # Number of galaxies to plot in scatter plots
-sSFRcut = -11.0  # Divide quiescent from star forming galaxies
-
-# NOTE: Salpeter IMF has been assumed. For Chabrier search for "IMF" and uncomment lines.
-#       Be careful however and check the conversions yourself for all figures here!
-
-# ================================================================================
 
 
 class Results:
@@ -320,7 +315,8 @@ class Results:
         #     label='Baldry et al. 2008',
         #     )
 
-        Baldry_xval = np.log10(10 ** Baldry[:, 0]  /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        Baldry_xval = np.log10(10 ** Baldry[:, 0]  /self.Hubble_h/self.Hubble_h)
+        if(whichimf == 1):  Baldry_xval = Baldry_xval - 0.26  # convert back to Chabrier IMF
         Baldry_yvalU = (Baldry[:, 1]+Baldry[:, 2]) * self.Hubble_h*self.Hubble_h*self.Hubble_h
         Baldry_yvalL = (Baldry[:, 1]-Baldry[:, 2]) * self.Hubble_h*self.Hubble_h*self.Hubble_h
 
@@ -369,12 +365,78 @@ class Results:
         # Add this plot to our output list
         OutputList.append(outputFile)
 
+
 # ---------------------------------------------------------
 
+    def BaryonicMassFunction(self, G):
 
+        print 'Plotting the baryonic mass function'
+
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+
+        binwidth = 0.1  # mass function histogram bin width
+      
+        # calculate BMF
+        w = np.where(G.StellarMass + G.ColdGas > 0.0)[0]
+        mass = np.log10((G.StellarMass[w] + G.ColdGas[w]) * 1.0e10 / self.Hubble_h)
+
+        mi = np.floor(min(mass)) - 2
+        ma = np.floor(max(mass)) + 2
+        NB = (ma - mi) / binwidth
+
+        (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
+
+        # Set the x-axis values to be the centre of the bins
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+       
+        # Bell et al. 2003 BMF (h=1.0 converted to h=0.73)
+        M = np.arange(7.0, 13.0, 0.01)
+        Mstar = np.log10(5.3*1.0e10 /self.Hubble_h/self.Hubble_h)
+        alpha = -1.21
+        phistar = 0.0108 *self.Hubble_h*self.Hubble_h*self.Hubble_h
+        xval = 10.0 ** (M-Mstar)
+        yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
+        
+        if(whichimf == 0):
+            # converted diet Salpeter IMF to Salpeter IMF
+            plt.plot(np.log10(10.0**M /0.7), yval, 'b-', lw=2.0, label='Bell et al. 2003')  # Plot the SMF
+        elif(whichimf == 1):
+            # converted diet Salpeter IMF to Salpeter IMF, then to Chabrier IMF
+            plt.plot(np.log10(10.0**M /0.7 /1.8), yval, 'g--', lw=1.5, label='Bell et al. 2003')  # Plot the SMF
+
+        # Overplot the model histograms
+        plt.plot(xaxeshisto, counts / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h / binwidth, 'k-', label='Model')
+
+        plt.yscale('log', nonposy='clip')
+        plt.axis([8.0, 12.5, 1.0e-6, 1.0e-1])
+
+        # Set the x-axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+        plt.ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')  # Set the y...
+        plt.xlabel(r'$\log_{10}\ M_{\mathrm{bar}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='lower left', numpoints=1,
+                         labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+        outputFile = OutputDir + '2.BaryonicMassFunction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# ---------------------------------------------------------
+   
     def GasMassFunction(self, G):
 
-        print 'Plotting the stellar mass function'
+        print 'Plotting the cold gas mass function'
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -394,6 +456,15 @@ class Results:
         # Set the x-axis values to be the centre of the bins
         xaxeshisto = binedges[:-1] + 0.5 * binwidth
         
+        # additionally calculate red
+        w = np.where(sSFR < 10.0**sSFRcut)[0]
+        massRED = mass[w]
+        (countsRED, binedges) = np.histogram(massRED, range=(mi, ma), bins=NB)
+
+        # additionally calculate blue
+        w = np.where(sSFR > 10.0**sSFRcut)[0]
+        massBLU = mass[w]
+        (countsBLU, binedges) = np.histogram(massBLU, range=(mi, ma), bins=NB)
 
         # Baldry+ 2008 modified data used for the MCMC fitting
         Zwaan = np.array([[6.933,   -0.333],
@@ -451,16 +522,16 @@ class Results:
             [10.551,  -3.635],
             [10.740,  -5.010]        ], dtype=np.float32)
 
-        ObrCold_xval = np.log10(10**(ObrCold[:, 0])  /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        ObrCold_xval = np.log10(10**(ObrCold[:, 0])  /self.Hubble_h/self.Hubble_h)
         ObrCold_yval = (10**(ObrCold[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
-        Zwaan_xval = np.log10(10**(Zwaan[:, 0]) /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        Zwaan_xval = np.log10(10**(Zwaan[:, 0]) /self.Hubble_h/self.Hubble_h)
         Zwaan_yval = (10**(Zwaan[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
-        ObrRaw_xval = np.log10(10**(ObrRaw[:, 0])  /self.Hubble_h/self.Hubble_h) # - 0.26 # convert back to Chabrier IMF
+        ObrRaw_xval = np.log10(10**(ObrRaw[:, 0])  /self.Hubble_h/self.Hubble_h)
         ObrRaw_yval = (10**(ObrRaw[:, 1]) * self.Hubble_h*self.Hubble_h*self.Hubble_h)
 
-        plt.plot(ObrCold_xval, ObrCold_yval, color='black', lw = 7, alpha=0.25, label='Obr. & Raw. 2009 (Cold Gas)')
+        plt.plot(ObrCold_xval, ObrCold_yval, color='black', lw = 7, alpha=0.25, label='Obr. \& Raw. 2009 (Cold Gas)')
         plt.plot(Zwaan_xval, Zwaan_yval, color='cyan', lw = 7, alpha=0.25, label='Zwaan et al. 2005 (HI)')
-        plt.plot(ObrRaw_xval, ObrRaw_yval, color='magenta', lw = 7, alpha=0.25, label='Obr. & Raw. 2009 (H2)')
+        plt.plot(ObrRaw_xval, ObrRaw_yval, color='magenta', lw = 7, alpha=0.25, label='Obr. \& Raw. 2009 (H2)')
 
         
         # Overplot the model histograms
@@ -481,70 +552,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
 
-        outputFile = OutputDir + '2.GasMassFunction' + OutputFormat
-        plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
-        plt.close()
-
-        # Add this plot to our output list
-        OutputList.append(outputFile)
-
-
-# ---------------------------------------------------------
-
-    def BaryonicMassFunction(self, G):
-
-        print 'Plotting the baryonic mass function'
-
-        plt.figure()  # New figure
-        ax = plt.subplot(111)  # 1 plot on the figure
-
-        binwidth = 0.1  # mass function histogram bin width
-      
-        # calculate BMF
-        w = np.where(G.StellarMass + G.ColdGas > 0.0)[0]
-        mass = np.log10((G.StellarMass[w] + G.ColdGas[w]) * 1.0e10 / self.Hubble_h)
-
-        mi = np.floor(min(mass)) - 2
-        ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
-
-        (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
-
-        # Set the x-axis values to be the centre of the bins
-        xaxeshisto = binedges[:-1] + 0.5 * binwidth
-       
-        # Bell et al. 2003 BMF (h=1.0 converted to h=0.73)
-        M = np.arange(7.0, 13.0, 0.01)
-        Mstar = np.log10(5.3*1.0e10 /self.Hubble_h/self.Hubble_h)
-        alpha = -1.21
-        phistar = 0.0108 *self.Hubble_h*self.Hubble_h*self.Hubble_h
-        xval = 10.0 ** (M-Mstar)
-        yval = np.log(10.) * phistar * xval ** (alpha+1) * np.exp(-xval)
-        # converted diet SP IMF to Salpeter IMF
-        plt.plot(np.log10(10.0**M /0.7), yval, 'b-', lw=2.0, label='Bell et al. 2003')  # Plot the SMF
-        # # converted diet SP IMF to Salpeter IMF, then to Chabrier IMF
-        # plt.plot(np.log10(10.0**M /0.7 /1.8), yval, 'g--', lw=1.5, label='Bell et al. 2003')  # Plot the SMF
-
-        # Overplot the model histograms
-        plt.plot(xaxeshisto, counts / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h / binwidth, 'k-', label='Model')
-
-        plt.yscale('log', nonposy='clip')
-        plt.axis([8.0, 12.5, 1.0e-6, 1.0e-1])
-
-        # Set the x-axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
-
-        plt.ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')  # Set the y...
-        plt.xlabel(r'$\log_{10}\ M_{\mathrm{bar}}\ (M_{\odot})$')  # and the x-axis labels
-
-        leg = plt.legend(loc='lower left', numpoints=1,
-                         labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize('medium')
-
-        outputFile = OutputDir + '3.BaryonicMassFunction' + OutputFormat
+        outputFile = OutputDir + '3.GasMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -574,7 +582,7 @@ class Results:
                     
         plt.scatter(vel, mass, marker='o', s=1, c='k', alpha=0.5, label='Model Sb/c galaxies')
                 
-        # overplot Stark, McGaugh & Swatters 2009 (assumes h=0.75?)
+        # overplot Stark, McGaugh & Swatters 2009 (assumes h=0.75? ... what IMF?)
         w = np.arange(0.5, 10.0, 0.5)
         TF = 3.94*w + 1.79
         plt.plot(w, TF, 'b-', lw=2.0, label='Stark, McGaugh \& Swatters 2009')
@@ -713,10 +721,12 @@ class Results:
         # overplot Tremonti et al. 2003 (h=0.7)
         w = np.arange(7.0, 13.0, 0.1)
         Zobs = -1.492 + 1.847*w - 0.08026*w*w
-        # Conversion from Kroupa IMF to Slapeter IMF
-        plt.plot(np.log10((10**w *1.5)), Zobs, 'b-', lw=2.0, label='Tremonti et al. 2003')
-        # # Conversion from Kroupa IMF to Slapeter IMF to Chabrier IMF
-        # plt.plot(np.log10((10**w *1.5 /1.8)), Zobs, 'b-', lw=2.0, label='Tremonti et al. 2003')
+        if(whichimf == 0):
+            # Conversion from Kroupa IMF to Slapeter IMF
+            plt.plot(np.log10((10**w *1.5)), Zobs, 'b-', lw=2.0, label='Tremonti et al. 2003')
+        elif(whichimf == 1):
+            # Conversion from Kroupa IMF to Slapeter IMF to Chabrier IMF
+            plt.plot(np.log10((10**w *1.5 /1.8)), Zobs, 'b-', lw=2.0, label='Tremonti et al. 2003')
             
         plt.ylabel(r'$12\ +\ \log_{10}[\mathrm{O/H}]$')  # Set the y...
         plt.xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')  # and the x-axis labels

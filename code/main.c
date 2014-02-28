@@ -113,6 +113,7 @@ int main(int argc, char **argv)
     if((fd = fopen(bufz0, "w")))
       fclose(fd);
 
+    FileNum = filenr;
     load_tree_table(filenr);
 
     for(tree = 0; tree < Ntrees; tree++)
@@ -127,6 +128,7 @@ int main(int argc, char **argv)
         fflush(stdout);
       }
 
+      TreeID = tree;
       load_tree(filenr, tree);
 
       gsl_rng_set(random_generator, filenr * 100000 + tree);

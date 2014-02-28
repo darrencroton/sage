@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -136,6 +137,16 @@ void quasar_mode_wind(int gal, float BHaccrete)
 void add_galaxies_together(int t, int p)
 {
   int outputbin;
+
+  /* Store merger. */
+  {
+    merger_node_type* mn = malloc( sizeof(merger_node_type) );
+    mn->central = Gal[t].GalaxyNr + 1e6*TreeID + 1e12*FileNum;
+    mn->merged = Gal[p].GalaxyNr + 1e6*TreeID + 1e12*FileNum;
+    mn->snapshot = Gal[t].SnapNum;
+    mn->next = merger_nodes;
+    merger_nodes = mn;
+  }
 
   Gal[t].ColdGas += Gal[p].ColdGas;
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;

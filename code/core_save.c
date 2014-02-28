@@ -13,6 +13,9 @@
    do constant seeking. */
 FILE* save_fd[NOUT] = { 0 };
 
+/* Need access to the mergers file. */
+extern FILE* mergers_fd;
+
 
 void save_galaxies(int filenr, int tree)
 {
@@ -74,6 +77,32 @@ void save_galaxies(int filenr, int tree)
     /* fclose(fd); */
 #endif
 
+  }
+
+  /* Write mergers and free memory. */
+  {
+    /* Count mergers. */
+    merger_node_type* cur = merger_nodes;
+    unsigned n_mergers = 0;
+    while( cur )
+    {
+      ++n_mergers;
+      cur = cur->next;
+    }
+    fwrite( &n_mergers, sizeof(unsigned), 1, mergers_fd );
+
+    /* Dump mergers. */
+    cur = merger_nodes;
+    while( cur )
+    {
+      merger_node_type* next = cur->next;
+      fwrite( &cur->central, sizeof(long long), 1, mergers_fd );
+      fwrite( &cur->merged, sizeof(long long), 1, mergers_fd );
+      fwrite( &cur->snapshot, sizeof(unsigned), 1, mergers_fd );
+      free( cur );
+      cur = next;
+    }
+    merger_nodes = NULL;
   }
 
 }
@@ -195,7 +224,6 @@ void finalize_galaxy_file(int filenr)
 #else
     write_galaxy_data_snap(n, filenr);
 #endif
-
   }
   
 }

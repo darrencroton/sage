@@ -97,6 +97,10 @@ int Snaplistlen;
 
 gsl_rng *random_generator;
 
+merger_node_type* merger_nodes = NULL;
+int TreeID;
+int FileNum;
+
 
 #ifdef MINIMIZE_IO
 char *ptr_treedata, *ptr_galaxydata, *ptr_galsnapdata[NOUT];

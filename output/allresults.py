@@ -123,7 +123,8 @@ class Results:
             ('infallMvir'                   , np.float32),
             ('infallVvir'                   , np.float32),
             ('infallVmax'                   , np.float32),
-            ('r_heat'                       , np.float32)
+            ('r_heat'                       , np.float32),
+            ('AlreadyMerged'                , np.int32)
             ]
         names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
@@ -212,6 +213,11 @@ class Results:
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
+
+        w = np.where(G.AlreadyMerged > 0)[0]
+        print "Galaxies already merged:", len(w)
+        # print G.GalaxyIndex[w]
+        print
 
         return G
 

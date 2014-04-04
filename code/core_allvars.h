@@ -88,6 +88,7 @@ struct GALAXY_OUTPUT
   float infallVvir;
   float infallVmax;
   float r_heat;
+  int AlreadyMerged;
 };
 
 

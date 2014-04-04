@@ -10,8 +10,8 @@ void write_all_galaxy_data(int filenr);
 void write_galaxy_data_snap(int n, int filenr);
 #endif
 
-void construct_galaxies(int halonr);
-void evolve_galaxies(int halonr, int ngal);
+void construct_galaxies(int halonr, int tree);
+void evolve_galaxies(int halonr, int ngal, int tree);
 int  join_galaxies_of_progenitors(int halonr, int nstart);
 void init(void);
 void set_units(void);

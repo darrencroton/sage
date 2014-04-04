@@ -40,7 +40,7 @@ void save_galaxies(int filenr, int tree)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
       {
-        prepare_galaxy_for_output(n, filenr, tree, &HaloGal[i], &galaxy_output);
+        prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, fd);
 
         TotGalaxies[n]++;
@@ -58,7 +58,7 @@ void save_galaxies(int filenr, int tree)
 
 
 
-void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
+void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
 {
   int j;
 
@@ -102,9 +102,9 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   o->MetalsICS = g->MetalsICS;
 
   // NOTE: in Msun/yr 
-  o->Sfr = g->Sfr[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrBulge = g->SfrBulge[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrICS = g->SfrICS[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  o->Sfr = g->Sfr * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  o->SfrBulge = g->SfrBulge * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  o->SfrICS = g->SfrICS * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 
   o->DiskScaleRadius = g->DiskScaleRadius;
 

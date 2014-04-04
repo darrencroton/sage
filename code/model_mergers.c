@@ -135,8 +135,6 @@ void quasar_mode_wind(int gal, float BHaccrete)
 
 void add_galaxies_together(int t, int p)
 {
-  int outputbin;
-
   Gal[t].ColdGas += Gal[p].ColdGas;
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
   
@@ -154,32 +152,25 @@ void add_galaxies_together(int t, int p)
 
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    Gal[t].Sfr[outputbin] += Gal[p].Sfr[outputbin];
-    Gal[t].SfrICS[outputbin] += Gal[p].SfrICS[outputbin];
-  }
+  Gal[t].Sfr += Gal[p].Sfr;
+  Gal[t].SfrICS += Gal[p].SfrICS;
 
  // add merger to bulge
   Gal[t].BulgeMass += Gal[p].StellarMass;
   Gal[t].MetalsBulgeMass += Gal[p].MetalsStellarMass;
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    Gal[t].SfrBulge[outputbin] += Gal[p].Sfr[outputbin];
+  Gal[t].SfrBulge += Gal[p].Sfr;
 }
 
 
 
 void make_bulge_from_burst(int p)
 {
-  int outputbin;
-
   // generate bulge 
   Gal[p].BulgeMass = Gal[p].StellarMass;
   Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
 
   // update the star formation rate 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    Gal[p].SfrBulge[outputbin] = Gal[p].Sfr[outputbin];
+  Gal[p].SfrBulge = Gal[p].Sfr;
 }
 
 
@@ -188,7 +179,6 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
 {
   double stars, reheated_mass, ejected_mass, fac, metallicity, CentralVvir, eburst;
   double FracZleaveDiskVal;
-  int outputbin;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more 
@@ -239,15 +229,8 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     ejected_mass = 0.0;
 
   // update the star formation rate 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    if(Halo[halonr].SnapNum == ListOutputSnaps[outputbin])
-    {
-      Gal[merger_centralgal].Sfr[outputbin] += stars / (dt * STEPS);
-      if(mode == 1) Gal[merger_centralgal].SfrBulge[outputbin] += stars / (dt * STEPS);
-      break;
-    }
-  }
+  Gal[merger_centralgal].Sfr += stars / (dt * STEPS);
+  if(mode == 1) Gal[merger_centralgal].SfrBulge += stars / (dt * STEPS);
 
   // update for star formation 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
@@ -285,9 +268,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
 
 
 void disrupt_satellite_to_ICS(int centralgal, int gal)
-{
-  int outputbin;
-  
+{  
   Gal[centralgal].HotGas += Gal[gal].ColdGas + Gal[gal].HotGas;
   Gal[centralgal].MetalsHotGas += Gal[gal].MetalsColdGas + Gal[gal].MetalsHotGas;
   
@@ -300,11 +281,8 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
   Gal[centralgal].ICS += Gal[gal].StellarMass;
   Gal[centralgal].MetalsICS += Gal[gal].MetalsStellarMass;
   
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    Gal[centralgal].SfrICS[outputbin] += Gal[gal].Sfr[outputbin];
-    Gal[centralgal].SfrICS[outputbin] += Gal[gal].SfrICS[outputbin];
-  }
+  Gal[centralgal].SfrICS += Gal[gal].Sfr;
+  Gal[centralgal].SfrICS += Gal[gal].SfrICS;
 
   // what should we do with the disrupted satellite BH?
 

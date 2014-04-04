@@ -129,9 +129,9 @@ struct GALAXY
   float MetalsICS;
 
   // misc 
-  float Sfr[NOUT];
-  float SfrBulge[NOUT];
-  float SfrICS[NOUT];
+  float Sfr;
+  float SfrBulge;
+  float SfrICS;
   float DiskScaleRadius;
   float MergTime;
   int AlreadyMerged;

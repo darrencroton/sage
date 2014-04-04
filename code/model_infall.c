@@ -11,15 +11,13 @@
 
 double infall_recipe(int centralgal, int ngal, double Zcurr)
 {
-  int i, outputbin;
+  int i;
   double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_hotMetals, tot_ejected, tot_ejectedMetals;
-  double tot_ICS, tot_ICSMetals, tot_SfrICS[NOUT];
+  double tot_ICS, tot_ICSMetals;
   double infallingMass, reionization_modifier;
 
   // need to add up all the baryonic mass asociated with the full halo 
   tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = 0.0;
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    tot_SfrICS[outputbin] = 0.0;
 
   for(i = 0; i < ngal; i++)      // Loop over all galaxies in the FoF-halo 
   {
@@ -32,9 +30,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     tot_ejectedMetals += Gal[i].MetalsEjectedMass;
     tot_ICS += Gal[i].ICS;
     tot_ICSMetals += Gal[i].MetalsICS;
-    
-    for(outputbin = 0; outputbin < NOUT; outputbin++)
-      tot_SfrICS[outputbin] += Gal[i].SfrICS[outputbin];
 
     // satellite ejected gas goes to central ejected reservior
     if(i != centralgal) 
@@ -44,9 +39,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     if(i != centralgal) 
     {
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
-      
-      for(outputbin = 0; outputbin < NOUT; outputbin++)
-        Gal[i].SfrICS[outputbin] = 0.0;
     }
   }
 
@@ -81,9 +73,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     Gal[centralgal].ICS = Gal[centralgal].MetalsICS = 0.0;
   if(Gal[centralgal].MetalsICS < 0.0)
     Gal[centralgal].MetalsICS = 0.0;
-
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    Gal[centralgal].SfrICS[outputbin] = tot_SfrICS[outputbin];
 
   return infallingMass;
 }

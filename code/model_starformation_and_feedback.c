@@ -14,7 +14,6 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   double reff, tdyn, strdot, stars, reheated_mass, ejected_mass, fac, metallicity;
   double cold_crit;
   double FracZleaveDiskVal;
-  int outputbin;
   
   // Initialise variables
   strdot = 0.0;
@@ -73,14 +72,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     ejected_mass = 0.0;
 
   // update the star formation rate 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    if(Halo[halonr].SnapNum == ListOutputSnaps[outputbin])
-    {
-      Gal[p].Sfr[outputbin] += stars / (dt * STEPS);
-      break;
-    }
-  }
+  Gal[p].Sfr += stars / (dt * STEPS);
 
   // update for star formation 
   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);

@@ -125,7 +125,6 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   o->infallVmax = g->infallVmax;
 
   o->r_heat = g->r_heat;
-  o->AlreadyMerged = g->AlreadyMerged;
 
 }
 

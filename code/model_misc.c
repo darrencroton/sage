@@ -60,7 +60,6 @@ void init_galaxy(int p, int halonr)
 
   Gal[p].Sfr = 0.0;
   Gal[p].SfrBulge = 0.0;
-  Gal[p].SfrICS = 0.0;
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;

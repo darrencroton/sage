@@ -153,7 +153,6 @@ void add_galaxies_together(int t, int p)
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
 
   Gal[t].Sfr += Gal[p].Sfr;
-  Gal[t].SfrICS += Gal[p].SfrICS;
 
  // add merger to bulge
   Gal[t].BulgeMass += Gal[p].StellarMass;
@@ -281,9 +280,6 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
   Gal[centralgal].ICS += Gal[gal].StellarMass;
   Gal[centralgal].MetalsICS += Gal[gal].MetalsStellarMass;
   
-  Gal[centralgal].SfrICS += Gal[gal].Sfr;
-  Gal[centralgal].SfrICS += Gal[gal].SfrICS;
-
   // what should we do with the disrupted satellite BH?
 
 }

@@ -77,7 +77,6 @@ struct GALAXY_OUTPUT
   // misc 
   float Sfr;
   float SfrBulge;
-  float SfrICS;
   float DiskScaleRadius;
   float Cooling;
   float Heating;
@@ -87,7 +86,7 @@ struct GALAXY_OUTPUT
   float infallMvir;  //infall properties
   float infallVvir;
   float infallVmax;
-  float r_heat;
+  float r_heat;  
 };
 
 
@@ -131,7 +130,6 @@ struct GALAXY
   // misc 
   float Sfr;
   float SfrBulge;
-  float SfrICS;
   float DiskScaleRadius;
   float MergTime;
   int AlreadyMerged;

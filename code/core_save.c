@@ -104,7 +104,6 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   // NOTE: in Msun/yr 
   o->Sfr = g->Sfr * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
   o->SfrBulge = g->SfrBulge * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrICS = g->SfrICS * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 
   o->DiskScaleRadius = g->DiskScaleRadius;
 

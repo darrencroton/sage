@@ -156,7 +156,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].OutflowRate = 0.0;
           Gal[ngal].Sfr = 0.0;
           Gal[ngal].SfrBulge = 0.0;
-          Gal[ngal].SfrICS = 0.0;
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {

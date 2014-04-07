@@ -66,6 +66,7 @@ void init_galaxy(int p, int halonr)
   Gal[p].AlreadyMerged = 0;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;
+  Gal[p].r_heat = 0.0;
   Gal[p].LastMajorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
 
@@ -73,8 +74,6 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
   
-  Gal[p].r_heat = 0.0;
-
 }
 
 

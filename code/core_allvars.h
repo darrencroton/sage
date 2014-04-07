@@ -80,13 +80,14 @@ struct GALAXY_OUTPUT
   float DiskScaleRadius;
   float Cooling;
   float Heating;
+  float r_heat;  
   float LastMajorMerger;
   float OutflowRate;
 
-  float infallMvir;  //infall properties
+  //infall properties
+  float infallMvir;
   float infallVvir;
   float infallVmax;
-  float r_heat;  
 };
 
 
@@ -135,13 +136,14 @@ struct GALAXY
   int AlreadyMerged;
   double Cooling;
   double Heating;
+  float r_heat;
   float LastMajorMerger;
   float OutflowRate;
 
-  float infallMvir;  //infall properties
+  //infall properties
+  float infallMvir;
   float infallVvir;
   float infallVmax;
-  float r_heat;
 }
 *Gal, *HaloGal;
 

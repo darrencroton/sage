@@ -9,7 +9,7 @@
 
 
 
-void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr)
+void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step)
 {
   double reff, tdyn, strdot, stars, reheated_mass, ejected_mass, fac, metallicity;
   double cold_crit;
@@ -72,7 +72,9 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     ejected_mass = 0.0;
 
   // update the star formation rate 
-  Gal[p].Sfr += stars / (dt * STEPS);
+  Gal[p].SfrDisk[step] += stars / dt;
+  Gal[p].SfrDiskColdGas[step] = Gal[p].ColdGas;
+  Gal[p].SfrDiskColdGasMetals[step] = Gal[p].MetalsColdGas;
 
   // update for star formation 
   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
@@ -86,7 +88,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
   // check for disk instability
   if(DiskInstabilityOn)
-    check_disk_instability(p, centralgal, halonr, time, dt);
+    check_disk_instability(p, centralgal, halonr, time, dt, step);
 
   // formation of new metals - instantaneous recycling approximation - only SNII 
   if(Gal[p].ColdGas > 1.0e-8)

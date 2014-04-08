@@ -12,7 +12,7 @@
 
 void init_galaxy(int p, int halonr)
 {
-  int j;
+  int j, step;
 
   if(halonr != Halo[halonr].FirstHaloInFOFgroup)
   {
@@ -57,9 +57,16 @@ void init_galaxy(int p, int halonr)
   if(SFprescription == 1) Gal[p].MetalsHotGas = 2.0e-5; else Gal[p].MetalsHotGas = 0.0;
   Gal[p].MetalsEjectedMass = 0.0;
   Gal[p].MetalsICS = 0.0;
-
-  Gal[p].Sfr = 0.0;
-  Gal[p].SfrBulge = 0.0;
+  
+  for(step = 0; step < STEPS; step++)
+  {
+    Gal[p].SfrDisk[step] = 0.0;
+    Gal[p].SfrBulge[step] = 0.0;
+    Gal[p].SfrDiskColdGas[step] = 0.0;
+    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
+    Gal[p].SfrBulgeColdGas[step] = 0.0;
+    Gal[p].SfrBulgeColdGasMetals[step] = 0.0;
+  }
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;

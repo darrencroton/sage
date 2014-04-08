@@ -74,9 +74,13 @@ struct GALAXY_OUTPUT
   float MetalsEjectedMass;
   float MetalsICS;
 
-  // misc 
-  float Sfr;
+  // to calculate magnitudes
+  float SfrDisk;
   float SfrBulge;
+  float SfrDiskZ;
+  float SfrBulgeZ;
+  
+  // misc 
   float DiskScaleRadius;
   float Cooling;
   float Heating;
@@ -128,9 +132,15 @@ struct GALAXY
   float MetalsEjectedMass;
   float MetalsICS;
 
+  // to calculate magnitudes
+  float SfrDisk[STEPS];
+  float SfrBulge[STEPS];
+  float SfrDiskColdGas[STEPS];
+  float SfrDiskColdGasMetals[STEPS];
+  float SfrBulgeColdGas[STEPS];
+  float SfrBulgeColdGasMetals[STEPS];
+
   // misc 
-  float Sfr;
-  float SfrBulge;
   float DiskScaleRadius;
   float MergTime;
   int AlreadyMerged;

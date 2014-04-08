@@ -75,6 +75,7 @@ void construct_galaxies(int halonr)
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
   int ngal, prog, mother_halo=-1, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  int step;
 
   lenmax = 0;
   lenoccmax = 0;
@@ -154,8 +155,13 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
           Gal[ngal].OutflowRate = 0.0;
-          Gal[ngal].Sfr = 0.0;
-          Gal[ngal].SfrBulge = 0.0;
+
+          for(step = 0; step < STEPS; step++)
+          {
+            Gal[ngal].SfrDisk[step] = Gal[ngal].SfrBulge[step] = 0.0;
+            Gal[ngal].SfrDiskColdGas[step] = Gal[ngal].SfrDiskColdGasMetals[step] = 0.0;
+            Gal[ngal].SfrBulgeColdGas[step] = Gal[ngal].SfrBulgeColdGasMetals[step] = 0.0;
+          }
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {
@@ -241,7 +247,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
 void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
-  int p, nstep, centralgal, merger_centralgal, currenthalo;
+  int p, step, centralgal, merger_centralgal, currenthalo;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons;
 
   centralgal = Gal[0].CentralGal;
@@ -258,7 +264,7 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum]);
 
   // we integrate things forward by using a number of intervals equal to STEPS 
-  for(nstep = 0; nstep < STEPS; nstep++)
+  for(step = 0; step < STEPS; step++)
   {
 
     // Loop over all galaxies in the halo 
@@ -269,7 +275,7 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
         continue;
 
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-      time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
+      time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
 
       // for central galaxy only 
       if(p == centralgal)
@@ -287,7 +293,7 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
       cool_gas_onto_galaxy(p, coolingGas);
 
       // stars form and then explode! 
-      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr);
+      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
     }
 
     // check for satellite disruption and merger events 
@@ -327,9 +333,9 @@ void evolve_galaxies(int halonr, int ngal)	// note: halonr is here the FOF-backg
               if(Gal[merger_centralgal].AlreadyMerged == 1) 
                 merger_centralgal = Gal[merger_centralgal].CentralGal;
 
-              time = Age[Gal[p].SnapNum] - (nstep + 0.5) * (deltaT / STEPS);
+              time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
    
-              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr);
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
               Gal[p].AlreadyMerged = 1;
 
             }

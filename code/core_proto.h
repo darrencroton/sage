@@ -33,7 +33,7 @@ void myexit(int signum);
 
 void finalize_galaxy_file(int filenr);
 
-void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr);
+void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step);
 void add_galaxies_together(int t, int p);
 void init_galaxy(int p, int halonr);
 double infall_recipe(int centralgal, int ngal, double Zcurr);
@@ -42,16 +42,16 @@ double cooling_recipe(int centralgal, double dt);
 void cool_gas_onto_galaxy(int centralgal, double coolingGas);
 void reincorporate_gas(int centralgal, double dt);
 double estimate_merging_time(int prog, int mother_halo, int ngal);
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr);
+void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step);
 double dmax(double x, double y);
 double do_reionization(int centralgal, double Zcurr);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode);
+void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step);
 void update_from_star_formation(int p, double stars, double metallicity);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio);
-void check_disk_instability(int p, int centralgal, int halonr, double time, double dt);
+void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step);
 
 void strip_from_satellite(int halonr, int centralgal, int gal);
 void disrupt_satellite_to_ICS(int centralgal, int gal);

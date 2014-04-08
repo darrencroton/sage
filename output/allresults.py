@@ -112,9 +112,10 @@ class Results:
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
-            ('Sfr'                          , np.float32),                  
+            ('SfrDisk'                      , np.float32),                  
             ('SfrBulge'                     , np.float32),                  
-            ('SfrIntraClusterStars'         , np.float32),                  
+            ('SfrDiskZ'                     , np.float32),                  
+            ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
@@ -229,7 +230,7 @@ class Results:
         # calculate all
         w = np.where(G.StellarMass > 0.0)[0]
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-        sSFR = G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -446,7 +447,7 @@ class Results:
         # calculate all
         w = np.where(G.ColdGas > 0.0)[0]
         mass = np.log10(G.ColdGas[w] * 1.0e10 / self.Hubble_h)
-        sSFR = G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
         NB = (ma - mi) / binwidth
@@ -625,8 +626,7 @@ class Results:
         if(len(w) > dilute): w = sample(w, dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-        sSFR = np.log10(G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h))
-                    
+        sSFR = np.log10( (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h) )
         plt.scatter(mass, sSFR, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
                 
         # overplot dividing line between SF and passive

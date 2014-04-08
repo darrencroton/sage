@@ -60,7 +60,7 @@ void save_galaxies(int filenr, int tree)
 
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
 {
-  int j;
+  int j, step;
 
   o->Type = g->Type;
   o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;
@@ -100,10 +100,24 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->MetalsHotGas = g->MetalsHotGas;
   o->MetalsEjectedMass = g->MetalsEjectedMass;
   o->MetalsICS = g->MetalsICS;
-
+  
+  o->SfrDisk = 0.0;
+  o->SfrBulge = 0.0;
+  o->SfrDiskZ = 0.0;
+  o->SfrBulgeZ = 0.0;
+  
   // NOTE: in Msun/yr 
-  o->Sfr = g->Sfr * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrBulge = g->SfrBulge * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  for(step = 0; step < STEPS; step++)
+  {
+    o->SfrDisk += g->SfrDisk[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    o->SfrBulge += g->SfrBulge[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    
+    if(g->SfrDiskColdGas[step] > 0.0)
+      o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
+
+    if(g->SfrBulgeColdGas[step] > 0.0)
+      o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
+  }
 
   o->DiskScaleRadius = g->DiskScaleRadius;
 

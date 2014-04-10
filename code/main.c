@@ -134,7 +134,7 @@ int main(int argc, char **argv)
       GalaxyCounter = 0;
       for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)
-        construct_galaxies(halonr);
+        construct_galaxies(halonr, tree);
 
       save_galaxies(filenr, tree);
       free_galaxies_and_tree();

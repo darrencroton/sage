@@ -37,6 +37,8 @@ do {                                                                \
 struct GALAXY_OUTPUT  
 {
   int   Type;
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
   long long   GalaxyIndex;
   int   HaloIndex;
   int   FOFHaloIndex;
@@ -98,6 +100,8 @@ struct GALAXY_OUTPUT
 struct GALAXY
 {
   int   Type;
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
   int   GalaxyNr;
   int   HaloNr;
   long long  MostBoundID;
@@ -143,7 +147,6 @@ struct GALAXY
   // misc 
   float DiskScaleRadius;
   float MergTime;
-  int AlreadyMerged;
   double Cooling;
   double Heating;
   float r_heat;

@@ -67,10 +67,16 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   
   // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
+
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
     Gal[merger_centralgal].LastMajorMerger = time;
+    Gal[p].mergeType = 2;  // mark as major merger
+  }
+  else
+  {
+    Gal[p].mergeType = 1;  // mark as minor merger
   }
 
 }
@@ -308,6 +314,9 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
   Gal[centralgal].MetalsICS += Gal[gal].MetalsStellarMass;
   
   // what should we do with the disrupted satellite BH?
+  
+  Gal[gal].mergeType = 4;  // mark as disruption to the ICS
+  
 
 }
 

@@ -106,6 +106,8 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('Type'                         , np.int32),                    
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('HaloIndex'                    , np.int32),                    
             ('FOFHaloIdx'                   , np.int32),                    
@@ -448,7 +450,7 @@ class Results:
 
         SFR_density = np.zeros((LastSnap+1-FirstSnap))       
         for snap in xrange(FirstSnap,LastSnap+1):
-          SFR_density[snap-FirstSnap] = sum(G_history[snap].Sfr) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
+          SFR_density[snap-FirstSnap] = sum(G_history[snap].SfrDisk+G_history[snap].SfrBulge) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
     
         z = np.array(self.redshift)
         nonzero = np.where(SFR_density > 0.0)[0]

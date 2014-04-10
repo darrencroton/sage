@@ -21,6 +21,8 @@ void init_galaxy(int p, int halonr)
   }
 
   Gal[p].Type = 0;
+  Gal[p].mergeType = 0;
+  Gal[p].mergeIntoID = -1;
 
   Gal[p].GalaxyNr = GalaxyCounter;
   GalaxyCounter++;
@@ -70,7 +72,6 @@ void init_galaxy(int p, int halonr)
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;
-  Gal[p].AlreadyMerged = 0;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;
   Gal[p].r_heat = 0.0;

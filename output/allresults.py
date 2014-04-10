@@ -83,6 +83,8 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('Type'                         , np.int32),                    
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('HaloIndex'                    , np.int32),                    
             ('FOFHaloIdx'                   , np.int32),                    

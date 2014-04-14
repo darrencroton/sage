@@ -141,8 +141,16 @@ void add_galaxies_together(int t, int p)
   /* Store merger. */
   {
     merger_node_type* mn = malloc( sizeof(merger_node_type) );
-    mn->central = Gal[t].GalaxyNr + 1e6*TreeID + 1e12*FileNum;
-    mn->merged = Gal[p].GalaxyNr + 1e6*TreeID + 1e12*FileNum;
+    assert( Gal[t].GalaxyNr < 1e9 ); // breaking tree size assumption
+    mn->central = Gal[t].GalaxyNr + 1e9*TreeID + 1e12*FileNum;
+    assert( (mn->central - Gal[t].GalaxyNr - 1e9*TreeID)/1e12 == FileNum );
+    assert( (mn->central - Gal[t].GalaxyNr - 1e12*FileNum)/1e9 == TreeID );
+    assert( mn->central - 1e9*TreeID - 1e12*FileNum == Gal[t].GalaxyNr );
+    mn->merged = Gal[p].GalaxyNr + 1e9*TreeID + 1e12*FileNum;
+    assert( (mn->merged - Gal[p].GalaxyNr - 1e9*TreeID)/1e12 == FileNum );
+    assert( (mn->merged - Gal[p].GalaxyNr - 1e12*FileNum)/1e9 == TreeID );
+    assert( mn->merged - 1e9*TreeID - 1e12*FileNum == Gal[p].GalaxyNr );
+    assert( mn->central != mn->merged ); // self-merger
     mn->snapshot = Gal[t].SnapNum;
     mn->next = merger_nodes;
     merger_nodes = mn;

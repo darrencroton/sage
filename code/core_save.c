@@ -114,7 +114,11 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   int j;
 
   o->Type = g->Type;
-  o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;
+  assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
+  o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e12 * filenr;
+  assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e12 == filenr );
+  assert( (o->GalaxyIndex - g->GalaxyNr - 1e12*filenr)/1e9 == tree );
+  assert( o->GalaxyIndex - 1e9*tree - 1e12*filenr == g->GalaxyNr );
   o->HaloIndex = g->HaloNr;
   o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
   o->TreeIndex = tree;

@@ -24,7 +24,8 @@ INCL   =	./code/core_allvars.h  \
 			./Makefile
 
 
-OPT += -DNOUT=64	      # This sets the number of galaxy output times
+OPT += -DNOUT=64	      # This sets the number of galaxy output times (Millennium)
+# OPT += -DNOUT=181	      # This sets the number of galaxy output times (Bolshoi)
 
 OPT += -DMILLENNIUM         # Millennium simulation trees
 # OPT += -DBOLSHOI            # Bolshoi simulation trees
@@ -49,27 +50,27 @@ endif
 
 ifeq ($(SYSTYPE),"green")
 CC       = /usr/local/gnu/x86_64/openmpi-1.4/bin/mpicc
-OPTIMIZE = -O3 -Wall
+OPTIMIZE = -O0 -Wall -g
 GSL_INCL = -I/usr/local/gnu/x86_64/gsl/include
 GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
 endif
 
 ifeq ($(SYSTYPE),"gstar")
 CC       = /usr/local/x86_64/gnu/openmpi-1.4.5/bin/mpicc
-OPTIMIZE = -O3 -Wall
+OPTIMIZE = -O0 -Wall -g
 GSL_INCL = -I/usr/local/x86_64/gnu/gsl-1.9/include
 GSL_LIBS = -L/usr/local/x86_64/gnu/gsl-1.9/lib
 endif
 
 
-LIBS   =   -pg -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
-CFLAGS =   -pg $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS =   -g $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 
 default: all
 
 $(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) -pg
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) -g
 
 $(OBJS): $(INCL) 
 

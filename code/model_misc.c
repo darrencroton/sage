@@ -12,7 +12,7 @@
 
 void init_galaxy(int p, int halonr)
 {
-  int j, outputbin;
+  int j, step;
 
   if(halonr != Halo[halonr].FirstHaloInFOFgroup)
   {
@@ -21,6 +21,8 @@ void init_galaxy(int p, int halonr)
   }
 
   Gal[p].Type = 0;
+  Gal[p].mergeType = 0;
+  Gal[p].mergeIntoID = -1;
 
   Gal[p].GalaxyNr = GalaxyCounter;
   GalaxyCounter++;
@@ -57,19 +59,22 @@ void init_galaxy(int p, int halonr)
   if(SFprescription == 1) Gal[p].MetalsHotGas = 2.0e-5; else Gal[p].MetalsHotGas = 0.0;
   Gal[p].MetalsEjectedMass = 0.0;
   Gal[p].MetalsICS = 0.0;
-
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
+  
+  for(step = 0; step < STEPS; step++)
   {
-    Gal[p].Sfr[outputbin] = 0.0;
-    Gal[p].SfrBulge[outputbin] = 0.0;
-    Gal[p].SfrICS[outputbin] = 0.0;
+    Gal[p].SfrDisk[step] = 0.0;
+    Gal[p].SfrBulge[step] = 0.0;
+    Gal[p].SfrDiskColdGas[step] = 0.0;
+    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
+    Gal[p].SfrBulgeColdGas[step] = 0.0;
+    Gal[p].SfrBulgeColdGasMetals[step] = 0.0;
   }
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;
-  Gal[p].AlreadyMerged = 0;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;
+  Gal[p].r_heat = 0.0;
   Gal[p].LastMajorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
 
@@ -77,8 +82,6 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
   
-  Gal[p].r_heat = 0.0;
-
 }
 
 

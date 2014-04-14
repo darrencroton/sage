@@ -38,7 +38,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 
 
 
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr)
+void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step)
 {
   double mi, ma, mass_ratio;
 
@@ -67,11 +67,17 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     grow_black_hole(merger_centralgal, mass_ratio);
   
   // starburst recipe similar to Somerville et al. 2001
-  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0);
+  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
+
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
     Gal[merger_centralgal].LastMajorMerger = time;
+    Gal[p].mergeType = 2;  // mark as major merger
+  }
+  else
+  {
+    Gal[p].mergeType = 1;  // mark as minor merger
   }
 
 }
@@ -136,8 +142,6 @@ void quasar_mode_wind(int gal, float BHaccrete)
 
 void add_galaxies_together(int t, int p)
 {
-  int outputbin;
-
   /* Store merger. */
   {
     merger_node_type* mn = malloc( sizeof(merger_node_type) );
@@ -156,6 +160,8 @@ void add_galaxies_together(int t, int p)
     merger_nodes = mn;
   }
 
+  int step;
+  
   Gal[t].ColdGas += Gal[p].ColdGas;
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
   
@@ -173,41 +179,46 @@ void add_galaxies_together(int t, int p)
 
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    Gal[t].Sfr[outputbin] += Gal[p].Sfr[outputbin];
-    Gal[t].SfrICS[outputbin] += Gal[p].SfrICS[outputbin];
-  }
-
  // add merger to bulge
   Gal[t].BulgeMass += Gal[p].StellarMass;
   Gal[t].MetalsBulgeMass += Gal[p].MetalsStellarMass;
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    Gal[t].SfrBulge[outputbin] += Gal[p].Sfr[outputbin];
+
+  for(step = 0; step < STEPS; step++)
+  {
+    Gal[t].SfrBulge[step] += Gal[p].SfrDisk[step] + Gal[p].SfrBulge[step];
+    Gal[t].SfrBulgeColdGas[step] += Gal[p].SfrDiskColdGas[step] + Gal[p].SfrBulgeColdGas[step];
+    Gal[t].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step] + Gal[p].SfrBulgeColdGasMetals[step];
+  }
 }
 
 
 
 void make_bulge_from_burst(int p)
 {
-  int outputbin;
-
+  int step;
+  
   // generate bulge 
   Gal[p].BulgeMass = Gal[p].StellarMass;
   Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
 
   // update the star formation rate 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-    Gal[p].SfrBulge[outputbin] = Gal[p].Sfr[outputbin];
+  for(step = 0; step < STEPS; step++)
+  {
+    Gal[p].SfrBulge[step] += Gal[p].SfrDisk[step];
+    Gal[p].SfrBulgeColdGas[step] += Gal[p].SfrDiskColdGas[step];
+    Gal[p].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step];
+    Gal[p].SfrDisk[step] = 0.0;
+    Gal[p].SfrDiskColdGas[step] = 0.0;
+    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
+  }
 }
 
 
 
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode)
+void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
 {
   double stars, reheated_mass, ejected_mass, fac, metallicity, CentralVvir, eburst;
   double FracZleaveDiskVal;
-  int outputbin;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more 
@@ -258,15 +269,19 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     ejected_mass = 0.0;
 
   // update the star formation rate 
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    if(Halo[halonr].SnapNum == ListOutputSnaps[outputbin])
+  
+  if(mode == 1)
     {
-      Gal[merger_centralgal].Sfr[outputbin] += stars / (dt * STEPS);
-      if(mode == 1) Gal[merger_centralgal].SfrBulge[outputbin] += stars / (dt * STEPS);
-      break;
+      Gal[merger_centralgal].SfrBulge[step] += stars / dt;
+      Gal[merger_centralgal].SfrBulgeColdGas[step] += Gal[merger_centralgal].ColdGas;
+      Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
     }
-  }
+  else
+    {
+      Gal[merger_centralgal].SfrDisk[step] += stars / dt;
+      Gal[merger_centralgal].SfrDiskColdGas[step] += Gal[merger_centralgal].ColdGas;
+      Gal[merger_centralgal].SfrDiskColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
+    }
 
   // update for star formation 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
@@ -286,7 +301,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
     if(mass_ratio < ThreshMajorMerger)
-    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt);
+    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step);
 
   // formation of new metals - instantaneous recycling approximation - only SNII 
   if(Gal[merger_centralgal].ColdGas > 1e-8 && mass_ratio < ThreshMajorMerger)
@@ -304,9 +319,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
 
 
 void disrupt_satellite_to_ICS(int centralgal, int gal)
-{
-  int outputbin;
-  
+{  
   Gal[centralgal].HotGas += Gal[gal].ColdGas + Gal[gal].HotGas;
   Gal[centralgal].MetalsHotGas += Gal[gal].MetalsColdGas + Gal[gal].MetalsHotGas;
   
@@ -319,13 +332,10 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
   Gal[centralgal].ICS += Gal[gal].StellarMass;
   Gal[centralgal].MetalsICS += Gal[gal].MetalsStellarMass;
   
-  for(outputbin = 0; outputbin < NOUT; outputbin++)
-  {
-    Gal[centralgal].SfrICS[outputbin] += Gal[gal].Sfr[outputbin];
-    Gal[centralgal].SfrICS[outputbin] += Gal[gal].SfrICS[outputbin];
-  }
-
   // what should we do with the disrupted satellite BH?
+  
+  Gal[gal].mergeType = 4;  // mark as disruption to the ICS
+  
 
 }
 

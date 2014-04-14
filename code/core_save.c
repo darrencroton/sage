@@ -64,7 +64,7 @@ void save_galaxies(int filenr, int tree)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
       {
-        prepare_galaxy_for_output(n, filenr, tree, &HaloGal[i], &galaxy_output);
+        prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
 
         TotGalaxies[n]++;
@@ -109,9 +109,9 @@ void save_galaxies(int filenr, int tree)
 
 
 
-void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
+void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
 {
-  int j;
+  int j, step;
 
   o->Type = g->Type;
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
@@ -155,11 +155,24 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   o->MetalsHotGas = g->MetalsHotGas;
   o->MetalsEjectedMass = g->MetalsEjectedMass;
   o->MetalsICS = g->MetalsICS;
-
+  
+  o->SfrDisk = 0.0;
+  o->SfrBulge = 0.0;
+  o->SfrDiskZ = 0.0;
+  o->SfrBulgeZ = 0.0;
+  
   // NOTE: in Msun/yr 
-  o->Sfr = g->Sfr[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrBulge = g->SfrBulge[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrICS = g->SfrICS[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  for(step = 0; step < STEPS; step++)
+  {
+    o->SfrDisk += g->SfrDisk[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    o->SfrBulge += g->SfrBulge[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    
+    if(g->SfrDiskColdGas[step] > 0.0)
+      o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
+
+    if(g->SfrBulgeColdGas[step] > 0.0)
+      o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
+  }
 
   o->DiskScaleRadius = g->DiskScaleRadius;
 
@@ -172,14 +185,14 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   else
     o->Heating = 0.0;
 
+  o->r_heat = g->r_heat;
+
   o->LastMajorMerger = g->LastMajorMerger * UnitTime_in_Megayears;
   o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 
   o->infallMvir = g->infallMvir;  //infall properties
   o->infallVvir = g->infallVvir;
   o->infallVmax = g->infallVmax;
-
-  o->r_heat = g->r_heat;
 
 }
 

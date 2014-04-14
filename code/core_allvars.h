@@ -37,6 +37,8 @@ do {                                                                \
 struct GALAXY_OUTPUT  
 {
   int   Type;
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
   long long   GalaxyIndex;
   int   HaloIndex;
   int   FOFHaloIndex;
@@ -74,26 +76,32 @@ struct GALAXY_OUTPUT
   float MetalsEjectedMass;
   float MetalsICS;
 
-  // misc 
-  float Sfr;
+  // to calculate magnitudes
+  float SfrDisk;
   float SfrBulge;
-  float SfrICS;
+  float SfrDiskZ;
+  float SfrBulgeZ;
+  
+  // misc 
   float DiskScaleRadius;
   float Cooling;
   float Heating;
+  float r_heat;  
   float LastMajorMerger;
   float OutflowRate;
 
-  float infallMvir;  //infall properties
+  //infall properties
+  float infallMvir;
   float infallVvir;
   float infallVmax;
-  float r_heat;
 };
 
 
 struct GALAXY
 {
   int   Type;
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
   int   GalaxyNr;
   int   HaloNr;
   long long  MostBoundID;
@@ -128,22 +136,27 @@ struct GALAXY
   float MetalsEjectedMass;
   float MetalsICS;
 
+  // to calculate magnitudes
+  float SfrDisk[STEPS];
+  float SfrBulge[STEPS];
+  float SfrDiskColdGas[STEPS];
+  float SfrDiskColdGasMetals[STEPS];
+  float SfrBulgeColdGas[STEPS];
+  float SfrBulgeColdGasMetals[STEPS];
+
   // misc 
-  float Sfr[NOUT];
-  float SfrBulge[NOUT];
-  float SfrICS[NOUT];
   float DiskScaleRadius;
   float MergTime;
-  int AlreadyMerged;
   double Cooling;
   double Heating;
+  float r_heat;
   float LastMajorMerger;
   float OutflowRate;
 
-  float infallMvir;  //infall properties
+  //infall properties
+  float infallMvir;
   float infallVvir;
   float infallVmax;
-  float r_heat;
 }
 *Gal, *HaloGal;
 

@@ -106,6 +106,8 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('Type'                         , np.int32),                    
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('HaloIndex'                    , np.int32),                    
             ('FOFHaloIdx'                   , np.int32),                    
@@ -135,18 +137,19 @@ class Results:
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
-            ('Sfr'                          , np.float32),                  
+            ('SfrDisk'                      , np.float32),                  
             ('SfrBulge'                     , np.float32),                  
-            ('SfrIntraClusterStars'         , np.float32),                  
+            ('SfrDiskZ'                     , np.float32),                  
+            ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
+            ('r_heat'                       , np.float32),
             ('LastMajorMerger'              , np.float32),
             ('OutflowRate'                  , np.float32),
             ('infallMvir'                   , np.float32),
             ('infallVvir'                   , np.float32),
-            ('infallVmax'                   , np.float32),
-            ('r_heat'                       , np.float32)
+            ('infallVmax'                   , np.float32)
             ]
         names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
@@ -447,7 +450,7 @@ class Results:
 
         SFR_density = np.zeros((LastSnap+1-FirstSnap))       
         for snap in xrange(FirstSnap,LastSnap+1):
-          SFR_density[snap-FirstSnap] = sum(G_history[snap].Sfr) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
+          SFR_density[snap-FirstSnap] = sum(G_history[snap].SfrDisk+G_history[snap].SfrBulge) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
     
         z = np.array(self.redshift)
         nonzero = np.where(SFR_density > 0.0)[0]

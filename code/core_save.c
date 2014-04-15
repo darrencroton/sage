@@ -114,6 +114,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   int j, step;
 
   o->Type = g->Type;
+  o->mergeType = g->mergeType;
+  o->mergeIntoID = g->mergeIntoID;
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
   o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e12 * filenr;
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e12 == filenr );

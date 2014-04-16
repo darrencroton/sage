@@ -83,8 +83,6 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('Type'                         , np.int32),                    
-            ('mergeType'                    , np.int32),                    
-            ('mergeIntoID'                  , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('HaloIndex'                    , np.int32),                    
             ('FOFHaloIdx'                   , np.int32),                    
@@ -92,6 +90,9 @@ class Results:
             ('SnapNum'                      , np.int32),                    
             ('CentralGal'                   , np.int32),                    
             ('CentralMvir'                  , np.float32),                  
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
+            ('mergeIntoSnapNum'             , np.int32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             
@@ -209,7 +210,7 @@ class Results:
         G = G.view(np.recarray)
 
         w = np.where(G.StellarMass > 1.0)[0]
-        print "Galaxies more massve than 10^10Msun/h:", len(w)
+        print "Galaxies more massive than 10^10Msun/h:", len(w)
 
         print
 

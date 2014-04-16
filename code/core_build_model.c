@@ -325,7 +325,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
           if(Gal[merger_centralgal].mergeType > 0) 
             merger_centralgal = Gal[merger_centralgal].CentralGal;
 
-          Gal[p].mergeIntoID = NumGals + merger_centralgal - 1;  // position in output 
+          Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
 
           if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {
@@ -389,18 +389,8 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       
       HaloGal[i].mergeType = Gal[p].mergeType;
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID;
+      HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
-
-    // if(tree == 33 && Gal[p].GalaxyNr == 224)
-    // {
-    //   printf("%i\t%i\t%i\t%i\t%f\t%i\t%f\t%i\t%i\t%i\t%i\t\t", Gal[p].GalaxyNr, p, ngal, Halo[currenthalo].SnapNum, 
-    //     Gal[p].Mvir, Gal[p].Len, Gal[p].StellarMass, 
-    //     Gal[p].Type, Gal[p].mergeType, Gal[p].mergeIntoID, Gal[centralgal].GalaxyNr);
-    //   if(i > -1)
-    //     printf("%i\t%i\n", HaloGal[i].SnapNum, HaloGal[i].Len);
-    //   else
-    //     printf("\n");
-    // }
     
     if(Gal[p].mergeType == 0)
     {

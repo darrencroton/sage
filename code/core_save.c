@@ -17,7 +17,32 @@ void save_galaxies(int filenr, int tree)
   FILE *fd;
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
+  int OutputGalCount[MAXSNAPS], OutputGalOrder[NumGals];
 
+  // reset the output galaxy count and order
+  for(i = 0; i < MAXSNAPS; i++)
+    OutputGalCount[i] = 0;
+  for(i = 0; i < NumGals; i++)
+      OutputGalOrder[i] = -1;
+
+  // first update mergeIntoID to point to the correct galaxy in the output
+  for(n = 0; n < NOUT; n++)
+  {
+    for(i = 0; i < NumGals; i++)
+    {
+      if(HaloGal[i].SnapNum == ListOutputSnaps[n])
+      {
+        OutputGalOrder[i] = OutputGalCount[n];
+        OutputGalCount[n]++;
+      }
+    }
+  }
+    
+  for(i = 0; i < NumGals; i++)
+    if(HaloGal[i].mergeIntoID > -1)
+      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];    
+  
+  // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
   {
 #ifdef MINIMIZE_IO
@@ -63,8 +88,6 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   int j, step;
 
   o->Type = g->Type;
-  o->mergeType = g->mergeType;
-  o->mergeIntoID = g->mergeIntoID;
   o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;
   o->HaloIndex = g->HaloNr;
   o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
@@ -73,6 +96,10 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
   o->CentralGal = g->CentralGal;
   o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
+
+  o->mergeType = g->mergeType;
+  o->mergeIntoID = g->mergeIntoID;
+  o->mergeIntoSnapNum = g->mergeIntoSnapNum;
 
   for(j = 0; j < 3; j++)
   {

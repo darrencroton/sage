@@ -216,6 +216,10 @@ class Results:
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
 
+        # w = np.where(G.TreeIdx == 8)[0]
+        # for i in xrange(len(w)):
+        #     print i, G.TreeIdx[w[i]], G.Type[w[i]], G.GalaxyIndex[w[i]], G.mergeType[w[i]], G.mergeIntoID[w[i]], G.mergeIntoSnapNum[w[i]]
+
         return G
 
 # --------------------------------------------------------

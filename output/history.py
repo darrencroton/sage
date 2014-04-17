@@ -106,8 +106,6 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('Type'                         , np.int32),                    
-            ('mergeType'                    , np.int32),                    
-            ('mergeIntoID'                  , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('HaloIndex'                    , np.int32),                    
             ('FOFHaloIdx'                   , np.int32),                    
@@ -115,6 +113,9 @@ class Results:
             ('SnapNum'                      , np.int32),                    
             ('CentralGal'                   , np.int32),                    
             ('CentralMvir'                  , np.float32),                  
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
+            ('mergeIntoSnapNum'             , np.int32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             
@@ -144,7 +145,6 @@ class Results:
             ('DiskRadius'                   , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
-            ('r_heat'                       , np.float32),
             ('LastMajorMerger'              , np.float32),
             ('OutflowRate'                  , np.float32),
             ('infallMvir'                   , np.float32),

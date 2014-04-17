@@ -37,8 +37,6 @@ do {                                                                \
 struct GALAXY_OUTPUT  
 {
   int   Type;
-  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
-  int   mergeIntoID;
   long long   GalaxyIndex;
   int   HaloIndex;
   int   FOFHaloIndex;
@@ -47,6 +45,10 @@ struct GALAXY_OUTPUT
   int   SnapNum;
   int   CentralGal;
   float CentralMvir;
+
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
+  int   mergeIntoSnapNum;
 
   // properties of subhalo at the last time this galaxy was a central galaaxy 
   float Pos[3];
@@ -86,7 +88,6 @@ struct GALAXY_OUTPUT
   float DiskScaleRadius;
   float Cooling;
   float Heating;
-  float r_heat;  
   float LastMajorMerger;
   float OutflowRate;
 
@@ -100,14 +101,16 @@ struct GALAXY_OUTPUT
 struct GALAXY
 {
   int   Type;
-  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
-  int   mergeIntoID;
   int   GalaxyNr;
   int   HaloNr;
   long long  MostBoundID;
   int   SnapNum;
   int   CentralGal;
   float CentralMvir;
+
+  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
+  int   mergeIntoID;
+  int   mergeIntoSnapNum;
 
   // properties of subhalo at the last time this galaxy was a central galaxy 
   float Pos[3];

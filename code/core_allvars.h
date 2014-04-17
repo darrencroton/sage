@@ -88,7 +88,6 @@ struct GALAXY_OUTPUT
   float DiskScaleRadius;
   float Cooling;
   float Heating;
-  float r_heat;  
   float LastMajorMerger;
   float OutflowRate;
 

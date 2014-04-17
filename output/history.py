@@ -145,7 +145,6 @@ class Results:
             ('DiskRadius'                   , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
-            ('r_heat'                       , np.float32),
             ('LastMajorMerger'              , np.float32),
             ('OutflowRate'                  , np.float32),
             ('infallMvir'                   , np.float32),

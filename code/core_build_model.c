@@ -248,7 +248,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
 void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
-  int p, i, step, centralgal, merger_centralgal, currenthalo;
+  int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons;
 
   centralgal = Gal[0].CentralGal;
@@ -358,6 +358,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 
 
   // attach final galaxy list to halo 
+  offset = 0;
   for(p = 0, currenthalo = -1; p < ngal; p++)
   {
     if(Gal[p].HaloNr != currenthalo)
@@ -369,6 +370,16 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 
     // Merged galaxies won't be output. So go back through its history and find it
     // in the previous timestep. Then copy the current merger info there.
+    offset = 0;
+    i = p-1;
+    while(i >= 0)
+    {
+     if(Gal[i].mergeType > 0) 
+       if(Gal[p].mergeIntoID > Gal[i].mergeIntoID)
+         offset++;  // these galaxies won't be kept so offset mergeIntoID below
+     i--;
+    }
+    
     i = -1;
     if(Gal[p].mergeType > 0)
     {
@@ -388,9 +399,22 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       }
       
       HaloGal[i].mergeType = Gal[p].mergeType;
-      HaloGal[i].mergeIntoID = Gal[p].mergeIntoID;
+      HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
       HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
+
+    // // if(tree == 707 && Halo[currenthalo].SnapNum >= 58 && Halo[currenthalo].SnapNum <= 60)
+    // if(tree == 27 && Halo[currenthalo].SnapNum >= 54 && Halo[currenthalo].SnapNum <= 55)
+    // {
+    //   printf("BUILD_MODEL:\t%i\t%i\t%i\t%i\t%i\t%f\t%i\t%f\t%i\t%i\t%i\t%i\t\t", 
+    //     NumGals, Gal[p].GalaxyNr, p, ngal, Halo[currenthalo].SnapNum, 
+    //     Gal[p].Mvir, Gal[p].Len, Gal[p].StellarMass, 
+    //     Gal[p].Type, Gal[p].mergeType, Gal[p].mergeIntoID-offset, HaloGal[HaloGal[i].mergeIntoID].GalaxyNr);
+    //   if(i > -1)
+    //     printf("%i\t%f\t%i\n", HaloGal[i].SnapNum, HaloGal[i].StellarMass, HaloGal[i].mergeIntoSnapNum);
+    //   else
+    //     printf("\n");
+    // }
     
     if(Gal[p].mergeType == 0)
     {
@@ -403,10 +427,14 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;
       HaloGal[NumGals++] = Gal[p];
       HaloAux[currenthalo].NGalaxies++;
-
     }
   }
 
 
 }
+
+
+
+
+
 

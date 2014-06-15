@@ -43,6 +43,7 @@ struct GALAXY_OUTPUT
   int   TreeIndex;
   
   int   SnapNum;
+  float dt;
   int   CentralGal;
   float CentralMvir;
 
@@ -105,6 +106,7 @@ struct GALAXY
   int   HaloNr;
   long long  MostBoundID;
   int   SnapNum;
+  float dt;
   int   CentralGal;
   float CentralMvir;
 
@@ -273,6 +275,7 @@ struct merger_node
 extern merger_node_type* merger_nodes;
 extern int TreeID;
 extern int FileNum;
+
 
 #ifdef MINIMIZE_IO
 extern char *ptr_treedata, *ptr_galaxydata, *ptr_galsnapdata[NOUT];

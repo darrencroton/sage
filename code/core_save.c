@@ -163,7 +163,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
   o->TreeIndex = tree;
   o->SnapNum = g->SnapNum;
-  o->dt = g->dt / UnitTime_in_s * SEC_PER_YEAR;
+  o->dt = g->dt;
 
   o->CentralGal = g->CentralGal;
   o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);

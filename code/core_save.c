@@ -25,14 +25,17 @@ void save_galaxies(int filenr, int tree)
   /* FILE *fd; */
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
-  int OutputGalCount[MAXSNAPS], OutputGalOrder[NumGals];
+  int OutputGalCount[MAXSNAPS], *OutputGalOrder;
   // int counter;
+
+  OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
+  assert( OutputGalOrder );
 
   // reset the output galaxy count and order
   for(i = 0; i < MAXSNAPS; i++)
     OutputGalCount[i] = 0;
   for(i = 0; i < NumGals; i++)
-      OutputGalOrder[i] = -1;
+    OutputGalOrder[i] = -1;
 
   // first update mergeIntoID to point to the correct galaxy in the output
   for(n = 0; n < NOUT; n++)
@@ -117,31 +120,8 @@ void save_galaxies(int filenr, int tree)
 
   }
 
-  /* Write mergers and free memory. */
-  {
-    /* Count mergers. */
-    merger_node_type* cur = merger_nodes;
-    unsigned n_mergers = 0;
-    while( cur )
-    {
-      ++n_mergers;
-      cur = cur->next;
-    }
-    fwrite( &n_mergers, sizeof(unsigned), 1, mergers_fd );
-
-    /* Dump mergers. */
-    cur = merger_nodes;
-    while( cur )
-    {
-      merger_node_type* next = cur->next;
-      fwrite( &cur->central, sizeof(long long), 1, mergers_fd );
-      fwrite( &cur->merged, sizeof(long long), 1, mergers_fd );
-      fwrite( &cur->snapshot, sizeof(unsigned), 1, mergers_fd );
-      free( cur );
-      cur = next;
-    }
-    merger_nodes = NULL;
-  }
+  /* Don't forget to free the workspace. */
+  free( OutputGalOrder );
 
 }
 

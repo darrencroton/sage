@@ -264,15 +264,6 @@ extern int    Snaplistlen;
 
 extern gsl_rng *random_generator;
 
-typedef struct merger_node merger_node_type;
-struct merger_node
-{
-  long long central;
-  long long merged;
-  int snapshot;
-  merger_node_type* next;
-};
-extern merger_node_type* merger_nodes;
 extern int TreeID;
 extern int FileNum;
 

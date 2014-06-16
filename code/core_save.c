@@ -13,9 +13,6 @@
    do constant seeking. */
 FILE* save_fd[NOUT] = { 0 };
 
-/* Need access to the mergers file. */
-extern FILE* mergers_fd;
-
 
 void save_galaxies(int filenr, int tree)
 {
@@ -135,7 +132,11 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
+#ifdef BOLSHOI
+  o->GalaxyIndex = g->GalaxyNr + 1e9 * tree;
+#else
   o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e12 * filenr;
+#endif
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e12 == filenr );
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e12*filenr)/1e9 == tree );
   assert( o->GalaxyIndex - 1e9*tree - 1e12*filenr == g->GalaxyNr );

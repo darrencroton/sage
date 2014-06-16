@@ -97,7 +97,6 @@ int Snaplistlen;
 
 gsl_rng *random_generator;
 
-merger_node_type* merger_nodes = NULL;
 int TreeID;
 int FileNum;
 

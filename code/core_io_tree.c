@@ -16,9 +16,6 @@
    do constant seeking. */
 FILE* load_fd = NULL;
 
-/* Keep another file handle for dumping mergers. */
-FILE* mergers_fd = NULL;
-
 
 void load_tree_table(int filenr)
 {
@@ -75,12 +72,6 @@ void load_tree_table(int filenr)
     fclose(fd);
     TotGalaxies[n] = 0;
   }
-
-  /* Open a file for mergers. */
-  sprintf( buf, "%s/mergers_%d", OutputDir, filenr );
-  assert( mergers_fd == NULL );
-  mergers_fd = fopen( buf, "wb" );
-  assert( mergers_fd );
 }
 
 
@@ -100,10 +91,6 @@ void free_tree_table(void)
     myfree(ptr_galsnapdata[n]);
   myfree(ptr_treedata);
 #endif
-
-  /* Close mergers file. */
-  fclose( mergers_fd );
-  mergers_fd = NULL;
 }
 
 

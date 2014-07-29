@@ -1,5 +1,5 @@
 Semi-Analytic Galaxy Evolution (SAGE)
 
-Darren Croton
+Author: Darren Croton
 
-dcroton@astro.swin.edu.au
+Contact: dcroton@astro.swin.edu.au

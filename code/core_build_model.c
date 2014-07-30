@@ -402,19 +402,6 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
       HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
-
-    // // if(tree == 707 && Halo[currenthalo].SnapNum >= 58 && Halo[currenthalo].SnapNum <= 60)
-    // if(tree == 27 && Halo[currenthalo].SnapNum >= 54 && Halo[currenthalo].SnapNum <= 55)
-    // {
-    //   printf("BUILD_MODEL:\t%i\t%i\t%i\t%i\t%i\t%f\t%i\t%f\t%i\t%i\t%i\t%i\t\t", 
-    //     NumGals, Gal[p].GalaxyNr, p, ngal, Halo[currenthalo].SnapNum, 
-    //     Gal[p].Mvir, Gal[p].Len, Gal[p].StellarMass, 
-    //     Gal[p].Type, Gal[p].mergeType, Gal[p].mergeIntoID-offset, HaloGal[HaloGal[i].mergeIntoID].GalaxyNr);
-    //   if(i > -1)
-    //     printf("%i\t%f\t%i\n", HaloGal[i].SnapNum, HaloGal[i].StellarMass, HaloGal[i].mergeIntoSnapNum);
-    //   else
-    //     printf("\n");
-    // }
     
     if(Gal[p].mergeType == 0)
     {

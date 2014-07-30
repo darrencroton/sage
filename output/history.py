@@ -116,6 +116,7 @@ class Results:
             ('mergeType'                    , np.int32),                    
             ('mergeIntoID'                  , np.int32),                    
             ('mergeIntoSnapNum'             , np.int32),                    
+            ('dT'                           , np.int32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             

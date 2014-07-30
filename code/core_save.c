@@ -101,6 +101,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;
   o->mergeIntoSnapNum = g->mergeIntoSnapNum;
+  o->dT = g->dT / UnitTime_in_s * SEC_PER_YEAR;
 
   for(j = 0; j < 3; j++)
   {

@@ -124,6 +124,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
       Gal[ngal] = HaloGal[HaloAux[prog].FirstGalaxy + i];
       Gal[ngal].HaloNr = halonr;      
+      Gal[ngal].dT = -1.0;
 
       // this deals with the central galaxies of (sub)halos 
       if(Gal[ngal].Type == 0 || Gal[ngal].Type == 1)
@@ -249,7 +250,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
-  double infallingGas, coolingGas, deltaT, time, galaxyBaryons;
+  double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
 
   centralgal = Gal[0].CentralGal;
   if(Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
@@ -277,6 +278,9 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+      
+      if(Gal[p].dT < 0.0)
+        Gal[p].dT = deltaT;
 
       // for central galaxy only 
       if(p == centralgal)
@@ -315,7 +319,8 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons <= ThresholdSatDisruption)))
+        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - step / (STEPS-1));
+        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))
         {
           if(Gal[p].Type==1) 
             merger_centralgal = centralgal;

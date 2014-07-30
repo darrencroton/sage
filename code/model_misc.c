@@ -32,6 +32,7 @@ void init_galaxy(int p, int halonr)
   Gal[p].mergeType = 0;
   Gal[p].mergeIntoID = -1;
   Gal[p].mergeIntoSnapNum = -1;
+  Gal[p].dT = -1.0;
 
   for(j = 0; j < 3; j++)
   {

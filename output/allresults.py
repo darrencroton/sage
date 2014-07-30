@@ -90,6 +90,10 @@ class Results:
             ('SnapNum'                      , np.int32),                    
             ('CentralGal'                   , np.int32),                    
             ('CentralMvir'                  , np.float32),                  
+            ('mergeType'                    , np.int32),                    
+            ('mergeIntoID'                  , np.int32),                    
+            ('mergeIntoSnapNum'             , np.int32),                    
+            ('dT'                           , np.int32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             
@@ -112,9 +116,10 @@ class Results:
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
-            ('Sfr'                          , np.float32),                  
+            ('SfrDisk'                      , np.float32),                  
             ('SfrBulge'                     , np.float32),                  
-            ('SfrIntraClusterStars'         , np.float32),                  
+            ('SfrDiskZ'                     , np.float32),                  
+            ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
@@ -122,8 +127,7 @@ class Results:
             ('OutflowRate'                  , np.float32),
             ('infallMvir'                   , np.float32),
             ('infallVvir'                   , np.float32),
-            ('infallVmax'                   , np.float32),
-            ('r_heat'                       , np.float32)
+            ('infallVmax'                   , np.float32)
             ]
         names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
@@ -206,12 +210,16 @@ class Results:
         G = G.view(np.recarray)
 
         w = np.where(G.StellarMass > 1.0)[0]
-        print "Galaxies more massve than 10^10Msun/h:", len(w)
+        print "Galaxies more massive than 10^10Msun/h:", len(w)
 
         print
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
+
+        # w = np.where(G.TreeIdx == 8)[0]
+        # for i in xrange(len(w)):
+        #     print i, G.TreeIdx[w[i]], G.Type[w[i]], G.GalaxyIndex[w[i]], G.mergeType[w[i]], G.mergeIntoID[w[i]], G.mergeIntoSnapNum[w[i]]
 
         return G
 
@@ -229,7 +237,7 @@ class Results:
         # calculate all
         w = np.where(G.StellarMass > 0.0)[0]
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-        sSFR = G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -446,7 +454,7 @@ class Results:
         # calculate all
         w = np.where(G.ColdGas > 0.0)[0]
         mass = np.log10(G.ColdGas[w] * 1.0e10 / self.Hubble_h)
-        sSFR = G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
         NB = (ma - mi) / binwidth
@@ -625,8 +633,7 @@ class Results:
         if(len(w) > dilute): w = sample(w, dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-        sSFR = np.log10(G.Sfr[w] / (G.StellarMass[w] * 1.0e10 / self.Hubble_h))
-                    
+        sSFR = np.log10( (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h) )
         plt.scatter(mass, sSFR, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
                 
         # overplot dividing line between SF and passive

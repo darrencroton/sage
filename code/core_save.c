@@ -17,7 +17,32 @@ void save_galaxies(int filenr, int tree)
   FILE *fd;
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
+  int OutputGalCount[MAXSNAPS], OutputGalOrder[NumGals];
 
+  // reset the output galaxy count and order
+  for(i = 0; i < MAXSNAPS; i++)
+    OutputGalCount[i] = 0;
+  for(i = 0; i < NumGals; i++)
+      OutputGalOrder[i] = -1;
+
+  // first update mergeIntoID to point to the correct galaxy in the output
+  for(n = 0; n < NOUT; n++)
+  {
+    for(i = 0; i < NumGals; i++)
+    {
+      if(HaloGal[i].SnapNum == ListOutputSnaps[n])
+      {
+        OutputGalOrder[i] = OutputGalCount[n];
+        OutputGalCount[n]++;
+      }
+    }
+  }
+    
+  for(i = 0; i < NumGals; i++)
+    if(HaloGal[i].mergeIntoID > -1)
+      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];    
+  
+  // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
   {
 #ifdef MINIMIZE_IO
@@ -36,11 +61,12 @@ void save_galaxies(int filenr, int tree)
     myfseek(fd, (2 + Ntrees) * sizeof(int), SEEK_CUR);
     myfseek(fd, TotGalaxies[n] * sizeof(struct GALAXY_OUTPUT), SEEK_CUR);
 
+    // counter = 0;
     for(i = 0; i < NumGals; i++)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
-      {
-        prepare_galaxy_for_output(n, filenr, tree, &HaloGal[i], &galaxy_output);
+      {        
+        prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, fd);
 
         TotGalaxies[n]++;
@@ -58,9 +84,9 @@ void save_galaxies(int filenr, int tree)
 
 
 
-void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
+void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
 {
-  int j;
+  int j, step;
 
   o->Type = g->Type;
   o->GalaxyIndex = g->GalaxyNr + 1e6 * tree + 1e12 * filenr;
@@ -71,6 +97,11 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
 
   o->CentralGal = g->CentralGal;
   o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
+
+  o->mergeType = g->mergeType;
+  o->mergeIntoID = g->mergeIntoID;
+  o->mergeIntoSnapNum = g->mergeIntoSnapNum;
+  o->dT = g->dT / UnitTime_in_s * SEC_PER_YEAR;
 
   for(j = 0; j < 3; j++)
   {
@@ -100,11 +131,24 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   o->MetalsHotGas = g->MetalsHotGas;
   o->MetalsEjectedMass = g->MetalsEjectedMass;
   o->MetalsICS = g->MetalsICS;
-
+  
+  o->SfrDisk = 0.0;
+  o->SfrBulge = 0.0;
+  o->SfrDiskZ = 0.0;
+  o->SfrBulgeZ = 0.0;
+  
   // NOTE: in Msun/yr 
-  o->Sfr = g->Sfr[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrBulge = g->SfrBulge[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
-  o->SfrICS = g->SfrICS[n] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  for(step = 0; step < STEPS; step++)
+  {
+    o->SfrDisk += g->SfrDisk[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    o->SfrBulge += g->SfrBulge[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+    
+    if(g->SfrDiskColdGas[step] > 0.0)
+      o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
+
+    if(g->SfrBulgeColdGas[step] > 0.0)
+      o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
+  }
 
   o->DiskScaleRadius = g->DiskScaleRadius;
 
@@ -123,8 +167,6 @@ void prepare_galaxy_for_output(int n, int filenr, int tree, struct GALAXY *g, st
   o->infallMvir = g->infallMvir;  //infall properties
   o->infallVvir = g->infallVvir;
   o->infallVmax = g->infallVmax;
-
-  o->r_heat = g->r_heat;
 
 }
 

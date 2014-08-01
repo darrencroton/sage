@@ -195,6 +195,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             // Here the galaxy has gone from type 0 to type 2. Merge it!
             Gal[ngal].MergTime = 0.0;
           Gal[ngal].Type = 2;
+          Gal[ngal].deltaMvir = -1.0*Gal[ngal].Mvir;
           Gal[ngal].Mvir = 0.0;
         }
       }
@@ -315,12 +316,12 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 
         deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
         Gal[p].MergTime -= deltaT / STEPS;
-
+        
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
+        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - 1.0*(step+1)/STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - step / (STEPS-1));
-        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))
+        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
         {
           if(Gal[p].Type==1) 
             merger_centralgal = centralgal;

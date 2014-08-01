@@ -319,7 +319,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
         
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
-        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - 1.0*(step+1)/STEPS);
+        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
         if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
         {

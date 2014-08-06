@@ -23,13 +23,13 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-# # Millennium
-# OPT += -DNOUT=64           # This sets the number of galaxy output times
-# OPT += -DMILLENNIUM         # Millennium simulation trees
+# Millennium
+OPT += -DNOUT=64           # This sets the number of galaxy output times
+OPT += -DMILLENNIUM         # Millennium simulation trees
 
-# Bolshoi
-OPT += -DNOUT=181           # This sets the number of galaxy output times
-OPT += -DBOLSHOI            # Bolshoi simulation trees
+# # Bolshoi
+# OPT += -DNOUT=181           # This sets the number of galaxy output times
+# OPT += -DBOLSHOI            # Bolshoi simulation trees
 
 # OPT += -DGIGGLEZ						# GiggleZ simulation trees
 

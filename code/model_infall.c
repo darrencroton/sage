@@ -195,6 +195,10 @@ void add_infall_to_hot(int gal, double infallingGas)
     if(Gal[gal].MetalsHotGas < 0.0) Gal[gal].MetalsHotGas = 0.0;
   }
 
+  // limit the infalling gas so that the hot halo alone doesn't exceed the baryon fraction
+  if(infallingGas > 0.0 && (Gal[gal].HotGas + infallingGas) / Gal[gal].Mvir > BaryonFrac)
+    infallingGas = BaryonFrac * Gal[gal].Mvir - Gal[gal].HotGas;
+
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
   Gal[gal].HotGas += infallingGas;
   if(Gal[gal].HotGas < 0.0) Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;

@@ -134,12 +134,14 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
 #ifdef BOLSHOI
   o->GalaxyIndex = g->GalaxyNr + 1e9 * tree;
+  assert( (o->GalaxyIndex - g->GalaxyNr)/1e9 == tree );
+  assert( o->GalaxyIndex - 1e9*tree == g->GalaxyNr );
 #else
   o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e12 * filenr;
-#endif
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e12 == filenr );
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e12*filenr)/1e9 == tree );
   assert( o->GalaxyIndex - 1e9*tree - 1e12*filenr == g->GalaxyNr );
+#endif
   o->HaloIndex = g->HaloNr;
   o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
   o->TreeIndex = tree;

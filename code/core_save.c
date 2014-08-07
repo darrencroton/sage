@@ -164,9 +164,19 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->LastMajorMerger = g->LastMajorMerger * UnitTime_in_Megayears;
   o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 
-  o->infallMvir = g->infallMvir;  //infall properties
-  o->infallVvir = g->infallVvir;
-  o->infallVmax = g->infallVmax;
+  //infall properties
+  if(g->Type != 0)
+  {
+    o->infallMvir = g->infallMvir;
+    o->infallVvir = g->infallVvir;
+    o->infallVmax = g->infallVmax;
+  }
+  else
+  {
+    o->infallMvir = 0.0;
+    o->infallVvir = 0.0;
+    o->infallVmax = 0.0;
+  }
 
 }
 

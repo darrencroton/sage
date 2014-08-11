@@ -306,14 +306,11 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       {
         add_infall_to_hot(centralgal, infallingGas / STEPS);
 
-        // if(ReIncorporationFactor > 0.0)
-        //   reincorporate_gas(centralgal, deltaT / STEPS);
+        if(ReIncorporationFactor > 0.0)
+          reincorporate_gas(centralgal, deltaT / STEPS);
       }
       else if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
         strip_from_satellite(halonr, centralgal, p);
-
-      if(ReIncorporationFactor > 0.0)
-        reincorporate_gas(p, deltaT / STEPS);
 
       // determine cooling gas given halo properties 
       coolingGas = cooling_recipe(p, deltaT / STEPS);

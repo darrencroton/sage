@@ -52,16 +52,16 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     // reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
     reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;
 
-  // the central galaxy keeps all the ejected mass 
-  // Gal[centralgal].EjectedMass = tot_ejected;
-  // Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
-  //
-  // if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
-  //   Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;
-  // if(Gal[centralgal].EjectedMass < 0.0)
-  //   Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;
-  // if(Gal[centralgal].MetalsEjectedMass < 0.0)
-  //   Gal[centralgal].MetalsEjectedMass = 0.0;
+  the central galaxy keeps all the ejected mass
+  Gal[centralgal].EjectedMass = tot_ejected;
+  Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
+
+  if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
+    Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;
+  if(Gal[centralgal].EjectedMass < 0.0)
+    Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;
+  if(Gal[centralgal].MetalsEjectedMass < 0.0)
+    Gal[centralgal].MetalsEjectedMass = 0.0;
 
   // the central galaxy keeps all the ICS (mostly for numerical convenience)
   Gal[centralgal].ICS = tot_ICS;

@@ -159,7 +159,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
 
-          Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
           Gal[ngal].OutflowRate = 0.0;
@@ -177,6 +176,8 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].mergeType = 0;
             Gal[ngal].mergeIntoID = -1;
             Gal[ngal].MergTime = 999.9;            
+
+            Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
 
             Gal[ngal].Type = 0;
           }
@@ -305,11 +306,14 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       {
         add_infall_to_hot(centralgal, infallingGas / STEPS);
 
-        if(ReIncorporationFactor > 0.0)
-          reincorporate_gas(centralgal, deltaT / STEPS);
+        // if(ReIncorporationFactor > 0.0)
+        //   reincorporate_gas(centralgal, deltaT / STEPS);
       }
       else if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
         strip_from_satellite(halonr, centralgal, p);
+
+      if(ReIncorporationFactor > 0.0)
+        reincorporate_gas(p, deltaT / STEPS);
 
       // determine cooling gas given halo properties 
       coolingGas = cooling_recipe(p, deltaT / STEPS);

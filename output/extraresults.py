@@ -221,6 +221,116 @@ class Results:
 
 # ---------------------------------------------------------
     
+    def QuiescentFraction(self, G):
+    
+        print 'Plotting the quiescent fraction vs stellar mass'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+        
+        groupscale = 12.5
+        
+        w = np.where(G.StellarMass > 0.0)[0]
+        StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        CentralMvir = np.log10(G.CentralMvir[w] * 1.0e10 / self.Hubble_h)
+        Type = G.Type[w]
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+
+        MinRange = 9.5
+        MaxRange = 12.0
+        Interval = 0.1
+        Nbins = int((MaxRange-MinRange)/Interval)
+        Range = np.arange(MinRange, MaxRange, Interval)
+        
+        Mass = []
+        Fraction = []
+        CentralFraction = []
+        SatelliteFraction = []
+        SatelliteFractionLo = []
+        SatelliteFractionHi = []
+
+        for i in xrange(Nbins-1):
+            
+            w = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                Fraction.append(1.0*len(wQ) / len(w))
+            else:
+                Fraction.append(0.0)
+
+            w = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                CentralFraction.append(1.0*len(wQ) / len(w))
+            else:
+                CentralFraction.append(0.0)
+
+            w = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                SatelliteFraction.append(1.0*len(wQ) / len(w))
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut) & (CentralMvir < groupscale))[0]
+                SatelliteFractionLo.append(1.0*len(wQ) / len(w))
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut) & (CentralMvir > groupscale))[0]
+                SatelliteFractionHi.append(1.0*len(wQ) / len(w))                
+            else:
+                SatelliteFraction.append(0.0)
+                SatelliteFractionLo.append(0.0)
+                SatelliteFractionHi.append(0.0)
+                
+            Mass.append((Range[i] + Range[i+1]) / 2.0)
+                
+            print '  ', Mass[i], Fraction[i], CentralFraction[i], SatelliteFraction[i]
+        
+        Mass = np.array(Mass)
+        Fraction = np.array(Fraction)
+        CentralFraction = np.array(CentralFraction)
+        SatelliteFraction = np.array(SatelliteFraction)
+        SatelliteFractionLo = np.array(SatelliteFractionLo)
+        SatelliteFractionHi = np.array(SatelliteFractionHi)
+        
+        w = np.where(Fraction > 0)[0]
+        plt.plot(Mass[w], Fraction[w], label='All')
+
+        w = np.where(CentralFraction > 0)[0]
+        plt.plot(Mass[w], CentralFraction[w], color='Blue', label='Centrals')
+
+        w = np.where(SatelliteFraction > 0)[0]
+        plt.plot(Mass[w], SatelliteFraction[w], color='Red', label='Satellites')
+
+        w = np.where(SatelliteFractionLo > 0)[0]
+        plt.plot(Mass[w], SatelliteFractionLo[w], 'r--', label='Satellites-Lo')
+
+        w = np.where(SatelliteFractionHi > 0)[0]
+        plt.plot(Mass[w], SatelliteFractionHi[w], 'r-.', label='Satellites-Hi')
+        
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stellar}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$\mathrm{Quescient\ Fraction}$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.axis([9.5, 12.0, 0.0, 1.05])
+            
+        leg = plt.legend(loc='lower right')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = OutputDir + 'E2.QuiescentFraction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# ---------------------------------------------------------
+    
     def BaryonFraction(self, G):
     
         print 'Plotting the average baryon fraction vs halo mass'
@@ -325,97 +435,6 @@ class Results:
             t.set_fontsize('medium')
             
         outputFile = OutputDir + 'E1.BaryonFraction' + OutputFormat
-        plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
-        plt.close()
-            
-        # Add this plot to our output list
-        OutputList.append(outputFile)
-
-
-# ---------------------------------------------------------
-    
-    def QuiescentFraction(self, G):
-    
-        print 'Plotting the quiescent fraction vs stellar mass'
-    
-        seed(2222)
-    
-        plt.figure()  # New figure
-        ax = plt.subplot(111)  # 1 plot on the figure
-        
-        w = np.where(G.StellarMass > 0.0)[0]
-        StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-        Type = G.Type[w]
-        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
-
-        MinRange = 9.5
-        MaxRange = 12.0
-        Interval = 0.1
-        Nbins = int((MaxRange-MinRange)/Interval)
-        Range = np.arange(MinRange, MaxRange, Interval)
-        
-        Mass = []
-        Fraction = []
-        CentralFraction = []
-        SatelliteFraction = []
-
-        for i in xrange(Nbins-1):
-            
-            w = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
-            if len(w) > 0:
-                wQ = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
-                Fraction.append(1.0*len(wQ) / len(w))
-            else:
-                Fraction.append(0.0)
-
-            w = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
-            if len(w) > 0:
-                wQ = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
-                CentralFraction.append(1.0*len(wQ) / len(w))
-            else:
-                CentralFraction.append(0.0)
-
-            w = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
-            if len(w) > 0:
-                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
-                SatelliteFraction.append(1.0*len(wQ) / len(w))
-            else:
-                SatelliteFraction.append(0.0)
-                
-            Mass.append((Range[i] + Range[i+1]) / 2.0)
-                
-            print '  ', Mass[i], Fraction[i], CentralFraction[i], SatelliteFraction[i]
-        
-        Mass = np.array(Mass)
-        Fraction = np.array(Fraction)
-        CentralFraction = np.array(CentralFraction)
-        SatelliteFraction = np.array(SatelliteFraction)
-        
-        w = np.where(Fraction > 0)[0]
-        plt.plot(Mass[w], Fraction[w], label='All')
-
-        w = np.where(CentralFraction > 0)[0]
-        plt.plot(Mass[w], CentralFraction[w], color='Blue', label='Centrals')
-
-        w = np.where(SatelliteFraction > 0)[0]
-        plt.plot(Mass[w], SatelliteFraction[w], color='Red', label='Satellites')
-        
-        plt.xlabel(r'$\log_{10} M_{\mathrm{stellar}}\ (M_{\odot})$')  # Set the x-axis label
-        plt.ylabel(r'$\mathrm{Quescient\ Fraction}$')  # Set the y-axis label
-            
-        # Set the x and y axis minor ticks
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
-            
-        plt.axis([9.5, 12.0, 0.0, 1.05])
-            
-        leg = plt.legend(loc='lower right')
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize('medium')
-            
-        outputFile = OutputDir + 'E2.QuiescentFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()

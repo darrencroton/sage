@@ -32,8 +32,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     tot_ICSMetals += Gal[i].MetalsICS;
 
     // satellite ejected gas goes to central ejected reservior
-    if(i != centralgal) 
-      Gal[i].EjectedMass = Gal[i].MetalsEjectedMass = 0.0;
+    // if(i != centralgal)
+    //   Gal[i].EjectedMass = Gal[i].MetalsEjectedMass = 0.0;
 
     // satellite ICS goes to central ICS
     if(i != centralgal) 
@@ -53,15 +53,15 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;
 
   // the central galaxy keeps all the ejected mass 
-  Gal[centralgal].EjectedMass = tot_ejected;
-  Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
-
-  if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
-    Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;
-  if(Gal[centralgal].EjectedMass < 0.0)
-    Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;
-  if(Gal[centralgal].MetalsEjectedMass < 0.0)
-    Gal[centralgal].MetalsEjectedMass = 0.0;
+  // Gal[centralgal].EjectedMass = tot_ejected;
+  // Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
+  //
+  // if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
+  //   Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;
+  // if(Gal[centralgal].EjectedMass < 0.0)
+  //   Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;
+  // if(Gal[centralgal].MetalsEjectedMass < 0.0)
+  //   Gal[centralgal].MetalsEjectedMass = 0.0;
 
   // the central galaxy keeps all the ICS (mostly for numerical convenience)
   Gal[centralgal].ICS = tot_ICS;

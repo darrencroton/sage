@@ -23,7 +23,7 @@ SimulationDir					./input/treefiles/millennium/millennium_mini
 FilesPerSnapshot			8    ; Mini Millennium
 
 % Full Millennium
-%SimulationDir					./input/treefiles/millennium/millennium_full
+%SimulationDir					./input/treefiles/millennium/millennium_full/local
 %FilesPerSnapshot			512  ; Full Millennium
 
 

@@ -26,6 +26,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   }
   else
   {
+    // we take the typical star forming region as 3.0*r_s using the Milky Way as a guide
     reff = 3.0 * Gal[p].DiskScaleRadius;
     tdyn = reff / Gal[p].Vvir;
 

@@ -75,6 +75,7 @@ void construct_galaxies(int halonr, int tree)
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
   int ngal, prog, mother_halo=-1, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  double previousMvir, previousVvir, previousVmax;
   int step;
 
   lenmax = 0;
@@ -129,6 +130,12 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       // this deals with the central galaxies of (sub)halos 
       if(Gal[ngal].Type == 0 || Gal[ngal].Type == 1)
       {
+
+        // remember properties from the last snapshot
+        previousMvir = Gal[ngal].Mvir;
+        previousVvir = Gal[ngal].Vvir;
+        previousVmax = Gal[ngal].Vmax;
+
         if(prog == first_occupied)
         {
           // update properties of this galaxy with physical properties of halo 
@@ -139,7 +146,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].Pos[j] = Halo[halonr].Pos[j];
             Gal[ngal].Vel[j] = Halo[halonr].Vel[j];
           }
-
+  
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
 
@@ -152,7 +159,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
 
-          Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
           Gal[ngal].OutflowRate = 0.0;
@@ -166,37 +172,49 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
           if(halonr == Halo[halonr].FirstHaloInFOFgroup)
           {
-            // central galaxy
-            Gal[ngal].Type = 0;
+            // a central galaxy
             Gal[ngal].mergeType = 0;
             Gal[ngal].mergeIntoID = -1;
             Gal[ngal].MergTime = 999.9;            
+
+            Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
+
+            Gal[ngal].Type = 0;
           }
           else
           {
-            if(Gal[ngal].Type == 0)  //infall properties
+            // a satellite with subhalo
+            if(Gal[ngal].Type == 0)  // remember the infall properties before becoming a subhalo
             {
-              Gal[ngal].infallMvir = Gal[ngal].Mvir;
-              Gal[ngal].infallVvir = Gal[ngal].Vvir;
-              Gal[ngal].infallVmax = Gal[ngal].Vmax;
+              Gal[ngal].infallMvir = previousMvir;
+              Gal[ngal].infallVvir = previousVvir;
+              Gal[ngal].infallVmax = previousVmax;
             }
 
-            // subhalo satellite galaxy
             if(Gal[ngal].Type == 0 || Gal[ngal].MergTime > 999.0)
               // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.
               Gal[ngal].MergTime = estimate_merging_time(halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
+            
             Gal[ngal].Type = 1;
           }
         }
         else
         {
-          // orhpan satellite galaxy
-          if(Gal[ngal].MergTime > 999.0)
-            // Here the galaxy has gone from type 0 to type 2. Merge it!
-            Gal[ngal].MergTime = 0.0;
-          Gal[ngal].Type = 2;
+          // an orhpan satellite galaxy
           Gal[ngal].deltaMvir = -1.0*Gal[ngal].Mvir;
           Gal[ngal].Mvir = 0.0;
+
+          if(Gal[ngal].MergTime > 999.0 || Gal[ngal].Type == 0)
+          {
+            // Here the galaxy has gone from type 0 to type 2. Merge it!
+            Gal[ngal].MergTime = 0.0;
+          
+            Gal[ngal].infallMvir = previousMvir;
+            Gal[ngal].infallVvir = previousVvir;
+            Gal[ngal].infallVmax = previousVmax;
+          }
+
+          Gal[ngal].Type = 2;
         }
       }
 

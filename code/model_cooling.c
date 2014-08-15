@@ -48,8 +48,8 @@ double cooling_recipe(int gal, double dt)
 			do_AGN_heating(coolingGas, gal, dt, x, rcool);
 
 		// update the cooling rate based on current AGN heating
-		if(Gal[gal].r_heat < Gal[gal].Rvir)
-			coolingGas = (1.0 - Gal[gal].r_heat / Gal[gal].Rvir) * coolingGas;
+		if(Gal[gal].r_heat < rcool)
+			coolingGas = (1.0 - Gal[gal].r_heat / rcool) * coolingGas;
 		else
 			coolingGas = 0.0;
 	
@@ -137,7 +137,7 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
   
   // update the heating radius as needed
-  r_heat_new = (AGNheating / coolingGas) * Gal[centralgal].Rvir;
+  r_heat_new = (AGNheating / coolingGas) * rcool;
   if(r_heat_new > Gal[centralgal].r_heat)
 	  Gal[centralgal].r_heat = r_heat_new;
 

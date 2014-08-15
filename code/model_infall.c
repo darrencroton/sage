@@ -32,7 +32,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     tot_ICSMetals += Gal[i].MetalsICS;
 
     // satellite ejected gas goes to central ejected reservior
-    if(i != centralgal) 
+    if(i != centralgal)
       Gal[i].EjectedMass = Gal[i].MetalsEjectedMass = 0.0;
 
     // satellite ICS goes to central ICS
@@ -52,7 +52,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     // reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
     reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;
 
-  // the central galaxy keeps all the ejected mass 
+  // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;
   Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
 
@@ -194,6 +194,10 @@ void add_infall_to_hot(int gal, double infallingGas)
     Gal[gal].MetalsHotGas += infallingGas*metallicity;
     if(Gal[gal].MetalsHotGas < 0.0) Gal[gal].MetalsHotGas = 0.0;
   }
+
+  // limit the infalling gas so that the hot halo alone doesn't exceed the baryon fraction
+  if(infallingGas > 0.0 && (Gal[gal].HotGas + infallingGas) / Gal[gal].Mvir > BaryonFrac)
+    infallingGas = BaryonFrac * Gal[gal].Mvir - Gal[gal].HotGas;
 
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
   Gal[gal].HotGas += infallingGas;

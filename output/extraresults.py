@@ -105,14 +105,16 @@ class Results:
             ('VelDisp'                      , np.float32),                  
             ('ColdGas'                      , np.float32),                  
             ('StellarMass'                  , np.float32),                  
-            ('BulgeMass'                    , np.float32),                  
+            ('ClassicalBulgeMass'           , np.float32),                  
+            ('SecularBulgeMass'             , np.float32),                  
             ('HotGas'                       , np.float32),                  
             ('EjectedMass'                  , np.float32),                  
             ('BlackHoleMass'                , np.float32),                  
             ('IntraClusterStars'            , np.float32),                  
             ('MetalsColdGas'                , np.float32),                  
             ('MetalsStellarMass'            , np.float32),                  
-            ('MetalsBulgeMass'              , np.float32),                  
+            ('ClassicalMetalsBulgeMass'     , np.float32),                  
+            ('SecularMetalsBulgeMass'       , np.float32),                  
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
@@ -121,6 +123,7 @@ class Results:
             ('SfrDiskZ'                     , np.float32),                  
             ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
+            ('BulgeRadius'                  , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
             ('LastMajorMerger'              , np.float32),
@@ -218,6 +221,50 @@ class Results:
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
 
         return G
+
+
+# ---------------------------------------------------------
+    
+    def BulgeRadius(self, G):
+    
+        print 'Plotting bulge radius vs stellar mass'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+        
+        
+        w = np.where(G.StellarMass > 2.0)[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+        StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        BulgeRadius = G.BulgeRadius[w] * 1000.0
+        
+        plt.scatter(StellarMass, BulgeRadius, marker='o', s=10, c='k', alpha=0.5, label='new model')
+        
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stellar}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$R_{\mathrm{eff}}\ (kpc)$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.yscale('log', nonposy='clip')
+        plt.axis([10.6, 11.4, 1.0, 10.0])
+            
+        leg = plt.legend(loc='lower right')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = OutputDir + 'E1.BulgeRadius' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
 
 # ---------------------------------------------------------
     
@@ -434,7 +481,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + 'E1.BaryonFraction' + OutputFormat
+        outputFile = OutputDir + 'E3.BaryonFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -502,7 +549,8 @@ if __name__ == '__main__':
     fin_base = opt.DirName + opt.FileName
     G = res.read_gals(fin_base, FirstFile, LastFile)
 
+    res.BulgeRadius(G)
     res.QuiescentFraction(G)
-    res.BaryonFraction(G)
+    # res.BaryonFraction(G)
 
 

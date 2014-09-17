@@ -65,7 +65,8 @@ struct GALAXY_OUTPUT
   // baryonic reservoirs 
   float ColdGas;
   float StellarMass;
-  float BulgeMass;
+  float ClassicalBulgeMass;
+  float SecularBulgeMass;
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;
@@ -74,7 +75,8 @@ struct GALAXY_OUTPUT
   // metals
   float MetalsColdGas;
   float MetalsStellarMass;
-  float MetalsBulgeMass;
+  float ClassicalMetalsBulgeMass;
+  float SecularMetalsBulgeMass;
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
@@ -87,6 +89,7 @@ struct GALAXY_OUTPUT
   
   // misc 
   float DiskScaleRadius;
+  float BulgeEffectiveRadius;
   float Cooling;
   float Heating;
   float LastMajorMerger;
@@ -127,7 +130,8 @@ struct GALAXY
   // baryonic reservoirs 
   float ColdGas;
   float StellarMass;
-  float BulgeMass;
+  float ClassicalBulgeMass;
+  float SecularBulgeMass;
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;
@@ -136,7 +140,8 @@ struct GALAXY
   // metals
   float MetalsColdGas;
   float MetalsStellarMass;
-  float MetalsBulgeMass;
+  float ClassicalMetalsBulgeMass;
+  float SecularMetalsBulgeMass;
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
@@ -151,6 +156,7 @@ struct GALAXY
 
   // misc 
   float DiskScaleRadius;
+  float ClassicalBulgeRadius;
   float MergTime;
   double Cooling;
   double Heating;

@@ -40,6 +40,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step)
 {
   double mi, ma, mass_ratio;
+  double R1, R2, Eini1, Eini2, Eorb, Erad;
 
   // calculate mass ratio of merging galaxies 
   if(Gal[p].StellarMass + Gal[p].ColdGas <
@@ -59,6 +60,33 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   else
     mass_ratio = 1.0;
 
+  // pre-major merger information needed to calculate the final classical bulge radius below
+  if(mass_ratio > ThreshMajorMerger)
+  {
+    R1 = dmax(Gal[merger_centralgal].DiskScaleRadius, Gal[merger_centralgal].ClassicalBulgeRadius);
+    R2 = dmax(Gal[p].DiskScaleRadius, Gal[p].ClassicalBulgeRadius);
+    
+    if(R1 > 0.0)
+      Eini1 = G * pow(Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas, 2.0) / R1;
+    else 
+      Eini1 = 0.0;
+    
+    if(R2 > 0.0)
+      Eini2 = G * pow(Gal[p].Mvir + Gal[p].StellarMass + Gal[p].ColdGas, 2.0) / R2;
+    else 
+      Eini2 = 0.0;
+    
+    if(R1 + R2 > 0.0)
+      Eorb = G * ma * mi / (R1 + R2);
+    else
+      Eorb = 0.0;
+    
+    if(ma + mi > 0.0)
+      Erad = 2.75 * (Eini1 + Eini2) * (Gal[merger_centralgal].ColdGas + Gal[p].ColdGas) / (ma + mi);
+    else
+      Erad = 0.0;
+  }
+
   add_galaxies_together(merger_centralgal, p);
 
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
@@ -71,6 +99,11 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
+    
+    // calculate the post-major merger bulge radius
+    Gal[merger_centralgal].ClassicalBulgeRadius = 
+      G * pow(Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas, 2.0) / (Eini1 + Eini2 + Eorb + Erad);
+    
     Gal[merger_centralgal].LastMajorMerger = time;
     Gal[p].mergeType = 2;  // mark as major merger
   }
@@ -160,9 +193,9 @@ void add_galaxies_together(int t, int p)
 
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
 
- // add merger to bulge
-  Gal[t].BulgeMass += Gal[p].StellarMass;
-  Gal[t].MetalsBulgeMass += Gal[p].MetalsStellarMass;
+ // // add merger to bulge
+ //  Gal[t].SecularBulgeMass += Gal[p].StellarMass;
+ //  Gal[t].SecularMetalsBulgeMass += Gal[p].MetalsStellarMass;
 
   for(step = 0; step < STEPS; step++)
   {
@@ -179,8 +212,11 @@ void make_bulge_from_burst(int p)
   int step;
   
   // generate bulge 
-  Gal[p].BulgeMass = Gal[p].StellarMass;
-  Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
+  Gal[p].ClassicalBulgeMass = Gal[p].StellarMass;
+  Gal[p].ClassicalMetalsBulgeMass = Gal[p].MetalsStellarMass;
+  
+  Gal[p].SecularBulgeMass = 0.0;
+  Gal[p].SecularMetalsBulgeMass = 0.0;
 
   // update the star formation rate 
   for(step = 0; step < STEPS; step++)
@@ -250,28 +286,17 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     ejected_mass = 0.0;
 
   // update the star formation rate 
-  
-  if(mode == 1)
-    {
-      Gal[merger_centralgal].SfrBulge[step] += stars / dt;
-      Gal[merger_centralgal].SfrBulgeColdGas[step] += Gal[merger_centralgal].ColdGas;
-      Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
-    }
-  else
-    {
-      Gal[merger_centralgal].SfrDisk[step] += stars / dt;
-      Gal[merger_centralgal].SfrDiskColdGas[step] += Gal[merger_centralgal].ColdGas;
-      Gal[merger_centralgal].SfrDiskColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
-    }
+  Gal[merger_centralgal].SfrBulge[step] += stars / dt;
+  Gal[merger_centralgal].SfrBulgeColdGas[step] += Gal[merger_centralgal].ColdGas;
+  Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
 
   // update for star formation 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
   update_from_star_formation(merger_centralgal, stars, metallicity);
-  if(mode == 1)
-  {
-    Gal[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
-    Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
-  }
+
+  // starbursts add to the secular bulge (but if MM then -> classical bulge)
+  Gal[merger_centralgal].SecularBulgeMass += (1 - RecycleFraction) * stars;
+  Gal[merger_centralgal].SecularMetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
 
   // recompute the metallicity of the cold phase
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);

@@ -17,40 +17,37 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
   // Here we calculate the stability of the stellar and gaseous disk as discussed in Mo, Mao & White (1998).
   // For unstable stars and gas, we transfer the required ammount to the bulge to make the disk stable again
 
-  gas_fraction   = 0.0;
-  unstable_gas   = 0.0;
-  star_fraction  = 0.0;
-  unstable_stars = 0.0;
-
   // Disk mass has to be > 0.0 !
-  if(Gal[p].ColdGas + Gal[p].StellarMass - Gal[p].BulgeMass > 0.0)
+  diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].ClassicalBulgeMass - Gal[p].SecularBulgeMass);
+  if(diskmass > 0.0)
   {
-    // check stellar+gas disk
+    // calculate critical disk mass
     Mcrit = Gal[p].Vmax * Gal[p].Vmax * (3.0 * Gal[p].DiskScaleRadius) / G;
-    diskmass = (Gal[p].ColdGas + Gal[p].StellarMass) - Gal[p].BulgeMass;
+    if(Mcrit > diskmass)
+      Mcrit = diskmass;
     
     // use Disk mass here !
     gas_fraction   = Gal[p].ColdGas / diskmass;
     unstable_gas   = gas_fraction * (diskmass - Mcrit);
-    star_fraction  = (Gal[p].StellarMass - Gal[p].BulgeMass) / diskmass;
+    star_fraction  = 1.0 - gas_fraction;
     unstable_stars = star_fraction * (diskmass - Mcrit);
 
     // add excess stars to the bulge
     if(unstable_stars > 0.0)
     {
       // Use disk metallicity here !
-      metallicity = get_metallicity(Gal[p].StellarMass-Gal[p].BulgeMass, Gal[p].MetalsStellarMass-Gal[p].MetalsBulgeMass);
+      metallicity = get_metallicity(Gal[p].StellarMass - (Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass), Gal[p].MetalsStellarMass - (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass));
 
-      Gal[p].BulgeMass += unstable_stars;
-      Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
+      Gal[p].SecularBulgeMass += unstable_stars;
+      Gal[p].SecularMetalsBulgeMass += metallicity * unstable_stars;
       
       // Need to fix this. Excluded for now.
       // Gal[p].mergeType = 3;  // mark as disk instability partial mass transfer
       // Gal[p].mergeIntoID = NumGals + p - 1;      
       
-      if (Gal[p].BulgeMass/Gal[p].StellarMass > 1.0001 || Gal[p].MetalsBulgeMass/Gal[p].MetalsStellarMass > 1.0001)
+      if ((Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass) / Gal[p].StellarMass > 1.0001 || (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass) / Gal[p].MetalsStellarMass > 1.0001)
 	    {
-        printf("Mbulge > Mtot (stars or metals)\t%e\t%e\t%e\t%e\t%e\n", Gal[p].BulgeMass, Gal[p].StellarMass, Gal[p].MetalsBulgeMass, Gal[p].MetalsStellarMass, unstable_stars);
+        printf("Instability: Mbulge > Mtot (stars or metals)\t%e\t%e\t%e\t%e\t%e\n", (Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass), Gal[p].StellarMass, (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass), Gal[p].MetalsStellarMass, unstable_stars);
         // ABORT(96);
       }
     }

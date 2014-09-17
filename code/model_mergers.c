@@ -63,8 +63,15 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   // pre-major merger information needed to calculate the final classical bulge radius below
   if(mass_ratio > ThreshMajorMerger)
   {
-    R1 = dmax(Gal[merger_centralgal].DiskScaleRadius, Gal[merger_centralgal].ClassicalBulgeRadius);
-    R2 = dmax(Gal[p].DiskScaleRadius, Gal[p].ClassicalBulgeRadius);
+    if( Gal[merger_centralgal].ClassicalBulgeMass / Gal[merger_centralgal].StellarMass > 0.5)
+      R1 = Gal[merger_centralgal].ClassicalBulgeRadius;
+    else
+      R1 = dmax(3.0 * Gal[merger_centralgal].DiskScaleRadius, Gal[merger_centralgal].ClassicalBulgeRadius);
+
+    if(Gal[p].ClassicalBulgeMass / Gal[p].StellarMass > 0.5)
+      R2 = Gal[p].ClassicalBulgeRadius;
+    else
+      R2 = dmax(3.0 * Gal[p].DiskScaleRadius, Gal[p].ClassicalBulgeRadius);
     
     if(R1 > 0.0)
       Eini1 = G * pow(Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas, 2.0) / R1;

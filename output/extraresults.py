@@ -235,7 +235,7 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
         
         
-        w = np.where(G.StellarMass > 2.0)[0]
+        w = np.where((G.StellarMass > 2.0) & ((G.SecularBulgeMass+G.ClassicalBulgeMass)/G.StellarMass > 0.5))[0]
         if(len(w) > dilute): w = sample(w, dilute)
         StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         BulgeRadius = G.BulgeRadius[w] * 1000.0

@@ -490,6 +490,92 @@ class Results:
         OutputList.append(outputFile)
 
 
+
+# --------------------------------------------------------
+
+    def BulgeMassFraction(self, G):
+    
+        print 'Plotting the mass fraction of galaxies'
+    
+        seed(2222)
+
+        fClassicalBulge = G.ClassicalBulgeMass / G.StellarMass
+        fSecularBulge = G.SecularBulgeMass / G.StellarMass
+        fDisk = 1.0 - (G.ClassicalBulgeMass + G.SecularBulgeMass) / G.StellarMass
+        mass = np.log10(G.StellarMass * 1.0e10 / self.Hubble_h)
+        sSFR = np.log10((G.SfrDisk + G.SfrBulge) / (G.StellarMass * 1.0e10 / self.Hubble_h))
+        
+        binwidth = 0.2
+        shift = binwidth/2.0
+        mass_range = np.arange(8.5-shift, 12.0+shift, binwidth)
+        bins = len(mass_range)
+        
+        fClassicalBulge_ave = np.zeros(bins)
+        fClassicalBulge_var = np.zeros(bins)
+        fSecularBulge_ave = np.zeros(bins)
+        fSecularBulge_var = np.zeros(bins)
+        fDisk_ave = np.zeros(bins)
+        fDisk_var = np.zeros(bins)
+        
+        for i in xrange(bins-1):
+            w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]))[0]
+            # w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]) & (sSFR < sSFRcut))[0]
+            if(len(w) > 0):
+                fClassicalBulge_ave[i] = np.mean(fClassicalBulge[w])
+                fClassicalBulge_var[i] = np.var(fClassicalBulge[w])
+                fSecularBulge_ave[i] = np.mean(fSecularBulge[w])
+                fSecularBulge_var[i] = np.var(fSecularBulge[w])
+                fDisk_ave[i] = np.mean(fDisk[w])
+                fDisk_var[i] = np.var(fDisk[w])
+
+        w = np.where(fClassicalBulge_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fClassicalBulge_ave[w], 'r-', label='classical bulge')
+        plt.fill_between(mass_range[w]+shift, 
+            fClassicalBulge_ave[w]+fClassicalBulge_var[w], 
+            fClassicalBulge_ave[w]-fClassicalBulge_var[w], 
+            facecolor='red', alpha=0.25)
+
+        w = np.where(fSecularBulge_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fSecularBulge_ave[w], 'b-', label='secular bulge')
+        plt.fill_between(mass_range[w]+shift, 
+            fSecularBulge_ave[w]+fSecularBulge_var[w], 
+            fSecularBulge_ave[w]-fSecularBulge_var[w], 
+            facecolor='blue', alpha=0.25)
+
+        # w = np.where(fClassicalBulge_ave + fSecularBulge_ave > 0.0)[0]
+        # plt.plot(mass_range[w]+shift, 
+        #     fClassicalBulge_ave[w]+fSecularBulge_ave[w], 'k--', label='total bulge')
+
+        w = np.where(fDisk_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fDisk_ave[w], 'k-', label='disk stars')
+        plt.fill_between(mass_range[w]+shift, 
+            fDisk_ave[w]+fDisk_var[w], 
+            fDisk_ave[w]-fDisk_var[w], 
+            facecolor='black', alpha=0.25)
+
+        plt.axis([mass_range[0], mass_range[bins-1], 0.0, 1.05])
+
+        plt.ylabel(r'$\mathrm{Stellar\ Mass\ Fraction}$')  # Set the y...
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+        outputFile = OutputDir + 'E4.BulgeMassFraction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+
+
+ 
+ 
 # =================================================================
 
 
@@ -551,6 +637,7 @@ if __name__ == '__main__':
 
     res.BulgeRadius(G)
     res.QuiescentFraction(G)
-    # res.BaryonFraction(G)
+    res.BulgeMassFraction(G)
+    res.BaryonFraction(G)
 
 

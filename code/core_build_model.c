@@ -129,6 +129,9 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       /* I need to clear this out because I only set the galaxy dt if
 	 it is currently 0. */
       Gal[ngal].dt = 0.0;
+      /* TODO: Do I still need this dt? */
+
+      Gal[ngal].dT = -1.0;
 
       // this deals with the central galaxies of (sub)halos 
       if(Gal[ngal].Type == 0 || Gal[ngal].Type == 1)
@@ -199,6 +202,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             // Here the galaxy has gone from type 0 to type 2. Merge it!
             Gal[ngal].MergTime = 0.0;
           Gal[ngal].Type = 2;
+          Gal[ngal].deltaMvir = -1.0*Gal[ngal].Mvir;
           Gal[ngal].Mvir = 0.0;
         }
       }
@@ -254,7 +258,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
-  double infallingGas, coolingGas, deltaT, time, galaxyBaryons;
+  double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
   float f_delta_t;
 
   centralgal = Gal[0].CentralGal;
@@ -293,6 +297,12 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       if(Gal[p].mergeType > 0)
         continue;
 
+      deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
+      time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+      
+      if(Gal[p].dT < 0.0)
+        Gal[p].dT = deltaT;
+
       // for central galaxy only 
       if(p == centralgal)
       {
@@ -326,11 +336,12 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 
         deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
         Gal[p].MergTime -= deltaT / STEPS;
-
+        
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
+        currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (Gal[p].Mvir / galaxyBaryons <= ThresholdSatDisruption)))
+        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
         {
           if(Gal[p].Type==1) 
             merger_centralgal = centralgal;
@@ -417,19 +428,6 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
       HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
-
-    // // if(tree == 707 && Halo[currenthalo].SnapNum >= 58 && Halo[currenthalo].SnapNum <= 60)
-    // if(tree == 27 && Halo[currenthalo].SnapNum >= 54 && Halo[currenthalo].SnapNum <= 55)
-    // {
-    //   printf("BUILD_MODEL:\t%i\t%i\t%i\t%i\t%i\t%f\t%i\t%f\t%i\t%i\t%i\t%i\t\t", 
-    //     NumGals, Gal[p].GalaxyNr, p, ngal, Halo[currenthalo].SnapNum, 
-    //     Gal[p].Mvir, Gal[p].Len, Gal[p].StellarMass, 
-    //     Gal[p].Type, Gal[p].mergeType, Gal[p].mergeIntoID-offset, HaloGal[HaloGal[i].mergeIntoID].GalaxyNr);
-    //   if(i > -1)
-    //     printf("%i\t%f\t%i\n", HaloGal[i].SnapNum, HaloGal[i].StellarMass, HaloGal[i].mergeIntoSnapNum);
-    //   else
-    //     printf("\n");
-    // }
     
     if(Gal[p].mergeType == 0)
     {

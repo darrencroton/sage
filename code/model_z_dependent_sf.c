@@ -48,9 +48,6 @@ double metallicity_dependent_star_formation(int p)
       SFR += Z_dependent_SF(0.0, q_crit, Sigma_c0, Xi, -1.0);
   }
   
-  // if(Gal[p].Mvir > 100.0 && Gal[p].Mvir < 200.0 && Gal[p].Type == 0 && Gal[p].SnapNum == 62) 
-  //   printf("%e\t%e\t%e\t%e\t%e\t\t%f\t%f\n", metallicity_in_solar, Chi, Xi, Sigma_c0, SFR, q_crit, q_transition); fflush(stdout);  
-  
   return (Gal[p].ColdGas * 1.0e10) / (2.6 * 1.0e9) * SFR / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
 
 }

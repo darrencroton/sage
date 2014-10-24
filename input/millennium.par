@@ -7,8 +7,8 @@ FileWithOutputSnaps			./input/desired_outputsnaps.txt
 
 OutputDir					./output/results/millennium
 
-FirstFile					1
-LastFile					1
+FirstFile					0
+LastFile					7
 
 
 %------------------------------------------

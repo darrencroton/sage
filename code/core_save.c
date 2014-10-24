@@ -23,7 +23,6 @@ void save_galaxies(int filenr, int tree)
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
   int OutputGalCount[MAXSNAPS], *OutputGalOrder;
-  // int counter;
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
   assert( OutputGalOrder );
@@ -90,18 +89,7 @@ void save_galaxies(int filenr, int tree)
     for(i = 0; i < NumGals; i++)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
-      {
-        
-        // // if(tree == 707 && HaloGal[i].SnapNum >= 58 && HaloGal[i].SnapNum <= 60)
-        // if(tree == 27 && HaloGal[i].SnapNum >= 54 && HaloGal[i].SnapNum <= 55)
-        // {
-        //   printf("SAVE:\t%i\t%i\t%i\t%i\t%f\t%i\t%f\t%i\t%i\t%i\t%i\n", 
-        //     counter, i, HaloGal[i].GalaxyNr, HaloGal[i].SnapNum, 
-        //     HaloGal[i].Mvir, HaloGal[i].Len, HaloGal[i].StellarMass, 
-        //     HaloGal[i].Type, HaloGal[i].mergeType, HaloGal[i].mergeIntoID, HaloGal[i].mergeIntoSnapNum);
-        // }
-        // counter++;
-        
+      {        
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
 
@@ -154,6 +142,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;
   o->mergeIntoSnapNum = g->mergeIntoSnapNum;
+  o->dT = g->dT / UnitTime_in_s * SEC_PER_YEAR;
 
   for(j = 0; j < 3; j++)
   {

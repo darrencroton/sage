@@ -54,8 +54,8 @@ void save_galaxies(int filenr, int tree)
   for(n = 0; n < NOUT; n++)
   {
 #ifdef MINIMIZE_IO
-    fd = (FILE *) (size_t)(10 + n);
-    offset_galsnapdata[n] = 0;
+    /* fd = (FILE *) (size_t)(10 + n); */
+    /* offset_galsnapdata[n] = 0; */
 #else
 
     /* Only open the file if it is not already open. */
@@ -218,14 +218,14 @@ void finalize_galaxy_file(int filenr)
 #ifndef MINIMIZE_IO
   /* char buf[1000]; */
 #endif
-  FILE *fd;
+  /* FILE *fd; */
   int n;
 
   for(n = 0; n < NOUT; n++)
   {
 #ifdef MINIMIZE_IO
-    fd = (FILE *) (size_t)(10 + n);
-    offset_galsnapdata[n] = 0;
+    /* fd = (FILE *) (size_t)(10 + n); */
+    /* offset_galsnapdata[n] = 0; */
 #else
 
     /* File must already be open. */

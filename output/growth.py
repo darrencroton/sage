@@ -18,6 +18,7 @@ from os.path import getsize as getFileSize
 whichsimulation = 0
 whichimf = 1        # 0=Slapeter; 1=Chabrier
 
+tolerance = 10.0
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=[
@@ -77,7 +78,8 @@ class Results:
 
         if whichsimulation == 0 or whichsimulation == 1 :
           
-          self.SMFsnaps = [63, 37, 32, 27, 23, 20, 18, 16]
+          self.SMFsnaps = xrange(63, 0, -1)
+          self.SMFselect = [63, 37, 32, 27, 23, 20, 18, 16]
 
           self.redshift_file = ['_z127.000', '_z79.998', '_z50.000', '_z30.000', '_z19.916', '_z18.244', '_z16.725', '_z15.343', '_z14.086', '_z12.941', '_z11.897', '_z10.944', '_z10.073', '_z9.278', '_z8.550', '_z7.883', '_z7.272', '_z6.712', '_z6.197', '_z5.724', '_z5.289', '_z4.888', '_z4.520', '_z4.179', '_z3.866', '_z3.576', '_z3.308', '_z3.060', '_z2.831', '_z2.619', '_z2.422', '_z2.239', '_z2.070', '_z1.913', '_z1.766', '_z1.630', '_z1.504', '_z1.386', '_z1.276', '_z1.173', '_z1.078', '_z0.989', '_z0.905', '_z0.828', '_z0.755', '_z0.687', '_z0.624', '_z0.564', '_z0.509', '_z0.457', '_z0.408', '_z0.362', '_z0.320', '_z0.280', '_z0.242', '_z0.208', '_z0.175', '_z0.144', '_z0.116', '_z0.089', '_z0.064', '_z0.041', '_z0.020', '_z0.000']
 
@@ -85,7 +87,8 @@ class Results:
           
         elif whichsimulation == 2 :
           
-          self.SMFsnaps = [180, 56, 39, 26, 18, 12, 8, 6]
+          self.SMFsnaps = xrange(180, 0, -1)
+          self.SMFselect = [180, 56, 39, 26, 18, 12, 8, 6]
           
           self.redshift_file = ['_z14.083', '_z11.771', '_z9.384', '_z8.775', '_z8.234', '_z7.749', '_z7.313', '_z6.559', '_z6.231', '_z5.930', '_z5.653', '_z5.398', '_z5.161', '_z4.942', '_z4.737', '_z4.546', '_z4.368', '_z4.200', '_z4.043', '_z3.943', '_z3.895', '_z3.755', '_z3.623', '_z3.498', '_z3.380', '_z3.268', '_z3.060', '_z2.964', '_z2.871', '_z2.784', '_z2.700', '_z2.619', '_z2.542', '_z2.469', '_z2.398', '_z2.265', '_z2.202', '_z2.142', '_z2.084', '_z2.028', '_z1.974', '_z1.921', '_z1.871', '_z1.822', '_z1.775', '_z1.730', '_z1.686', '_z1.643', '_z1.602', '_z1.562', '_z1.523', '_z1.486', '_z1.449', '_z1.414', '_z1.379', '_z1.346', '_z1.313', '_z1.282', '_z1.251', '_z1.221', '_z1.192', '_z1.163', '_z1.135', '_z1.108', '_z1.082', '_z1.056', '_z1.007', '_z0.983', '_z0.960', '_z0.937', '_z0.915', '_z0.893', '_z0.879', '_z0.858', '_z0.837', '_z0.817', '_z0.798', '_z0.778', '_z0.760', '_z0.741', '_z0.723', '_z0.706', '_z0.688', '_z0.671', '_z0.655', '_z0.639', '_z0.623', '_z0.607', '_z0.592', '_z0.577', '_z0.562', '_z0.547', '_z0.533', '_z0.519', '_z0.505', '_z0.492', '_z0.479', '_z0.466', '_z0.453', '_z0.440', '_z0.428', '_z0.416', '_z0.404', '_z0.392', '_z0.381', '_z0.369', '_z0.358', '_z0.347', '_z0.336', '_z0.326', '_z0.315', '_z0.305', '_z0.295', '_z0.285', '_z0.275', '_z0.265', '_z0.256', '_z0.246', '_z0.237', '_z0.233', '_z0.228', '_z0.224', '_z0.219', '_z0.215', '_z0.210', '_z0.206', '_z0.201', '_z0.197', '_z0.193', '_z0.189', '_z0.184', '_z0.180', '_z0.176', '_z0.172', '_z0.168', '_z0.164', '_z0.160', '_z0.156', '_z0.152', '_z0.148', '_z0.144', '_z0.140', '_z0.136', '_z0.132', '_z0.128', '_z0.124', '_z0.121', '_z0.117', '_z0.113', '_z0.110', '_z0.106', '_z0.102', '_z0.099', '_z0.095', '_z0.091', '_z0.088', '_z0.084', '_z0.081', '_z0.077', '_z0.074', '_z0.070', '_z0.067', '_z0.060', '_z0.057', '_z0.053', '_z0.050', '_z0.044', '_z0.040', '_z0.037', '_z0.034', '_z0.031', '_z0.027', '_z0.024', '_z0.021', '_z0.018', '_z0.015', '_z0.012', '_z0.009', '_z0.006', '_z0.003', '_z0.000']
 
@@ -93,8 +96,9 @@ class Results:
           
         elif whichsimulation == 3 :
           
-          self.SMFsnaps = [116, 65, 54, 44, 37, 31, 26, 22]
-
+          self.SMFsnaps = xrange(116, 0, -1)
+          self.SMFselect = [116, 65, 54, 44, 37, 31, 26, 22]
+          
           self.redshift_file = ['_z18.244', '_z17.545', '_z16.725', '_z16.000', '_z15.343', '_z14.704', '_z14.086', '_z13.499', '_z12.941', '_z12.407', '_z11.897', '_z11.409', '_z10.944', '_z10.499', '_z10.073', '_z9.667', '_z9.278', '_z8.906', '_z8.550', '_z8.209', '_z7.883', '_z7.571', '_z7.272', '_z6.986', '_z6.712', '_z6.449', '_z6.197', '_z5.955', '_z5.724', '_z5.502', '_z5.289', '_z5.085', '_z4.888', '_z4.700', '_z4.520', '_z4.346', '_z4.179', '_z4.019', '_z3.866', '_z3.718', '_z3.576', '_z3.439', '_z3.308', '_z3.182', '_z3.060', '_z2.944', '_z2.831', '_z2.519', '_z2.422', '_z2.723', '_z2.619', '_z2.329', '_z2.239', '_z2.153', '_z2.070', '_z1.990', '_z1.913', '_z1.838', '_z1.766', '_z1.697', '_z1.630', '_z1.566', '_z1.504', '_z1.444', '_z1.386', '_z1.330', '_z1.276', '_z1.224', '_z1.173', '_z1.125', '_z1.078', '_z1.033', '_z0.989', '_z0.946', '_z0.905', '_z0.866', '_z0.828', '_z0.791', '_z0.755', '_z0.721', '_z0.687', '_z0.655', '_z0.624', '_z0.593', '_z0.564', '_z0.536', '_z0.509', '_z0.482', '_z0.457', '_z0.432', '_z0.408', '_z0.385', '_z0.362', '_z0.341', '_z0.320', '_z0.299', '_z0.280', '_z0.261', '_z0.242', '_z0.225', '_z0.208', '_z0.191', '_z0.175', '_z0.159', '_z0.144', '_z0.130', '_z0.116', '_z0.102', '_z0.089', '_z0.077', '_z0.064', '_z0.053', '_z0.041', '_z0.030', '_z0.020', '_z0.010', '_z0.000']
 
           self.redshift = [18.244, 17.545, 16.725, 16.000, 15.343, 14.704, 14.086, 13.499, 12.941, 12.407, 11.897, 11.409, 10.944, 10.499, 10.073, 9.667, 9.278, 8.906, 8.550, 8.209, 7.883, 7.571, 7.272, 6.986, 6.712, 6.449, 6.197, 5.955, 5.724, 5.502, 5.289, 5.085, 4.888, 4.700, 4.520, 4.346, 4.179, 4.019, 3.866, 3.718, 3.576, 3.439, 3.308, 3.182, 3.060, 2.944, 2.831, 2.519, 2.422, 2.723, 2.619, 2.329, 2.239, 2.153, 2.070, 1.990, 1.913, 1.838, 1.766, 1.697, 1.630, 1.566, 1.504, 1.444, 1.386, 1.330, 1.276, 1.224, 1.173, 1.125, 1.078, 1.033, 0.989, 0.946, 0.905, 0.866, 0.828, 0.791, 0.755, 0.721, 0.687, 0.655, 0.624, 0.593, 0.564, 0.536, 0.509, 0.482, 0.457, 0.432, 0.408, 0.385, 0.362, 0.341, 0.320, 0.299, 0.280, 0.261, 0.242, 0.225, 0.208, 0.191, 0.175, 0.159, 0.144, 0.130, 0.116, 0.102, 0.089, 0.077, 0.064, 0.053, 0.041, 0.030, 0.020, 0.010, 0.000]
@@ -159,6 +163,32 @@ class Results:
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
         Galdesc = np.dtype({'names':names, 'formats':formats}, align=True)
 
+        # The internal galaxy structure:
+        Galdesc_internal_full = [
+            ('Type'                         , np.int32),                    
+            ('GalaxyIndex'                  , np.int64),                    
+            ('SnapNum'                      , np.int32),                    
+            ('CentralGal'                   , np.int32),                    
+            ('dT'                           , np.int32),                  
+            ('CentralMvir'                  , np.float32),                  
+            ('deltaCentralMvir'             , np.float32),                  
+            ('Mvir'                         , np.float32),                  
+            ('deltaMvir'                    , np.float32),                  
+            ('dMvirdT'                      , np.float32),                  
+            ('ColdGas'                      , np.float32),                  
+            ('deltaColdGas'                 , np.float32),                  
+            ('StellarMass'                  , np.float32),                  
+            ('deltaMstars'                  , np.float32),                  
+            ('dMstarsdT'                    , np.float32),                  
+            ('HotGas'                       , np.float32),                  
+            ('deltaHotGas'                  , np.float32),                  
+            ('BlackHoleMass'                , np.float32),                  
+            ('deltaBlackHoleMass'           , np.float32)
+            ]
+        names_internal = [Galdesc_internal_full[i][0] for i in xrange(len(Galdesc_internal_full))]
+        formats_internal = [Galdesc_internal_full[i][1] for i in xrange(len(Galdesc_internal_full))]
+        Galdesc_internal = np.dtype({'names':names_internal, 'formats':formats_internal}, align=True)
+
 
         # Initialize variables.
         TotNTrees = 0
@@ -194,7 +224,8 @@ class Results:
             print "Input files contain:\t%d trees ;\t%d galaxies ." % (TotNTrees, TotNGals)
 
         # Initialize the storage array
-        G = np.empty(TotNGals, dtype=Galdesc)
+        G = np.empty(TotNGals, dtype=Galdesc_internal)
+        G = G.view(np.recarray)
 
         if thissnap in self.SMFsnaps:
 
@@ -217,26 +248,34 @@ class Results:
                 GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
                 print ":   Reading N=", NtotGals, "   \tgalaxies from file: ", fname
                 GG = np.fromfile(fin, Galdesc, NtotGals)  # Read in the galaxy structures
-        
+                GG = GG.view(np.recarray)
+                        
                 FileIndexRanges.append((offset,offset+NtotGals))
-        
+
                 # Slice the file array into the global array
                 # N.B. the copy() part is required otherwise we simply point to
                 # the GG data which changes from file to file
                 # NOTE THE WAY PYTHON WORKS WITH THESE INDICES!
-                G[offset:offset+NtotGals]=GG[0:NtotGals].copy()
+
+                G.Type[offset:offset+NtotGals] = GG.Type[0:NtotGals].copy()
+                G.GalaxyIndex[offset:offset+NtotGals] = GG.GalaxyIndex[0:NtotGals].copy()
+                G.SnapNum[offset:offset+NtotGals] = GG.SnapNum[0:NtotGals].copy()
+                G.CentralGal[offset:offset+NtotGals] = GG.CentralGal[0:NtotGals].copy()
+                G.dT[offset:offset+NtotGals] = GG.dT[0:NtotGals].copy()
+                G.CentralMvir[offset:offset+NtotGals] = GG.CentralMvir[0:NtotGals].copy()
+                G.Mvir[offset:offset+NtotGals] = GG.Mvir[0:NtotGals].copy()
+                G.ColdGas[offset:offset+NtotGals] = GG.ColdGas[0:NtotGals].copy()
+                G.StellarMass[offset:offset+NtotGals] = GG.StellarMass[0:NtotGals].copy()
+                G.HotGas[offset:offset+NtotGals] = GG.HotGas[0:NtotGals].copy()
+                G.BlackHoleMass[offset:offset+NtotGals] = GG.BlackHoleMass[0:NtotGals].copy()
             
                 del(GG)
                 offset = offset + NtotGals  # Update the offset position for the global array
         
                 fin.close()  # Close the file
 
-
             print "Total galaxies considered:", TotNGals
             print
-
-        # Convert the Galaxy array into a recarray
-        G = G.view(np.recarray)
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
@@ -304,8 +343,8 @@ class Results:
 
         ###### z=0
         
-        w = np.where(G_history[self.SMFsnaps[0]].StellarMass > 0.0)[0]
-        mass = np.log10(G_history[self.SMFsnaps[0]].StellarMass[w] * 1.0e10 /self.Hubble_h)
+        w = np.where(G_history[self.SMFselect[0]].StellarMass > 0.0)[0]
+        mass = np.log10(G_history[self.SMFselect[0]].StellarMass[w] * 1.0e10 /self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -321,8 +360,8 @@ class Results:
 
         ###### z=1.3
         
-        w = np.where(G_history[self.SMFsnaps[1]].StellarMass > 0.0)[0]
-        mass = np.log10(G_history[self.SMFsnaps[1]].StellarMass[w] * 1.0e10 /self.Hubble_h)
+        w = np.where(G_history[self.SMFselect[1]].StellarMass > 0.0)[0]
+        mass = np.log10(G_history[self.SMFselect[1]].StellarMass[w] * 1.0e10 /self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -338,8 +377,8 @@ class Results:
 
         ###### z=2
         
-        w = np.where(G_history[self.SMFsnaps[2]].StellarMass > 0.0)[0]
-        mass = np.log10(G_history[self.SMFsnaps[2]].StellarMass[w] * 1.0e10 /self.Hubble_h)
+        w = np.where(G_history[self.SMFselect[2]].StellarMass > 0.0)[0]
+        mass = np.log10(G_history[self.SMFselect[2]].StellarMass[w] * 1.0e10 /self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -355,8 +394,8 @@ class Results:
 
         ###### z=3
         
-        w = np.where(G_history[self.SMFsnaps[3]].StellarMass > 0.0)[0]
-        mass = np.log10(G_history[self.SMFsnaps[3]].StellarMass[w] * 1.0e10 /self.Hubble_h)
+        w = np.where(G_history[self.SMFselect[3]].StellarMass > 0.0)[0]
+        mass = np.log10(G_history[self.SMFselect[3]].StellarMass[w] * 1.0e10 /self.Hubble_h)
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
@@ -388,7 +427,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
 
-        outputFile = OutputDir + 'A.StellarMassFunction_z' + OutputFormat
+        outputFile = OutputDir + 'smf_check' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -397,181 +436,416 @@ class Results:
         OutputList.append(outputFile)
 
 
-
 # ---------------------------------------------------------
 
-    def PlotHistory_SFRdensity(self, G_history):
+    def PlotHistory_deltaMvir(self, G_history):
     
-        print 'Plotting SFR density evolution for all galaxies'
+        print 'Plotting halo mass growth evolution'
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
-
-        ObsSFRdensity = np.array([
-            [0, 0.0158489, 0, 0, 0.0251189, 0.01000000],
-            [0.150000, 0.0173780, 0, 0.300000, 0.0181970, 0.0165959],
-            [0.0425000, 0.0239883, 0.0425000, 0.0425000, 0.0269153, 0.0213796],
-            [0.200000, 0.0295121, 0.100000, 0.300000, 0.0323594, 0.0269154],
-            [0.350000, 0.0147911, 0.200000, 0.500000, 0.0173780, 0.0125893],
-            [0.625000, 0.0275423, 0.500000, 0.750000, 0.0331131, 0.0229087],
-            [0.825000, 0.0549541, 0.750000, 1.00000, 0.0776247, 0.0389045],
-            [0.625000, 0.0794328, 0.500000, 0.750000, 0.0954993, 0.0660693],
-            [0.700000, 0.0323594, 0.575000, 0.825000, 0.0371535, 0.0281838],
-            [1.25000, 0.0467735, 1.50000, 1.00000, 0.0660693, 0.0331131],
-            [0.750000, 0.0549541, 0.500000, 1.00000, 0.0389045, 0.0776247],
-            [1.25000, 0.0741310, 1.00000, 1.50000, 0.0524807, 0.104713],
-            [1.75000, 0.0562341, 1.50000, 2.00000, 0.0398107, 0.0794328],
-            [2.75000, 0.0794328, 2.00000, 3.50000, 0.0562341, 0.112202],
-            [4.00000, 0.0309030, 3.50000, 4.50000, 0.0489779, 0.0194984],
-            [0.250000, 0.0398107, 0.00000, 0.500000, 0.0239883, 0.0812831],
-            [0.750000, 0.0446684, 0.500000, 1.00000, 0.0323594, 0.0776247],
-            [1.25000, 0.0630957, 1.00000, 1.50000, 0.0478630, 0.109648],
-            [1.75000, 0.0645654, 1.50000, 2.00000, 0.0489779, 0.112202],
-            [2.50000, 0.0831764, 2.00000, 3.00000, 0.0512861, 0.158489],
-            [3.50000, 0.0776247, 3.00000, 4.00000, 0.0416869, 0.169824],
-            [4.50000, 0.0977237, 4.00000, 5.00000, 0.0416869, 0.269153],
-            [5.50000, 0.0426580, 5.00000, 6.00000, 0.0177828, 0.165959],
-            [3.00000, 0.120226, 2.00000, 4.00000, 0.173780, 0.0831764],
-            [3.04000, 0.128825, 2.69000, 3.39000, 0.151356, 0.109648],
-            [4.13000, 0.114815, 3.78000, 4.48000, 0.144544, 0.0912011],
-            [0.350000, 0.0346737, 0.200000, 0.500000, 0.0537032, 0.0165959],
-            [0.750000, 0.0512861, 0.500000, 1.00000, 0.0575440, 0.0436516],
-            [1.50000, 0.0691831, 1.00000, 2.00000, 0.0758578, 0.0630957],
-            [2.50000, 0.147911, 2.00000, 3.00000, 0.169824, 0.128825],
-            [3.50000, 0.0645654, 3.00000, 4.00000, 0.0776247, 0.0512861],
-            ], dtype=np.float32)
- 
-        ObsRedshift = ObsSFRdensity[:, 0]
-        xErrLo = ObsSFRdensity[:, 0]-ObsSFRdensity[:, 2]
-        xErrHi = ObsSFRdensity[:, 3]-ObsSFRdensity[:, 0]
-
-        ObsSFR = np.log10(ObsSFRdensity[:, 1])
-        yErrLo = np.log10(ObsSFRdensity[:, 1])-np.log10(ObsSFRdensity[:, 4])
-        yErrHi = np.log10(ObsSFRdensity[:, 5])-np.log10(ObsSFRdensity[:, 1])
-
-        # plot observational data (compilation used in Croton et al. 2006)
-        plt.errorbar(ObsRedshift, ObsSFR, yerr=[yErrLo, yErrHi], xerr=[xErrLo, xErrHi], color='g', lw=1.0, alpha=0.3, marker='o', ls='none', label='Observations')
-
-        SFR_density = np.zeros((LastSnap+1-FirstSnap))       
-        for snap in xrange(FirstSnap,LastSnap+1):
-          SFR_density[snap-FirstSnap] = sum(G_history[snap].SfrDisk+G_history[snap].SfrBulge) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
-    
+        
         z = np.array(self.redshift)
-        nonzero = np.where(SFR_density > 0.0)[0]
-        plt.plot(z[nonzero], np.log10(SFR_density[nonzero]), lw=3.0)
+
+
+        ##############
+        # low mass bin
+
+        print '    ... low mass'
+
+        deltaMvir = np.zeros((LastSnap+1-FirstSnap)) 
+        dMvirdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.0) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 11.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):                
+                deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] + G_history[snap].deltaMvir[ww[0]]
+                dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] + G_history[snap].dMvirdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] / num[snap-FirstSnap]
+            dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMvir > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMvir[nonzero]*1.0e10/self.Hubble_h), 'b-', lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMvirdT[nonzero]), 'b-', lw=3.0)
+
+        print np.log10(deltaMvir*1.0e10/self.Hubble_h)
+        print dMvirdT
+
+
+        ##############
+        # mid mass bin
+
+        print '    ... mid mass'
+
+        deltaMvir = np.zeros((LastSnap+1-FirstSnap)) 
+        dMvirdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.5) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] + G_history[snap].deltaMvir[ww[0]]
+                dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] + G_history[snap].dMvirdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] / num[snap-FirstSnap]
+            dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMvir > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMvir[nonzero]*1.0e10/self.Hubble_h), lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMvirdT[nonzero]), lw=3.0)
+
+        print np.log10(deltaMvir*1.0e10/self.Hubble_h)
+        print dMvirdT
+
+
+
+        ##############
+        # high mass bin
+
+        print '    ... high mass'
+
+        deltaMvir = np.zeros((LastSnap+1-FirstSnap)) 
+        dMvirdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] + G_history[snap].deltaMvir[ww[0]]
+                dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] + G_history[snap].dMvirdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMvir[snap-FirstSnap] = deltaMvir[snap-FirstSnap] / num[snap-FirstSnap]
+            dMvirdT[snap-FirstSnap] = dMvirdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMvir > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMvir[nonzero]*1.0e10/self.Hubble_h), 'r-', lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMvirdT[nonzero]), 'r-', lw=3.0)
+
+        print np.log10(deltaMvir*1.0e10/self.Hubble_h)
+        print dMvirdT
+
+
+        plt.xscale('log', nonposy='clip')
    
-        plt.ylabel(r'$\log_{10} \mathrm{SFR\ density}\ (M_{\odot}\ \mathrm{yr}^{-1}\ \mathrm{Mpc}^{-3})$')  # Set the y...
-        plt.xlabel(r'$\mathrm{redshift}$')  # and the x-axis labels
+        plt.ylabel(r'$\log_{10} \mathrm{d}M_{\mathrm{vir}} / \mathrm{dt}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{1+z}$')  # and the x-axis labels
     
         # Set the x and y axis minor ticks
         ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5))
     
-        plt.axis([0.0, 8.0, -3.0, -0.4])            
+        # plt.axis([0.0, 10.0, 8.5, 12.0])
+        plt.axis([0.0, 10.0, 0.0, 3.5])
     
-        outputFile = OutputDir + 'B.History-SFR-density' + OutputFormat
+        outputFile = OutputDir + '_A.History-deltaMvir' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
     
         # Add this plot to our output list
         OutputList.append(outputFile)
+
 
 
 # ---------------------------------------------------------
 
-    def StellarMassDensityEvolution(self, G_history):
-
-        print 'Plotting stellar mass density evolution'
+    def PlotHistory_deltaMstars(self, G_history):
+    
+        print 'Plotting stellar mass growth evolution'
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
-
-        # SMD observations taken from Marchesini+ 2009, h=0.7
-        # Values are (minz, maxz, rho,-err,+err)
-        dickenson2003 = np.array(((0.6,1.4,8.26,0.08,0.08),
-                         (1.4,2.0,7.86,0.22,0.33),
-                         (2.0,2.5,7.58,0.29,0.54),
-                         (2.5,3.0,7.52,0.51,0.48)),float)
-        drory2005 = np.array(((0.25,0.75,8.3,0.15,0.15),
-                    (0.75,1.25,8.16,0.15,0.15),
-                    (1.25,1.75,8.0,0.16,0.16),
-                    (1.75,2.25,7.85,0.2,0.2),
-                    (2.25,3.0,7.75,0.2,0.2),
-                    (3.0,4.0,7.58,0.2,0.2)),float)
-        # Perez-Gonzalez (2008)
-        pg2008 = np.array(((0.2,0.4,8.41,0.06,0.06),
-                 (0.4,0.6,8.37,0.04,0.04),
-                 (0.6,0.8,8.32,0.05,0.05),
-                 (0.8,1.0,8.24,0.05,0.05),
-                 (1.0,1.3,8.15,0.05,0.05),
-                 (1.3,1.6,7.95,0.07,0.07),
-                 (1.6,2.0,7.82,0.07,0.07),
-                 (2.0,2.5,7.67,0.08,0.08),
-                 (2.5,3.0,7.56,0.18,0.18),
-                 (3.0,3.5,7.43,0.14,0.14),
-                 (3.5,4.0,7.29,0.13,0.13)),float)
-        glazebrook2004 = np.array(((0.8,1.1,7.98,0.14,0.1),
-                         (1.1,1.3,7.62,0.14,0.11),
-                         (1.3,1.6,7.9,0.14,0.14),
-                         (1.6,2.0,7.49,0.14,0.12)),float)
-        fontana2006 = np.array(((0.4,0.6,8.26,0.03,0.03),
-                      (0.6,0.8,8.17,0.02,0.02),
-                      (0.8,1.0,8.09,0.03,0.03),
-                      (1.0,1.3,7.98,0.02,0.02),
-                      (1.3,1.6,7.87,0.05,0.05),
-                      (1.6,2.0,7.74,0.04,0.04),
-                      (2.0,3.0,7.48,0.04,0.04),
-                      (3.0,4.0,7.07,0.15,0.11)),float)
-        rudnick2006 = np.array(((0.0,1.0,8.17,0.27,0.05),
-                      (1.0,1.6,7.99,0.32,0.05),
-                      (1.6,2.4,7.88,0.34,0.09),
-                      (2.4,3.2,7.71,0.43,0.08)),float)
-        elsner2008 = np.array(((0.25,0.75,8.37,0.03,0.03),
-                     (0.75,1.25,8.17,0.02,0.02),
-                     (1.25,1.75,8.02,0.03,0.03),
-                     (1.75,2.25,7.9,0.04,0.04),
-                     (2.25,3.0,7.73,0.04,0.04),
-                     (3.0,4.0,7.39,0.05,0.05)),float)
-
-        obs = (dickenson2003,drory2005,pg2008,glazebrook2004,
-               fontana2006,rudnick2006,elsner2008)
-
-        for o in obs:
-            xval = ((o[:,1]-o[:,0])/2.)+o[:,0]
-            if(whichimf == 0):
-                ax.errorbar(xval, np.log10(10**o[:,2] *1.6), xerr=(xval-o[:,0], o[:,1]-xval), yerr=(o[:,3], o[:,4]), alpha=0.3, lw=1.0, marker='o', ls='none')
-            elif(whichimf == 1):
-                ax.errorbar(xval, np.log10(10**o[:,2] *1.6/1.8), xerr=(xval-o[:,0], o[:,1]-xval), yerr=(o[:,3], o[:,4]), alpha=0.3, lw=1.0, marker='o', ls='none')
-                
-
-        smd = np.zeros((LastSnap+1-FirstSnap))       
-
-        for snap in xrange(FirstSnap,LastSnap+1):
-          w = np.where((G_history[snap].StellarMass/self.Hubble_h > 0.01) & (G_history[snap].StellarMass/self.Hubble_h < 1000.0))[0]
-          if(len(w) > 0):
-            smd[snap-FirstSnap] = sum(G_history[snap].StellarMass[w]) *1.0e10/self.Hubble_h / (self.volume /self.Hubble_h/self.Hubble_h/self.Hubble_h)
-
+        
         z = np.array(self.redshift)
-        nonzero = np.where(smd > 0.0)[0]
-        plt.plot(z[nonzero], np.log10(smd[nonzero]), 'k-', lw=3.0)
 
-        plt.ylabel(r'$\log_{10}\ \phi\ (M_{\odot}\ \mathrm{Mpc}^{-3})$')  # Set the y...
-        plt.xlabel(r'$\mathrm{redshift}$')  # and the x-axis labels
 
+        ##############
+        # low mass bin
+
+        print '    ... low mass'
+
+        deltaMstars = np.zeros((LastSnap+1-FirstSnap)) 
+        dMstarsdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.0) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 11.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):                
+                deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] + G_history[snap].deltaMstars[ww[0]]
+                dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] + G_history[snap].dMstarsdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] / num[snap-FirstSnap]
+            dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMstars > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMstars[nonzero]*1.0e10/self.Hubble_h), 'b-', lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMstarsdT[nonzero]), 'b-', lw=3.0)
+
+        print np.log10(deltaMstars*1.0e10/self.Hubble_h)
+        print dMstarsdT
+
+
+        ##############
+        # mid mass bin
+
+        print '    ... mid mass'
+
+        deltaMstars = np.zeros((LastSnap+1-FirstSnap)) 
+        dMstarsdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.5) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] + G_history[snap].deltaMstars[ww[0]]
+                dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] + G_history[snap].dMstarsdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] / num[snap-FirstSnap]
+            dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMstars > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMstars[nonzero]*1.0e10/self.Hubble_h), lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMstarsdT[nonzero]), lw=3.0)
+
+        print np.log10(deltaMstars*1.0e10/self.Hubble_h)
+        print dMstarsdT
+
+
+
+        ##############
+        # high mass bin
+
+        print '    ... high mass'
+
+        deltaMstars = np.zeros((LastSnap+1-FirstSnap)) 
+        dMstarsdT = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] + G_history[snap].deltaMstars[ww[0]]
+                dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] + G_history[snap].dMstarsdT[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            deltaMstars[snap-FirstSnap] = deltaMstars[snap-FirstSnap] / num[snap-FirstSnap]
+            dMstarsdT[snap-FirstSnap] = dMstarsdT[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(deltaMstars > 0.0)[0]
+        # plt.plot(z[nonzero]+1.0, np.log10(deltaMstars[nonzero]*1.0e10/self.Hubble_h), 'r-', lw=3.0)
+        plt.plot(z[nonzero]+1.0, np.log10(dMstarsdT[nonzero]), 'r-', lw=3.0)
+
+        print np.log10(deltaMstars*1.0e10/self.Hubble_h)
+        print dMstarsdT
+
+
+        plt.xscale('log', nonposy='clip')
+   
+        plt.ylabel(r'$\log_{10} \mathrm{d}M_{\mathrm{stars}} / \mathrm{dt}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{1+z}$')  # and the x-axis labels
+    
         # Set the x and y axis minor ticks
         ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5))
-
-        plt.axis([0.0, 4.2, 6.5, 9.0])   
-
-        outputFile = OutputDir + 'C.History-stellar-mass-density' + OutputFormat
+    
+        # plt.axis([0.0, 10.0, 8.5, 12.0])
+        plt.axis([0.0, 10.0, -1.5, 2.0])
+    
+        outputFile = OutputDir + '_B.History-deltaMstars' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
-
+    
         # Add this plot to our output list
         OutputList.append(outputFile)
+
+
+
+# ---------------------------------------------------------
+
+    def PlotHistory_massratio(self, G_history):
+    
+        print 'Plotting mass ratio evolution'
+
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+        
+        z = np.array(self.redshift)
+
+
+        ##############
+        # low mass bin
+        
+        print '    ... low mass'
+
+        massratio = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.0) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 11.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                massratio[snap-FirstSnap] = massratio[snap-FirstSnap] + G_history[snap].StellarMass[ww[0]] / G_history[snap].Mvir[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            massratio[snap-FirstSnap] = massratio[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(massratio > 0.0)[0]
+        plt.plot(z[nonzero]+1.0, np.log10(massratio[nonzero]), 'b-', lw=3.0)
+
+        print massratio
+
+
+        ##############
+        # mid mass bin
+
+        print '    ... mid mass'
+
+        massratio = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 11.5) & (np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) < 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                massratio[snap-FirstSnap] = massratio[snap-FirstSnap] + G_history[snap].StellarMass[ww[0]] / G_history[snap].Mvir[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            massratio[snap-FirstSnap] = massratio[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(massratio > 0.0)[0]
+        plt.plot(z[nonzero]+1.0, np.log10(massratio[nonzero]), lw=3.0)
+
+        print massratio
+
+
+        ##############
+        # high mass bin
+
+        print '    ... high mass'
+
+        massratio = np.zeros((LastSnap+1-FirstSnap)) 
+        num = np.zeros((LastSnap+1-FirstSnap))       
+
+        w = np.where((np.log10(G_history[LastSnap].Mvir/self.Hubble_h*1.0e10) > 12.5) & (G_history[LastSnap].Type == 0))[0]
+        if(len(w) > 0):
+          for which in xrange(len(w)):
+            targetID = G_history[LastSnap].GalaxyIndex[w[which]]
+            for snap in xrange(FirstSnap,LastSnap+1):
+              ww = np.where(G_history[snap].GalaxyIndex == targetID)[0]
+              if(len(ww) > 1):
+                print 'there is more than one progenitor for galaxy ', targetID, G_history[snap].GalaxyIndex[ww]
+                exit(1)
+              if(len(ww) > 0):
+                massratio[snap-FirstSnap] = massratio[snap-FirstSnap] + G_history[snap].StellarMass[ww[0]] / G_history[snap].Mvir[ww[0]]
+                num[snap-FirstSnap] = num[snap-FirstSnap] + 1.0
+    
+        for snap in xrange(FirstSnap,LastSnap+1):
+          if (num[snap-FirstSnap] > 0.0):
+            massratio[snap-FirstSnap] = massratio[snap-FirstSnap] / num[snap-FirstSnap]
+
+        nonzero = np.where(massratio > 0.0)[0]
+        plt.plot(z[nonzero]+1.0, np.log10(massratio[nonzero]), 'r-', lw=3.0)
+
+        print massratio
+   
+   
+        plt.xscale('log', nonposy='clip')
+   
+        plt.ylabel(r'$\log_{10} M_{\mathrm{stars}}\ /\ M_{\mathrm{vir}}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{1+z}$')  # and the x-axis labels
+    
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5))
+    
+        plt.axis([0.0, 10.0, -3.2, -1.0])
+    
+        outputFile = OutputDir + '_C.History-massratio' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+    
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
 
 
 # =================================================================
@@ -655,9 +929,86 @@ if __name__ == '__main__':
       
     print
 
-    res.StellarMassFunction(G_history)
-    res.PlotHistory_SFRdensity(G_history)
-    res.StellarMassDensityEvolution(G_history)
+
+    # Estimate property growth
+    print 'estimating the growth of select galaxies'
+    
+    # Initialise the growth structure properties
+    for snap in xrange(FirstSnap,LastSnap+1):
+      G_history[snap].deltaCentralMvir = 0.0
+      G_history[snap].deltaMvir = 0.0
+      G_history[snap].dMvirdT = 0.0
+      G_history[snap].deltaColdGas = 0.0
+      G_history[snap].deltaMstars = 0.0
+      G_history[snap].dMstarsdT = 0.0
+      G_history[snap].deltaHotGas = 0.0
+      G_history[snap].deltaBlackHoleMass = 0.0
+          
+    # loop over selected z=0 halos (central, well resolved)
+    for gal in xrange(len(G_history[LastSnap].Type)):
+
+      if((G_history[LastSnap].Mvir[gal] > 10.0) & (G_history[LastSnap].Type[gal] == 0)):
+
+        current_Mvir = G_history[LastSnap].Mvir[gal]
+        current_Mstars = G_history[LastSnap].StellarMass[gal]
+        current_dT = G_history[LastSnap].dT[gal] / 1.0e4
+        gal_id = G_history[LastSnap].GalaxyIndex[gal]
+        done = 0
+
+        # With the galaxy ID in hand, find the progenitors
+        for snap in xrange(LastSnap-1, FirstSnap, -1):
+
+          if(done == 1):
+            continue
+            
+          w = np.where(G_history[snap].GalaxyIndex == gal_id)[0]
+
+          # Multiple progenitors ... gulp!
+          if (len(w) > 1):
+            print 'more than one progenitor!', len(w), snap, gal_id
+            exit(1)
+
+          # Skip if a skipped snapshot or no more progenitors
+          if (len(w) == 0):
+            continue
+
+          prog = w[0]
+
+          # Skip the unusual case of central->satellite - should i ignore the history of these altogether?
+          if (G_history[snap].Type[prog] != 0):
+            # print 'central->satellite: ', snap, G_history[snap].Type[prog], G_history[snap].Mvir[prog], current_mass
+            done = 1
+            continue
+
+          # # Skip when the halo mass change exceeds tolerance ... potenital misclassification
+          # if ( (G_history[snap].Mvir[prog] > 0.0) & ((G_history[snap].Mvir[prog]/current_mass > tolerance) | (current_mass/G_history[snap].Mvir[prog] > tolerance)) ):
+          #   print 'halo mass change greater than tolerance: ', snap, tolerance, G_history[snap].Mvir[prog], current_mass
+          #   done = 1
+          #   continue
+
+          if(G_history[snap].Mvir[prog] < 0.0):
+            done = 1
+            continue
+
+          # All good! - record the growth and set-up for next progenitor
+          if(done == 0):
+                        
+            G_history[snap].deltaMvir[prog] = current_Mvir - G_history[snap].Mvir[prog]
+            G_history[snap].deltaMstars[prog] = current_Mstars - G_history[snap].StellarMass[prog]
+            
+            if(current_dT > 0.0):
+              G_history[snap].dMvirdT[prog] = (current_Mvir - G_history[snap].Mvir[prog]) / current_dT
+              G_history[snap].dMstarsdT[prog] = (current_Mstars - G_history[snap].StellarMass[prog]) / current_dT
+              
+            current_Mvir = G_history[snap].Mvir[prog]
+            current_Mstars = G_history[snap].StellarMass[prog]
+            current_dT = G_history[snap].dT[prog] / 1.0e4
+
+
+    # res.StellarMassFunction(G_history)
+    res.PlotHistory_deltaMvir(G_history)
+    res.PlotHistory_deltaMstars(G_history)
+    res.PlotHistory_massratio(G_history)
     
     
 

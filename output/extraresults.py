@@ -33,7 +33,7 @@ plt.rc('axes', color_cycle=[
 plt.rc('xtick', labelsize='x-large')
 plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
-plt.rc('font', variant='monospace')
+# plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
@@ -93,7 +93,7 @@ class Results:
             ('mergeType'                    , np.int32),                    
             ('mergeIntoID'                  , np.int32),                    
             ('mergeIntoSnapNum'             , np.int32),                    
-            ('dT'                           , np.int32),                    
+            ('dT'                           , np.float32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             
@@ -105,14 +105,16 @@ class Results:
             ('VelDisp'                      , np.float32),                  
             ('ColdGas'                      , np.float32),                  
             ('StellarMass'                  , np.float32),                  
-            ('BulgeMass'                    , np.float32),                  
+            ('ClassicalBulgeMass'           , np.float32),                  
+            ('SecularBulgeMass'             , np.float32),                  
             ('HotGas'                       , np.float32),                  
             ('EjectedMass'                  , np.float32),                  
             ('BlackHoleMass'                , np.float32),                  
             ('IntraClusterStars'            , np.float32),                  
             ('MetalsColdGas'                , np.float32),                  
             ('MetalsStellarMass'            , np.float32),                  
-            ('MetalsBulgeMass'              , np.float32),                  
+            ('ClassicalMetalsBulgeMass'     , np.float32),                  
+            ('SecularMetalsBulgeMass'       , np.float32),                  
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
@@ -121,6 +123,7 @@ class Results:
             ('SfrDiskZ'                     , np.float32),                  
             ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
+            ('BulgeRadius'                  , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
             ('LastMajorMerger'              , np.float32),
@@ -218,6 +221,50 @@ class Results:
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
 
         return G
+
+
+# ---------------------------------------------------------
+    
+    def BulgeRadius(self, G):
+    
+        print 'Plotting bulge radius vs stellar mass'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+        
+        
+        w = np.where((G.StellarMass > 2.0) & ((G.SecularBulgeMass+G.ClassicalBulgeMass)/G.StellarMass > 0.5))[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+        StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        BulgeRadius = G.BulgeRadius[w] * 1000.0
+        
+        plt.scatter(StellarMass, BulgeRadius, marker='o', s=10, c='k', alpha=0.5, label='new model')
+        
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stellar}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$R_{\mathrm{eff}}\ (kpc)$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.yscale('log', nonposy='clip')
+        plt.axis([10.6, 11.4, 1.0, 10.0])
+            
+        leg = plt.legend(loc='lower right')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = OutputDir + 'E1.BulgeRadius' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
 
 # ---------------------------------------------------------
     
@@ -434,7 +481,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = OutputDir + 'E1.BaryonFraction' + OutputFormat
+        outputFile = OutputDir + 'E3.BaryonFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -443,6 +490,92 @@ class Results:
         OutputList.append(outputFile)
 
 
+
+# --------------------------------------------------------
+
+    def BulgeMassFraction(self, G):
+    
+        print 'Plotting the mass fraction of galaxies'
+    
+        seed(2222)
+
+        fClassicalBulge = G.ClassicalBulgeMass / G.StellarMass
+        fSecularBulge = G.SecularBulgeMass / G.StellarMass
+        fDisk = 1.0 - (G.ClassicalBulgeMass + G.SecularBulgeMass) / G.StellarMass
+        mass = np.log10(G.StellarMass * 1.0e10 / self.Hubble_h)
+        sSFR = np.log10((G.SfrDisk + G.SfrBulge) / (G.StellarMass * 1.0e10 / self.Hubble_h))
+        
+        binwidth = 0.2
+        shift = binwidth/2.0
+        mass_range = np.arange(8.5-shift, 12.0+shift, binwidth)
+        bins = len(mass_range)
+        
+        fClassicalBulge_ave = np.zeros(bins)
+        fClassicalBulge_var = np.zeros(bins)
+        fSecularBulge_ave = np.zeros(bins)
+        fSecularBulge_var = np.zeros(bins)
+        fDisk_ave = np.zeros(bins)
+        fDisk_var = np.zeros(bins)
+        
+        for i in xrange(bins-1):
+            w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]))[0]
+            # w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]) & (sSFR < sSFRcut))[0]
+            if(len(w) > 0):
+                fClassicalBulge_ave[i] = np.mean(fClassicalBulge[w])
+                fClassicalBulge_var[i] = np.var(fClassicalBulge[w])
+                fSecularBulge_ave[i] = np.mean(fSecularBulge[w])
+                fSecularBulge_var[i] = np.var(fSecularBulge[w])
+                fDisk_ave[i] = np.mean(fDisk[w])
+                fDisk_var[i] = np.var(fDisk[w])
+
+        w = np.where(fClassicalBulge_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fClassicalBulge_ave[w], 'r-', label='classical bulge')
+        plt.fill_between(mass_range[w]+shift, 
+            fClassicalBulge_ave[w]+fClassicalBulge_var[w], 
+            fClassicalBulge_ave[w]-fClassicalBulge_var[w], 
+            facecolor='red', alpha=0.25)
+
+        w = np.where(fSecularBulge_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fSecularBulge_ave[w], 'b-', label='secular bulge')
+        plt.fill_between(mass_range[w]+shift, 
+            fSecularBulge_ave[w]+fSecularBulge_var[w], 
+            fSecularBulge_ave[w]-fSecularBulge_var[w], 
+            facecolor='blue', alpha=0.25)
+
+        # w = np.where(fClassicalBulge_ave + fSecularBulge_ave > 0.0)[0]
+        # plt.plot(mass_range[w]+shift, 
+        #     fClassicalBulge_ave[w]+fSecularBulge_ave[w], 'k--', label='total bulge')
+
+        w = np.where(fDisk_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fDisk_ave[w], 'k-', label='disk stars')
+        plt.fill_between(mass_range[w]+shift, 
+            fDisk_ave[w]+fDisk_var[w], 
+            fDisk_ave[w]-fDisk_var[w], 
+            facecolor='black', alpha=0.25)
+
+        plt.axis([mass_range[0], mass_range[bins-1], 0.0, 1.05])
+
+        plt.ylabel(r'$\mathrm{Stellar\ Mass\ Fraction}$')  # Set the y...
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+        outputFile = OutputDir + 'E4.BulgeMassFraction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+
+
+ 
+ 
 # =================================================================
 
 
@@ -502,7 +635,9 @@ if __name__ == '__main__':
     fin_base = opt.DirName + opt.FileName
     G = res.read_gals(fin_base, FirstFile, LastFile)
 
+    res.BulgeRadius(G)
     res.QuiescentFraction(G)
+    res.BulgeMassFraction(G)
     res.BaryonFraction(G)
 
 

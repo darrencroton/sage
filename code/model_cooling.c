@@ -91,9 +91,13 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     else
     {
       // empirical (standard) accretion recipe 
-      AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
-        * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0)
-        * ((Gal[centralgal].HotGas / Gal[centralgal].Mvir) / 0.1);
+      if(Gal[centralgal].Mvir > 0.0)
+        AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+          * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0)
+            * ((Gal[centralgal].HotGas / Gal[centralgal].Mvir) / 0.1);
+      else
+        AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+          * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0);
     }
     
     // Eddington rate 

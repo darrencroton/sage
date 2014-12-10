@@ -49,7 +49,7 @@ struct GALAXY_OUTPUT
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
   int   mergeIntoSnapNum;
-  int   dT;
+  float   dT;
 
   // properties of subhalo at the last time this galaxy was a central galaaxy 
   float Pos[3];
@@ -115,7 +115,7 @@ struct GALAXY
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
   int   mergeIntoSnapNum;
-  int   dT;
+  float   dT;
 
   // properties of subhalo at the last time this galaxy was a central galaxy 
   float Pos[3];

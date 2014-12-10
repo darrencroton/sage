@@ -33,7 +33,7 @@ plt.rc('axes', color_cycle=[
 plt.rc('xtick', labelsize='x-large')
 plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
-plt.rc('font', variant='monospace')
+# plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
@@ -93,7 +93,7 @@ class Results:
             ('mergeType'                    , np.int32),                    
             ('mergeIntoID'                  , np.int32),                    
             ('mergeIntoSnapNum'             , np.int32),                    
-            ('dT'                           , np.int32),                    
+            ('dT'                           , np.float32),                    
             ('Pos'                          , (np.float32, 3)),             
             ('Vel'                          , (np.float32, 3)),             
             ('Spin'                         , (np.float32, 3)),             

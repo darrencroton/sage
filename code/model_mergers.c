@@ -39,7 +39,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 
 void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step)
 {
-  double mi, ma, mass_ratio;
+  double mi, ma, mass_ratio, central_bulge_fraction;
   double R1, R2, Eini1, Eini2, Eorb, Erad;
 
   // calculate mass ratio of merging galaxies 
@@ -59,11 +59,16 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     mass_ratio = mi / ma;
   else
     mass_ratio = 1.0;
+	
+	if(Gal[merger_centralgal].StellarMass > 0.0)
+		central_bulge_fraction = Gal[merger_centralgal].ClassicalBulgeMass / Gal[merger_centralgal].StellarMass;
+	else
+		central_bulge_fraction = 0.0;
 
-  // pre-major merger information needed to calculate the final classical bulge radius below
-  if(mass_ratio > ThreshMajorMerger)
+  // pre-merger information needed to calculate the final classical bulge radius below
+  if( mass_ratio > ThreshMajorMerger || central_bulge_fraction > 0.5)
   {
-    if( Gal[merger_centralgal].ClassicalBulgeMass / Gal[merger_centralgal].StellarMass > 0.5)
+    if( central_bulge_fraction > 0.5)
       R1 = Gal[merger_centralgal].ClassicalBulgeRadius;
     else
       R1 = dmax(3.0 * Gal[merger_centralgal].DiskScaleRadius, Gal[merger_centralgal].ClassicalBulgeRadius);
@@ -106,11 +111,6 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
-    
-    // calculate the post-major merger bulge radius
-    Gal[merger_centralgal].ClassicalBulgeRadius = 
-      G * pow(Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas, 2.0) / (Eini1 + Eini2 + Eorb + Erad);
-    
     Gal[merger_centralgal].LastMajorMerger = time;
     Gal[p].mergeType = 2;  // mark as major merger
   }
@@ -118,6 +118,13 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   {
     Gal[p].mergeType = 1;  // mark as minor merger
   }
+	
+  if(mass_ratio > ThreshMajorMerger || central_bulge_fraction > 0.5)
+  {
+		// calculate the post-merger bulge radius
+    Gal[merger_centralgal].ClassicalBulgeRadius = 
+      G * pow(Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas, 2.0) / (Eini1 + Eini2 + Eorb + Erad);
+	}
 
 }
 
@@ -200,9 +207,17 @@ void add_galaxies_together(int t, int p)
 
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
 
- // // add merger to bulge
- //  Gal[t].SecularBulgeMass += Gal[p].StellarMass;
- //  Gal[t].SecularMetalsBulgeMass += Gal[p].MetalsStellarMass;
+  // add merger to bulge
+	if(Gal[t].StellarMass > 0.0 && Gal[t].ClassicalBulgeMass / Gal[t].StellarMass > 0.5)
+	{
+		Gal[t].ClassicalBulgeMass += Gal[p].StellarMass;
+		Gal[t].ClassicalMetalsBulgeMass += Gal[p].MetalsStellarMass;		
+	}
+	else
+	{
+		Gal[t].SecularBulgeMass += Gal[p].StellarMass;
+		Gal[t].SecularMetalsBulgeMass += Gal[p].MetalsStellarMass;				
+	}
 
   for(step = 0; step < STEPS; step++)
   {

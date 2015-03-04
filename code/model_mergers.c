@@ -25,7 +25,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
   SatelliteMass = get_virial_mass(sat_halo) + Gal[ngal].StellarMass + Gal[ngal].ColdGas;
   SatelliteRadius = get_virial_radius(mother_halo);
 
-  if(SatelliteMass > 0.0)
+  if(SatelliteMass > 0.0 && coulomb > 0.0)
     mergtime = 2.0 *
     1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
   else

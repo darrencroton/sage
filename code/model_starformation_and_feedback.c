@@ -32,8 +32,10 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
     // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
     cold_crit = 0.19 * Gal[p].Vvir * reff;
-    if(Gal[p].ColdGas > cold_crit)
-      strdot = SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
+		if(Gal[p].ColdGas > cold_crit && tdyn > 0.0)
+			strdot = SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
+		else
+			strdot = 0.0;
   }
 
   stars = strdot * dt;
@@ -53,7 +55,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   }
 
   // cant use more cold gas than is available! so balance SF and feedback 
-  if((stars + reheated_mass) > Gal[p].ColdGas)
+  if((stars + reheated_mass) > Gal[p].ColdGas && (stars + reheated_mass) > 0.0)
   {
     fac = Gal[p].ColdGas / (stars + reheated_mass);
     stars *= fac;
@@ -63,9 +65,13 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   // determine ejection
   if(SupernovaRecipeOn == 1)
   {
-    ejected_mass = 
-      (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -
-      FeedbackReheatingEpsilon) * stars;
+    if(Gal[centralgal].Vvir > 0.0)
+			ejected_mass = 
+				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -
+					FeedbackReheatingEpsilon) * stars;
+		else
+			ejected_mass = 0.0;
+		
     if(ejected_mass < 0.0)
       ejected_mass = 0.0;
   }

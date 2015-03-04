@@ -142,7 +142,7 @@ double dmax(double x, double y)
 
 double get_virial_mass(int halonr)
 {
-  if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir)
+  if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
     return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
   else
     return Halo[halonr].Len * PartMass;
@@ -152,7 +152,14 @@ double get_virial_mass(int halonr)
 
 double get_virial_velocity(int halonr)
 {
-  return sqrt(G * get_virial_mass(halonr) / get_virial_radius(halonr));
+	double Rvir;
+	
+	Rvir = get_virial_radius(halonr);
+	
+  if(Rvir > 0.0)
+		return sqrt(G * get_virial_mass(halonr) / Rvir);
+	else
+		return 0.0;
 }
 
 

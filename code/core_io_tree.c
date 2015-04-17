@@ -48,10 +48,6 @@ void load_tree_table(int filenr)
     TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
   myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
 
-#ifndef MINIMIZE_IO
-  /* fclose(fd); */
-#endif
-
   if(Ntrees)
     TreeFirstHalo[0] = 0;
   for(i = 1; i < Ntrees; i++)
@@ -98,37 +94,19 @@ void free_tree_table(void)
 void load_tree(int filenr, int nr)
 {
   int i;
-  FILE *fd;
 
-#ifndef MINIMIZE_IO
-  char buf[1000];
-#endif
-
-  /* Must have a FD. */
+  /* Must have a FD */
   assert( load_fd );
 
 #ifdef MINIMIZE_IO
+  FILE *fd;
   fd = (FILE *) 1;
   offset_treedata = 0;
-#else
-  /* sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr); */
-  /* if(!(fd = fopen(buf, "r"))) */
-  /* { */
-  /*   printf("can't open file `%s'\n", buf); */
-  /*   ABORT(1); */
-  /* } */
 #endif
-
-  /* myfseek(fd, sizeof(int) * (2 + Ntrees), SEEK_CUR); */
-  /* myfseek(fd, sizeof(struct halo_data) * TreeFirstHalo[nr], SEEK_CUR); */
 
   Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);
 
   myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
-
-#ifndef MINIMIZE_IO
-  /* fclose(fd); */
-#endif
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
   if(MaxGals < 10000)
@@ -299,9 +277,7 @@ void load_all_treedata(int filenr)
 
   fread(ptr_treedata, 1, bytes, fd);
 
-  printf("done\n");
   fflush(stdout);
-
   fclose(fd);
 
   bytes = filestatus.st_size * ALLOCPARAMETER / 20.0;
@@ -335,9 +311,7 @@ void write_all_galaxy_data(int filenr)
 
   fwrite(ptr_galaxydata, 1, filled_galaxydata, fd);
 
-  printf("done\n");
   fflush(stdout);
-
   fclose(fd);
 }
 
@@ -361,9 +335,7 @@ void write_galaxy_data_snap(int n, int filenr)
 
   fwrite(ptr_galsnapdata[n], 1, filled_galsnapdata[n], fd);
 
-  printf("done\n");
   fflush(stdout);
-
   fclose(fd);
 }
 

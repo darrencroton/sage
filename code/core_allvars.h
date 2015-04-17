@@ -43,7 +43,6 @@ struct GALAXY_OUTPUT
   int   TreeIndex;
   
   int   SnapNum;
-  float dt;
   int   CentralGal;
   float CentralMvir;
 
@@ -110,7 +109,6 @@ struct GALAXY
   int   HaloNr;
   long long  MostBoundID;
   int   SnapNum;
-  float dt;
   int   CentralGal;
   float CentralMvir;
 

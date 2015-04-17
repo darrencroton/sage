@@ -60,18 +60,6 @@ class Results:
           self.BoxSize = 62.5       # Mpc/h
           self.MaxTreeFiles = 8     # FilesPerSnapshot
 
-        elif whichsimulation == 1:  # Millennium
-          self.BoxSize = 500        # Mpc/h
-          self.MaxTreeFiles = 512   # FilesPerSnapshot
-
-        elif whichsimulation == 2:  # Bolshoi
-          self.BoxSize = 250.0      # Mpc/h
-          self.MaxTreeFiles = 12987 # FilesPerSnapshot
-
-        elif whichsimulation == 3:  # GiggleZ MR
-          self.BoxSize = 125.0      # Mpc/h
-          self.MaxTreeFiles = 8 # FilesPerSnapshot
-
         else:
           print "Please pick a valid simulation!"
           exit(1)

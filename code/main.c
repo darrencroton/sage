@@ -67,6 +67,21 @@ int main(int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
   MPI_Comm_size(MPI_COMM_WORLD, &NTask);
 
+  /* /\* Dump some structure details. *\/ */
+  /* if( ThisTask == 0 ) */
+  /* { */
+  /*   printf( "GALAXY_OUTPUT (size %ld):\n", sizeof(struct GALAXY_OUTPUT) ); */
+  /*   printf( " Type        = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, Type), sizeof(int) ); */
+  /*   printf( " GalaxyIndex = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, GalaxyIndex), sizeof(long long) ); */
+  /*   printf( " HaloIndex   = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, HaloIndex), sizeof(int) ); */
+  /*   printf( " TreeIndex   = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, TreeIndex), sizeof(int) ); */
+  /*   printf( " SnapNum     = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, SnapNum), sizeof(int) ); */
+  /*   printf( " dt          = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, dt), sizeof(float) ); */
+  /*   printf( " mergeType   = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, mergeType), sizeof(int) ); */
+  /*   printf( " pos         = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, Pos), sizeof(float) ); */
+  /*   printf( " infallVmax  = %ld, %ld\n", offsetof(struct GALAXY_OUTPUT, infallVmax), sizeof(float) ); */
+  /* } */
+
   ThisNode = malloc(MPI_MAX_PROCESSOR_NAME * sizeof(char));
 
   MPI_Get_processor_name(ThisNode, &nodeNameLen);
@@ -113,6 +128,7 @@ int main(int argc, char **argv)
     if((fd = fopen(bufz0, "w")))
       fclose(fd);
 
+    FileNum = filenr;
     load_tree_table(filenr);
 
     for(tree = 0; tree < Ntrees; tree++)
@@ -127,6 +143,7 @@ int main(int argc, char **argv)
         fflush(stdout);
       }
 
+      TreeID = tree;
       load_tree(filenr, tree);
 
       gsl_rng_set(random_generator, filenr * 100000 + tree);

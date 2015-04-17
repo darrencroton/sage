@@ -23,11 +23,14 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-
-OPT += -DNOUT=1	      # This sets the number of galaxy output times
-
+# Millennium
+OPT += -DNOUT=64           # This sets the number of galaxy output times
 OPT += -DMILLENNIUM         # Millennium simulation trees
+
+# # Bolshoi
+# OPT += -DNOUT=181           # This sets the number of galaxy output times
 # OPT += -DBOLSHOI            # Bolshoi simulation trees
+
 # OPT += -DGIGGLEZ						# GiggleZ simulation trees
 
 # OPT += -DMINIMIZE_IO        # tree files will be preloaded, galaxy data will be written in one go
@@ -38,37 +41,39 @@ SYSTYPE = "mac"
 
 
 CC       =   mpicc            # sets the C-compiler (default)
-OPTIMIZE =   -pg -O2 -Wall    # optimization and warning flags (default)
+OPTIMIZE =   -g -O0 -Wall    # optimization and warning flags (default)
+GSL_INCL = -I$(GSL_DIR)/include
+GSL_LIBS = -L$(GSL_DIR)/lib
 
-ifeq ($(SYSTYPE),"mac")
-CC       =  mpicc
-GSL_INCL = -I/opt/local/include
-GSL_LIBS = -L/opt/local/lib
-endif
+# ifeq ($(SYSTYPE),"mac")
+# CC       =  mpicc
+# GSL_INCL = -I/opt/local/include
+# GSL_LIBS = -L/opt/local/lib
+# endif
 
-ifeq ($(SYSTYPE),"green")
-CC       = /usr/local/gnu/x86_64/openmpi-1.4/bin/mpicc
-OPTIMIZE = -O3 -Wall
-GSL_INCL = -I/usr/local/gnu/x86_64/gsl/include
-GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
-endif
+# ifeq ($(SYSTYPE),"green")
+# CC       = /usr/local/gnu/x86_64/openmpi-1.4/bin/mpicc
+# OPTIMIZE = -O3 -Wall
+# GSL_INCL = -I/usr/local/gnu/x86_64/gsl/include
+# GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
+# endif
 
-ifeq ($(SYSTYPE),"gstar")
-CC       = /usr/local/x86_64/gnu/openmpi-1.4.5/bin/mpicc
-OPTIMIZE = -O3 -Wall
-GSL_INCL = -I/usr/local/x86_64/gnu/gsl-1.9/include
-GSL_LIBS = -L/usr/local/x86_64/gnu/gsl-1.9/lib
-endif
+# ifeq ($(SYSTYPE),"gstar")
+# CC       = /usr/local/x86_64/gnu/openmpi-1.4.5/bin/mpicc
+# OPTIMIZE = -O3 -Wall
+# GSL_INCL = -I/usr/local/x86_64/gnu/gsl-1.9/include
+# GSL_LIBS = -L/usr/local/x86_64/gnu/gsl-1.9/lib
+# endif
 
 
-LIBS   =   -pg -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
-CFLAGS =   -pg $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 
 default: all
 
 $(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) -pg
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 $(OBJS): $(INCL) 
 

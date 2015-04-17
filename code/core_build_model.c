@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include <time.h>
 #include <signal.h>
@@ -124,7 +125,13 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       // they are copied to the end of the list of permanent galaxies HaloGal[xxx] 
 
       Gal[ngal] = HaloGal[HaloAux[prog].FirstGalaxy + i];
-      Gal[ngal].HaloNr = halonr;      
+      Gal[ngal].HaloNr = halonr;
+
+      /* I need to clear this out because I only set the galaxy dt if
+	 it is currently 0. */
+      Gal[ngal].dt = 0.0;
+      /* TODO: Do I still need this dt? */
+
       Gal[ngal].dT = -1.0;
 
       // this deals with the central galaxies of (sub)halos 
@@ -270,6 +277,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
+  float f_delta_t;
 
   centralgal = Gal[0].CentralGal;
   if(Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
@@ -291,6 +299,18 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// note: halonr is here the
     // Loop over all galaxies in the halo 
     for(p = 0; p < ngal; p++)
     {
+      deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
+      time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+
+      /* Fill in the galaxy's dt value. */
+      f_delta_t = deltaT;
+      if( Gal[p].dt == 0.0 )
+	Gal[p].dt = f_delta_t;
+#ifndef NDEBUG
+      else
+	assert( Gal[p].dt == f_delta_t );
+#endif
+
       // don't treat galaxies that have already merged 
       if(Gal[p].mergeType > 0)
         continue;

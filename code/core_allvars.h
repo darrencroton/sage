@@ -12,7 +12,7 @@ do {                                                                \
 } while(0)
 
 #define  STEPS 10         // Number of integration intervals between two snapshots 
-#define  MAXGALFAC 10     
+#define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
 
@@ -43,6 +43,7 @@ struct GALAXY_OUTPUT
   int   TreeIndex;
   
   int   SnapNum;
+  float dt;
   int   CentralGal;
   float CentralMvir;
 
@@ -109,6 +110,7 @@ struct GALAXY
   int   HaloNr;
   long long  MostBoundID;
   int   SnapNum;
+  float dt;
   int   CentralGal;
   float CentralMvir;
 
@@ -269,6 +271,10 @@ extern double Age[MAXSNAPS];
 extern int    Snaplistlen;
 
 extern gsl_rng *random_generator;
+
+extern int TreeID;
+extern int FileNum;
+
 
 #ifdef MINIMIZE_IO
 extern char *ptr_treedata, *ptr_galaxydata, *ptr_galsnapdata[NOUT];

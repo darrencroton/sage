@@ -31,7 +31,6 @@ OPT += -DMILLENNIUM         # Millennium simulation trees
 # OPT += -DGIGGLEZ						# GiggleZ simulation trees
 
 SYSTYPE = "mac"
-# SYSTYPE = "green"
 # SYSTYPE = "gstar"
 
 
@@ -44,13 +43,6 @@ GSL_LIBS = -L$(GSL_DIR)/lib
 # CC       =  mpicc
 # GSL_INCL = -I/opt/local/include
 # GSL_LIBS = -L/opt/local/lib
-# endif
-
-# ifeq ($(SYSTYPE),"green")
-# CC       = /usr/local/gnu/x86_64/openmpi-1.4/bin/mpicc
-# OPTIMIZE = -O3 -Wall
-# GSL_INCL = -I/usr/local/gnu/x86_64/gsl/include
-# GSL_LIBS = -L/usr/local/gnu/x86_64/gsl/lib
 # endif
 
 # ifeq ($(SYSTYPE),"gstar")

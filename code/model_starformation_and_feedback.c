@@ -19,12 +19,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   strdot = 0.0;
 
   // star formation recipes 
-  if(SFprescription == 1)
-  {
-    // from Krumholz & Dekel 2011
-    strdot = metallicity_dependent_star_formation(p);
-  }
-  else
+  if(SFprescription == 0)
   {
     // we take the typical star forming region as 3.0*r_s using the Milky Way as a guide
     reff = 3.0 * Gal[p].DiskScaleRadius;
@@ -37,6 +32,11 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 		else
 			strdot = 0.0;
   }
+	else
+	{
+		printf("No star formation prescription selected!\n");
+    ABORT(55);
+	}
 
   stars = strdot * dt;
   if(stars < 0.0)

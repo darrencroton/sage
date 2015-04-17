@@ -244,7 +244,6 @@ extern double BlackHoleGrowthRate;
 extern double Reionization_z0;
 extern double Reionization_zr;
 extern double ThresholdSatDisruption;
-extern double ClumpingFactor;
 
 extern double UnitLength_in_cm,
   UnitTime_in_s,

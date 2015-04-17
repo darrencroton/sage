@@ -22,16 +22,12 @@ LastSnapShotNr				63
 SimulationDir					./input/treefiles/millennium/millennium_mini
 FilesPerSnapshot			8    ; Mini Millennium
 
-% Full Millennium
-%SimulationDir					./input/treefiles/millennium/millennium_full
-%FilesPerSnapshot			512  ; Full Millennium
-
 
 %------------------------------------------
 %----- Code options -----------------------
 %------------------------------------------
 
-SFprescription				0		;0: original Croton et al. 2006; 1: new Krumholz & Dekel 2012; 2: Blitz & Rosolowski 2006
+SFprescription				0		;0: original Croton et al. 2006
 AGNrecipeOn						2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn			1		;0: switch off
 ReionizationOn				0		;0: switch off
@@ -43,7 +39,6 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 %------------------------------------------
 
 SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
-ClumpingFactor					5.0		;gas clumping factor in Krumholz & Dekel 2011 (SFprescription=1)
 
 FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
 FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)

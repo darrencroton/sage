@@ -81,10 +81,6 @@ void read_parameter_file(char *fname)
   addr[nt] = &ReIncorporationFactor;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "ClumpingFactor");
-  addr[nt] = &ClumpingFactor;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "UnitVelocity_in_cm_per_s");
   addr[nt] = &UnitVelocity_in_cm_per_s;
   id[nt++] = DOUBLE;

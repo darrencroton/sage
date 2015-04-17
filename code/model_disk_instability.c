@@ -18,7 +18,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
   // For unstable stars and gas, we transfer the required ammount to the bulge to make the disk stable again
 
   // Disk mass has to be > 0.0 !
-  diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].ClassicalBulgeMass - Gal[p].SecularBulgeMass);
+  diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].BulgeMass);
   if(diskmass > 0.0)
   {
     // calculate critical disk mass
@@ -36,18 +36,18 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     if(unstable_stars > 0.0)
     {
       // Use disk metallicity here !
-      metallicity = get_metallicity(Gal[p].StellarMass - (Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass), Gal[p].MetalsStellarMass - (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass));
+      metallicity = get_metallicity(Gal[p].StellarMass - Gal[p].BulgeMass, Gal[p].MetalsStellarMass - Gal[p].MetalsBulgeMass);
 
-      Gal[p].SecularBulgeMass += unstable_stars;
-      Gal[p].SecularMetalsBulgeMass += metallicity * unstable_stars;
+      Gal[p].BulgeMass += unstable_stars;
+      Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
       
       // Need to fix this. Excluded for now.
       // Gal[p].mergeType = 3;  // mark as disk instability partial mass transfer
       // Gal[p].mergeIntoID = NumGals + p - 1;      
       
-      if ((Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass) / Gal[p].StellarMass > 1.0001 || (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass) / Gal[p].MetalsStellarMass > 1.0001)
+      if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
 	    {
-        printf("Instability: Mbulge > Mtot (stars or metals)\t%e\t%e\t%e\t%e\t%e\n", (Gal[p].ClassicalBulgeMass + Gal[p].SecularBulgeMass), Gal[p].StellarMass, (Gal[p].ClassicalMetalsBulgeMass + Gal[p].SecularMetalsBulgeMass), Gal[p].MetalsStellarMass, unstable_stars);
+        printf("Instability: Mbulge > Mtot (stars or metals)\n");
         // ABORT(96);
       }
     }

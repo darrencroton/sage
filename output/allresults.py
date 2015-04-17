@@ -93,16 +93,14 @@ class Results:
             ('VelDisp'                      , np.float32),                  
             ('ColdGas'                      , np.float32),                  
             ('StellarMass'                  , np.float32),                  
-            ('ClassicalBulgeMass'           , np.float32),                  
-            ('SecularBulgeMass'             , np.float32),                  
+            ('BulgeMass'                    , np.float32),                  
             ('HotGas'                       , np.float32),                  
             ('EjectedMass'                  , np.float32),                  
             ('BlackHoleMass'                , np.float32),                  
             ('IntraClusterStars'            , np.float32),                  
             ('MetalsColdGas'                , np.float32),                  
             ('MetalsStellarMass'            , np.float32),                  
-            ('ClassicalMetalsBulgeMass'     , np.float32),                  
-            ('SecularMetalsBulgeMass'       , np.float32),                  
+            ('MetalsBulgeMass'              , np.float32),                  
             ('MetalsHotGas'                 , np.float32),                  
             ('MetalsEjectedMass'            , np.float32),                  
             ('MetalsIntraClusterStars'      , np.float32),                  
@@ -573,7 +571,7 @@ class Results:
     
         # w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & (G.Vmax > 0.0))[0]
         w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & 
-          ((G.ClassicalBulgeMass+G.SecularBulgeMass) / G.StellarMass > 0.1) & ((G.ClassicalBulgeMass+G.SecularBulgeMass) / G.StellarMass < 0.5))[0]
+          (G.BulgeMass / G.StellarMass > 0.1) & (G.BulgeMass / G.StellarMass < 0.5))[0]
         if(len(w) > dilute): w = sample(w, dilute)
     
         mass = np.log10((G.StellarMass[w] + G.ColdGas[w]) * 1.0e10 / self.Hubble_h)
@@ -666,7 +664,7 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
 
         w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & 
-          ((G.ClassicalBulgeMass+G.SecularBulgeMass) / G.StellarMass > 0.1) & ((G.ClassicalBulgeMass+G.SecularBulgeMass) / G.StellarMass < 0.5))[0]
+          (G.BulgeMass / G.StellarMass > 0.1) & (G.BulgeMass / G.StellarMass < 0.5))[0]
         if(len(w) > dilute): w = sample(w, dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
@@ -760,11 +758,11 @@ class Results:
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
     
-        w = np.where(((G.ClassicalBulgeMass+G.SecularBulgeMass) > 0.01) & (G.BlackHoleMass > 0.00001))[0]
+        w = np.where((G.BulgeMass > 0.01) & (G.BlackHoleMass > 0.00001))[0]
         if(len(w) > dilute): w = sample(w, dilute)
     
         bh = np.log10(G.BlackHoleMass[w] * 1.0e10 / self.Hubble_h)
-        bulge = np.log10((G.ClassicalBulgeMass[w]+G.SecularBulgeMass[w]) * 1.0e10 / self.Hubble_h)
+        bulge = np.log10(G.BulgeMass[w] * 1.0e10 / self.Hubble_h)
                     
         plt.scatter(bulge, bh, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
                 

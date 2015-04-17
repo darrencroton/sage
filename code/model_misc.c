@@ -50,8 +50,7 @@ void init_galaxy(int p, int halonr)
 
   Gal[p].ColdGas = 0.0;
   Gal[p].StellarMass = 0.0;
-  Gal[p].ClassicalBulgeMass = 0.0;
-  Gal[p].SecularBulgeMass = 0.0;
+  Gal[p].BulgeMass = 0.0;
   Gal[p].HotGas = 0.0;
   Gal[p].EjectedMass = 0.0;
   Gal[p].BlackHoleMass = 0.0;
@@ -59,9 +58,8 @@ void init_galaxy(int p, int halonr)
 
   Gal[p].MetalsColdGas = 0.0;
   Gal[p].MetalsStellarMass = 0.0;
-  Gal[p].ClassicalMetalsBulgeMass = 0.0;
-  Gal[p].SecularMetalsBulgeMass = 0.0;
-  if(SFprescription == 1) Gal[p].MetalsHotGas = 2.0e-5; else Gal[p].MetalsHotGas = 0.0;
+  Gal[p].MetalsBulgeMass = 0.0;
+  Gal[p].MetalsHotGas = 0.0;
   Gal[p].MetalsEjectedMass = 0.0;
   Gal[p].MetalsICS = 0.0;
   
@@ -76,7 +74,7 @@ void init_galaxy(int p, int halonr)
   }
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
-  Gal[p].ClassicalBulgeRadius = 0.0;
+  Gal[p].BulgeEffectiveRadius = 0.0;
   Gal[p].MergTime = 999.9;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;

@@ -27,8 +27,6 @@ INCL   =	./code/core_allvars.h  \
 OPT += -DNOUT=1           # This sets the number of galaxy output times
 
 OPT += -DMILLENNIUM         # Millennium simulation trees
-# OPT += -DBOLSHOI            # Bolshoi simulation trees
-# OPT += -DGIGGLEZ						# GiggleZ simulation trees
 
 SYSTYPE = "mac"
 # SYSTYPE = "gstar"

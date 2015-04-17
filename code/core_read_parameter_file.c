@@ -31,10 +31,6 @@ void read_parameter_file(char *fname)
 #ifdef MILLENNIUM
     printf("\tMILLENNIUM flag selected\n");
 #endif
-
-#ifdef BOLSHOI
-    printf("\tBOLSHOI flag selected\n");
-#endif
    
   }
 

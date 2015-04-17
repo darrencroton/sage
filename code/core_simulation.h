@@ -3,14 +3,6 @@
 #define  MAXSNAPS  64
 #endif
 
-#ifdef BOLSHOI
-#define  MAXSNAPS  181
-#endif
-
-#ifdef GIGGLEZ
-#define  MAXSNAPS  117    //GiggleZ_MR
-#endif
-
 
 struct halo_data
 {

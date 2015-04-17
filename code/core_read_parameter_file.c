@@ -27,10 +27,6 @@ void read_parameter_file(char *fname)
   {
     // Print out the neceassary Makefile flags to allow us to identify what properties should be in the output binary files. 
     printf ("\nMakefile flags:\n\n");
-
-#ifdef MILLENNIUM
-    printf("\tMILLENNIUM flag selected\n");
-#endif
    
   }
 

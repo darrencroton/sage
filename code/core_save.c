@@ -16,9 +16,7 @@ FILE* save_fd[NOUT] = { 0 };
 
 void save_galaxies(int filenr, int tree)
 {
-#ifndef MINIMIZE_IO
   char buf[1000];
-#endif
   /* FILE *fd; */
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
@@ -53,11 +51,6 @@ void save_galaxies(int filenr, int tree)
   // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
   {
-#ifdef MINIMIZE_IO
-    /* fd = (FILE *) (size_t)(10 + n); */
-    /* offset_galsnapdata[n] = 0; */
-#else
-
     /* Only open the file if it is not already open. */
     if( !save_fd[n] )
     {
@@ -79,13 +72,6 @@ void save_galaxies(int filenr, int tree)
       }
     }
 
-#endif
-
-    /* No longer need to seek. */
-    /* myfseek(fd, (2 + Ntrees) * sizeof(int), SEEK_CUR); */
-    /* myfseek(fd, TotGalaxies[n] * sizeof(struct GALAXY_OUTPUT), SEEK_CUR); */
-
-    // counter = 0;
     for(i = 0; i < NumGals; i++)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
@@ -97,11 +83,6 @@ void save_galaxies(int filenr, int tree)
         TreeNgals[n][tree]++;
       }
     }
-
-#ifndef MINIMIZE_IO
-    /* Don't close between calls. */
-    /* fclose(fd); */
-#endif
 
   }
 
@@ -234,47 +215,24 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
 void finalize_galaxy_file(int filenr)
 {
-#ifndef MINIMIZE_IO
-  /* char buf[1000]; */
-#endif
-  /* FILE *fd; */
   int n;
 
   for(n = 0; n < NOUT; n++)
   {
-#ifdef MINIMIZE_IO
-    /* fd = (FILE *) (size_t)(10 + n); */
-    /* offset_galsnapdata[n] = 0; */
-#else
-
     /* File must already be open. */
     assert( save_fd[n] );
 
     /* Seek to the beginning. */
     fseek( save_fd[n], 0, SEEK_SET );
 
-    /* sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr); */
-    /* if(!(fd = fopen(buf, "r+"))) */
-    /* { */
-    /*   printf("can't open file `%s'\n", buf); */
-    /*   ABORT(1); */
-    /* } */
-#endif
-
     myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
     myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
-
-#ifndef MINIMIZE_IO
 
     /* Close the file and clear handle after everything has
        been written. */
     fclose( save_fd[n] );
     save_fd[n] = NULL;
-
-#else
-    write_galaxy_data_snap(n, filenr);
-#endif
   }
   
 }

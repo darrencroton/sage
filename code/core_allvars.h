@@ -274,12 +274,4 @@ extern int TreeID;
 extern int FileNum;
 
 
-#ifdef MINIMIZE_IO
-extern char *ptr_treedata, *ptr_galaxydata, *ptr_galsnapdata[NOUT];
-extern size_t offset_auxdata, offset_treedata, offset_dbids;
-extern size_t offset_galaxydata, maxstorage_galaxydata, filled_galaxydata;
-extern size_t offset_galsnapdata[NOUT], maxstorage_galsnapdata[NOUT], filled_galsnapdata[NOUT];
-#endif
-
-
 #endif  // #ifndef ALLVARS_H

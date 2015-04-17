@@ -4,12 +4,6 @@ size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
 
-#ifdef MINIMIZE_IO
-void load_all_treedata(int filenr);
-void write_all_galaxy_data(int filenr);
-void write_galaxy_data_snap(int n, int filenr);
-#endif
-
 void construct_galaxies(int halonr, int tree);
 void evolve_galaxies(int halonr, int ngal, int tree);
 int  join_galaxies_of_progenitors(int halonr, int nstart);

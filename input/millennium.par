@@ -15,12 +15,9 @@ LastFile					7
 %----- Simulation input files  ------------
 %------------------------------------------
 
+SimulationDir					./input/treefiles/millennium/millennium_mini
 FileWithSnapList			./input/treefiles/millennium/millennium.a_list
 LastSnapShotNr				63
-
-% Mini-Millennium
-SimulationDir					./input/treefiles/millennium/millennium_mini
-FilesPerSnapshot			8    ; Mini Millennium
 
 
 %------------------------------------------

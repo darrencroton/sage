@@ -32,7 +32,6 @@ int TotHalos;
 int TotGalaxies[NOUT];
 int *TreeNgals[NOUT];
 
-int FilesPerSnapshot;
 int LastSnapShotNr;
 
 int *FirstHaloInSnap;

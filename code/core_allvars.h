@@ -191,7 +191,6 @@ extern int    FoF_MaxGals;
 
 extern int    GalaxyCounter;     // unique galaxy ID for main progenitor line in tree
 
-extern int    FilesPerSnapshot;
 extern int    LastSnapShotNr;
 
 extern char   OutputDir[512];

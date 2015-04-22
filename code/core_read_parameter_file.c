@@ -48,10 +48,6 @@ void read_parameter_file(char *fname)
   addr[nt] = FileWithSnapList;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "FilesPerSnapshot");
-  addr[nt] = &FilesPerSnapshot;
-  id[nt++] = INT;
-
   strcpy(tag[nt], "LastSnapShotNr");
   addr[nt] = &LastSnapShotNr;
   id[nt++] = INT;

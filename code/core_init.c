@@ -79,7 +79,7 @@ void read_output_snaps(void)
   if(!(fd = fopen(buf, "r")))
   {
     printf("file `%s' not found.\n", buf);
-    exit(1);
+    ABORT(0);
   }
 
   for(i = 0; i < NOUT; i++)
@@ -87,7 +87,7 @@ void read_output_snaps(void)
     if(fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
     {
       printf("I/O error in file '%s'\n", buf);
-      exit(1);
+      ABORT(0);
     }
   }
   fclose(fd);

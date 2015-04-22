@@ -27,7 +27,7 @@ void load_tree_table(int filenr)
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
-    ABORT(1);
+    ABORT(0);
   }
 
   myfread(&Ntrees, 1, sizeof(int), load_fd);
@@ -55,7 +55,7 @@ void load_tree_table(int filenr)
     if(!(fd = fopen(buf, "w")))
     {
       printf("can't open file `%s'\n", buf);
-      ABORT(1);
+      ABORT(0);
     }
     fclose(fd);
     TotGalaxies[n] = 0;

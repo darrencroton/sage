@@ -113,11 +113,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   {
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
-      if(ngal >= FoF_MaxGals)
-      {
-        printf("Opps. We reached the maximum number FoF_MaxGals=%d of galaxies in FoF... exiting.\n", FoF_MaxGals);
-        ABORT(1);
-      }
+			assert(ngal < FoF_MaxGals);
 
       // This is the cruical line in which the properties of the progenitor galaxies 
       // are copied over (as a whole) to the (temporary) galaxies Gal[xxx] in the current snapshot 
@@ -220,13 +216,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
         }
       }
 
-      // Note: Galaxies that are already type 2 do not need special treatment at this point 
-      if(Gal[ngal].Type < 0 || Gal[ngal].Type > 2)
-      {
-        printf("what's that????\n");
-        ABORT(88);
-      }
-
       ngal++;
 
     }
@@ -250,11 +239,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   {
     if(Gal[i].Type == 0 || Gal[i].Type == 1)
     {
-      if(centralgal != -1)
-      {
-        printf("can't be\n");
-        ABORT(8);
-      }
+			assert(centralgal == -1);
       centralgal = i;
     }
   }
@@ -274,11 +259,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
 
   centralgal = Gal[0].CentralGal;
-  if(Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
-  {
-    printf("Something wrong here ..... \n");
-    ABORT(54);
-  }
+	assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
 
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum]);
 
@@ -325,11 +306,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 
       if((Gal[p].Type == 1 || Gal[p].Type == 2) && Gal[p].mergeType == 0)  // satellite galaxy!
       {
-        if(Gal[p].MergTime > 999.0)
-        {
-          printf("satellite doesn't have a merging time! %f\n", Gal[p].MergTime);
-          ABORT(77);
-        }
+				assert(Gal[p].MergTime < 999.0);
 
         deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
         Gal[p].MergTime -= deltaT / STEPS;
@@ -415,11 +392,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
           i--;
       }
       
-      if(i < 0)
-      {
-        printf("Ran over the end of HaloGal looking for progenitor!\n");
-        ABORT(12);
-      }
+			assert(i >= 0);
       
       HaloGal[i].mergeType = Gal[p].mergeType;
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
@@ -428,11 +401,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
     
     if(Gal[p].mergeType == 0)
     {
-      if(NumGals >= MaxGals)
-      {
-        printf("maximum number of galaxies reached... exiting.\n");
-        ABORT(1);
-      }
+			assert(NumGals < MaxGals);
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;
       HaloGal[NumGals++] = Gal[p];

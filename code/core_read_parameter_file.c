@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -246,7 +247,6 @@ void read_parameter_file(char *fname)
     }
   }
 
-  if(errorFlag)
-    ABORT(1);
+	assert(!errorFlag);
 
 }

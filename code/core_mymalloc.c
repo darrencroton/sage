@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -26,7 +27,7 @@ void *mymalloc(size_t n)
   if(Nblocks >= MAXBLOCKS)
   {
     printf("No blocks left in mymalloc().\n");
-    ABORT(1);
+    ABORT(0);
   }
 
   SizeTable[Nblocks] = n;
@@ -43,8 +44,8 @@ void *mymalloc(size_t n)
 
   if(!(Table[Nblocks] = malloc(n)))
   {
-    printf("Failed to allocate memory for %g MB.\n",  n / (1024.0 * 1024.0) );
-    ABORT(2);
+    printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
+    ABORT(0);
   }
 
   Nblocks += 1;
@@ -56,13 +57,12 @@ void *mymalloc(size_t n)
 
 void myfree(void *p)
 {
-  if(Nblocks == 0)
-    ABORT(1);
+	assert(Nblocks > 0);
 
   if(p != Table[Nblocks - 1])
   {
     printf("Wrong call of myfree() - not the last allocated block!\n");
-    ABORT(1);
+    ABORT(0);
   }
 
   free(p);

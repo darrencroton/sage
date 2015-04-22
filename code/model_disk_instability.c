@@ -48,7 +48,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
 	    {
         printf("Instability: Mbulge > Mtot (stars or metals)\n");
-        // ABORT(96);
+        // ABORT(0);
       }
     }
 
@@ -58,7 +58,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       if(unstable_gas/Gal[p].ColdGas > 1.0001)
       {
         printf("unstable_gas > Gal[p].ColdGas\t%e\t%e\n", unstable_gas, Gal[p].ColdGas);
-        // ABORT(97);
+        // ABORT(0);
       }
 
       unstable_gas_fraction = unstable_gas / Gal[p].ColdGas;

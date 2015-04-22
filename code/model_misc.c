@@ -4,6 +4,7 @@
 #include <math.h>
 #include <time.h>
 #include <gsl/gsl_rng.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -14,11 +15,7 @@ void init_galaxy(int p, int halonr)
 {
   int j, step;
 
-  if(halonr != Halo[halonr].FirstHaloInFOFgroup)
-  {
-    printf("Hah?\n");
-    ABORT(1);
-  }
+	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
 
   Gal[p].Type = 0;
 

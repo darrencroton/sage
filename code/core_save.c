@@ -57,7 +57,7 @@ void save_galaxies(int filenr, int tree)
       if(!(save_fd[n] = fopen(buf, "r+")))
       {
 				printf("can't open file `%s'\n", buf);
-				ABORT(1);
+				ABORT(0);
       }
 
 			// write out placeholders for the header data.

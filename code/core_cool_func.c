@@ -56,7 +56,7 @@ void read_cooling_functions(void)
 
     if(!(fd = fopen(buf, "r")))
     {
-      printf("file `%s' not found.\n", buf);
+      printf("file `%s' not found\n", buf);
       ABORT(0);
     }
 

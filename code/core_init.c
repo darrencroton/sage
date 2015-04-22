@@ -105,7 +105,7 @@ void read_snap_list(void)
   if(!(fd = fopen(fname, "r")))
   {
     printf("can't read output list in file '%s'\n", fname);
-    ABORT(1);
+    ABORT(0);
   }
 
   Snaplistlen = 0;
@@ -121,7 +121,7 @@ void read_snap_list(void)
   fclose(fd);
 
   if(ThisTask == 0)
-    printf("found %d defined times in snaplist.\n", Snaplistlen);
+    printf("found %d defined times in snaplist\n", Snaplistlen);
 }
 
 

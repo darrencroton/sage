@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -35,7 +36,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 	else
 	{
 		printf("No star formation prescription selected!\n");
-    ABORT(55);
+    ABORT(0);
 	}
 
   stars = strdot * dt;
@@ -47,12 +48,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   else
     reheated_mass = 0.0;
 
-  if(reheated_mass < 0.0)
-  {
-    printf("Something strange here (SF1)....\n");
-    ABORT(32);
-    reheated_mass = 0.0;
-  }
+	assert(reheated_mass >= 0.0);
 
   // cant use more cold gas than is available! so balance SF and feedback 
   if((stars + reheated_mass) > Gal[p].ColdGas && (stars + reheated_mass) > 0.0)
@@ -127,13 +123,7 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
 {
   double metallicityHot;
 
-  // check first just to be sure 
-  if(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0)
-  {
-    printf("Something strange here (SF2)....%e\t%e\n", reheated_mass, Gal[p].ColdGas);
-    ABORT(19);
-    reheated_mass = Gal[p].ColdGas;
-  }
+	assert(!(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0));
 
   if(SupernovaRecipeOn == 1)
   {

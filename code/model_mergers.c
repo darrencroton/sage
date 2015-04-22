@@ -223,11 +223,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   else
     reheated_mass = 0.0;
 
-  if(reheated_mass < 0.0)
-  {
-    printf("Something strange here ....\n");
-    ABORT(32);
-  }
+	assert(reheated_mass >= 0.0);
 
   // can't use more cold gas than is available! so balance SF and feedback 
   if((stars + reheated_mass) > Gal[merger_centralgal].ColdGas)

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <mpi.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -73,13 +74,13 @@ int main(int argc, char **argv)
   if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME) 
   {
     printf("Node name string not long enough!...\n");
-    ABORT(701);
+    ABORT(0);
   }
 
   if(argc != 2)
   {
     printf("\n  usage: sage <parameterfile>\n\n");
-    ABORT(1);
+    ABORT(0);
   }
 
   atexit(bye);
@@ -119,8 +120,7 @@ int main(int argc, char **argv)
     for(tree = 0; tree < Ntrees; tree++)
     {
       
-      if(gotXCPU)
-        ABORT(5);
+			assert(!gotXCPU);
 
       if(tree % 10000 == 0)
       {

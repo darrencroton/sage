@@ -1,9 +1,4 @@
 
-#ifdef MILLENNIUM
-#define  MAXSNAPS  64
-#endif
-
-
 struct halo_data
 {
   // merger tree pointers 

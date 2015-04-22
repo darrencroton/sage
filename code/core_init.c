@@ -25,7 +25,6 @@ void init(void)
   set_units();
   srand((unsigned) time(NULL));
 
-  read_output_snaps();
   read_snap_list();
 
   for(i = 0; i < Snaplistlen; i++)
@@ -63,34 +62,6 @@ void set_units(void)
   // compute a few quantitites 
   RhoCrit = 3 * Hubble * Hubble / (8 * M_PI * G);
 
-}
-
-
-
-void read_output_snaps(void)
-{
-  int i;
-
-  char buf[1000];
-  FILE *fd;
-
-  sprintf(buf, "%s", FileWithOutputSnaps);
-
-  if(!(fd = fopen(buf, "r")))
-  {
-    printf("file `%s' not found.\n", buf);
-    ABORT(0);
-  }
-
-  for(i = 0; i < NOUT; i++)
-  {
-    if(fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
-    {
-      printf("I/O error in file '%s'\n", buf);
-      ABORT(0);
-    }
-  }
-  fclose(fd);
 }
 
 

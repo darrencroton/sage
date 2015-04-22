@@ -15,6 +15,7 @@ do {                                                                \
 #define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
+#define  ABSOLUTEMAXSNAPS 1000
 
 
 #define  GRAVITY     6.672e-8
@@ -200,8 +201,8 @@ extern char   FileWithOutputSnaps[512];
 extern char   FileWithSnapList[512];
 
 extern int    TotHalos;
-extern int    TotGalaxies[NOUT];
-extern int    *TreeNgals[NOUT];
+extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
+extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
 
 extern int    *FirstHaloInSnap;
 
@@ -257,12 +258,14 @@ extern double UnitLength_in_cm,
   Hubble,
   a0, ar;
 
-extern int    ListOutputSnaps[NOUT];
+extern int    ListOutputSnaps[ABSOLUTEMAXSNAPS];
 
-extern double ZZ[MAXSNAPS];
-extern double AA[MAXSNAPS];
-extern double Age[MAXSNAPS];
+extern double ZZ[ABSOLUTEMAXSNAPS];
+extern double AA[ABSOLUTEMAXSNAPS];
+extern double Age[ABSOLUTEMAXSNAPS];
 
+extern int    MAXSNAPS;
+extern int    NOUT;
 extern int    Snaplistlen;
 
 extern gsl_rng *random_generator;

@@ -1,5 +1,5 @@
 %------------------------------------------
-%----- SA model output files --------------
+%----- SAGE output file information -------
 %------------------------------------------
 
 FileNameGalaxies				model
@@ -12,16 +12,33 @@ LastFile					7
 
 
 %------------------------------------------
-%----- Simulation input files  ------------
+%----- Snapshot output list ---------------
+%------------------------------------------
+
+NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for all outputs
+
+% List your output snapshots after the arrow, highest to lowest (ignored when NumOutputs=-1). 
+-> 63 37 32 27 23 20 18 16
+
+
+%------------------------------------------
+%----- Simulation information  ------------
 %------------------------------------------
 
 SimulationDir					./input/treefiles/millennium/millennium_mini
 FileWithSnapList			./input/treefiles/millennium/millennium.a_list
 LastSnapShotNr				63
 
+Omega						0.25 
+OmegaLambda			0.75
+BaryonFrac			0.15
+Hubble_h				0.73
+
+PartMass				0.0860657
+
 
 %------------------------------------------
-%----- Code options -----------------------
+%----- SAGE recipe options ----------------
 %------------------------------------------
 
 SFprescription				0		;0: original Croton et al. 2006
@@ -32,7 +49,7 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 
 
 %------------------------------------------
-%----- Parameters of physical model -------
+%----- SAGE model parameters --------------
 %------------------------------------------
 
 SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
@@ -61,15 +78,8 @@ EtaSN										5.0e-3	;supernova efficiency
 
 
 %------------------------------------------
-%----- Cosmological parameters and more ---
+%----- Other code-related information -----
 %------------------------------------------
-
-Omega						0.25 
-OmegaLambda			0.75
-BaryonFrac			0.15
-Hubble_h				0.73
-
-PartMass				0.0860657
 
 UnitLength_in_cm					3.08568e+24	;WATCH OUT: Mpc/h
 UnitMass_in_g							1.989e+43		;WATCH OUT: 10^10Msun

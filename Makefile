@@ -22,11 +22,6 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-
-OPT += -DNOUT=8           # sets the desired number of galaxy outputs
-OPT += -DMAXSNAPS=64      # sets the total outputs in the simulation
-
-
 CC       =   mpicc            # sets the C-compiler
 OPTIMIZE =   -g -O0 -Wall     # optimization and warning flags
 GSL_INCL = -I$(GSL_DIR)/include   # make sure your system know what GSL_DIR is

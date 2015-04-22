@@ -10,7 +10,7 @@
 
 
 // keep a static file handle to remove the need to do constant seeking.
-FILE* save_fd[NOUT] = { 0 };
+FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 
 
 void save_galaxies(int filenr, int tree)

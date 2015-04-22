@@ -18,7 +18,7 @@ void read_parameter_file(char *fname)
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
-  int i, j, nt = 0;
+  int i, j, nt = 0, done;
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
@@ -176,6 +176,10 @@ void read_parameter_file(char *fname)
   addr[nt] = &ThresholdSatDisruption;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "NumOutputs");
+  addr[nt] = &NOUT;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))
@@ -185,7 +189,7 @@ void read_parameter_file(char *fname)
       if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
         continue;
 
-      if(buf1[0] == '%')
+      if(buf1[0] == '%' || buf1[0] == '-')
         continue;
 
       for(i = 0, j = -1; i < nt; i++)
@@ -233,7 +237,6 @@ void read_parameter_file(char *fname)
     errorFlag = 1;
   }
 
-
   for(i = 0; i < nt; i++)
   {
     if(*tag[i])
@@ -242,7 +245,50 @@ void read_parameter_file(char *fname)
       errorFlag = 1;
     }
   }
-
+	
 	assert(!errorFlag);
+	printf("\n");
+	
+	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
+	MAXSNAPS = LastSnapShotNr + 1;
+
+	assert(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS));
+	
+	// read in the output snapshot list
+	if(NOUT == -1)
+	{
+		NOUT = MAXSNAPS;
+		for (i=NOUT-1; i>=0; i--)
+			ListOutputSnaps[i] = i;
+		printf("all %i snapshots selected for output\n", NOUT);
+	}
+	else
+	{
+		printf("%i snapshots selected for output: ", NOUT);
+		// reopen the parameter file
+		fd = fopen(fname, "r");
+
+		done = 0;
+		while(!feof(fd) && !done)
+		{
+			// scan down to find the line with the snapshots
+			fscanf(fd, "%s", buf);
+			if(strcmp(buf, "->") == 0)
+			{
+				// read the snapshots into ListOutputSnaps
+				for (i=0; i<NOUT; i++)
+				{
+					fscanf(fd, "%d", &ListOutputSnaps[i]);
+					printf("%i ", ListOutputSnaps[i]);
+				}
+				done = 1;
+			}
+		}
+
+		fclose(fd);
+		assert(done);
+		
+		printf("\n");
+	}
 
 }

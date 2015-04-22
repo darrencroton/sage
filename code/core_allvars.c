@@ -29,8 +29,8 @@ char FileWithOutputSnaps[512];
 char FileWithSnapList[512];
 
 int TotHalos;
-int TotGalaxies[NOUT];
-int *TreeNgals[NOUT];
+int TotGalaxies[ABSOLUTEMAXSNAPS];
+int *TreeNgals[ABSOLUTEMAXSNAPS];
 
 int LastSnapShotNr;
 
@@ -85,12 +85,14 @@ double UnitLength_in_cm,
   UnitPressure_in_cgs,
   UnitDensity_in_cgs, UnitCoolingRate_in_cgs, UnitEnergy_in_cgs, UnitTime_in_Megayears, G, Hubble, a0, ar;
 
-int ListOutputSnaps[NOUT];
+int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 
-double ZZ[MAXSNAPS];
-double AA[MAXSNAPS];
-double Age[MAXSNAPS];
+double ZZ[ABSOLUTEMAXSNAPS];
+double AA[ABSOLUTEMAXSNAPS];
+double Age[ABSOLUTEMAXSNAPS];
 
+int MAXSNAPS;
+int NOUT;
 int Snaplistlen;
 
 gsl_rng *random_generator;

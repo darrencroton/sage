@@ -17,7 +17,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
   // Here we calculate the stability of the stellar and gaseous disk as discussed in Mo, Mao & White (1998).
   // For unstable stars and gas, we transfer the required ammount to the bulge to make the disk stable again
 
-  // Disk mass has to be > 0.0 !
+  // Disk mass has to be > 0.0
   diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].BulgeMass);
   if(diskmass > 0.0)
   {
@@ -26,7 +26,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     if(Mcrit > diskmass)
       Mcrit = diskmass;
     
-    // use Disk mass here !
+    // use disk mass here
     gas_fraction   = Gal[p].ColdGas / diskmass;
     unstable_gas   = gas_fraction * (diskmass - Mcrit);
     star_fraction  = 1.0 - gas_fraction;
@@ -35,7 +35,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     // add excess stars to the bulge
     if(unstable_stars > 0.0)
     {
-      // Use disk metallicity here !
+      // Use disk metallicity here
       metallicity = get_metallicity(Gal[p].StellarMass - Gal[p].BulgeMass, Gal[p].MetalsStellarMass - Gal[p].MetalsBulgeMass);
 
       Gal[p].BulgeMass += unstable_stars;

@@ -15,7 +15,7 @@ struct halo_data
 
   // properties of halo 
   int Len;
-  float M_Mean200, Mvir, M_TopHat;  // Mean 200 values (Mvir=M_Crit200)
+  float M_Mean200, Mvir, M_TopHat;  // for Millennium, Mvir=M_Crit200
   float Pos[3];
   float Vel[3];
   float VelDisp;

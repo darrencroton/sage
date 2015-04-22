@@ -203,8 +203,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   double FracZleaveDiskVal;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
-  // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more 
-  // accurate then previous. 
+  // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
 
   CentralVvir = Gal[centralgal].Vvir;
 

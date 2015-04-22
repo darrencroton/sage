@@ -16,6 +16,7 @@ void reincorporate_gas(int centralgal, double dt)
   // SN velocity is 630km/s, and the condition for reincorporation is that the 
   // halo has an escape velocity greater than this, i.e. V_SN/sqrt(2) = 445.48km/s
   double Vcrit = 445.48 * ReIncorporationFactor;  
+	
   if(Gal[centralgal].Vvir > Vcrit)
   {
     reincorporated = 

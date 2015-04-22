@@ -19,7 +19,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
   // need to add up all the baryonic mass asociated with the full halo 
   tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = 0.0;
 
-  for(i = 0; i < ngal; i++)      // Loop over all galaxies in the FoF-halo 
+	// loop over all galaxies in the FoF-halo 
+  for(i = 0; i < ngal; i++)
   {
     tot_stellarMass += Gal[i].StellarMass;
     tot_BHMass += Gal[i].BlackHoleMass;
@@ -37,9 +38,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
 
     // satellite ICS goes to central ICS
     if(i != centralgal) 
-    {
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
-    }
   }
 
   // conserve baryon fraction by adding/subtracting to/from the hot gas - include reionization if necessary 

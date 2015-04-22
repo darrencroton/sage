@@ -82,7 +82,8 @@ void init_galaxy(int p, int halonr)
   Gal[p].LastMajorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
 
-  Gal[p].infallMvir = -1.0;  //infall properties
+	// infall properties
+  Gal[p].infallMvir = -1.0;  
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
   
@@ -99,7 +100,8 @@ double get_disk_radius(int halonr, int p)
 		Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
   
   // trim the extreme tail of the spin distribution for more a realistic r_s
-  if(SpinMagnitude > 1.5) SpinMagnitude = 1.5;
+  if(SpinMagnitude > 1.5) 
+		SpinMagnitude = 1.5;
   
   SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
     

@@ -12,8 +12,7 @@
 #include "core_proto.h"
 
 
-/* Keep a static file handle to remove the need to
-   do constant seeking. */
+// keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
 
 
@@ -23,7 +22,7 @@ void load_tree_table(int filenr)
   char buf[1000];
   FILE *fd;
 
-  /* Open the file each time this function is called. */
+	// open the file each time this function is called
   sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
   if(!(load_fd = fopen(buf, "r")))
   {
@@ -82,7 +81,7 @@ void load_tree(int filenr, int nr)
 {
   int i;
 
-  /* Must have a FD */
+  // must have an FD
   assert( load_fd );
 
   Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);

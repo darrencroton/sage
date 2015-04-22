@@ -56,8 +56,6 @@ void set_units(void)
 
   EnergySNcode = EnergySN / UnitEnergy_in_cgs * Hubble_h;
   EtaSNcode = EtaSN * (UnitMass_in_g / SOLAR_MASS) / Hubble_h;
-  if(ThisTask == 0)
-    printf("\nEnergySNcode*EtaSNcode= %g\n", EnergySNcode * EtaSNcode);
 
   // convert some physical input parameters to internal units 
   Hubble = HUBBLE * UnitTime_in_s;

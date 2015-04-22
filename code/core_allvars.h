@@ -34,6 +34,7 @@ do {                                                                \
 #define  SEC_PER_YEAR       3.155e7
 
 
+// This structure contains the properties that are output
 struct GALAXY_OUTPUT  
 {
   int   Type;
@@ -51,7 +52,7 @@ struct GALAXY_OUTPUT
   int   mergeIntoSnapNum;
   float   dT;
 
-  // properties of subhalo at the last time this galaxy was a central galaaxy 
+  // (sub)halo properties
   float Pos[3];
   float Vel[3];
   float Spin[3];
@@ -93,13 +94,14 @@ struct GALAXY_OUTPUT
   float LastMajorMerger;
   float OutflowRate;
 
-  //infall properties
+  // infall properties
   float infallMvir;
   float infallVvir;
   float infallVmax;
 };
 
 
+// This structure contains the properties used within the code
 struct GALAXY
 {
   int   Type;
@@ -115,7 +117,7 @@ struct GALAXY
   int   mergeIntoSnapNum;
   float   dT;
 
-  // properties of subhalo at the last time this galaxy was a central galaxy 
+  // (sub)halo properties
   float Pos[3];
   float Vel[3];
   int   Len;   
@@ -160,7 +162,7 @@ struct GALAXY
   float LastMajorMerger;
   float OutflowRate;
 
-  //infall properties
+  // infall properties
   float infallMvir;
   float infallVvir;
   float infallVmax;
@@ -168,7 +170,8 @@ struct GALAXY
 *Gal, *HaloGal;
 
 
-struct halo_aux_data   // auxiliary halo data 
+// auxiliary halo data
+struct halo_aux_data   
 {
   int DoneFlag;
   int HaloFlag;

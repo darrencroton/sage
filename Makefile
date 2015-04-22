@@ -24,31 +24,12 @@ INCL   =	./code/core_allvars.h  \
 
 
 OPT += -DNOUT=1           # This sets the number of galaxy output times
+OPT += -DMILLENNIUM       # Millennium simulation trees
 
-OPT += -DMILLENNIUM         # Millennium simulation trees
-
-SYSTYPE = "mac"
-# SYSTYPE = "gstar"
-
-
-CC       =   mpicc            # sets the C-compiler (default)
-OPTIMIZE =   -g -O0 -Wall    # optimization and warning flags (default)
-GSL_INCL = -I$(GSL_DIR)/include
+CC       =   mpicc            # sets the C-compiler
+OPTIMIZE =   -g -O0 -Wall     # optimization and warning flags
+GSL_INCL = -I$(GSL_DIR)/include   # make sure your system know what GSL_DIR is
 GSL_LIBS = -L$(GSL_DIR)/lib
-
-# ifeq ($(SYSTYPE),"mac")
-# CC       =  mpicc
-# GSL_INCL = -I/opt/local/include
-# GSL_LIBS = -L/opt/local/lib
-# endif
-
-# ifeq ($(SYSTYPE),"gstar")
-# CC       = /usr/local/x86_64/gnu/openmpi-1.4.5/bin/mpicc
-# OPTIMIZE = -O3 -Wall
-# GSL_INCL = -I/usr/local/x86_64/gnu/gsl-1.9/include
-# GSL_LIBS = -L/usr/local/x86_64/gnu/gsl-1.9/lib
-# endif
-
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 

@@ -23,12 +23,6 @@ void read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0;
 
-  if(ThisTask == 0)
-  {
-    // Print out the neceassary Makefile flags to allow us to identify what properties should be in the output binary files. 
-    printf ("\nMakefile flags:\n\n");
-   
-  }
 
   if(ThisTask == 0)
     printf("\nreading parameter file:\n\n");

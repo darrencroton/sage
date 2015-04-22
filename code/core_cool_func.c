@@ -12,27 +12,27 @@
 
 
 static char *name[] = {
-  "stripped_mzero.cie",
-    "stripped_m-30.cie",
-    "stripped_m-20.cie",
-    "stripped_m-15.cie",
-    "stripped_m-10.cie",
-    "stripped_m-05.cie",
-    "stripped_m-00.cie",
-    "stripped_m+05.cie"
+	"stripped_mzero.cie",
+	"stripped_m-30.cie",
+	"stripped_m-20.cie",
+	"stripped_m-15.cie",
+	"stripped_m-10.cie",
+	"stripped_m-05.cie",
+	"stripped_m-00.cie",
+	"stripped_m+05.cie"
 };
 
 
-// metallicies with repect to solar. Will be converted to absolut metallicities by adding log10(Z_sun), Zsun=0.02 
+// Metallicies with repect to solar. Will be converted to absolut metallicities by adding log10(Z_sun), Zsun=0.02 
 static double metallicities[8] = {
-    -5.0,                          // actually primordial -> -infinity 
-      -3.0,
-      -2.0,
-      -1.5,
-      -1.0,
-      -0.5,
-      +0.0,
-      +0.5
+	-5.0,   // actually primordial -> -infinity 
+	-3.0,
+	-2.0,
+	-1.5,
+	-1.0,
+	-0.5,
+	+0.0,
+	+0.5
 };
 
 static double CoolRate[8][TABSIZE];
@@ -74,7 +74,7 @@ void read_cooling_functions(void)
   }
 
   if(ThisTask == 0)
-    printf("cooling functions read.\n\n");
+    printf("cooling functions read\n\n");
 
 }
 

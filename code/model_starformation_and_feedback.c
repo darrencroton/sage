@@ -128,7 +128,7 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
   double metallicityHot;
 
   // check first just to be sure 
-  if(reheated_mass > Gal[p].ColdGas && reheated_mass > 1.0e-8)
+  if(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0)
   {
     printf("Something strange here (SF2)....%e\t%e\n", reheated_mass, Gal[p].ColdGas);
     ABORT(19);

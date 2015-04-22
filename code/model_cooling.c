@@ -13,7 +13,7 @@ double cooling_recipe(int gal, double dt)
 {
   double tcool, x, logZ, lambda, rcool, rho_rcool, rho0, temp, coolingGas;
 
-  if(Gal[gal].HotGas > 1.0e-6)
+  if(Gal[gal].HotGas > 0.0)
   {
     tcool = Gal[gal].Rvir / Gal[gal].Vvir;
     temp = 35.9 * Gal[gal].Vvir * Gal[gal].Vvir;         // in Kelvin 
@@ -33,16 +33,17 @@ double cooling_recipe(int gal, double dt)
     rcool = sqrt(rho0 / rho_rcool);
 
     if(rcool > Gal[gal].Rvir)
-      // infall dominated regime 
+      // "cold accretion" regime 
       coolingGas = Gal[gal].HotGas / (Gal[gal].Rvir / Gal[gal].Vvir) * dt; 
     else
-      // hot phase regime 
+      // "hot halo cooling" regime 
       coolingGas = (Gal[gal].HotGas / Gal[gal].Rvir) * (rcool / (2.0 * tcool)) * dt;
 
     if(coolingGas > Gal[gal].HotGas)
       coolingGas = Gal[gal].HotGas;
-    else if(coolingGas < 0.0)
-      coolingGas = 0.0;
+    else 
+			if(coolingGas < 0.0)
+				coolingGas = 0.0;
 
     if(AGNrecipeOn > 0 && coolingGas > 0.0)
 			do_AGN_heating(coolingGas, gal, dt, x, rcool);

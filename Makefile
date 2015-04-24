@@ -10,7 +10,7 @@ OBJS   = 	./code/main.o \
 			./code/core_mymalloc.o \
 			./code/core_allvars.o \
 			./code/model_infall.o \
-			./code/model_cooling.o \
+			./code/model_cooling_heating.o \
 			./code/model_starformation_and_feedback.o \
 			./code/model_disk_instability.o \
 			./code/model_reincorporation.o \

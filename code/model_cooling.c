@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -13,7 +14,7 @@ double cooling_recipe(int gal, double dt)
 {
   double tcool, x, logZ, lambda, rcool, rho_rcool, rho0, temp, coolingGas;
 
-  if(Gal[gal].HotGas > 0.0)
+  if(Gal[gal].HotGas > 0.0 && Gal[gal].Vvir > 0.0)
   {
     tcool = Gal[gal].Rvir / Gal[gal].Vvir;
     temp = 35.9 * Gal[gal].Vvir * Gal[gal].Vvir;         // in Kelvin 
@@ -45,24 +46,19 @@ double cooling_recipe(int gal, double dt)
 			if(coolingGas < 0.0)
 				coolingGas = 0.0;
 
-    if(AGNrecipeOn > 0 && coolingGas > 0.0)
-			do_AGN_heating(coolingGas, gal, dt, x, rcool);
+		// at this point we have calculated the maximal cooling rate
+		// if AGNrecipeOn we now reduce it in line with past heating before proceeding
 
-		// update the cooling rate based on current AGN heating
-		if(Gal[gal].r_heat < rcool)
-			coolingGas = (1.0 - Gal[gal].r_heat / rcool) * coolingGas;
-		else
-			coolingGas = 0.0;
+		if(AGNrecipeOn > 0 && coolingGas > 0.0)
+			coolingGas = do_AGN_heating(coolingGas, gal, dt, x, rcool);
 	
-    if(coolingGas < 0.0)
-      coolingGas = 0.0;
+		if (coolingGas > 0.0)
+			Gal[gal].Cooling += 0.5 * coolingGas * Gal[gal].Vvir * Gal[gal].Vvir;
+	}
+	else
+		coolingGas = 0.0;
 
-    if (coolingGas > 0.0)
-      Gal[gal].Cooling += 0.5 * coolingGas * Gal[gal].Vvir * Gal[gal].Vvir;
-  }
-  else
-    coolingGas = 0.0;
-
+	assert(coolingGas >= 0.0);
   return coolingGas;
 
 }
@@ -73,6 +69,15 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
 {
   double AGNrate, EDDrate, AGNaccreted, AGNcoeff, AGNheating, metallicity, r_heat_new;
 
+	// first update the cooling rate based on the past AGN heating
+	if(Gal[centralgal].r_heat < rcool)
+		coolingGas = (1.0 - Gal[centralgal].r_heat / rcool) * coolingGas;
+	else
+		coolingGas = 0.0;
+	
+	assert(coolingGas >= 0.0);
+
+	// now calculate the new heating rate
   if(Gal[centralgal].HotGas > 0.0)
   {
 
@@ -122,7 +127,7 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     // cooling mass that can be suppresed from AGN heating 
     AGNheating = AGNcoeff * AGNaccreted;
 
-    // limit heating to cooling rate 
+    /// the above is the maximal heating rate. we now limit it to the current cooling rate
     if(AGNheating > coolingGas)
     {
       AGNaccreted = coolingGas / AGNcoeff;
@@ -134,19 +139,20 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     Gal[centralgal].BlackHoleMass += AGNaccreted;
     Gal[centralgal].HotGas -= AGNaccreted;
     Gal[centralgal].MetalsHotGas -= metallicity * AGNaccreted;
-  }
-  else
-    AGNheating = 0.0;
-
-  if (AGNheating > 0.0)
-    Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
   
-  // update the heating radius as needed
-  r_heat_new = (AGNheating / coolingGas) * rcool;
-  if(r_heat_new > Gal[centralgal].r_heat)
-	  Gal[centralgal].r_heat = r_heat_new;
+		// update the heating radius as needed
+		if(Gal[centralgal].r_heat < rcool && coolingGas > 0.0)
+		{
+			r_heat_new = (AGNheating / coolingGas) * rcool;
+			if(r_heat_new > Gal[centralgal].r_heat)
+				Gal[centralgal].r_heat = r_heat_new;
+		}
+		
+		if (AGNheating > 0.0)
+			Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
+  }
 
-  return AGNheating;
+  return coolingGas;
 
 }
 

@@ -25,7 +25,6 @@ int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
 char OutputDir[512];
 char FileNameGalaxies[512];
 char SimulationDir[512];
-char FileWithOutputSnaps[512];
 char FileWithSnapList[512];
 
 int TotHalos;

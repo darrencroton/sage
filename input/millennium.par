@@ -2,10 +2,8 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies				model
-FileWithOutputSnaps			./input/desired_outputsnaps.txt
-
-OutputDir					./output/results/millennium
+FileNameGalaxies       model
+OutputDir              ./output/results/millennium
 
 FirstFile					0
 LastFile					7

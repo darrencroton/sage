@@ -197,7 +197,6 @@ extern int    LastSnapShotNr;
 extern char   OutputDir[512];
 extern char   FileNameGalaxies[512];
 extern char   SimulationDir[512];
-extern char   FileWithOutputSnaps[512];
 extern char   FileWithSnapList[512];
 
 extern int    TotHalos;

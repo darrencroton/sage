@@ -40,10 +40,6 @@ void read_parameter_file(char *fname)
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "FileWithOutputSnaps");
-  addr[nt] = FileWithOutputSnaps;
-  id[nt++] = STRING;
-
   strcpy(tag[nt], "FileWithSnapList");
   addr[nt] = FileWithSnapList;
   id[nt++] = STRING;

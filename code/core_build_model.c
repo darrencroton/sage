@@ -144,11 +144,12 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].Pos[j] = Halo[halonr].Pos[j];
             Gal[ngal].Vel[j] = Halo[halonr].Vel[j];
           }
+
+					// use Len to avoid double counting baryons in subhalos
+          Gal[ngal].deltaMvir = (Halo[halonr].Len - Gal[ngal].Len) * PartMass;
   
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
-
-          Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
           if(get_virial_mass(halonr) > Gal[ngal].Mvir)
           {

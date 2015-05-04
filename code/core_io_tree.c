@@ -73,6 +73,12 @@ void free_tree_table(void)
 
   myfree(TreeFirstHalo);
   myfree(TreeNHalos);
+	
+	// Don't forget to free the open file handle
+	if(load_fd) {
+		fclose(load_fd);
+		load_fd = NULL;
+	}
 }
 
 

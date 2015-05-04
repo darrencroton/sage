@@ -24,6 +24,7 @@ int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
 
 char OutputDir[512];
 char FileNameGalaxies[512];
+char TreeName[512];
 char SimulationDir[512];
 char FileWithSnapList[512];
 
@@ -49,7 +50,6 @@ double EtaSNcode, EtaSN;
 
 
 // recipe flags 
-int PopSynthModelOn;
 int ReionizationOn;
 int SupernovaRecipeOn;
 int DiskInstabilityOn;

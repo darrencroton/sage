@@ -23,7 +23,8 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %----- Simulation information  ------------
 %------------------------------------------
 
-SimulationDir					./input/treefiles/millennium/millennium_mini
+TreeName					    trees_063		; assumes the trees are named TreeName.n where n is the snapshot number
+SimulationDir					./input/treefiles/millennium/millennium_mini/
 FileWithSnapList			./input/treefiles/millennium/millennium.a_list
 LastSnapShotNr				63
 
@@ -50,21 +51,21 @@ DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilit
 %----- SAGE model parameters --------------
 %------------------------------------------
 
-SfrEfficiency						0.07	;efficiency of SF (SFprescription=0)
+SfrEfficiency						0.05	;efficiency of SF (SFprescription=0)
 
 FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
 FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			0.2		;AGN radio mode efficiency (AGNrecipeOn=2)
+RadioModeEfficiency			0.3 	;AGN radio mode efficiency (AGNrecipeOn=2)
 QuasarModeEfficiency		0.001	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
-BlackHoleGrowthRate			0.03	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
+BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 
 ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
 ThresholdSatDisruption	1.0		;Mvir-to-baryonic mass ratio threshold for satellite merger or disruption
 
-Yield										0.025	;fraction of SF mass produced as metals
+Yield										0.03	;fraction of SF mass produced as metals
 RecycleFraction					0.43	;fraction of SF mass instantaneously recycled back to cold
 FracZleaveDisk					0.0		;fraction of metals produced directly to hot component
 

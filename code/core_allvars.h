@@ -196,6 +196,7 @@ extern int    LastSnapShotNr;
 
 extern char   OutputDir[512];
 extern char   FileNameGalaxies[512];
+extern char   TreeName[512];
 extern char   SimulationDir[512];
 extern char   FileWithSnapList[512];
 
@@ -219,7 +220,6 @@ extern double EnergySNcode, EnergySN;
 extern double EtaSNcode, EtaSN;
 
 // recipe flags 
-extern int    PopSynthModelOn;
 extern int    ReionizationOn;
 extern int    SupernovaRecipeOn;
 extern int    DiskInstabilityOn;

@@ -23,7 +23,7 @@ void load_tree_table(int filenr)
   FILE *fd;
 
 	// open the file each time this function is called
-  sprintf(buf, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
+  sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);

@@ -36,6 +36,10 @@ void read_parameter_file(char *fname)
   addr[nt] = FileNameGalaxies;
   id[nt++] = STRING;
 
+  strcpy(tag[nt], "TreeName");
+  addr[nt] = TreeName;
+  id[nt++] = STRING;
+
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
@@ -248,6 +252,8 @@ void read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;
 
+	if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS)))
+		printf("NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
 	assert(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS));
 	
 	// read in the output snapshot list

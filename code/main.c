@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
   {
-    sprintf(bufz0, "%s/treedata/trees_%03d.%d", SimulationDir, LastSnapShotNr, filenr);
+    sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
     if(!(fd = fopen(bufz0, "r")))
       continue;  // tree file does not exist, move along
     else

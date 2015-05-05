@@ -199,13 +199,11 @@ void make_bulge_from_burst(int p)
 
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
 {
-  double stars, reheated_mass, ejected_mass, fac, metallicity, CentralVvir, eburst;
+  double stars, reheated_mass, ejected_mass, fac, metallicity, eburst;
   double FracZleaveDiskVal;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
-
-  CentralVvir = Gal[centralgal].Vvir;
 
   // the bursting fraction 
   if(mode == 1)
@@ -236,9 +234,13 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   // determine ejection
   if(SupernovaRecipeOn == 1)
   {
-    ejected_mass = 
-      (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (CentralVvir * CentralVvir) - 
-      FeedbackReheatingEpsilon) * stars;
+    if(Gal[centralgal].Vvir > 0.0)
+			ejected_mass = 
+				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - 
+					FeedbackReheatingEpsilon) * stars;
+		else
+			ejected_mass = 0.0;
+		
     if(ejected_mass < 0.0)
       ejected_mass = 0.0;
   }

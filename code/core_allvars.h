@@ -89,7 +89,6 @@ struct GALAXY_OUTPUT
   
   // misc 
   float DiskScaleRadius;
-  float BulgeEffectiveRadius;
   float Cooling;
   float Heating;
   float LastMajorMerger;
@@ -155,7 +154,6 @@ struct GALAXY
 
   // misc 
   float DiskScaleRadius;
-  float BulgeEffectiveRadius;
   float MergTime;
   double Cooling;
   double Heating;

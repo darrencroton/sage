@@ -71,7 +71,6 @@ void init_galaxy(int p, int halonr)
   }
 
   Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
-  Gal[p].BulgeEffectiveRadius = 0.0;
   Gal[p].MergTime = 999.9;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;

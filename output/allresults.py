@@ -109,7 +109,6 @@ class Results:
             ('SfrDiskZ'                     , np.float32),                  
             ('SfrBulgeZ'                    , np.float32),                  
             ('DiskRadius'                   , np.float32),                  
-            ('BulgeRadius'                  , np.float32),                  
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
             ('LastMajorMerger'              , np.float32),

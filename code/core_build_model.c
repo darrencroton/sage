@@ -144,12 +144,11 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
             Gal[ngal].Pos[j] = Halo[halonr].Pos[j];
             Gal[ngal].Vel[j] = Halo[halonr].Vel[j];
           }
-
-					// use Len to avoid double counting baryons in subhalos
-          Gal[ngal].deltaMvir = (Halo[halonr].Len - Gal[ngal].Len) * PartMass;
-  
+					
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
+
+					Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
           if(get_virial_mass(halonr) > Gal[ngal].Mvir)
           {
@@ -349,12 +348,18 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 
 
   // Extra miscellaneous stuff before finishing this halo
+	Gal[centralgal].TotalSatelliteBaryons = 0.0;
   deltaT = Age[Gal[0].SnapNum] - Age[Halo[halonr].SnapNum];
+	
   for(p = 0; p < ngal; p++)
   {
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
     Gal[p].OutflowRate /= deltaT;    
+		
+    if(p != centralgal)
+			Gal[centralgal].TotalSatelliteBaryons += 
+				(Gal[p].StellarMass + Gal[p].BlackHoleMass + Gal[p].ColdGas + Gal[p].HotGas);
   }
 
 

@@ -12,12 +12,13 @@
 double infall_recipe(int centralgal, int ngal, double Zcurr)
 {
   int i;
-  double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_hotMetals, tot_ejected, tot_ejectedMetals;
-  double tot_ICS, tot_ICSMetals;
+  double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
+	double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
+	double tot_satBaryons, newSatBaryons;
   double infallingMass, reionization_modifier;
 
   // need to add up all the baryonic mass asociated with the full halo 
-  tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = 0.0;
+  tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_satBaryons = 0.0;
 
 	// loop over all galaxies in the FoF-halo 
   for(i = 0; i < ngal; i++)
@@ -32,6 +33,10 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     tot_ICS += Gal[i].ICS;
     tot_ICSMetals += Gal[i].MetalsICS;
 
+		// record the current baryons in satellites only
+    if(i != centralgal)
+			tot_satBaryons += Gal[i].StellarMass + Gal[i].BlackHoleMass + Gal[i].ColdGas + Gal[i].HotGas;
+
     // satellite ejected gas goes to central ejected reservior
     if(i != centralgal)
       Gal[i].EjectedMass = Gal[i].MetalsEjectedMass = 0.0;
@@ -41,7 +46,10 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
   }
 
-  // conserve baryon fraction by adding/subtracting to/from the hot gas - include reionization if necessary 
+	// the existing baryons that have fallen in with substructure since the last timestep
+	newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons;
+
+  // include reionization if necessary 
   if(ReionizationOn)
     reionization_modifier = do_reionization(centralgal, Zcurr);
   else
@@ -49,7 +57,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
 
   infallingMass =
     // reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
-    reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir;
+    reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
 
   // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;
@@ -193,10 +201,6 @@ void add_infall_to_hot(int gal, double infallingGas)
     Gal[gal].MetalsHotGas += infallingGas*metallicity;
     if(Gal[gal].MetalsHotGas < 0.0) Gal[gal].MetalsHotGas = 0.0;
   }
-
-  // limit the infalling gas so that the hot halo alone doesn't exceed the baryon fraction
-  if(infallingGas > 0.0 && (Gal[gal].HotGas + infallingGas) / Gal[gal].Mvir > BaryonFrac)
-    infallingGas = BaryonFrac * Gal[gal].Mvir - Gal[gal].HotGas;
 
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
   Gal[gal].HotGas += infallingGas;

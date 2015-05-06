@@ -162,6 +162,7 @@ struct GALAXY
   float r_heat;
   float LastMajorMerger;
   float OutflowRate;
+	float TotalSatelliteBaryons;
 
   // infall properties
   float infallMvir;

@@ -3,7 +3,7 @@
 %------------------------------------------
 
 FileNameGalaxies       model
-OutputDir              ./output/results/millennium
+OutputDir              ./output/results/millennium/
 
 FirstFile					0
 LastFile					7

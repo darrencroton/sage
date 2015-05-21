@@ -1,3 +1,3 @@
-Semi-Analytic Galaxy Evolution (SAGE)
-Author: Darren Croton
+Semi-Analytic Galaxy Evolution (SAGE); 
+Primary author: Darren Croton; 
 Contact: dcroton@astro.swin.edu.au

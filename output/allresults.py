@@ -60,6 +60,10 @@ class Results:
           self.BoxSize = 62.5       # Mpc/h
           self.MaxTreeFiles = 8     # FilesPerSnapshot
 
+        elif whichsimulation == 1:  # Full Millennium
+          self.BoxSize = 500        # Mpc/h
+          self.MaxTreeFiles = 512   # FilesPerSnapshot
+
         else:
           print "Please pick a valid simulation!"
           exit(1)
@@ -793,40 +797,107 @@ class Results:
         OutputList.append(outputFile)
 
 
-# --------------------------------------------------------
-
-    def MassReservoirScatter(self, G):
+# ---------------------------------------------------------
     
-        print 'Plotting the mass in stellar, cold, hot, ejected, ICS reservoirs'
+    def QuiescentFraction(self, G):
+    
+        print 'Plotting the quiescent fraction vs stellar mass'
     
         seed(2222)
     
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
-    
-        w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.StellarMass > 0.0))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
-
-        mvir = np.log10(G.Mvir[w] * 1.0e10)
-        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.3, c='k', alpha=0.5, label='Stars')
-        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.3, color='blue', alpha=0.5, label='Cold gas')
-        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.3, color='red', alpha=0.5, label='Hot gas')
-        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.3, color='green', alpha=0.5, label='Ejected gas')
-        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=10, color='yellow', alpha=0.5, label='Intracluster stars')    
-
-        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$')  # Set the y...
-        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$')  # and the x-axis labels
         
-        plt.axis([10.0, 14.0, 7.5, 12.5])
+        groupscale = 12.5
+        
+        w = np.where(G.StellarMass > 0.0)[0]
+        StellarMass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
+        CentralMvir = np.log10(G.CentralMvir[w] * 1.0e10 / self.Hubble_h)
+        Type = G.Type[w]
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
 
-        leg = plt.legend(loc='upper left')
+        MinRange = 9.5
+        MaxRange = 12.0
+        Interval = 0.1
+        Nbins = int((MaxRange-MinRange)/Interval)
+        Range = np.arange(MinRange, MaxRange, Interval)
+        
+        Mass = []
+        Fraction = []
+        CentralFraction = []
+        SatelliteFraction = []
+        SatelliteFractionLo = []
+        SatelliteFractionHi = []
+
+        for i in xrange(Nbins-1):
+            
+            w = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                Fraction.append(1.0*len(wQ) / len(w))
+            else:
+                Fraction.append(0.0)
+
+            w = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((Type == 0) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                CentralFraction.append(1.0*len(wQ) / len(w))
+            else:
+                CentralFraction.append(0.0)
+
+            w = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]))[0]
+            if len(w) > 0:
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut))[0]
+                SatelliteFraction.append(1.0*len(wQ) / len(w))
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut) & (CentralMvir < groupscale))[0]
+                SatelliteFractionLo.append(1.0*len(wQ) / len(w))
+                wQ = np.where((Type == 1) & (StellarMass >= Range[i]) & (StellarMass < Range[i+1]) & (sSFR < 10.0**sSFRcut) & (CentralMvir > groupscale))[0]
+                SatelliteFractionHi.append(1.0*len(wQ) / len(w))                
+            else:
+                SatelliteFraction.append(0.0)
+                SatelliteFractionLo.append(0.0)
+                SatelliteFractionHi.append(0.0)
+                
+            Mass.append((Range[i] + Range[i+1]) / 2.0)                
+            # print '  ', Mass[i], Fraction[i], CentralFraction[i], SatelliteFraction[i]
+        
+        Mass = np.array(Mass)
+        Fraction = np.array(Fraction)
+        CentralFraction = np.array(CentralFraction)
+        SatelliteFraction = np.array(SatelliteFraction)
+        SatelliteFractionLo = np.array(SatelliteFractionLo)
+        SatelliteFractionHi = np.array(SatelliteFractionHi)
+        
+        w = np.where(Fraction > 0)[0]
+        plt.plot(Mass[w], Fraction[w], label='All')
+
+        w = np.where(CentralFraction > 0)[0]
+        plt.plot(Mass[w], CentralFraction[w], color='Blue', label='Centrals')
+
+        w = np.where(SatelliteFraction > 0)[0]
+        plt.plot(Mass[w], SatelliteFraction[w], color='Red', label='Satellites')
+
+        w = np.where(SatelliteFractionLo > 0)[0]
+        plt.plot(Mass[w], SatelliteFractionLo[w], 'r--', label='Satellites-Lo')
+
+        w = np.where(SatelliteFractionHi > 0)[0]
+        plt.plot(Mass[w], SatelliteFractionHi[w], 'r-.', label='Satellites-Hi')
+        
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stellar}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$\mathrm{Quescient\ Fraction}$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.axis([9.5, 12.0, 0.0, 1.05])
+            
+        leg = plt.legend(loc='lower right')
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
-
-        plt.text(13.5, 8.0, r'$\mathrm{All}')
             
-        outputFile = OutputDir + '9.MassReservoirScatter' + OutputFormat
+        outputFile = OutputDir + '9.QuiescentFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -837,48 +908,219 @@ class Results:
 
 # --------------------------------------------------------
 
-    def SpatialDistribution(self, G):
+    def BulgeMassFraction(self, G):
     
-        print 'Plotting the spatial distribution of all galaxies'
+        print 'Plotting the mass fraction of galaxies'
+    
+        seed(2222)
+
+        fBulge = G.BulgeMass / G.StellarMass
+        fDisk = 1.0 - (G.BulgeMass) / G.StellarMass
+        mass = np.log10(G.StellarMass * 1.0e10 / self.Hubble_h)
+        sSFR = np.log10((G.SfrDisk + G.SfrBulge) / (G.StellarMass * 1.0e10 / self.Hubble_h))
+        
+        binwidth = 0.2
+        shift = binwidth/2.0
+        mass_range = np.arange(8.5-shift, 12.0+shift, binwidth)
+        bins = len(mass_range)
+        
+        fBulge_ave = np.zeros(bins)
+        fBulge_var = np.zeros(bins)
+        fDisk_ave = np.zeros(bins)
+        fDisk_var = np.zeros(bins)
+        
+        for i in xrange(bins-1):
+            w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]))[0]
+            # w = np.where( (mass >= mass_range[i]) & (mass < mass_range[i+1]) & (sSFR < sSFRcut))[0]
+            if(len(w) > 0):
+                fBulge_ave[i] = np.mean(fBulge[w])
+                fBulge_var[i] = np.var(fBulge[w])
+                fDisk_ave[i] = np.mean(fDisk[w])
+                fDisk_var[i] = np.var(fDisk[w])
+
+        w = np.where(fBulge_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fBulge_ave[w], 'r-', label='bulge')
+        plt.fill_between(mass_range[w]+shift, 
+            fBulge_ave[w]+fBulge_var[w], 
+            fBulge_ave[w]-fBulge_var[w], 
+            facecolor='red', alpha=0.25)
+
+        w = np.where(fDisk_ave > 0.0)[0]
+        plt.plot(mass_range[w]+shift, fDisk_ave[w], 'k-', label='disk stars')
+        plt.fill_between(mass_range[w]+shift, 
+            fDisk_ave[w]+fDisk_var[w], 
+            fDisk_ave[w]-fDisk_var[w], 
+            facecolor='black', alpha=0.25)
+
+        plt.axis([mass_range[0], mass_range[bins-1], 0.0, 1.05])
+
+        plt.ylabel(r'$\mathrm{Stellar\ Mass\ Fraction}$')  # Set the y...
+        plt.xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+        outputFile = OutputDir + '10.BulgeMassFraction' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# ---------------------------------------------------------
+    
+    def BaryonFraction(self, G):
+    
+        print 'Plotting the average baryon fraction vs halo mass'
     
         seed(2222)
     
         plt.figure()  # New figure
-    
-        w = np.where((G.Mvir > 0.0) & (G.StellarMass > 0.1))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
-
-        xx = G.Pos[w,0]
-        yy = G.Pos[w,1]
-        zz = G.Pos[w,2]
-
-        buff = self.BoxSize*0.1
-
-        ax = plt.subplot(221)  # 1 plot on the figure
-        plt.scatter(xx, yy, marker='o', s=0.3, c='k', alpha=0.5)
-        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
-
-        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
-        plt.xlabel(r'$\mathrm{y}$')  # and the x-axis labels
+        ax = plt.subplot(111)  # 1 plot on the figure
         
-        ax = plt.subplot(222)  # 1 plot on the figure
-        plt.scatter(xx, zz, marker='o', s=0.3, c='k', alpha=0.5)
-        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+        HaloMass = np.log10(G.Mvir * 1.0e10 / self.Hubble_h)
+        Baryons = G.StellarMass + G.ColdGas + G.HotGas + G.EjectedMass + G.IntraClusterStars + G.BlackHoleMass
+        fileNr = np.floor(G.GalaxyIndex / 1.0e12)
 
-        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
-        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+        MinHalo = 11.0
+        MaxHalo = 16.0
+        Interval = 0.1
+        Nbins = int((MaxHalo-MinHalo)/Interval)
+        HaloRange = np.arange(MinHalo, MaxHalo, Interval)
         
-        ax = plt.subplot(223)  # 1 plot on the figure
-        plt.scatter(yy, zz, marker='o', s=0.3, c='k', alpha=0.5)
-        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
-        plt.ylabel(r'$\mathrm{y}$')  # Set the y...
-        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+        MeanCentralHaloMass = []
+        MeanBaryonFraction = []
+        MeanBaryonFractionU = []
+        MeanBaryonFractionL = []
+
+        MeanStars = []
+        MeanCold = []
+        MeanHot = []
+        MeanEjected = []
+        MeanICS = []
+        MeanBH = []
+
+        for i in xrange(Nbins-1):
             
-        outputFile = OutputDir + '10.SpatialDistribution' + OutputFormat
+            w1 = np.where((G.Type == 0) & (HaloMass >= HaloRange[i]) & (HaloMass < HaloRange[i+1]))[0]
+            HalosFound = len(w1)
+            
+            if HalosFound > 2:  
+                
+                BaryonFraction = []
+                CentralHaloMass = []
+                
+                Stars = []
+                Cold = []
+                Hot = []
+                Ejected = []
+                ICS = []
+                BH = []
+                
+                for j in xrange(HalosFound):
+                    
+                    w2 = np.where((G.FOFHaloIdx == G.FOFHaloIdx[w1[j]]) & (G.TreeIdx == G.TreeIdx[w1[j]]) & (fileNr == fileNr[w1[j]]))[0]
+                    CentralAndSatellitesFound = len(w2)
+                    
+                    if CentralAndSatellitesFound > 0:
+                        BaryonFraction.append(sum(Baryons[w2]) / G.Mvir[w1[j]])
+                        CentralHaloMass.append(np.log10(G.Mvir[w1[j]] * 1.0e10 / self.Hubble_h))
+
+                        Stars.append(sum(G.StellarMass[w2]) / G.Mvir[w1[j]])
+                        Cold.append(sum(G.ColdGas[w2]) / G.Mvir[w1[j]])
+                        Hot.append(sum(G.HotGas[w2]) / G.Mvir[w1[j]])
+                        Ejected.append(sum(G.EjectedMass[w2]) / G.Mvir[w1[j]])
+                        ICS.append(sum(G.IntraClusterStars[w2]) / G.Mvir[w1[j]])
+                        BH.append(sum(G.BlackHoleMass[w2]) / G.Mvir[w1[j]])                        
+                                
+                MeanCentralHaloMass.append(np.mean(CentralHaloMass))
+                MeanBaryonFraction.append(np.mean(BaryonFraction))
+                MeanBaryonFractionU.append(np.mean(BaryonFraction) + np.var(BaryonFraction))
+                MeanBaryonFractionL.append(np.mean(BaryonFraction) - np.var(BaryonFraction))
+                
+                MeanStars.append(np.mean(Stars))
+                MeanCold.append(np.mean(Cold))
+                MeanHot.append(np.mean(Hot))
+                MeanEjected.append(np.mean(Ejected))
+                MeanICS.append(np.mean(ICS))
+                MeanBH.append(np.mean(BH))
+                
+                print '  ', i, HaloRange[i], HalosFound, np.mean(BaryonFraction)
+        
+        plt.plot(MeanCentralHaloMass, MeanBaryonFraction, 'k-', label='TOTAL')#, color='purple', alpha=0.3)
+        plt.fill_between(MeanCentralHaloMass, MeanBaryonFractionU, MeanBaryonFractionL, 
+            facecolor='purple', alpha=0.25, label='TOTAL')
+        
+        plt.plot(MeanCentralHaloMass, MeanStars, 'k--', label='Stars')
+        plt.plot(MeanCentralHaloMass, MeanCold, label='Cold', color='blue')
+        plt.plot(MeanCentralHaloMass, MeanHot, label='Hot', color='red')
+        plt.plot(MeanCentralHaloMass, MeanEjected, label='Ejected', color='green')
+        plt.plot(MeanCentralHaloMass, MeanICS, label='ICS', color='yellow')
+        # plt.plot(MeanCentralHaloMass, MeanBH, 'k:', label='BH')
+        
+        plt.xlabel(r'$\mathrm{Central}\ \log_{10} M_{\mathrm{vir}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$\mathrm{Baryon\ Fraction}$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.axis([10.8, 15.0, 0.0, 0.23])
+            
+        leg = plt.legend(bbox_to_anchor=[0.99, 0.6])
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = OutputDir + '11.BaryonFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
             
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# --------------------------------------------------------
+
+    def SpinDistribution(self, G):
+    
+        print 'Plotting the spin distribution of all galaxies'
+
+        # set up figure
+        plt.figure()
+        ax = plt.subplot(111)
+    
+        SpinParameter = np.sqrt(G.Spin[:,0]*G.Spin[:,0] + G.Spin[:,1]*G.Spin[:,1] + G.Spin[:,2]*G.Spin[:,2]) / (np.sqrt(2) * G.Vvir * G.Rvir);
+        
+        mi = -0.02
+        ma = 0.5
+        binwidth = 0.01
+        NB = (ma - mi) / binwidth
+
+        (counts, binedges) = np.histogram(SpinParameter, range=(mi, ma), bins=NB)
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        plt.plot(xaxeshisto, counts, 'k-', label='simulation')
+
+        plt.axis([mi, ma, 0.0, max(counts)*1.15])
+
+        plt.ylabel(r'$\mathrm{Number}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{Spin\ Parameter}$')  # and the x-axis labels
+
+        leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+        outputFile = OutputDir + '12.SpinDistribution' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
         # Add this plot to our output list
         OutputList.append(outputFile)
 
@@ -944,7 +1186,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize('medium')
 
-        outputFile = OutputDir + '11.VelocityDistribution' + OutputFormat
+        outputFile = OutputDir + '13.VelocityDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -952,6 +1194,95 @@ class Results:
         # Add this plot to our output list
         OutputList.append(outputFile)
 
+
+# --------------------------------------------------------
+
+    def MassReservoirScatter(self, G):
+    
+        print 'Plotting the mass in stellar, cold, hot, ejected, ICS reservoirs'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+    
+        w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.StellarMass > 0.0))[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+
+        mvir = np.log10(G.Mvir[w] * 1.0e10)
+        plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.3, c='k', alpha=0.5, label='Stars')
+        plt.scatter(mvir, np.log10(G.ColdGas[w] * 1.0e10), marker='o', s=0.3, color='blue', alpha=0.5, label='Cold gas')
+        plt.scatter(mvir, np.log10(G.HotGas[w] * 1.0e10), marker='o', s=0.3, color='red', alpha=0.5, label='Hot gas')
+        plt.scatter(mvir, np.log10(G.EjectedMass[w] * 1.0e10), marker='o', s=0.3, color='green', alpha=0.5, label='Ejected gas')
+        plt.scatter(mvir, np.log10(G.IntraClusterStars[w] * 1.0e10), marker='o', s=10, color='yellow', alpha=0.5, label='Intracluster stars')    
+
+        plt.ylabel(r'$\mathrm{stellar,\ cold,\ hot,\ ejected,\ ICS\ mass}$')  # Set the y...
+        plt.xlabel(r'$\log\ M_{\mathrm{vir}}\ (h^{-1}\ M_{\odot})$')  # and the x-axis labels
+        
+        plt.axis([10.0, 14.0, 7.5, 12.5])
+
+        leg = plt.legend(loc='upper left')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+        plt.text(13.5, 8.0, r'$\mathrm{All}')
+            
+        outputFile = OutputDir + '14.MassReservoirScatter' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
+
+
+# --------------------------------------------------------
+
+    def SpatialDistribution(self, G):
+    
+        print 'Plotting the spatial distribution of all galaxies'
+    
+        seed(2222)
+    
+        plt.figure()  # New figure
+    
+        w = np.where((G.Mvir > 0.0) & (G.StellarMass > 0.1))[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+
+        xx = G.Pos[w,0]
+        yy = G.Pos[w,1]
+        zz = G.Pos[w,2]
+
+        buff = self.BoxSize*0.1
+
+        ax = plt.subplot(221)  # 1 plot on the figure
+        plt.scatter(xx, yy, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+
+        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{y}$')  # and the x-axis labels
+        
+        ax = plt.subplot(222)  # 1 plot on the figure
+        plt.scatter(xx, zz, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+
+        plt.ylabel(r'$\mathrm{x}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+        
+        ax = plt.subplot(223)  # 1 plot on the figure
+        plt.scatter(yy, zz, marker='o', s=0.3, c='k', alpha=0.5)
+        plt.axis([0.0-buff, self.BoxSize+buff, 0.0-buff, self.BoxSize+buff])
+        plt.ylabel(r'$\mathrm{y}$')  # Set the y...
+        plt.xlabel(r'$\mathrm{z}$')  # and the x-axis labels
+            
+        outputFile = OutputDir + '15.SpatialDistribution' + OutputFormat
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+            
+        # Add this plot to our output list
+        OutputList.append(outputFile)
 
 
 
@@ -1015,15 +1346,19 @@ if __name__ == '__main__':
     G = res.read_gals(fin_base, FirstFile, LastFile)
 
     res.StellarMassFunction(G)
-    res.GasMassFunction(G)
     res.BaryonicMassFunction(G)
+    res.GasMassFunction(G)
     res.BaryonicTullyFisher(G)
     res.SpecificStarFormationRate(G)
     res.GasFraction(G)
     res.Metallicity(G)
     res.BlackHoleBulgeRelationship(G)
+    res.QuiescentFraction(G)
+    res.BulgeMassFraction(G)
+    res.BaryonFraction(G)
+    res.SpinDistribution(G)
+    res.VelocityDistribution(G)
     res.MassReservoirScatter(G)
     res.SpatialDistribution(G)
-    res.VelocityDistribution(G)
 
 

@@ -22,9 +22,19 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-CC       =   mpicc            # sets the C-compiler
-OPTIMIZE =   -g -O0 -Wall     # optimization and warning flags
-GSL_INCL = -I$(GSL_DIR)/include   # make sure your system know what GSL_DIR is
+
+# USE-MPI = yes  # set this if you want to run in parallel
+
+
+ifdef USE-MPI
+    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    CC       =   mpicc  # sets the C-compiler
+else
+    CC       =   cc  # sets the C-compiler
+endif
+
+OPTIMIZE =   -g -O0 -Wall  # optimization and warning flags
+GSL_INCL = -I$(GSL_DIR)/include  # make sure your system know what GSL_DIR is
 GSL_LIBS = -L$(GSL_DIR)/lib
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 

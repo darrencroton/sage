@@ -6,8 +6,11 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <mpi.h>
 #include <assert.h>
+
+#ifdef MPI
+#include <mpi.h>
+#endif
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -33,24 +36,32 @@ void termination_handler(int signum)
 
 void myexit(int signum)
 {
-  printf("Task: %d\tnode: %s\tis exiting.\n\n\n", ThisTask, ThisNode);
-  exit(signum);
+#ifdef MPI
+  printf("Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+#else
+  printf("We're exiting\n\n\n");
+#endif
+	  exit(signum);
 }
 
 
 
 void bye()
 {
+#ifdef MPI
   MPI_Finalize();
   free(ThisNode);
+#endif
 
   if(exitfail)
   {
     unlink(bufz0);
 
+#ifdef MPI
     if(ThisTask == 0 && gotXCPU == 1)
       printf("Received XCPU, exiting. But we'll be back.\n");
-  }
+#endif
+	  }
 }
 
 
@@ -62,6 +73,8 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
+
+#ifdef MPI
   time_t start, current;
 
   MPI_Init(&argc, &argv);
@@ -76,6 +89,7 @@ int main(int argc, char **argv)
     printf("Node name string not long enough!...\n");
     ABORT(0);
   }
+#endif
 
   if(argc != 2)
   {
@@ -93,12 +107,14 @@ int main(int argc, char **argv)
   read_parameter_file(argv[1]);
   init();
 
+#ifdef MPI
   /* a small delay so that processors dont use the same file */
   time(&start);
   do
     time(&current);
   while(difftime(current, start) < 5.0 * ThisTask);
-
+#endif
+	
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
   {
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
@@ -130,8 +146,12 @@ int main(int argc, char **argv)
 
       if(tree % 10000 == 0)
       {
+#ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
-        fflush(stdout);
+#else
+				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+#endif
+				fflush(stdout);
       }
 
       TreeID = tree;

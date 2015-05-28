@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <mpi.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"

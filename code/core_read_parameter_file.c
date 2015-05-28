@@ -25,7 +25,9 @@ void read_parameter_file(char *fname)
   int errorFlag = 0;
 
 
+#ifdef MPI
   if(ThisTask == 0)
+#endif
     printf("\nreading parameter file:\n\n");
 
   strcpy(tag[nt], "OutputDir");
@@ -202,7 +204,9 @@ void read_parameter_file(char *fname)
 
       if(j >= 0)
       {
+#ifdef MPI
         if(ThisTask == 0)
+#endif
           printf("%35s\t%10s\n", buf1, buf2);
 
         switch (id[j])

@@ -38,8 +38,10 @@ int *FirstHaloInSnap;
 int *TreeNHalos;
 int *TreeFirstHalo;
 
+#ifdef MPI
 int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
+#endif
 
 double Omega;
 double OmegaLambda;

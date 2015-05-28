@@ -91,7 +91,9 @@ void read_snap_list(void)
 
   fclose(fd);
 
+#ifdef MPI
   if(ThisTask == 0)
+#endif
     printf("found %d defined times in snaplist\n", Snaplistlen);
 }
 

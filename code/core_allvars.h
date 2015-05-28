@@ -208,8 +208,10 @@ extern int    *FirstHaloInSnap;
 extern int    *TreeNHalos;
 extern int    *TreeFirstHalo;
 
+#ifdef MPI
 extern int ThisTask, NTask, nodeNameLen;
 extern char *ThisNode;
+#endif
 
 extern double Omega;
 extern double OmegaLambda;

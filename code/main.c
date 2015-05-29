@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -75,8 +74,6 @@ int main(int argc, char **argv)
   FILE *fd;
 
 #ifdef MPI
-  time_t start, current;
-
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
   MPI_Comm_size(MPI_COMM_WORLD, &NTask);
@@ -107,15 +104,12 @@ int main(int argc, char **argv)
   read_parameter_file(argv[1]);
   init();
 
-#ifdef MPI
-  /* a small delay so that processors dont use the same file */
-  time(&start);
-  do
-    time(&current);
-  while(difftime(current, start) < 5.0 * ThisTask);
-#endif
 	
+#ifdef MPI
+  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
+#else
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
+#endif
   {
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
     if(!(fd = fopen(bufz0, "r")))

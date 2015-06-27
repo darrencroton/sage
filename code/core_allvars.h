@@ -38,20 +38,19 @@ do {                                                                \
 // This structure contains the properties that are output
 struct GALAXY_OUTPUT  
 {
-  int   Type;
-  long long   GalaxyIndex;
-  int   HaloIndex;
-  int   FOFHaloIndex;
-  int   TreeIndex;
-  
   int   SnapNum;
-  int   CentralGal;
-  float CentralMvir;
+  int   Type;
 
+  long long   GalaxyIndex;
+  long long   CentralGalaxyIndex;
+  int   SAGEHaloIndex;
+  int   SAGETreeIndex;
+  int   SimulationFOFHaloIndex;
+  
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
   int   mergeIntoSnapNum;
-  float   dT;
+  float dT;
 
   // (sub)halo properties
   float Pos[3];
@@ -59,6 +58,7 @@ struct GALAXY_OUTPUT
   float Spin[3];
   int   Len;   
   float Mvir;
+  float CentralMvir;
   float Rvir;
   float Vvir;
   float Vmax;
@@ -104,13 +104,13 @@ struct GALAXY_OUTPUT
 // This structure contains the properties used within the code
 struct GALAXY
 {
+  int   SnapNum;
   int   Type;
+
   int   GalaxyNr;
+  int   CentralGal;
   int   HaloNr;
   long long  MostBoundID;
-  int   SnapNum;
-  int   CentralGal;
-  float CentralMvir;
 
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
@@ -123,6 +123,7 @@ struct GALAXY
   int   Len;   
   float Mvir;
   float deltaMvir;
+  float CentralMvir;
   float Rvir;
   float Vvir;
   float Vmax;

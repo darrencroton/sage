@@ -93,6 +93,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 {
   int j, step;
 
+  o->SnapNum = g->SnapNum;
   o->Type = g->Type;
 
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
@@ -101,13 +102,27 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   assert( (o->GalaxyIndex - g->GalaxyNr - 1e12*filenr)/1e9 == tree );
   assert( o->GalaxyIndex - 1e9*tree - 1e12*filenr == g->GalaxyNr );
 
-  o->HaloIndex = g->HaloNr;
-  o->FOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
-  o->TreeIndex = tree;
-  o->SnapNum = g->SnapNum;
+	// vvvv DOESN'T WORK! FIX. vvvv
+	
+  o->CentralGalaxyIndex = Gal[g->CentralGal].GalaxyNr + 1e9 * tree + 1e12 * filenr;
+	
+	// if(g->HaloNr == Halo[g->HaloNr].FirstHaloInFOFgroup)
+	// {
+	// 	if(o->GalaxyIndex != o->CentralGalaxyIndex || g->Type != 0)
+	// 	{
+	// 		printf("\t%i\t%i\t%i\t%i\t%f\t%f\n",
+	// 		g->SnapNum, g->Type,
+	// 		g->GalaxyNr, Gal[g->CentralGal].GalaxyNr,
+	// 		g->Mvir, get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup));
+	// 	}
+	// 	// assert(o->GalaxyIndex == o->CentralGalaxyIndex && g->Type == 0);
+	// }
 
-  o->CentralGal = g->CentralGal;
-  o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
+	// ^^^^ DOESN'T WORK! FIX. ^^^^
+
+  o->SAGEHaloIndex = g->HaloNr;
+  o->SAGETreeIndex = tree;
+  o->SimulationFOFHaloIndex = Halo[g->HaloNr].FirstHaloInFOFgroup;
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;
@@ -123,6 +138,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
   o->Len = g->Len;
   o->Mvir = g->Mvir;
+  o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
   o->Rvir = get_virial_radius(g->HaloNr);  // output the actual Rvir, not the maximum Rvir
   o->Vvir = get_virial_velocity(g->HaloNr);  // output the actual Vvir, not the maximum Vvir
   o->Vmax = g->Vmax;

@@ -18,7 +18,7 @@ struct halo_data
   float Spin[3];
   long long MostBoundID;
 
-  // original position in subfind output 
+  // original position in simulation tree files
   int SnapNum;
   int FileNr;
   int SubhaloIndex;

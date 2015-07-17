@@ -54,7 +54,7 @@ class Results:
         """Here we set up some of the variables which will be global to this
         class."""
 
-        self.Hubble_h = 0.73
+        self.Hubble_h = 0.678
 
         if whichsimulation == 0:    # Mini-Millennium
           self.BoxSize = 62.5       # Mpc/h
@@ -208,10 +208,6 @@ class Results:
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
-
-        # w = np.where(G.TreeIdx == 8)[0]
-        # for i in xrange(len(w)):
-        #     print i, G.TreeIdx[w[i]], G.Type[w[i]], G.GalaxyIndex[w[i]], G.mergeType[w[i]], G.mergeIntoID[w[i]], G.mergeIntoSnapNum[w[i]]
 
         return G
 
@@ -1023,7 +1019,7 @@ class Results:
                 
                 for j in xrange(HalosFound):
                     
-                    w2 = np.where((G.FOFHaloIdx == G.FOFHaloIdx[w1[j]]) & (G.TreeIdx == G.TreeIdx[w1[j]]) & (fileNr == fileNr[w1[j]]))[0]
+                    w2 = np.where((G.SAGEHaloIndex == G.SAGEHaloIndex[w1[j]]) & (G.SAGETreeIndex == G.SAGETreeIndex[w1[j]]) & (fileNr == fileNr[w1[j]]))[0]
                     CentralAndSatellitesFound = len(w2)
                     
                     if CentralAndSatellitesFound > 0:

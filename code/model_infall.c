@@ -136,7 +136,7 @@ double do_reionization(int gal, double Zcurr)
   a_on_ar = a / ar;
 
   if(a <= a0)
-    f_of_a = 3.0 * a / ((2.0 * alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
+    f_of_a = 3.0 * a / ((2.0 + alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
   else if((a > a0) && (a < ar))
     f_of_a =
     (3.0 / a) * a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +

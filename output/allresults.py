@@ -54,13 +54,13 @@ class Results:
         """Here we set up some of the variables which will be global to this
         class."""
 
-        self.Hubble_h = 0.678
-
         if whichsimulation == 0:    # Mini-Millennium
+          self.Hubble_h = 0.73
           self.BoxSize = 62.5       # Mpc/h
           self.MaxTreeFiles = 8     # FilesPerSnapshot
 
         elif whichsimulation == 1:  # Full Millennium
+          self.Hubble_h = 0.73
           self.BoxSize = 500        # Mpc/h
           self.MaxTreeFiles = 512   # FilesPerSnapshot
 

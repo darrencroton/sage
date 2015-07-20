@@ -75,7 +75,9 @@ void init_galaxy(int p, int halonr)
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;
   Gal[p].r_heat = 0.0;
-  Gal[p].LastMajorMerger = -1.0;
+  Gal[p].QuasarModeBHaccretionMass = 0.0;
+  Gal[p].TimeSinceMajorMerger = -1.0;
+  Gal[p].TimeSinceMinorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
 	Gal[p].TotalSatelliteBaryons = 0.0;
 

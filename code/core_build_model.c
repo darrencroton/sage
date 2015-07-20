@@ -158,6 +158,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
           Gal[ngal].Cooling = 0.0;
           Gal[ngal].Heating = 0.0;
+          Gal[ngal].QuasarModeBHaccretionMass = 0.0;
           Gal[ngal].OutflowRate = 0.0;
 
           for(step = 0; step < STEPS; step++)

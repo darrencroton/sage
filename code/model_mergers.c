@@ -69,10 +69,13 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
 
+  if(mass_ratio > 0.1)
+		Gal[merger_centralgal].TimeSinceMinorMerger = time;
+
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
-    Gal[merger_centralgal].LastMajorMerger = time;
+    Gal[merger_centralgal].TimeSinceMajorMerger = time;
     Gal[p].mergeType = 2;  // mark as major merger
   }
   else
@@ -101,6 +104,8 @@ void grow_black_hole(int merger_centralgal, double mass_ratio)
     Gal[merger_centralgal].BlackHoleMass += BHaccrete;
     Gal[merger_centralgal].ColdGas -= BHaccrete;
     Gal[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
+
+    Gal[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
 
     quasar_mode_wind(merger_centralgal, BHaccrete);
   }

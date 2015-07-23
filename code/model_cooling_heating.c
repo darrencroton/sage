@@ -107,7 +107,7 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     }
     
     // Eddington rate 
-    EDDrate = 1.3e48 * Gal[centralgal].BlackHoleMass / (UnitEnergy_in_cgs / UnitTime_in_s) / 9e10;
+    EDDrate = (1.3e38 * Gal[centralgal].BlackHoleMass * 1e10 / Hubble_h) / (UnitEnergy_in_cgs / UnitTime_in_s) / (0.1 * 9e10);
 
     // accretion onto BH is always limited by the Eddington rate 
     if(AGNrate > EDDrate)

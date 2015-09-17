@@ -97,12 +97,13 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->Type = g->Type;
 
   assert( g->GalaxyNr < 1e9 ); // breaking tree size assumption
-  o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e12 * filenr;
-  assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e12 == filenr );
-  assert( (o->GalaxyIndex - g->GalaxyNr - 1e12*filenr)/1e9 == tree );
-  assert( o->GalaxyIndex - 1e9*tree - 1e12*filenr == g->GalaxyNr );
+  assert(tree < 1e5);
+  o->GalaxyIndex = g->GalaxyNr + 1e9 * tree + 1e14 * filenr;
+  assert( (o->GalaxyIndex - g->GalaxyNr - 1e9*tree)/1e14 == filenr );
+  assert( (o->GalaxyIndex - g->GalaxyNr - 1e14*filenr)/1e9 == tree );
+  assert( o->GalaxyIndex - 1e9*tree - 1e14*filenr == g->GalaxyNr );
 
-  o->CentralGalaxyIndex = HaloGal[HaloAux[Halo[g->HaloNr].FirstHaloInFOFgroup].FirstGalaxy].GalaxyNr + 1e9 * tree + 1e12 * filenr;
+  o->CentralGalaxyIndex = HaloGal[HaloAux[Halo[g->HaloNr].FirstHaloInFOFgroup].FirstGalaxy].GalaxyNr + 1e9 * tree + 1e14 * filenr;
 
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;

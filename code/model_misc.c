@@ -92,19 +92,23 @@ void init_galaxy(int p, int halonr)
 
 double get_disk_radius(int halonr, int p)
 {
-  // See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
   double SpinMagnitude, SpinParameter;
   
-	SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
-		Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
+	if(Gal[p].Vvir > 0.0 && Gal[p].Rvir > 0.0)
+	{
+		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
+		SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
+			Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
   
-	// trim the extreme tail of the spin distribution for more a realistic r_s
-	if(SpinMagnitude > 1.5)
-		SpinMagnitude = 1.5;
+		// trim the extreme tail of the spin distribution for more a realistic r_s
+		if(SpinMagnitude > 1.5)
+			SpinMagnitude = 1.5;
   
-  SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-    
-  return (SpinParameter / 1.414) * Gal[p].Rvir;
+		SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
+		return (SpinParameter / 1.414) * Gal[p].Rvir;		
+	}
+	else
+		return 0.1 * Gal[p].Rvir;
 
 }
 

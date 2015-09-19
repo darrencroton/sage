@@ -127,6 +127,12 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       // this deals with the central galaxies of (sub)halos 
       if(Gal[ngal].Type == 0 || Gal[ngal].Type == 1)
       {
+        // this halo shouldn't hold a galaxy that has already merged; remove it from future processing
+        if(Gal[ngal].mergeType != 0)
+        {
+          Gal[ngal].Type = 3;
+          continue;
+        }
 
         // remember properties from the last snapshot
         previousMvir = Gal[ngal].Mvir;
@@ -182,6 +188,9 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           else
           {
             // a satellite with subhalo
+            Gal[ngal].mergeType = 0;
+            Gal[ngal].mergeIntoID = -1;
+
             if(Gal[ngal].Type == 0)  // remember the infall properties before becoming a subhalo
             {
               Gal[ngal].infallMvir = previousMvir;
@@ -353,6 +362,11 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 	
   for(p = 0; p < ngal; p++)
   {
+
+    // Don't bother with galaxies that have already merged 
+    if(Gal[p].mergeType > 0)
+      continue;
+		
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
     Gal[p].OutflowRate /= deltaT;    

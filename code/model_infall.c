@@ -56,8 +56,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
     reionization_modifier = 1.0;
 
   infallingMass =
-    // reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
-    reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
+    reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
+    // reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
 
   // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;
@@ -96,8 +96,8 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
     reionization_modifier = 1.0;
   
   strippedGas = -1.0 *
-    // (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
-    ( reionization_modifier * BaryonFrac * Gal[gal].deltaMvir ) / STEPS;
+    (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
+    // ( reionization_modifier * BaryonFrac * Gal[gal].deltaMvir ) / STEPS;
 
   if(strippedGas > 0.0)
   {

@@ -982,7 +982,6 @@ class Results:
         
         HaloMass = np.log10(G.Mvir * 1.0e10 / self.Hubble_h)
         Baryons = G.StellarMass + G.ColdGas + G.HotGas + G.EjectedMass + G.IntraClusterStars + G.BlackHoleMass
-        fileNr = np.floor(G.GalaxyIndex / 1.0e12)
 
         MinHalo = 11.0
         MaxHalo = 16.0
@@ -1021,7 +1020,7 @@ class Results:
                 
                 for j in xrange(HalosFound):
                     
-                    w2 = np.where((G.SAGEHaloIndex == G.SAGEHaloIndex[w1[j]]) & (G.SAGETreeIndex == G.SAGETreeIndex[w1[j]]) & (fileNr == fileNr[w1[j]]))[0]
+                    w2 = np.where(G.CentralGalaxyIndex == G.CentralGalaxyIndex[w1[j]])[0]
                     CentralAndSatellitesFound = len(w2)
                     
                     if CentralAndSatellitesFound > 0:

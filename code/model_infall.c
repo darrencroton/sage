@@ -50,8 +50,10 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
 	newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons;
 
   // include reionization if necessary 
-  if(ReionizationOn)
+  if(ReionizationOn == 1)
     reionization_modifier = do_reionization(centralgal, Zcurr);
+  else if(ReionizationOn == 2)
+    reionization_modifier = do_reionization_okamoto(centralgal, Zcurr);
   else
     reionization_modifier = 1.0;
 
@@ -90,8 +92,10 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
 {
   double reionization_modifier, strippedGas, strippedGasMetals, metallicity;
   
-  if(ReionizationOn)
+  if(ReionizationOn == 1)
     reionization_modifier = do_reionization(gal, ZZ[Halo[halonr].SnapNum]);
+  else if(ReionizationOn == 2)
+    reionization_modifier = do_reionization_okamoto(gal, ZZ[Halo[halonr].SnapNum]);
   else
     reionization_modifier = 1.0;
   
@@ -171,7 +175,39 @@ double do_reionization(int gal, double Zcurr)
 
 }
 
+// Tibo
+double do_reionization_okamoto(int gal, double Zcurr)
+{
+  double alpha_oka, Mchar, mass_to_use, modifier;
 
+  // Characteristic mass at which haloes have lost half their baryons due to photo-heating taken from fit of Okamoto+2008 (Fig. 3)
+  // Baryonic fraction depends on Mchar and redshift (Eq. 1 of Okamoto+08)
+
+  // alpha_oka = 2.0 gives the best fits to the simulations of Okamoto+2008
+  alpha_oka = 2.0;
+
+  if(Zcurr > 19.9)
+  {
+    Mchar = 2.0; // We do this to avoid the fit below to yield negative Mchar values...
+  }
+  else
+  {
+    // Fit (power law) to simulations of log10 Mchar (Msun / h) from Okamoto+2008 (Fig. 3)
+    Mchar = 9.8375511 - 0.28048794 * Zcurr + 0.0046695268 * Zcurr * Zcurr - 0.00051192912 * Zcurr * Zcurr * Zcurr;
+  }
+
+  // mass_to_use = 10.0**Mchar;
+  mass_to_use = pow(10.0,Mchar); // Msun
+  mass_to_use = mass_to_use * SOLAR_MASS / UnitMass_in_g * Hubble_h; // SAGE units (10^10 / h ; same as Mvir then) 
+
+  // Equation (1) of Okamoto+2008
+  modifier = 1.0 / pow(1.0 + (pow(2.0,alpha_oka / 3.0) - 1.0) * pow(mass_to_use / Gal[gal].Mvir,alpha_oka), 3.0 / alpha_oka);
+
+  printf("modifier, Mchar....%e\t%e\n", modifier, mass_to_use);
+
+  return modifier;
+
+}
 
 void add_infall_to_hot(int gal, double infallingGas)
 {

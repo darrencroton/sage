@@ -70,12 +70,12 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
 
   if(mass_ratio > 0.1)
-		Gal[merger_centralgal].TimeSinceMinorMerger = time;
+		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
 
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
-    Gal[merger_centralgal].TimeSinceMajorMerger = time;
+    Gal[merger_centralgal].TimeOfLastMajorMerger = time;
     Gal[p].mergeType = 2;  // mark as major merger
   }
   else

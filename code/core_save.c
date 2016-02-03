@@ -189,8 +189,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
   o->QuasarModeBHaccretionMass = g->QuasarModeBHaccretionMass;
 
-  o->TimeSinceMajorMerger = g->TimeSinceMajorMerger * UnitTime_in_Megayears;
-  o->TimeSinceMinorMerger = g->TimeSinceMinorMerger * UnitTime_in_Megayears;
+  o->TimeOfLastMajorMerger = g->TimeOfLastMajorMerger * UnitTime_in_Megayears;
+  o->TimeOfLastMinorMerger = g->TimeOfLastMinorMerger * UnitTime_in_Megayears;
 	
   o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 

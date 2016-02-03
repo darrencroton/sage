@@ -76,8 +76,8 @@ void init_galaxy(int p, int halonr)
   Gal[p].Heating = 0.0;
   Gal[p].r_heat = 0.0;
   Gal[p].QuasarModeBHaccretionMass = 0.0;
-  Gal[p].TimeSinceMajorMerger = -1.0;
-  Gal[p].TimeSinceMinorMerger = -1.0;
+  Gal[p].TimeOfLastMajorMerger = -1.0;
+  Gal[p].TimeOfLastMinorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
 	Gal[p].TotalSatelliteBaryons = 0.0;
 
@@ -99,10 +99,6 @@ double get_disk_radius(int halonr, int p)
 		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
 		SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
 			Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
-  
-		// trim the extreme tail of the spin distribution for more a realistic r_s
-		if(SpinMagnitude > 1.5)
-			SpinMagnitude = 1.5;
   
 		SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
 		return (SpinParameter / 1.414) * Gal[p].Rvir;		

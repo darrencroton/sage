@@ -92,8 +92,8 @@ struct GALAXY_OUTPUT
   float Cooling;
   float Heating;
   float QuasarModeBHaccretionMass;
-  float TimeSinceMajorMerger;
-  float TimeSinceMinorMerger;
+  float TimeOfLastMajorMerger;
+  float TimeOfLastMinorMerger;
   float OutflowRate;
 
   // infall properties
@@ -162,8 +162,8 @@ struct GALAXY
   double Heating;
   float r_heat;
   float QuasarModeBHaccretionMass;
-  float TimeSinceMajorMerger;
-  float TimeSinceMinorMerger;
+  float TimeOfLastMajorMerger;
+  float TimeOfLastMinorMerger;
   float OutflowRate;
 	float TotalSatelliteBaryons;
 

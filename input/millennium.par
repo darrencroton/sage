@@ -5,8 +5,8 @@
 FileNameGalaxies       model
 OutputDir              ./output/results/millennium/
 
-FirstFile					0
-LastFile					7
+FirstFile         0
+LastFile          7
 
 
 %------------------------------------------
@@ -23,64 +23,64 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %----- Simulation information  ------------
 %------------------------------------------
 
-TreeName					    trees_063		; assumes the trees are named TreeName.n where n is the file number
+TreeName              trees_063   ; assumes the trees are named TreeName.n where n is the file number
 SimulationDir         ./input/treefiles/millennium/millennium_mini/
 FileWithSnapList      ./input/treefiles/millennium/millennium.a_list
-LastSnapShotNr				63
+LastSnapShotNr        63
 
-Omega						0.25 
-OmegaLambda			0.75
-BaryonFrac			0.17
-Hubble_h				0.73
+Omega           0.25 
+OmegaLambda     0.75
+BaryonFrac      0.17
+Hubble_h        0.73
 
-PartMass				0.0860657
+PartMass        0.0860657
 
 
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------
 
-SFprescription				0		;0: original Croton et al. 2006
-AGNrecipeOn						2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
-SupernovaRecipeOn			1		;0: switch off
-ReionizationOn				1		;0: switch off
-DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
+SFprescription        0   ;0: original Croton et al. 2006
+AGNrecipeOn           2   ;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
+SupernovaRecipeOn     1   ;0: switch off
+ReionizationOn        1   ;0: switch off
+DiskInstabilityOn     1   ;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
 
 
 %------------------------------------------
 %----- SAGE model parameters --------------
 %------------------------------------------
 
-SfrEfficiency						0.05	;efficiency of SF (SFprescription=0)
+SfrEfficiency           0.05  ;efficiency of SF (SFprescription=0)
 
-FeedbackReheatingEpsilon		3.0		;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
-FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
+FeedbackReheatingEpsilon    3.0   ;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
+FeedbackEjectionEfficiency  0.3   ;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
+ReIncorporationFactor   0.15    ;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			0.08 	;AGN radio mode efficiency (AGNrecipeOn=2)
-QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
-BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
+RadioModeEfficiency     0.08  ;AGN radio mode efficiency (AGNrecipeOn=2)
+QuasarModeEfficiency    0.005 ;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
+BlackHoleGrowthRate     0.015 ;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 
-ThreshMajorMerger				0.3		;major merger when mass ratio greater than this
-ThresholdSatDisruption	1.0		;Mvir-to-baryonic mass ratio threshold for satellite merger or disruption
+ThreshMajorMerger       0.3   ;major merger when mass ratio greater than this
+ThresholdSatDisruption  1.0   ;Mvir-to-baryonic mass ratio threshold for satellite merger or disruption
 
-Yield										0.025	;fraction of SF mass produced as metals
-RecycleFraction					0.43	;fraction of SF mass instantaneously recycled back to cold
-FracZleaveDisk					0.0		;fraction of metals produced directly to hot component
+Yield                   0.025 ;fraction of SF mass produced as metals
+RecycleFraction         0.43  ;fraction of SF mass instantaneously recycled back to cold
+FracZleaveDisk          0.0   ;fraction of metals produced directly to hot component
 
-Reionization_z0					8.0		;these parameter choices give the best fit to Genedin (2000)...
-Reionization_zr					7.0		;using the analytic fit of Kravtsov et al. 2004 (ReionizationOn=1)
+Reionization_z0         8.0   ;these parameter choices give the best fit to Genedin (2000)...
+Reionization_zr         7.0   ;using the analytic fit of Kravtsov et al. 2004 (ReionizationOn=1)
 
-EnergySN								1.0e51	;energy per supernova
-EtaSN										5.0e-3	;supernova efficiency
+EnergySN                1.0e51  ;energy per supernova
+EtaSN                   5.0e-3  ;supernova efficiency
 
 
 %------------------------------------------
 %----- Other code-related information -----
 %------------------------------------------
 
-UnitLength_in_cm					3.08568e+24	;WATCH OUT: Mpc/h
-UnitMass_in_g							1.989e+43		;WATCH OUT: 10^10Msun
-UnitVelocity_in_cm_per_s	100000			;WATCH OUT: km/s
+UnitLength_in_cm          3.08568e+24 ;WATCH OUT: Mpc/h
+UnitMass_in_g             1.989e+43   ;WATCH OUT: 10^10Msun
+UnitVelocity_in_cm_per_s  100000      ;WATCH OUT: km/s
 

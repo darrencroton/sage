@@ -1299,8 +1299,8 @@ if __name__ == '__main__':
         '-d',
         '--dir_name',
         dest='DirName',
-        default='./results/millennium/',
-        help='input directory name (default: ./results/millennium/)',
+        default='./millennium/',
+        help='input directory name (default: ./millennium/)',
         metavar='DIR',
         )
     parser.add_option(

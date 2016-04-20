@@ -3,7 +3,7 @@
 %------------------------------------------
 
 FileNameGalaxies       model
-OutputDir              ./output/results/millennium/
+OutputDir              ./output/millennium/
 
 FirstFile         0
 LastFile          7
@@ -24,8 +24,8 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %------------------------------------------
 
 TreeName              trees_063   ; assumes the trees are named TreeName.n where n is the file number
-SimulationDir         ./input/treefiles/millennium/millennium_mini/
-FileWithSnapList      ./input/treefiles/millennium/millennium.a_list
+SimulationDir         ./input/treefiles/millennium_mini/
+FileWithSnapList      ./input/treefiles/millennium_mini/millennium.a_list
 LastSnapShotNr        63
 
 Omega           0.25 

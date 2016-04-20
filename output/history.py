@@ -564,7 +564,7 @@ if __name__ == '__main__':
         '-d',
         '--dir_name',
         dest='DirName',
-        default='./results/millennium/',
+        default='./millennium/',
         help='input directory name (default: ./results/millennium/)',
         metavar='DIR',
         )

@@ -31,11 +31,28 @@ else
     CC = cc  # sets the C-compiler
 endif
 
-GSL_INCL = -I$(GSL_DIR)/include  # make sure your system knows where GSL_DIR is
-GSL_LIBS = -L$(GSL_DIR)/lib
+# GSL automatic detection
+GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
+ifndef GSL_FOUND
+  $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
+  # If the automatic detection fails, set GSL_DIR appropriately
+  GSL_DIR := /opt/local
+  GSL_INCL := -I$(GSL_DIR)/include  
+  GSL_LIBDIR := $(GSL_DIR)/lib
+  # since GSL is not in PATH, the runtime environment might
+  # not be setup correctly either. Therefore, adding the compiletime
+  # library path is even more important(the -Xlinker bit)
+  GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
+else
+  # GSL is probably configured correctly, pick up the locations automatically. 
+  GSL_INCL := $(shell gsl-config --cflags)
+  GSL_LIBDIR := $(shell gsl-config --prefix)/lib
+  GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
+endif
+
 OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+LIBS   =   -g -lm  $(GSL_LIBS) 
 
 CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 

@@ -16,7 +16,10 @@ struct halo_data
   float VelDisp;
   float Vmax;
   float Spin[3];
-  long long MostBoundID;
+  union{
+      long long MostBoundID;//for LHaloTrees, this is the ID for the most bound particle
+      long long SimulationHaloID;//for other mergertree codes, this contains an unique haloid. 
+  };
 
   // original position in simulation tree files
   int SnapNum;

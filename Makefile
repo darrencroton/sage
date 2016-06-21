@@ -23,12 +23,17 @@ INCL   =	./code/core_allvars.h  \
 			./Makefile
 
 # USE-MPI = yes  # set this if you want to run in parallel
+USE_SIMULATION_HALOID = yes # set this if you have unique haloids in the MostBoundID field. 
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
     CC = cc  # sets the C-compiler
+endif
+
+ifdef USE_SIMULATION_HALOID
+   OPT += -DUSE_SIMULATION_HALOID
 endif
 
 # GSL automatic detection
@@ -50,7 +55,7 @@ else
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
 
-OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
+OPTIMIZE = -g -O0 -Wall -Wpadded # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) 
 

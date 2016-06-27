@@ -121,7 +121,16 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;
+#ifdef USE_SIMULATION_HALOID
+  //For other halofinder/mergertree codes, pass the unique haloid along
+  //Useful to compare different SAM's on a halo-by-halo basis
+  //There is a type conversion happening (long long to int).
+  //If SimulationHaloID is > INT_MAX (= ~ 2e9),  then the HaloID will be wrong.
+  o->SimulationFOFHaloIndex = Halo[g->HaloNr].SimulationHaloID;
+#else
+  //For LHaloTrees, ID is simply the position in the file.
   o->SimulationFOFHaloIndex = Halo[g->HaloNr].SubhaloIndex;
+#endif  
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;

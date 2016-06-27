@@ -112,7 +112,10 @@ struct GALAXY
   int   GalaxyNr;
   int   CentralGal;
   int   HaloNr;
-  long long  MostBoundID;
+  union{
+      long long  MostBoundID;
+      long long SimulationHaloID;
+  };
 
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
@@ -165,7 +168,7 @@ struct GALAXY
   float TimeOfLastMajorMerger;
   float TimeOfLastMinorMerger;
   float OutflowRate;
-	float TotalSatelliteBaryons;
+  float TotalSatelliteBaryons;
 
   // infall properties
   float infallMvir;

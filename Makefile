@@ -22,8 +22,7 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-# USE-MPI = yes  # set this if you want to run in parallel
-USE_SIMULATION_HALOID = yes # set this if you have unique haloids in the MostBoundID field. 
+# USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -32,30 +31,25 @@ else
     CC = cc  # sets the C-compiler
 endif
 
-ifdef USE_SIMULATION_HALOID
-   OPT += -DUSE_SIMULATION_HALOID
-endif
-
 # GSL automatic detection
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
 ifndef GSL_FOUND
   $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
-  # If the automatic detection fails, set GSL_DIR appropriately
+  # if the automatic detection fails, set GSL_DIR appropriately
   GSL_DIR := /opt/local
   GSL_INCL := -I$(GSL_DIR)/include  
   GSL_LIBDIR := $(GSL_DIR)/lib
-  # since GSL is not in PATH, the runtime environment might
-  # not be setup correctly either. Therefore, adding the compiletime
-  # library path is even more important(the -Xlinker bit)
+  # since GSL is not in PATH, the runtime environment might not be setup correctly either
+  # therefore, adding the compiletime library path is even more important (the -Xlinker bit)
   GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
 else
-  # GSL is probably configured correctly, pick up the locations automatically. 
+  # GSL is probably configured correctly, pick up the locations automatically
   GSL_INCL := $(shell gsl-config --cflags)
   GSL_LIBDIR := $(shell gsl-config --prefix)/lib
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
 
-OPTIMIZE = -g -O0 -Wall -Wpadded # optimization and warning flags
+OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) 
 

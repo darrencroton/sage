@@ -86,7 +86,7 @@ class Results:
             ('CentralGalaxyIndex'           , np.int64),                    
             ('SAGEHaloIndex'                , np.int32),                    
             ('SAGETreeIndex'                , np.int32),                    
-            ('SimulationFOFHaloIndex'       , np.int32),                    
+            ('SimulationHaloIndex'          , np.int64),                    
             ('mergeType'                    , np.int32),                    
             ('mergeIntoID'                  , np.int32),                    
             ('mergeIntoSnapNum'             , np.int32),                    

@@ -98,7 +98,9 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->SnapNum = g->SnapNum;
   o->Type = g->Type;
 
-  if(LastFile>=10000) // Assume that because there are so many files, the trees per file will be less than 100000.  Required for limits of long long.
+  // assume that because there are so many files, the trees per file will be less than 100000
+  // required for limits of long long
+  if(LastFile>=10000) 
   {
       assert( g->GalaxyNr < TREE_MUL_FAC ); // breaking tree size assumption
       assert(tree < (FILENR_MUL_FAC/10)/TREE_MUL_FAC);
@@ -121,16 +123,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;
-#ifdef USE_SIMULATION_HALOID
-  //For other halofinder/mergertree codes, pass the unique haloid along
-  //Useful to compare different SAM's on a halo-by-halo basis
-  //There is a type conversion happening (long long to int).
-  //If SimulationHaloID is > INT_MAX (= ~ 2e9),  then the HaloID will be wrong.
-  o->SimulationFOFHaloIndex = Halo[g->HaloNr].SimulationHaloID;
-#else
-  //For LHaloTrees, ID is simply the position in the file.
-  o->SimulationFOFHaloIndex = Halo[g->HaloNr].SubhaloIndex;
-#endif  
+  o->SimulationHaloIndex = Halo[g->HaloNr].MostBoundID;
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;

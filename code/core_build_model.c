@@ -112,7 +112,12 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   {
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
-			assert(ngal < FoF_MaxGals);
+        if(ngal == (FoF_MaxGals-1)) {
+            FoF_MaxGals += 10000;
+            Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
+        }
+        assert(ngal < FoF_MaxGals);
+            
 
       // This is the cruical line in which the properties of the progenitor galaxies 
       // are copied over (as a whole) to the (temporary) galaxies Gal[xxx] in the current snapshot 

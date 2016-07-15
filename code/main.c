@@ -168,6 +168,11 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
   }
 
+  //free Ages. But first
+  //reset Age to the actual allocated address
+  Age--;
+  myfree(Age);                              
+  
   exitfail = 0;
   return 0;
 }

@@ -267,7 +267,7 @@ extern int    ListOutputSnaps[ABSOLUTEMAXSNAPS];
 
 extern double ZZ[ABSOLUTEMAXSNAPS];
 extern double AA[ABSOLUTEMAXSNAPS];
-extern double Age[ABSOLUTEMAXSNAPS];
+extern double *Age;
 
 extern int    MAXSNAPS;
 extern int    NOUT;

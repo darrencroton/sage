@@ -90,7 +90,7 @@ int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 
 double ZZ[ABSOLUTEMAXSNAPS];
 double AA[ABSOLUTEMAXSNAPS];
-double Age[ABSOLUTEMAXSNAPS];
+double *Age;
 
 int MAXSNAPS;
 int NOUT;

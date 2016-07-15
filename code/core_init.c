@@ -19,6 +19,8 @@ void init(void)
 {
   int i;
 
+  Age = mymalloc(ABSOLUTEMAXSNAPS*sizeof(*Age));
+  
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(random_generator, 42);	 // start-up seed 
 
@@ -27,6 +29,11 @@ void init(void)
 
   read_snap_list();
 
+  //Hack to fix deltaT for snapshot 0
+  //This way, galsnapnum = -1 will not segfault.
+  Age[0] = time_to_present(1000.0);//lookback time from z=1000
+  Age++;
+  
   for(i = 0; i < Snaplistlen; i++)
   {
     ZZ[i] = 1 / AA[i] - 1;

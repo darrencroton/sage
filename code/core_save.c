@@ -4,6 +4,7 @@
 #include <math.h>
 #include <time.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -96,6 +97,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   int j, step;
 
   o->SnapNum = g->SnapNum;
+  assert(g->Type >= SHRT_MIN && g->Type <= SHRT_MAX && "Converting galaxy type while saving from integer to short will result in data corruption");
   o->Type = g->Type;
 
   // assume that because there are so many files, the trees per file will be less than 100000
@@ -123,7 +125,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;
-  o->SimulationHaloIndex = Halo[g->HaloNr].MostBoundID;
+  o->SimulationHaloIndex = llabs(Halo[g->HaloNr].MostBoundID);
+  o->isFlyby = Halo[g->HaloNr].MostBoundID < 0 ? 1:0;
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;

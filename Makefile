@@ -22,7 +22,7 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./Makefile
 
-# USE-MPI = yes  # set this if you want to run in embarrassingly parallel
+USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel

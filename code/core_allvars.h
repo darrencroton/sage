@@ -39,7 +39,8 @@ do {                                                                \
 struct GALAXY_OUTPUT  
 {
   int   SnapNum;
-  int   Type;
+  short Type;
+  short isFlyby;
 
   long long   GalaxyIndex;
   long long   CentralGalaxyIndex;

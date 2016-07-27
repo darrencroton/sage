@@ -49,7 +49,7 @@ else
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
 
-OPTIMIZE = -g -O3 -march=native -Wextra -Wshadow -Wall # optimization and warning flags
+OPTIMIZE = -g -O3 -march=native -Wextra -Wshadow -Wall -Wpadded # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) 
 

@@ -1356,7 +1356,7 @@ if __name__ == '__main__':
     res.BaryonFraction(G)
     res.SpinDistribution(G)
     res.VelocityDistribution(G)
-    res.MassReservoirScatter(G)
+    # res.MassReservoirScatter(G)
     res.SpatialDistribution(G)
 
 

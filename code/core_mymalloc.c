@@ -7,7 +7,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-#define MAXBLOCKS 256
+#define MAXBLOCKS 2048
 
 static unsigned long Nblocks = 0;
 static void *Table[MAXBLOCKS];
@@ -26,8 +26,8 @@ void *mymalloc(size_t n)
 
   if(Nblocks >= MAXBLOCKS)
   {
-    printf("No blocks left in mymalloc().\n");
-    ABORT(0);
+      printf("Nblocks = %d No blocks left in mymalloc().\n", Nblocks);
+      ABORT(0);
   }
 
   SizeTable[Nblocks] = n;

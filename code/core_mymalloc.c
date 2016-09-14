@@ -54,6 +54,44 @@ void *mymalloc(size_t n)
 }
 
 
+void *myrealloc(void *p, size_t n)
+{
+  if((n % 8) > 0)
+    n = (n / 8 + 1) * 8;
+
+  if(n == 0)
+    n = 8;
+
+   if(p != Table[Nblocks - 1])
+   {
+      printf("Wrong call of myrealloc() p = %p is not the last allocated block = %p!\n", p, Table[Nblocks-1]);
+      ABORT(0);
+  }
+  
+  void *newp = realloc(Table[Nblocks-1], n);
+  if(newp == NULL) {
+      printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
+      ABORT(0);
+   }
+  Table[Nblocks-1] = newp;
+  
+  TotMem -= SizeTable[Nblocks-1];
+  TotMem += n;
+  SizeTable[Nblocks-1] = n;
+  
+  if(TotMem > HighMarkMem)
+  {
+    HighMarkMem = TotMem;
+    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
+    {
+      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+      OldPrintedHighMark = HighMarkMem;
+    }
+  }
+
+  return Table[Nblocks - 1];
+}
+
 
 void myfree(void *p)
 {

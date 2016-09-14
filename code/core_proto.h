@@ -22,6 +22,7 @@ void print_allocated(void);
 
 void read_parameter_file(char *fname);
 void *mymalloc(size_t n);
+void *myrealloc(void *p, size_t n);
 void myfree(void *p);
 void myexit(int signum);
 

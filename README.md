@@ -1,4 +1,4 @@
-##Semi-Analytic Galaxy Evolution (SAGE)
+# Semi-Analytic Galaxy Evolution (SAGE)
 
 [![DOI](https://zenodo.org/badge/13542/darrencroton/sage.svg)](https://zenodo.org/badge/latestdoi/13542/darrencroton/sage)
 

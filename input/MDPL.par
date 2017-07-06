@@ -3,11 +3,10 @@
 %------------------------------------------
 
 FileNameGalaxies       model
-%OutputDir               output/results/MDPL/
-OutputDir           /Volumes/AdamDrive/Swinburne/SAGE_multidark_runs/42/
+OutputDir               output/results/MDPL
 
 FirstFile					0
-LastFile					15
+LastFile					999
 
 
 %------------------------------------------
@@ -18,7 +17,6 @@ NumOutputs        -1   ; sets the desired number of galaxy outputs; use -1 for a
 
 % List your output snapshots after the arrow, highest to lowest (ignored when NumOutputs=-1). 
 -> 125
-%-> 125 110 100 90 80 70 60 50 40 30 20 10
 
 
 %------------------------------------------
@@ -26,8 +24,8 @@ NumOutputs        -1   ; sets the desired number of galaxy outputs; use -1 for a
 %------------------------------------------
 
 TreeName					lhalotree.bin		; assumes the trees are named TreeName.n where n is the snapshot number
-SimulationDir				/Users/astevens/trees/MDPL/
-FileWithSnapList			/Users/astevens/trees/MDPL/MDPL.a_list
+SimulationDir				/store/erebos/astevens/MDPL_trees/
+FileWithSnapList			/store/erebos/astevens/MDPL_trees/MDPL.a_list
 LastSnapShotNr				125
 
 Omega				0.307115
@@ -60,7 +58,7 @@ FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			0.08 	;AGN radio mode efficiency (AGNrecipeOn=2)
+RadioModeEfficiency			0.08	;AGN radio mode efficiency (AGNrecipeOn=2)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
 BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 

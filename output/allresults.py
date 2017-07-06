@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Agg')
 
-import h5py as h5
+#import h5py as h5
 import numpy as np
 import pylab as plt
 from random import sample, seed
@@ -15,7 +15,7 @@ from os.path import getsize as getFileSize
 
 # Set up some basic attributes of the run
 
-whichsimulation = 0
+whichsimulation = 7
 whichimf = 1        # 0=Slapeter; 1=Chabrier
 dilute = 7500       # Number of galaxies to plot in scatter plots
 sSFRcut = -11.0     # Divide quiescent from star forming galaxies (when plotmags=0)
@@ -64,6 +64,36 @@ class Results:
           self.BoxSize = 500        # Mpc/h
           self.MaxTreeFiles = 512   # FilesPerSnapshot
 
+        elif whichsimulation == 2:  # Bolshoi
+          self.Hubble_h = 0.73
+          self.BoxSize = 250.0      # Mpc/h
+          self.MaxTreeFiles = 12987 # FilesPerSnapshot
+                
+        elif whichsimulation == 3:  # GiggleZ MR
+          self.Hubble_h = 0.73
+          self.BoxSize = 125.0      # Mpc/h
+          self.MaxTreeFiles = 8 # FilesPerSnapshot
+                                
+        elif whichsimulation == 4:  # nifty 62.5 box
+          self.Hubble_h = 0.704
+          self.BoxSize = 62.5      # Mpc/h
+          self.MaxTreeFiles = 1 # FilesPerSnapshot
+                                                
+        elif whichsimulation == 5:  # nifty 125Mpc_Euclid box
+          self.Hubble_h = 0.6777
+          self.BoxSize = 125.0      # Mpc/h
+          self.MaxTreeFiles = 1 # FilesPerSnapshot
+        
+        elif whichsimulation ==6: # Small MultiDark Planck
+          self.Hubble_h = 0.67777
+          self.BoxSize = 400.0
+          self.MaxTreeFiles = 1000
+                
+        elif whichsimulation ==7: # MultiDark Planck
+          self.Hubble_h = 0.67777
+          self.BoxSize = 1000.0
+          self.MaxTreeFiles = 1000
+
         else:
           print "Please pick a valid simulation!"
           exit(1)
@@ -78,9 +108,9 @@ class Results:
             ('Type'                         , np.int32),                    
             ('GalaxyIndex'                  , np.int64),                    
             ('CentralGalaxyIndex'           , np.int64),                    
-            ('SAGEHaloIndex'                , np.int32),                    
-            ('SAGETreeIndex'                , np.int32),                    
-            ('SimulationFOFHaloIndex'       , np.int32),                    
+            ('CtreesHaloID'                 , np.int64),
+            ('TreeIndex'                    , np.int32),
+            ('CtreesCentralID'              , np.int64),
             ('mergeType'                    , np.int32),                    
             ('mergeIntoID'                  , np.int32),                    
             ('mergeIntoSnapNum'             , np.int32),                    
@@ -116,9 +146,10 @@ class Results:
             ('Cooling'                      , np.float32),                  
             ('Heating'                      , np.float32),
             ('QuasarModeBHaccretionMass'    , np.float32),
-            ('TimeSinceMajorMerger'         , np.float32),
-            ('TimeSinceMinorMerger'         , np.float32),
+            ('TimeOfLastMajorMerger'         , np.float32),
+            ('TimeOfLastMinorMerger'         , np.float32),
             ('OutflowRate'                  , np.float32),
+            ('MeanStarAge'                  , np.float32),
             ('infallMvir'                   , np.float32),
             ('infallVvir'                   , np.float32),
             ('infallVmax'                   , np.float32)
@@ -210,6 +241,9 @@ class Results:
 
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
+
+        # Check on IDs
+        print 'Number of centrals', len(G[G.GalaxyIndex==G.CentralGalaxyIndex]), len(G[G.CtreesHaloID==G.CtreesCentralID])
 
         return G
 
@@ -1299,8 +1333,8 @@ if __name__ == '__main__':
         '-d',
         '--dir_name',
         dest='DirName',
-        default='./results/millennium/',
-        help='input directory name (default: ./results/millennium/)',
+        default='./millennium/',
+        help='input directory name (default: ./millennium/)',
         metavar='DIR',
         )
     parser.add_option(
@@ -1352,10 +1386,10 @@ if __name__ == '__main__':
     res.BlackHoleBulgeRelationship(G)
     res.QuiescentFraction(G)
     res.BulgeMassFraction(G)
-    res.BaryonFraction(G)
-    res.SpinDistribution(G)
-    res.VelocityDistribution(G)
-    res.MassReservoirScatter(G)
-    res.SpatialDistribution(G)
+#    res.BaryonFraction(G)
+#    res.SpinDistribution(G)
+#    res.VelocityDistribution(G)
+#    res.MassReservoirScatter(G)
+#    res.SpatialDistribution(G)
 
 

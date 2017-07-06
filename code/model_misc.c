@@ -70,16 +70,19 @@ void init_galaxy(int p, int halonr)
     Gal[p].SfrBulgeColdGasMetals[step] = 0.0;
   }
 
-  Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;
   Gal[p].Cooling = 0.0;
   Gal[p].Heating = 0.0;
   Gal[p].r_heat = 0.0;
   Gal[p].QuasarModeBHaccretionMass = 0.0;
-  Gal[p].TimeSinceMajorMerger = -1.0;
-  Gal[p].TimeSinceMinorMerger = -1.0;
+  Gal[p].TimeOfLastMajorMerger = -1.0;
+  Gal[p].TimeOfLastMinorMerger = -1.0;
   Gal[p].OutflowRate = 0.0;
-	Gal[p].TotalSatelliteBaryons = 0.0;
+  Gal[p].TotalSatelliteBaryons = 0.0;
+  Gal[p].FormationSnapNum = Halo[halonr].SnapNum - 1;
+  Gal[p].SpinMagnitude = 0.0;
+  Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
+  Gal[p].MeanStarAge = 0.0;
 
 	// infall properties
   Gal[p].infallMvir = -1.0;  
@@ -92,20 +95,24 @@ void init_galaxy(int p, int halonr)
 
 double get_disk_radius(int halonr, int p)
 {
-  double SpinMagnitude, SpinParameter;
-  
+  double SpinParameter, timeDiff; 
+
 	if(Gal[p].Vvir > 0.0 && Gal[p].Rvir > 0.0)
-	{
-		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
-		SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
-			Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
-  
-		// trim the extreme tail of the spin distribution for more a realistic r_s
-		if(SpinMagnitude > 1.5)
-			SpinMagnitude = 1.5;
-  
-		SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-		return (SpinParameter / 1.414) * Gal[p].Rvir;		
+  {
+//    if(Gal[p].TimeOfLastMajorMerger > 0.0)
+//      timeDiff = Gal[p].TimeOfLastMajorMerger - Age[Gal[p].SnapNum];
+//    else    
+//      timeDiff = Age[Gal[p].FormationSnapNum] - Age[Gal[p].SnapNum];
+//
+//    if( (timeDiff > 0.0) && ((Gal[p].SpinMagnitude == 0.0) || (timeDiff < 2.0 * Gal[p].Rvir / Gal[p].Vvir)) )
+//    {
+//   		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
+      Gal[p].SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] +
+       Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
+//    }
+
+    SpinParameter = Gal[p].SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
+    return (SpinParameter / 1.414) * Gal[p].Rvir;		
 	}
 	else
 		return 0.1 * Gal[p].Rvir;

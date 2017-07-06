@@ -24,6 +24,8 @@ void save_galaxies(int filenr, int tree)
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
   assert( OutputGalOrder );
+    
+    //printf("size of output = %i\n", sizeof(HaloGal[0]));
 
   // reset the output galaxy count and order
   for(i = 0; i < MAXSNAPS; i++)
@@ -46,7 +48,7 @@ void save_galaxies(int filenr, int tree)
     
   for(i = 0; i < NumGals; i++)
     if(HaloGal[i].mergeIntoID > -1)
-      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];    
+      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];
   
   // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
@@ -119,14 +121,14 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
       o->CentralGalaxyIndex = HaloGal[HaloAux[Halo[g->HaloNr].FirstHaloInFOFgroup].FirstGalaxy].GalaxyNr + TREE_MUL_FAC * tree + FILENR_MUL_FAC * filenr;
   }
     
-  o->SAGEHaloIndex = g->HaloNr;
+  o->SAGEHaloIndex = Halo[g->HaloNr].MostBoundID; // This actually stores the consistent-trees ID for the subhalo now
   o->SAGETreeIndex = tree;
-  o->SimulationFOFHaloIndex = Halo[g->HaloNr].SubhaloIndex;
+  o->SimulationFOFHaloIndex = Halo[Halo[g->HaloNr].FirstHaloInFOFgroup].MostBoundID; // Now the central galaxy's consistent-trees ID
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;
   o->mergeIntoSnapNum = g->mergeIntoSnapNum;
-  o->dT = g->dT * UnitTime_in_s / SEC_PER_MEGAYEAR;
+  o->dT = g->dT * UnitTime_in_Megayears;
 
   for(j = 0; j < 3; j++)
   {
@@ -189,10 +191,12 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
   o->QuasarModeBHaccretionMass = g->QuasarModeBHaccretionMass;
 
-  o->TimeSinceMajorMerger = g->TimeSinceMajorMerger * UnitTime_in_Megayears;
-  o->TimeSinceMinorMerger = g->TimeSinceMinorMerger * UnitTime_in_Megayears;
+  o->TimeOfLastMajorMerger = g->TimeOfLastMajorMerger * UnitTime_in_Megayears;
+  o->TimeOfLastMinorMerger = g->TimeOfLastMinorMerger * UnitTime_in_Megayears;
 	
   o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+    
+    o->MeanStarAge = g->MeanStarAge * UnitTime_in_Megayears;
 
   //infall properties
   if(g->Type != 0)

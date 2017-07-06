@@ -70,12 +70,12 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
 
   if(mass_ratio > 0.1)
-		Gal[merger_centralgal].TimeSinceMinorMerger = time;
+		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
 
   if(mass_ratio > ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
-    Gal[merger_centralgal].TimeSinceMajorMerger = time;
+    Gal[merger_centralgal].TimeOfLastMajorMerger = time;
     Gal[p].mergeType = 2;  // mark as major merger
   }
   else
@@ -152,6 +152,9 @@ void add_galaxies_together(int t, int p)
   Gal[t].ColdGas += Gal[p].ColdGas;
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
   
+  if(Gal[t].StellarMass+Gal[p].StellarMass > 0.0)
+    Gal[t].MeanStarAge = (Gal[t].MeanStarAge*Gal[t].StellarMass + Gal[p].MeanStarAge*Gal[p].StellarMass)/(Gal[t].StellarMass+Gal[p].StellarMass);
+
   Gal[t].StellarMass += Gal[p].StellarMass;
   Gal[t].MetalsStellarMass += Gal[p].MetalsStellarMass;
 
@@ -165,6 +168,7 @@ void add_galaxies_together(int t, int p)
   Gal[t].MetalsICS += Gal[p].MetalsICS;
 
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
+    
 
   // add merger to bulge
 	Gal[t].BulgeMass += Gal[p].StellarMass;
@@ -258,7 +262,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-  update_from_star_formation(merger_centralgal, stars, metallicity);
+  update_from_star_formation(merger_centralgal, stars, metallicity, time);
 
   Gal[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
   Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;

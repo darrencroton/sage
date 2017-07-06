@@ -41,11 +41,12 @@ double dmax(double x, double y);
 double do_reionization(int centralgal, double Zcurr);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step);
-void update_from_star_formation(int p, double stars, double metallicity);
+void update_from_star_formation(int p, double stars, double metallicity, double time);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio);
 void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step);
+void instability_burst(int p, int centralgal, double unstable_gas, double time, double dt, int step);
 
 void strip_from_satellite(int halonr, int centralgal, int gal);
 void disrupt_satellite_to_ICS(int centralgal, int gal);

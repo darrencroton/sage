@@ -81,7 +81,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
   // update for star formation 
   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
-  update_from_star_formation(p, stars, metallicity);
+  update_from_star_formation(p, stars, metallicity, time);
 
   // recompute the metallicity of the cold phase
   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
@@ -108,13 +108,16 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
 
 
-void update_from_star_formation(int p, double stars, double metallicity)
+void update_from_star_formation(int p, double stars, double metallicity, double time)
 {
-  // update gas and metals from star formation 
-  Gal[p].ColdGas -= (1 - RecycleFraction) * stars;
-  Gal[p].MetalsColdGas -= metallicity * (1 - RecycleFraction) * stars;
-  Gal[p].StellarMass += (1 - RecycleFraction) * stars;
-  Gal[p].MetalsStellarMass += metallicity * (1 - RecycleFraction) * stars;
+  // update gas and metals from star formation
+  double net_stars = (1 - RecycleFraction) * stars;
+  Gal[p].ColdGas -= net_stars;
+  Gal[p].MetalsColdGas -= metallicity * net_stars;
+  if(Gal[p].StellarMass + net_stars > 0.0)
+    Gal[p].MeanStarAge = (Gal[p].StellarMass*Gal[p].MeanStarAge + net_stars*time) / (Gal[p].StellarMass + net_stars);
+  Gal[p].StellarMass += net_stars;
+  Gal[p].MetalsStellarMass += metallicity * net_stars;
 }
 
 
@@ -123,6 +126,8 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
 {
   double metallicityHot;
 
+    if(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0)
+        printf("reheated_mass, ColdGas = %e, %e\n", reheated_mass, Gal[p].ColdGas);
 	assert(!(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0));
 
   if(SupernovaRecipeOn == 1)

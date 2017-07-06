@@ -112,6 +112,8 @@ int main(int argc, char **argv)
 #endif
   {
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
+    const unsigned int sleep_time = (10000ULL*(getpid() % 100));
+    usleep(sleep_time);
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);

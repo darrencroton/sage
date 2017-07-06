@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Agg')
 
-import h5py as h5
+#import h5py as h5
 import numpy as np
 import pylab as plt
 from random import sample, seed
@@ -15,7 +15,7 @@ from os.path import getsize as getFileSize
 
 # Set up some basic attributes of the run
 
-whichsimulation = 0
+whichsimulation = 7
 whichimf = 1        # 0=Slapeter; 1=Chabrier
 
 
@@ -62,6 +62,36 @@ class Results:
           self.BoxSize = 500        # Mpc/h
           self.MaxTreeFiles = 512   # FilesPerSnapshot
 
+        elif whichsimulation == 2:  # Bolshoi
+          self.Hubble_h = 0.73
+          self.BoxSize = 250.0      # Mpc/h
+          self.MaxTreeFiles = 12987 # FilesPerSnapshot
+
+        elif whichsimulation == 3:  # GiggleZ MR
+          self.Hubble_h = 0.73
+          self.BoxSize = 125.0      # Mpc/h
+          self.MaxTreeFiles = 8 # FilesPerSnapshot
+
+        elif whichsimulation == 4:  # nifty 62.5 box
+          self.Hubble_h = 0.704
+          self.BoxSize = 62.5      # Mpc/h
+          self.MaxTreeFiles = 1 # FilesPerSnapshot
+
+        elif whichsimulation == 5:  # nifty 125Mpc_Euclid box
+          self.Hubble_h = 0.6777
+          self.BoxSize = 125.0      # Mpc/h
+          self.MaxTreeFiles = 1 # FilesPerSnapshot
+
+        elif whichsimulation ==6: # Small MultiDark Planck
+          self.Hubble_h = 0.67777
+          self.BoxSize = 400.0
+          self.MaxTreeFiles = 1000
+
+        elif whichsimulation ==7: # MultiDark Planck
+          self.Hubble_h = 0.67777
+          self.BoxSize = 1000.0
+          self.MaxTreeFiles = 1000
+
         else:
           print "Please pick a valid simulation!"
           exit(1)
@@ -74,61 +104,68 @@ class Results:
           self.redshift_file = ['_z127.000', '_z79.998', '_z50.000', '_z30.000', '_z19.916', '_z18.244', '_z16.725', '_z15.343', '_z14.086', '_z12.941', '_z11.897', '_z10.944', '_z10.073', '_z9.278', '_z8.550', '_z7.883', '_z7.272', '_z6.712', '_z6.197', '_z5.724', '_z5.289', '_z4.888', '_z4.520', '_z4.179', '_z3.866', '_z3.576', '_z3.308', '_z3.060', '_z2.831', '_z2.619', '_z2.422', '_z2.239', '_z2.070', '_z1.913', '_z1.766', '_z1.630', '_z1.504', '_z1.386', '_z1.276', '_z1.173', '_z1.078', '_z0.989', '_z0.905', '_z0.828', '_z0.755', '_z0.687', '_z0.624', '_z0.564', '_z0.509', '_z0.457', '_z0.408', '_z0.362', '_z0.320', '_z0.280', '_z0.242', '_z0.208', '_z0.175', '_z0.144', '_z0.116', '_z0.089', '_z0.064', '_z0.041', '_z0.020', '_z0.000']
 
           self.redshift = [127.000, 79.998, 50.000, 30.000, 19.916, 18.244, 16.725, 15.343, 14.086, 12.941, 11.897, 10.944, 10.073, 9.278, 8.550, 7.883, 7.272, 6.712, 6.197, 5.724, 5.289, 4.888, 4.520, 4.179, 3.866, 3.576, 3.308, 3.060, 2.831, 2.619, 2.422, 2.239, 2.070, 1.913, 1.766, 1.630, 1.504, 1.386, 1.276, 1.173, 1.078, 0.989, 0.905, 0.828, 0.755, 0.687, 0.624, 0.564, 0.509, 0.457, 0.408, 0.362, 0.320, 0.280, 0.242, 0.208, 0.175, 0.144, 0.116, 0.089, 0.064, 0.041, 0.020, 0.000]
+              
+        elif whichsimulation == 7:
+          #self.SMFsnaps = [-1, -7, -10, -12, -13]
+          self.SMFsnaps = [15, 9, 6, 4, 3]
+          self.redshift_file = ['_z7.389', '_z6.022', '_z4.754', '_z3.715', '_z3.037', '_z2.535', '_z2.028', '_z1.771', '_z1.425', '_z1.124', '_z0.901', '_z0.702', '_z0.523', '_z0.304', '_z0.093', '_z0.000']
+          self.redshift = [7.389, 6.022, 4.754, 3.715, 3.037, 2.535, 2.028, 1.771, 1.425, 1.124, 0.901, 0.702, 0.523, 0.304, 0.093, 0.000]
 
 
     def read_gals(self, model_name, first_file, last_file, thissnap):
 
         # The input galaxy structure:
         Galdesc_full = [
-            ('SnapNum'                      , np.int32),                    
-            ('Type'                         , np.int32),                    
-            ('GalaxyIndex'                  , np.int64),                    
-            ('CentralGalaxyIndex'           , np.int64),                    
-            ('SAGEHaloIndex'                , np.int32),                    
-            ('SAGETreeIndex'                , np.int32),                    
-            ('SimulationFOFHaloIndex'       , np.int32),                    
-            ('mergeType'                    , np.int32),                    
-            ('mergeIntoID'                  , np.int32),                    
-            ('mergeIntoSnapNum'             , np.int32),                    
-            ('dT'                           , np.float32),                    
-            ('Pos'                          , (np.float32, 3)),             
-            ('Vel'                          , (np.float32, 3)),             
-            ('Spin'                         , (np.float32, 3)),             
-            ('Len'                          , np.int32),                    
-            ('Mvir'                         , np.float32),                  
-            ('CentralMvir'                  , np.float32),                  
-            ('Rvir'                         , np.float32),                  
-            ('Vvir'                         , np.float32),                  
-            ('Vmax'                         , np.float32),                  
-            ('VelDisp'                      , np.float32),                  
-            ('ColdGas'                      , np.float32),                  
-            ('StellarMass'                  , np.float32),                  
-            ('BulgeMass'                    , np.float32),                  
-            ('HotGas'                       , np.float32),                  
-            ('EjectedMass'                  , np.float32),                  
-            ('BlackHoleMass'                , np.float32),                  
-            ('IntraClusterStars'            , np.float32),                  
-            ('MetalsColdGas'                , np.float32),                  
-            ('MetalsStellarMass'            , np.float32),                  
-            ('MetalsBulgeMass'              , np.float32),                  
-            ('MetalsHotGas'                 , np.float32),                  
-            ('MetalsEjectedMass'            , np.float32),                  
-            ('MetalsIntraClusterStars'      , np.float32),                  
-            ('SfrDisk'                      , np.float32),                  
-            ('SfrBulge'                     , np.float32),                  
-            ('SfrDiskZ'                     , np.float32),                  
-            ('SfrBulgeZ'                    , np.float32),                  
-            ('DiskRadius'                   , np.float32),                  
-            ('Cooling'                      , np.float32),                  
-            ('Heating'                      , np.float32),
-            ('QuasarModeBHaccretionMass'    , np.float32),
-            ('TimeSinceMajorMerger'         , np.float32),
-            ('TimeSinceMinorMerger'         , np.float32),
-            ('OutflowRate'                  , np.float32),
-            ('infallMvir'                   , np.float32),
-            ('infallVvir'                   , np.float32),
-            ('infallVmax'                   , np.float32)
-            ]
+                        ('SnapNum'                      , np.int32),
+                        ('Type'                         , np.int32),
+                        ('GalaxyIndex'                  , np.int64),
+                        ('CentralGalaxyIndex'           , np.int64),
+                        ('CtreesHaloID'                 , np.int64),
+                        ('TreeIndex'                    , np.int32),
+                        ('CtreesCentralID'              , np.int64),
+                        ('mergeType'                    , np.int32),
+                        ('mergeIntoID'                  , np.int32),
+                        ('mergeIntoSnapNum'             , np.int32),
+                        ('dT'                           , np.float32),
+                        ('Pos'                          , (np.float32, 3)),
+                        ('Vel'                          , (np.float32, 3)),
+                        ('Spin'                         , (np.float32, 3)),
+                        ('Len'                          , np.int32),
+                        ('Mvir'                         , np.float32),
+                        ('CentralMvir'                  , np.float32),
+                        ('Rvir'                         , np.float32),
+                        ('Vvir'                         , np.float32),
+                        ('Vmax'                         , np.float32),
+                        ('VelDisp'                      , np.float32),
+                        ('ColdGas'                      , np.float32),
+                        ('StellarMass'                  , np.float32),
+                        ('BulgeMass'                    , np.float32),
+                        ('HotGas'                       , np.float32),
+                        ('EjectedMass'                  , np.float32),
+                        ('BlackHoleMass'                , np.float32),
+                        ('IntraClusterStars'            , np.float32),
+                        ('MetalsColdGas'                , np.float32),
+                        ('MetalsStellarMass'            , np.float32),
+                        ('MetalsBulgeMass'              , np.float32),
+                        ('MetalsHotGas'                 , np.float32),
+                        ('MetalsEjectedMass'            , np.float32),
+                        ('MetalsIntraClusterStars'      , np.float32),
+                        ('SfrDisk'                      , np.float32),
+                        ('SfrBulge'                     , np.float32),
+                        ('SfrDiskZ'                     , np.float32),
+                        ('SfrBulgeZ'                    , np.float32),
+                        ('DiskRadius'                   , np.float32),
+                        ('Cooling'                      , np.float32),
+                        ('Heating'                      , np.float32),
+                        ('QuasarModeBHaccretionMass'    , np.float32),
+                        ('TimeOfLastMajorMerger'         , np.float32),
+                        ('TimeOfLastMinorMerger'         , np.float32),
+                        ('OutflowRate'                  , np.float32),
+                        ('MeanStarAge'                  , np.float32),
+                        ('infallMvir'                   , np.float32),
+                        ('infallVvir'                   , np.float32),
+                        ('infallVmax'                   , np.float32)
+                        ]
         names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
         formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
         Galdesc = np.dtype({'names':names, 'formats':formats}, align=True)
@@ -564,7 +601,7 @@ if __name__ == '__main__':
         '-d',
         '--dir_name',
         dest='DirName',
-        default='./results/millennium/',
+        default='./millennium/',
         help='input directory name (default: ./results/millennium/)',
         metavar='DIR',
         )

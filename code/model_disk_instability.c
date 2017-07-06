@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -61,13 +62,73 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
         // ABORT(0);
       }
 
+      double gas_before = 1.0*Gal[p].ColdGas;
+
       unstable_gas_fraction = unstable_gas / Gal[p].ColdGas;
       if(AGNrecipeOn > 0)
         grow_black_hole(p, unstable_gas_fraction);
+        
+//      unstable_gas = unstable_gas - (gas_before-Gal[p].ColdGas);
+//      if(unstable_gas>1e-8) instability_burst(p, centralgal, unstable_gas, time, dt, step);
     
       collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, time, dt, halonr, 1, step);
     }
 
   }
+
+}
+
+
+void instability_burst(int p, int centralgal, double unstable_gas, double time, double dt, int step)
+{
+    double stars, reheated_mass, ejected_mass, metallicity, FracZleaveDiskVal;
+    
+    if(SupernovaRecipeOn == 1)
+    {
+        stars = unstable_gas/(1 + FeedbackReheatingEpsilon);
+        reheated_mass = FeedbackReheatingEpsilon * stars;
+        if((stars+reheated_mass<1.001*unstable_gas) && (stars+reheated_mass>unstable_gas/1.001)) unstable_gas = stars+reheated_mass;
+        if(!(stars+reheated_mass<=unstable_gas)) printf("reheated_mass+stars, unstable_gas = %e, %e\n", reheated_mass+stars, unstable_gas);
+        assert(stars+reheated_mass==unstable_gas);
+        
+        if(Gal[centralgal].Vvir > 0.0)
+            ejected_mass = (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -FeedbackReheatingEpsilon) * stars;
+        else
+            ejected_mass = 0.0;
+        
+        if(ejected_mass<0) ejected_mass = 0.0;
+    }
+    else
+    {
+        stars = 1.0*unstable_gas;
+        reheated_mass = 0.0;
+        ejected_mass = 0.0;
+    }
+    
+    Gal[p].SfrBulge[step] += stars / dt;
+    Gal[p].SfrBulgeColdGas[step] += Gal[p].ColdGas;
+    Gal[p].SfrBulgeColdGasMetals[step] += Gal[p].MetalsColdGas;
+
+    // update for star formation
+    metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+    update_from_star_formation(p, stars, metallicity, time);
+    Gal[p].BulgeMass += stars;
+    
+    // recompute the metallicity of the cold phase
+    metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+    
+    // update from SN feedback
+    update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity);
+    
+    // formation of new metals - instantaneous recycling approximation - only SNII
+    if(Gal[p].ColdGas > 1.0e-8)
+    {
+        FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
+        Gal[p].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
+        Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
+        // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
+    }
+    else
+        Gal[centralgal].MetalsHotGas += Yield * stars;
 
 }

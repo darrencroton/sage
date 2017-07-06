@@ -43,9 +43,9 @@ struct GALAXY_OUTPUT
 
   long long   GalaxyIndex;
   long long   CentralGalaxyIndex;
-  int   SAGEHaloIndex;
+  long long   SAGEHaloIndex;
   int   SAGETreeIndex;
-  int   SimulationFOFHaloIndex;
+  long long   SimulationFOFHaloIndex;
   
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
   int   mergeIntoID;
@@ -92,9 +92,10 @@ struct GALAXY_OUTPUT
   float Cooling;
   float Heating;
   float QuasarModeBHaccretionMass;
-  float TimeSinceMajorMerger;
-  float TimeSinceMinorMerger;
+  float TimeOfLastMajorMerger;
+  float TimeOfLastMinorMerger;
   float OutflowRate;
+  float MeanStarAge;
 
   // infall properties
   float infallMvir;
@@ -162,10 +163,13 @@ struct GALAXY
   double Heating;
   float r_heat;
   float QuasarModeBHaccretionMass;
-  float TimeSinceMajorMerger;
-  float TimeSinceMinorMerger;
+  float TimeOfLastMajorMerger;
+  float TimeOfLastMinorMerger;
   float OutflowRate;
-	float TotalSatelliteBaryons;
+  float TotalSatelliteBaryons;
+  int FormationSnapNum;
+  float SpinMagnitude;
+  float MeanStarAge;
 
   // infall properties
   float infallMvir;

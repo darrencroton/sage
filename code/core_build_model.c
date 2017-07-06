@@ -267,6 +267,12 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
 
+    // Check endianness and size of struct
+//    int x = 1;
+//    char *y = (char*)&x;
+//    printf("Endianness(little=1,big=0) %c\n",*y+48);
+//        printf("Size of struct %i\n", sizeof(Gal[0]));
+    
   centralgal = Gal[0].CentralGal;
 	assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
 

@@ -235,6 +235,7 @@ extern int    SupernovaRecipeOn;
 extern int    DiskInstabilityOn;
 extern int    AGNrecipeOn;
 extern int    SFprescription;
+extern int    MvirDefinition;
 
 // recipe parameters 
 extern double RecycleFraction;

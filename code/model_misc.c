@@ -178,7 +178,7 @@ double get_virial_radius(int halonr)
 {
   // return Halo[halonr].Rvir;  // Used for Bolshoi
 
-  double zplus1, hubble_of_z_sq, rhocrit, fac;
+  double zplus1, hubble_of_z_sq, rhocrit, fac, x, Delta;
   
   zplus1 = 1 + ZZ[Halo[halonr].SnapNum];
   hubble_of_z_sq =
@@ -186,7 +186,16 @@ double get_virial_radius(int halonr)
     OmegaLambda);
   
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * G);
-  fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);
+
+  if(MvirDefinition==1)
+  {
+    x = -OmegaLambda/(Omega * zplus1 * zplus1 * zplus1 + OmegaLambda);
+    Delta = 18*M_PI*M_PI + 82*x - 39*x*x;
+  }
+  else
+    Delta = 200.0;
+    
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   
   return cbrt(get_virial_mass(halonr) * fac);
 }

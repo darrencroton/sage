@@ -6,7 +6,7 @@ FileNameGalaxies       model
 OutputDir               output/results/MDPL
 
 FirstFile					0
-LastFile					999
+LastFile					1
 
 
 %------------------------------------------
@@ -24,8 +24,8 @@ NumOutputs        -1   ; sets the desired number of galaxy outputs; use -1 for a
 %------------------------------------------
 
 TreeName					lhalotree.bin		; assumes the trees are named TreeName.n where n is the snapshot number
-SimulationDir				/store/erebos/astevens/MDPL_trees/
-FileWithSnapList			/store/erebos/astevens/MDPL_trees/MDPL.a_list
+SimulationDir				/Users/astevens/trees/MDPL/
+FileWithSnapList			/Users/astevens/trees/MDPL/MDPL.a_list
 LastSnapShotNr				125
 
 Omega				0.307115
@@ -45,6 +45,7 @@ AGNrecipeOn					2		;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: 
 SupernovaRecipeOn			1		;0: switch off
 ReionizationOn				1		;0: switch off
 DiskInstabilityOn			1		;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
+MvirDefinition              1       ;0: M200c, 1: Bryan and Norman (1998)
 
 
 %------------------------------------------
@@ -58,7 +59,7 @@ FeedbackEjectionEfficiency	0.3 	;mixing efficiency of SN energy with hot gas to 
 
 ReIncorporationFactor		0.15		;fraction of ejected mass reincorporated per dynamical time to hot
 
-RadioModeEfficiency			0.08	;AGN radio mode efficiency (AGNrecipeOn=2)
+RadioModeEfficiency			0.06	;AGN radio mode efficiency (AGNrecipeOn=2)
 QuasarModeEfficiency		0.005	;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
 BlackHoleGrowthRate			0.015	;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
 

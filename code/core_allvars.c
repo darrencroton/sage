@@ -57,6 +57,7 @@ int SupernovaRecipeOn;
 int DiskInstabilityOn;
 int AGNrecipeOn;
 int SFprescription;
+int MvirDefinition;
 
 
 // recipe parameters 

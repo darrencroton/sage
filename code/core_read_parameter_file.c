@@ -102,10 +102,14 @@ void read_parameter_file(char *fname)
   addr[nt] = &DiskInstabilityOn;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "MvirDefinition");
+  addr[nt] = &MvirDefinition;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "SFprescription");
   addr[nt] = &SFprescription;
   id[nt++] = INT;
-
+    
   strcpy(tag[nt], "AGNrecipeOn");
   addr[nt] = &AGNrecipeOn;
   id[nt++] = INT;

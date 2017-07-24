@@ -152,8 +152,10 @@ double dmax(double x, double y)
 
 double get_virial_mass(int halonr)
 {
-  if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
-    return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
+  if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].M_BN98 >= 0.0 && MvirDefinition==1)
+    return Halo[halonr].M_BN98;   /* take spherical overdensity mass estimate */
+  else if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].M_200c >= 0.0 && MvirDefinition==0)
+      return Halo[halonr].M_200c;
   else
     return Halo[halonr].Len * PartMass;
 }

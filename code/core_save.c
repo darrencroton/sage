@@ -144,6 +144,12 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->Vvir = get_virial_velocity(g->HaloNr);  // output the actual Vvir, not the maximum Vvir
   o->Vmax = g->Vmax;
   o->VelDisp = Halo[g->HaloNr].VelDisp;
+    
+  if(MvirDefinition==1)
+    o->M_otherVir = Halo[g->HaloNr].M_200c;
+  else
+    o->M_otherVir = Halo[g->HaloNr].M_BN98;
+    
 
   o->ColdGas = g->ColdGas;
   o->StellarMass = g->StellarMass;

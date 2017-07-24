@@ -63,6 +63,7 @@ struct GALAXY_OUTPUT
   float Vvir;
   float Vmax;
   float VelDisp;
+    float M_otherVir;
 
   // baryonic reservoirs 
   float ColdGas;

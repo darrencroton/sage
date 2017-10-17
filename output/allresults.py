@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 
@@ -8,6 +9,16 @@ import numpy as np
 import pylab as plt
 from random import sample, seed
 from os.path import getsize as getFileSize
+
+
+# ================================================================================
+# To avoid problem xrange problem in Python 3
+# ================================================================================
+try:
+    xrange
+except NameError:
+    xrange=range
+
 
 # ================================================================================
 # Basic variables
@@ -35,7 +46,7 @@ plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
 # plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
-plt.rc('text', usetex=True)
+plt.rc('text', usetex=False)
 
 OutputDir = '' # set in main below
 
@@ -65,7 +76,7 @@ class Results:
           self.MaxTreeFiles = 512   # FilesPerSnapshot
 
         else:
-          print "Please pick a valid simulation!"
+          print ("Please pick a valid simulation!")
           exit(1)
 
 
@@ -123,8 +134,11 @@ class Results:
             ('infallVvir'                   , np.float32),
             ('infallVmax'                   , np.float32)
             ]
-        names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-        formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
+        names = [a for (a, _) in Galdesc_full]
+        formats = [a for (_, a) in Galdesc_full]
+ 		print("names = {0}".format(names))
+#        names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
+#        formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
         Galdesc = np.dtype({'names':names, 'formats':formats}, align=True)
 
 
@@ -133,7 +147,7 @@ class Results:
         TotNGals = 0
         FileIndexRanges = []
 
-        print "Determining array storage requirements."
+        print ("Determining array storage requirements.")
         
         # Read each file and determine the total number of galaxies to be read in
         goodfiles = 0
@@ -145,7 +159,7 @@ class Results:
               continue
 
             if getFileSize(fname) == 0:
-                print "File\t%s  \tis empty!  Skipping..." % (fname)
+                print ("File\t%s  \tis empty!  Skipping..." % (fname))
                 continue
         
             fin = open(fname, 'rb')  # Open the file
@@ -157,7 +171,7 @@ class Results:
             fin.close()
 
         print
-        print "Input files contain:\t%d trees ;\t%d galaxies ." % (TotNTrees, TotNGals)
+        print ("Input files contain:\t%d trees ;\t%d galaxies ." % (TotNTrees, TotNGals))
         print
 
         # Initialize the storage array
@@ -166,7 +180,7 @@ class Results:
         offset = 0  # Offset index for storage array
 
         # Open each file in turn and read in the preamble variables and structure.
-        print "Reading in files."
+        print ("Reading in files.")
         for fnr in xrange(first_file,last_file+1):
             fname = model_name+'_'+str(fnr)  # Complete filename
         
@@ -180,7 +194,7 @@ class Results:
             Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
             NtotGals = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
             GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
-            print ":   Reading N=", NtotGals, "   \tgalaxies from file: ", fname
+            print (":   Reading N=", NtotGals, "   \tgalaxies from file: ", fname)
             GG = np.fromfile(fin, Galdesc, NtotGals)  # Read in the galaxy structures
         
             FileIndexRanges.append((offset,offset+NtotGals))
@@ -198,13 +212,13 @@ class Results:
 
 
         print
-        print "Total galaxies considered:", TotNGals
+        print ("Total galaxies considered:", TotNGals)
 
         # Convert the Galaxy array into a recarray
         G = G.view(np.recarray)
 
         w = np.where(G.StellarMass > 1.0)[0]
-        print "Galaxies more massive than 10^10Msun/h:", len(w)
+        print ("Galaxies more massive than 10^10Msun/h:", len(w))
 
         print
 
@@ -217,7 +231,7 @@ class Results:
 
     def StellarMassFunction(self, G):
 
-        print 'Plotting the stellar mass function'
+        print ('Plotting the stellar mass function')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -357,7 +371,7 @@ class Results:
 
         outputFile = OutputDir + '1.StellarMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -368,7 +382,7 @@ class Results:
 
     def BaryonicMassFunction(self, G):
 
-        print 'Plotting the baryonic mass function'
+        print ('Plotting the baryonic mass function')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -423,7 +437,7 @@ class Results:
 
         outputFile = OutputDir + '2.BaryonicMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -434,7 +448,7 @@ class Results:
    
     def GasMassFunction(self, G):
 
-        print 'Plotting the cold gas mass function'
+        print ('Plotting the cold gas mass function')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -552,7 +566,7 @@ class Results:
 
         outputFile = OutputDir + '3.GasMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -563,7 +577,7 @@ class Results:
     
     def BaryonicTullyFisher(self, G):
     
-        print 'Plotting the baryonic TF relationship'
+        print ('Plotting the baryonic TF relationship')
     
         seed(2222)
     
@@ -573,7 +587,7 @@ class Results:
         # w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & (G.Vmax > 0.0))[0]
         w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & 
           (G.BulgeMass / G.StellarMass > 0.1) & (G.BulgeMass / G.StellarMass < 0.5))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
     
         mass = np.log10((G.StellarMass[w] + G.ColdGas[w]) * 1.0e10 / self.Hubble_h)
         vel = np.log10(G.Vmax[w])
@@ -601,7 +615,7 @@ class Results:
             
         outputFile = OutputDir + '4.BaryonicTullyFisher' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -612,7 +626,7 @@ class Results:
     
     def SpecificStarFormationRate(self, G):
     
-        print 'Plotting the specific SFR'
+        print ('Plotting the specific SFR')
     
         seed(2222)
     
@@ -620,7 +634,8 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
 
         w = np.where(G.StellarMass > 0.01)[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): 
+            w = sample(list(w), dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         sSFR = np.log10( (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h) )
@@ -646,7 +661,7 @@ class Results:
             
         outputFile = OutputDir + '5.SpecificStarFormationRate' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -657,7 +672,7 @@ class Results:
 
     def GasFraction(self, G):
     
-        print 'Plotting the gas fractions'
+        print ('Plotting the gas fractions')
     
         seed(2222)
     
@@ -666,7 +681,7 @@ class Results:
 
         w = np.where((G.Type == 0) & (G.StellarMass + G.ColdGas > 0.0) & 
           (G.BulgeMass / G.StellarMass > 0.1) & (G.BulgeMass / G.StellarMass < 0.5))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         fraction = G.ColdGas[w] / (G.StellarMass[w] + G.ColdGas[w])
@@ -689,7 +704,7 @@ class Results:
             
         outputFile = OutputDir + '6.GasFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -700,7 +715,7 @@ class Results:
 
     def Metallicity(self, G):
     
-        print 'Plotting the metallicities'
+        print ('Plotting the metallicities')
     
         seed(2222)
     
@@ -708,7 +723,7 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
 
         w = np.where((G.Type == 0) & (G.ColdGas / (G.StellarMass + G.ColdGas) > 0.1) & (G.StellarMass > 0.01))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
         
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         Z = np.log10((G.MetalsColdGas[w] / G.ColdGas[w]) / 0.02) + 9.0
@@ -741,7 +756,7 @@ class Results:
             
         outputFile = OutputDir + '7.Metallicity' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -752,7 +767,7 @@ class Results:
 
     def BlackHoleBulgeRelationship(self, G):
     
-        print 'Plotting the black hole-bulge relationship'
+        print ('Plotting the black hole-bulge relationship')
     
         seed(2222)
     
@@ -760,7 +775,7 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
     
         w = np.where((G.BulgeMass > 0.01) & (G.BlackHoleMass > 0.00001))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
     
         bh = np.log10(G.BlackHoleMass[w] * 1.0e10 / self.Hubble_h)
         bulge = np.log10(G.BulgeMass[w] * 1.0e10 / self.Hubble_h)
@@ -788,7 +803,7 @@ class Results:
             
         outputFile = OutputDir + '8.BlackHoleBulgeRelationship' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -799,7 +814,7 @@ class Results:
     
     def QuiescentFraction(self, G):
     
-        print 'Plotting the quiescent fraction vs stellar mass'
+        print ('Plotting the quiescent fraction vs stellar mass')
     
         seed(2222)
     
@@ -897,7 +912,7 @@ class Results:
             
         outputFile = OutputDir + '9.QuiescentFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -908,7 +923,7 @@ class Results:
 
     def BulgeMassFraction(self, G):
     
-        print 'Plotting the mass fraction of galaxies'
+        print ('Plotting the mass fraction of galaxies')
     
         seed(2222)
 
@@ -962,7 +977,7 @@ class Results:
 
         outputFile = OutputDir + '10.BulgeMassFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -973,7 +988,7 @@ class Results:
     
     def BaryonFraction(self, G):
     
-        print 'Plotting the average baryon fraction vs halo mass'
+        print ('Plotting the average baryon fraction vs halo mass')
     
         seed(2222)
     
@@ -1046,7 +1061,7 @@ class Results:
                 MeanICS.append(np.mean(ICS))
                 MeanBH.append(np.mean(BH))
                 
-                print '  ', i, HaloRange[i], HalosFound, np.mean(BaryonFraction)
+                print ('  ', i, HaloRange[i], HalosFound, np.mean(BaryonFraction))
         
         plt.plot(MeanCentralHaloMass, MeanBaryonFraction, 'k-', label='TOTAL')#, color='purple', alpha=0.3)
         plt.fill_between(MeanCentralHaloMass, MeanBaryonFractionU, MeanBaryonFractionL, 
@@ -1075,7 +1090,7 @@ class Results:
             
         outputFile = OutputDir + '11.BaryonFraction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -1086,7 +1101,7 @@ class Results:
 
     def SpinDistribution(self, G):
     
-        print 'Plotting the spin distribution of all galaxies'
+        print ('Plotting the spin distribution of all galaxies')
 
         # set up figure
         plt.figure()
@@ -1115,7 +1130,7 @@ class Results:
 
         outputFile = OutputDir + '12.SpinDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -1126,7 +1141,7 @@ class Results:
 
     def VelocityDistribution(self, G):
     
-        print 'Plotting the velocity distribution of all galaxies'
+        print ('Plotting the velocity distribution of all galaxies')
     
         seed(2222)
     
@@ -1185,7 +1200,7 @@ class Results:
 
         outputFile = OutputDir + '13.VelocityDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -1196,7 +1211,7 @@ class Results:
 
     def MassReservoirScatter(self, G):
     
-        print 'Plotting the mass in stellar, cold, hot, ejected, ICS reservoirs'
+        print ('Plotting the mass in stellar, cold, hot, ejected, ICS reservoirs')
     
         seed(2222)
     
@@ -1204,7 +1219,7 @@ class Results:
         ax = plt.subplot(111)  # 1 plot on the figure
     
         w = np.where((G.Type == 0) & (G.Mvir > 1.0) & (G.StellarMass > 0.0))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
 
         mvir = np.log10(G.Mvir[w] * 1.0e10)
         plt.scatter(mvir, np.log10(G.StellarMass[w] * 1.0e10), marker='o', s=0.3, c='k', alpha=0.5, label='Stars')
@@ -1227,7 +1242,7 @@ class Results:
             
         outputFile = OutputDir + '14.MassReservoirScatter' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -1238,14 +1253,14 @@ class Results:
 
     def SpatialDistribution(self, G):
     
-        print 'Plotting the spatial distribution of all galaxies'
+        print ('Plotting the spatial distribution of all galaxies')
     
         seed(2222)
     
         plt.figure()  # New figure
     
         w = np.where((G.Mvir > 0.0) & (G.StellarMass > 0.1))[0]
-        if(len(w) > dilute): w = sample(w, dilute)
+        if(len(w) > dilute): w = sample(list(w), dilute)
 
         xx = G.Pos[w,0]
         yy = G.Pos[w,1]
@@ -1275,7 +1290,7 @@ class Results:
             
         outputFile = OutputDir + '15.SpatialDistribution' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
             
         # Add this plot to our output list
@@ -1334,7 +1349,7 @@ if __name__ == '__main__':
 
     res = Results()
 
-    print 'Running allresults...'
+    print ('Running allresults...')
 
     FirstFile = opt.FileRange[0]
     LastFile = opt.FileRange[1]

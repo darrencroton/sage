@@ -34,6 +34,12 @@ do {                                                                \
 #define  SEC_PER_MEGAYEAR   3.155e13
 #define  SEC_PER_YEAR       3.155e7
 
+// radio AGN jet model
+#define  M_PER_MPC   3.085678e22
+#define  gamma_c      4.0/3.0
+#define  gamma_x      5.0/3.0
+#define  gamma_isothermal 1.5
+
 
 // This structure contains the properties that are output
 struct GALAXY_OUTPUT  
@@ -100,6 +106,36 @@ struct GALAXY_OUTPUT
   float infallMvir;
   float infallVvir;
   float infallVmax;
+
+// radio AGN jet model
+  float Qjet;
+  float Rcocoon;
+  float Rshocked;
+  float t_AGN_return;
+  float t_AGN_on;
+  float Tshocked;
+  float Mshocked;
+  float RadioLuminosity[7];
+  float RadioLuminosity_lifetime[600];
+  float Rshocked_lifetime[600];
+  float RadioAGNaccretionRate;
+  float rho_zero_Makino;
+  float rho_zero_Capelo;
+  float rho_zero_iso;
+  float b_gas;
+  float Rs;
+  float concentration;
+  float Temp_Gas;
+  float Lx_bol;
+  float R_index;
+  float Q_index;
+  float R_cool;
+  float fcool;
+  float t_static;
+  float t_AGN_off;
+  float time_to_next_on;
+  float delta;
+  float t_cool_Makino;
 };
 
 
@@ -171,6 +207,36 @@ struct GALAXY
   float infallMvir;
   float infallVvir;
   float infallVmax;
+
+// radio AGN jet model
+  double Qjet;
+  float Rcocoon;
+  float Rshocked;
+  float t_AGN_return;
+  float t_AGN_on;
+  float Tshocked;
+  float Mshocked;
+  double RadioLuminosity[7];
+  double RadioLuminosity_lifetime[600];
+  float Rshocked_lifetime[600];
+  float RadioAGNaccretionRate;
+  float rho_zero_Makino;
+  float rho_zero_Capelo;
+  float rho_zero_iso;
+  float b_gas;
+  float Rs;
+  float concentration;
+  float Temp_Gas;
+  float Lx_bol;
+  float R_index;
+  float Q_index;
+  float R_cool;  
+  float fcool;
+  float t_static;
+  float t_AGN_off;
+  float time_to_next_on;
+  float delta;
+  float t_cool_Makino;
 }
 *Gal, *HaloGal;
 
@@ -231,6 +297,19 @@ extern int    SupernovaRecipeOn;
 extern int    DiskInstabilityOn;
 extern int    AGNrecipeOn;
 extern int    SFprescription;
+
+// radio AGN jet model
+extern int    AGN_model;
+extern int    Density_model;
+extern int    Uplifting;
+extern int    Concentration_Model;
+extern double  Co_delta;
+extern double  Co_return;
+extern double  eta;
+extern double  AxialRatiojet;
+extern double  a_D;
+extern double  Co_ton;
+extern double  Co_conc;
 
 // recipe parameters 
 extern double RecycleFraction;

@@ -166,6 +166,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
           Gal[ngal].Heating = 0.0;
           Gal[ngal].QuasarModeBHaccretionMass = 0.0;
           Gal[ngal].OutflowRate = 0.0;
+          Gal[ngal].Lx_bol = 0.0;
 
           for(step = 0; step < STEPS; step++)
           {
@@ -302,7 +303,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 					strip_from_satellite(halonr, centralgal, p);
 
       // Determine the cooling gas given the halo properties 
-      coolingGas = cooling_recipe(p, deltaT / STEPS);
+      coolingGas = cooling_recipe(p, centralgal, deltaT / STEPS, time);
       cool_gas_onto_galaxy(p, coolingGas);
 
       // stars form and then explode! 
@@ -370,6 +371,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
     Gal[p].OutflowRate /= deltaT;    
+    Gal[p].Lx_bol /= deltaT;
 		
     if(p != centralgal)
 			Gal[centralgal].TotalSatelliteBaryons += 

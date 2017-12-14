@@ -208,6 +208,53 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->infallVmax = 0.0;
   }
 
+  // radio AGN jet model
+  o->Qjet =  log10(g->Qjet);
+  o->Rcocoon =  g->Rcocoon;
+  o->Rshocked =  g->Rshocked;
+  o->t_AGN_return =  g->t_AGN_return;
+  o->t_AGN_on =  g->t_AGN_on;
+  o->Tshocked =  g->Tshocked;
+  o->Mshocked =  g->Mshocked;
+  
+  for(j = 0; j < 7; j++)
+  {
+      o->RadioLuminosity[j] = g->RadioLuminosity[j];
+  }
+  
+  for(j = 0; j < 600; j++)
+  {
+      o->RadioLuminosity_lifetime[j] = g->RadioLuminosity_lifetime[j];
+  }
+  for(j = 0; j < 600; j++)
+  {
+      o->Rshocked_lifetime[j] = g->Rshocked_lifetime[j];
+  }
+  
+  o->RadioAGNaccretionRate  = g->RadioAGNaccretionRate;
+  o->rho_zero_Makino =  g->rho_zero_Makino;
+  o->rho_zero_Capelo =  g->rho_zero_Capelo;
+  o->rho_zero_iso =  g->rho_zero_iso;
+  o->b_gas =  g->b_gas;
+  o->Rs =  g->Rs;
+  o->concentration=  g->concentration;
+  o->Temp_Gas =  g->Temp_Gas;
+  
+  if (g->Lx_bol > 0.0)
+    o->Lx_bol =  log10(g->Lx_bol * UnitEnergy_in_cgs/UnitTime_in_s ) ;
+  else
+    o->Lx_bol = 0.0;
+  
+  o->R_index =  g->R_index;
+  o->Q_index =  g->Q_index;
+  o->R_cool =  g->R_cool;
+  o->fcool =  g->fcool;
+  o->t_static =  g->t_static;
+  o->t_AGN_off=  g->t_AGN_off;
+  o->time_to_next_on = g->time_to_next_on;
+  o->delta=  g->delta;
+  o->t_cool_Makino=  g->t_cool_Makino * UnitTime_in_s / SEC_PER_MEGAYEAR ;
+
 }
 
 

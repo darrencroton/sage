@@ -77,6 +77,20 @@ double Reionization_zr;
 double ThresholdSatDisruption;
 
 
+// radio AGN jet model
+int AGN_model;
+int Density_model;
+int Uplifting;
+int Concentration_Model;
+double Co_delta;
+double Co_return;
+double eta;
+double AxialRatiojet;
+double a_D;
+double Co_ton;
+double Co_conc;
+
+
 // more misc 
 double UnitLength_in_cm,
   UnitTime_in_s,

@@ -3,7 +3,7 @@
 %------------------------------------------
 
 FileNameGalaxies       model
-OutputDir              ./output/results/millennium/
+OutputDir              /Users/dcroton/Science/results/millennium
 
 FirstFile         0
 LastFile          7
@@ -74,6 +74,24 @@ Reionization_zr         7.0   ;using the analytic fit of Kravtsov et al. 2004 (R
 
 EnergySN                1.0e51  ;energy per supernova
 EtaSN                   5.0e-3  ;supernova efficiency
+
+
+%---------------------------------------------------------
+%----- Radio-SAGE model parameters (Raouf et al.) --------
+%---------------------------------------------------------
+
+AGN_model                       0       ;0: Radio mode feedback Croton (2006); 1: jet-model re-new temperature (prep: Raouf et al.)
+Density_model                   0       ;0: Isothermal density profile; 1: Makino et al. (1998) (prep: Raouf et al.)
+Uplifting                       0       ;0: Just New-Hot , 1 : New-Hot+Uplifting  for AGN_model=1  (prep: Raouf et al.)
+Concentration_Model             0       ;0: Bullock et al. 2001, 1: Prada et al. 2012
+
+Co_delta                       0.05     ;Coefficient of duty cycle
+Co_return                       2.0     ;Coefficient of return time episode of AGN
+eta                             0.35    ;Coefficient of ADAF Jet power
+AxialRatiojet                   6.0     ;Axial Ratio jet
+a_D                             1.0     ;Coefficient of  ... Cocoon radius
+Co_ton                          120.0   ;Coefficient of AGN active time 
+Co_conc                         4.0     ;Coefficient of Bullock concentration
 
 
 %------------------------------------------

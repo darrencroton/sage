@@ -85,7 +85,48 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallMvir = -1.0;  
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
+
+  // radio AGN jet model
+  Gal[p].Qjet = 0.0;
+  Gal[p].Rcocoon = 0.0;
+  Gal[p].Rshocked = 0.0;
+  Gal[p].t_AGN_return = 0.0;
+  Gal[p].t_AGN_on = 0.0;
+  Gal[p].Tshocked = 0.0;
+  Gal[p].Mshocked = 0.0;
+
+  for(j = 0; j < 7; j++)
+  {
+      Gal[p].RadioLuminosity[j] = 0.0;
+  }
+  for(j = 0; j < 600; j++)
+  {
+      Gal[p].RadioLuminosity_lifetime[j] = -999.0;
+  }
+  for(j = 0; j < 600; j++)
+  {
+      Gal[p].Rshocked_lifetime[j] = -999.0;
+  }
   
+  Gal[p].RadioAGNaccretionRate = 0.0;
+  Gal[p].rho_zero_Makino = 0.0;
+  Gal[p].rho_zero_Capelo = 0.0;
+  Gal[p].rho_zero_iso = 0.0;
+  Gal[p].b_gas = 0.0;
+  Gal[p].Rs = 0.0;
+  Gal[p].concentration = 0.0;
+  Gal[p].Temp_Gas = 0.0;
+  Gal[p].Lx_bol = 0.0;
+  Gal[p].R_index = 0.0;
+  Gal[p].Q_index = 0.0;
+  Gal[p].R_cool = 0.0;
+  Gal[p].fcool = 0.0;
+  Gal[p].t_static = 0.0;
+  Gal[p].t_AGN_off = 0.0;
+  Gal[p].time_to_next_on = 0.0;
+  Gal[p].delta = 0.0;
+  Gal[p].t_cool_Makino = 0.0;
+
 }
 
 

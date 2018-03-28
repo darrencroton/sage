@@ -42,6 +42,10 @@ void read_parameter_file(char *fname)
   addr[nt] = TreeName;
   id[nt++] = STRING;
 
+  strcpy(tag[nt], "FileType");
+  addr[nt] = FileType;
+  id[nt++] = STRING;
+
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
@@ -296,5 +300,16 @@ void read_parameter_file(char *fname)
 		
 		printf("\n");
 	}
+
+  // Check file type is valid. 
+
+  if (strncmp(FileType, "binary", 511) == 0) // strncmp returns 0 if the two strings are equal. 
+  {
+    snprintf(TreeExtension, 511, ""); 
+  }
+  else
+  {  
+    snprintf(TreeExtension, 511, ".hdf5");
+  }
 
 }

@@ -23,6 +23,7 @@ INCL   =	./code/core_allvars.h  \
 			./Makefile
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
+USE-HDF5 = yes
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel

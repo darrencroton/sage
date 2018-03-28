@@ -11,6 +11,11 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+#ifdef HDF5
+#include <hdf5_hl.h>
+
+hid_t hdf_file;
+#endif
 
 // keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
@@ -18,12 +23,25 @@ FILE* load_fd = NULL;
 
 void load_tree_table(int filenr)
 {
+  if (strncmp(FileType, "binary", 512) == 0)
+  {
+    load_tree_table_binary(filenr);
+  }
+  else
+  {
+    load_tree_table_hdf(filenr);
+  }
+
+}
+
+void load_tree_table_binary(int filenr)
+{
   int i, n, totNHalos;
   char buf[1000];
   FILE *fd;
 
 	// open the file each time this function is called
-  sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
+  sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
@@ -62,6 +80,59 @@ void load_tree_table(int filenr)
   }
 }
 
+void load_tree_table_hdf(int filenr)
+{
+
+  char buf[1000];
+
+  herr_t status;
+  hid_t attr_id, attr_space;
+
+  hsize_t *attr_dim;
+
+  sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  hdf_file = H5open(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
+  if (hdf_file < 0)
+  {
+    printf("can't open file `%s'\n", buf);
+    ABORT(0);    
+  }
+
+  H5LTget_attribute_int(hdf_file, "/Header", "Ntrees", &Ntrees);
+  H5LTget_attribute_int(hdf_file, "/Header", "totNHalos", &totNHalos);
+
+  TreeNHalos = mymalloc(sizeof(int) * Ntrees); 
+
+  attr_id = H5Aopen_by_name(hdf_file, "/Header", "TreeNHalos", H5P_DEFAULT, H5P_DEFAULT);
+  attr_space = H5Aget_space(attr_id);
+
+  attr_dim = malloc(sizeof(int)* Ntrees);
+  if(attr_dim == NULL) 
+  {
+    fprintf(stderr,  "dimensions of attribute in HDF5 file");
+    exit(EXIT_FAILURE);
+  }
+
+  status = H5Sget_simple_extent_dims(attr_space, attr_dim, NULL);
+  if(status<0.)
+  {
+    fprintf(stderr, "Failed to get dimensions of attribute in HDF5 file");
+    exit(EXIT_FAILURE);
+  }
+
+  status = H5Aread(attr_id, H5T_NATIVE_INT, TreeNHalos);
+  if(status<0.)
+  {
+    fprintf(stderr, "Failed to read attribute in HDF5 file");
+    exit(EXIT_FAILURE);
+  }
+  free(attr_dim);
+
+  status = H5Sclose(attr_space);
+  status = H5Aclose(attr_id);
+  
+  exit(0);
+}
 
 
 void free_tree_table(void)

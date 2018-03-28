@@ -111,7 +111,7 @@ int main(int argc, char **argv)
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-    sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
+    sprintf(bufz0, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);

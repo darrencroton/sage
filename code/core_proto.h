@@ -11,6 +11,8 @@ void init(void);
 void set_units(void);
 
 void load_tree_table(int filenr);
+void load_tree_table_binary(int filenr);
+void load_tree_table_hdf(int filenr);
 void load_tree(int filenr, int nr);
 void save_galaxies(int filenr, int tree);
 

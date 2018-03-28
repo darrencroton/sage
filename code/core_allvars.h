@@ -201,6 +201,8 @@ extern int    LastSnapShotNr;
 extern char   OutputDir[512];
 extern char   FileNameGalaxies[512];
 extern char   TreeName[512];
+extern char   FileType[512];
+extern char   TreeExtension[512]; // If the trees are in HDF5, they will have a .hdf5 extension.
 extern char   SimulationDir[512];
 extern char   FileWithSnapList[512];
 

@@ -59,36 +59,22 @@ void free_tree_table(void)
 
 
 
-void load_tree(int filenr, int nr)
+void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
 {
-  int i;
-
-  // must have an FD
-  assert( load_fd );
-
-  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);
-
-  myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
-
-  MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
-  if(MaxGals < 10000)
-    MaxGals = 10000;
-
-  FoF_MaxGals = 10000;
-
-  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
-  HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
-  Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-
-  for(i = 0; i < TreeNHalos[nr]; i++)
+  switch (my_TreeType)
   {
-    HaloAux[i].DoneFlag = 0;
-    HaloAux[i].HaloFlag = 0;
-    HaloAux[i].NGalaxies = 0;
+
+    case genesis_lhalo_hdf5:
+      load_tree_hdf5(filenr, treenr, hdf5_file);
+      break;
+
+    case lhalo_binary:
+      load_tree_binary(filenr, treenr, load_fd);
+      break;
+
   }
 
 }
-
 
 
 void free_galaxies_and_tree(void)

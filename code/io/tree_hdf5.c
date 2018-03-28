@@ -24,11 +24,11 @@ char name_TreeNHalos[MAX_STRING_LEN];
 // Local Proto-Types //
 
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
-int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, int *attribute);
+int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute);
 
 // External Functions //
 
-void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
+void load_tree_table_hdf5(int filenr, hid_t my_hdf5_file)
 {
 
   char buf[MAX_STRING_LEN];
@@ -38,8 +38,8 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
   struct METADATA_NAMES metadata_names;
 
   sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
-  hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
-  if (hdf5_file < 0)
+  my_hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
+  if (my_hdf5_file < 0)
   {
     printf("can't open file `%s'\n", buf);
     ABORT(0);    
@@ -51,7 +51,7 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
     ABORT(0);
   }
  
-  status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_NTrees, &Ntrees);
+  status = read_attribute_int(my_hdf5_file, "/Header", metadata_names.name_NTrees, &Ntrees);
   if (status != EXIT_SUCCESS)
   {
     fprintf(stderr, "Error while processing file %s\n", buf);
@@ -59,7 +59,7 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
     ABORT(0);
   }
 
-  status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_totNHalos, &totNHalos);
+  status = read_attribute_int(my_hdf5_file, "/Header", metadata_names.name_totNHalos, &totNHalos);
   if (status != EXIT_SUCCESS)  
   {
     fprintf(stderr, "Error while processing file %s\n", buf);
@@ -71,7 +71,7 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
   
   TreeNHalos = mymalloc(sizeof(int) * Ntrees); 
 
-  status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_TreeNHalos, TreeNHalos);
+  status = read_attribute_int(my_hdf5_file, "/Header", metadata_names.name_TreeNHalos, TreeNHalos);
   if (status != EXIT_SUCCESS)
   {
     fprintf(stderr, "Error while processing file %s\n", buf);
@@ -88,9 +88,17 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
     TreeFirstHalo[0] = 0;
   for(i = 1; i < Ntrees; i++)
     TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
- exit(0); 
+
 }
 
+void load_tree_hdf5(int32_t filenr, int32_t treenr, hid_t my_hdf5_file)
+{
+
+  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[treenr]);
+   
+  printf("Hello\n");
+  exit(0);
+}
 
 // Local Functions //
 
@@ -116,13 +124,13 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
   return EXIT_SUCCESS;
 }
 
-int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, int *attribute)
+int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute)
 {
 
   int32_t status;
   hid_t attr_id; 
 
-  attr_id = H5Aopen_by_name(hdf5_file, groupname, attr_name, H5P_DEFAULT, H5P_DEFAULT);
+  attr_id = H5Aopen_by_name(my_hdf5_file, groupname, attr_name, H5P_DEFAULT, H5P_DEFAULT);
   if (attr_id < 0)
   {
     fprintf(stderr, "Could not open the attribute %s in group %s\n", attr_name, groupname);

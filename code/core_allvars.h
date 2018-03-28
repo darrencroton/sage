@@ -5,6 +5,10 @@
 #include <gsl/gsl_rng.h>
 #include "core_simulation.h"
 
+#ifdef HDF5
+#include <hdf5.h>
+#endif
+
 #define ABORT(sigterm)                                                  \
 do {                                                                \
   printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
@@ -33,7 +37,6 @@ do {                                                                \
 
 #define  SEC_PER_MEGAYEAR   3.155e13
 #define  SEC_PER_YEAR       3.155e7
-
 
 // This structure contains the properties that are output
 struct GALAXY_OUTPUT  

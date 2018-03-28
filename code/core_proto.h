@@ -1,5 +1,6 @@
 #include "core_allvars.h"
 
+
 size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
@@ -12,7 +13,10 @@ void set_units(void);
 
 void load_tree_table(int filenr);
 void load_tree_table_binary(int filenr);
+#ifdef HDF5
 void load_tree_table_hdf(int filenr);
+int32_t read_attribute_int(hid_t hdf_file, char *groupname, char *attr_name, int *attribute);
+#endif
 void load_tree(int filenr, int nr);
 void save_galaxies(int filenr, int tree);
 

@@ -310,6 +310,11 @@ void read_parameter_file(char *fname)
   else
   {  
     snprintf(TreeExtension, 511, ".hdf5");
+#ifndef HDF5
+    fprintf(stderr, "You have specified to use a HDF5 file but have no compiled with the HDF5 option enabled.\n");
+    fprintf(stderr, "Please check your file type and compiler options.\n");
+    ABORT(0);
+#endif
   }
 
 }

@@ -25,11 +25,24 @@ INCL   =	./code/core_allvars.h  \
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 USE-HDF5 = yes
 
+LIBS =
+CFLAGS =
+OPTS =
+
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
     CC = cc  # sets the C-compiler
+endif
+
+ifdef USE-HDF5
+    HDF5INCL := -I/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/include
+    HDF5LIB := -L/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/lib
+
+    OPT += -DHDF5
+    LIBS += $(HDF5LIB) -lhdf5
+    CFLAGS += $(HDF5INCL) 
 endif
 
 # GSL automatic detection
@@ -52,9 +65,9 @@ endif
 
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
-LIBS   =   -g -lm  $(GSL_LIBS) 
+LIBS   +=   -g -lm  $(GSL_LIBS) 
 
-CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 
 default: all
 

@@ -12,7 +12,7 @@
 #include "core_proto.h"
 
 #ifdef HDF5
-#include <hdf5_hl.h>
+#include <hdf5.h>
 
 hid_t hdf_file;
 #endif
@@ -80,61 +80,105 @@ void load_tree_table_binary(int filenr)
   }
 }
 
+#ifdef HDF5
 void load_tree_table_hdf(int filenr)
 {
 
   char buf[1000];
-
-  herr_t status;
-  hid_t attr_id, attr_space;
-
-  hsize_t *attr_dim;
+  int32_t totNHalos, i;
+  int32_t status;
 
   sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
-  hdf_file = H5open(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
+  hdf_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
   if (hdf_file < 0)
   {
     printf("can't open file `%s'\n", buf);
     ABORT(0);    
   }
 
-  H5LTget_attribute_int(hdf_file, "/Header", "Ntrees", &Ntrees);
-  H5LTget_attribute_int(hdf_file, "/Header", "totNHalos", &totNHalos);
+  /*
+  struct METADATA_NAMES 
+  {
+    char name_NTrees[1024];
+    char name_totNHalos[1024];
+    char name_TreeNHalos[1024];
+  }; 
 
+  struct METADATA_NAMES *metadata_names;
+
+  snprintf(metadata_names->name_NTrees, 1023, "Ntrees");
+  snprintf(metadata_names->name_totNHalos, 1023, "totNHalos");
+  snprintf(metadata_names->name_totNHalos, 1023, "TreeNHalos");
+  */ 
+
+  status = read_attribute_int(hdf_file, "/Header", "Ntrees", &Ntrees);
+  if (status == EXIT_FAILURE)
+  {
+    fprintf(stderr, "Error while processing file %s\n", buf);
+    ABORT(0);
+  }
+
+  status = read_attribute_int(hdf_file, "/Header", "totNHalos", &totNHalos);
+  if (status == EXIT_FAILURE)
+  {
+    fprintf(stderr, "Error while processing file %s\n", buf);
+    ABORT(0);
+  }
+
+  printf("There are %d trees and %d total halos\n", Ntrees, totNHalos);
+  
   TreeNHalos = mymalloc(sizeof(int) * Ntrees); 
 
-  attr_id = H5Aopen_by_name(hdf_file, "/Header", "TreeNHalos", H5P_DEFAULT, H5P_DEFAULT);
-  attr_space = H5Aget_space(attr_id);
-
-  attr_dim = malloc(sizeof(int)* Ntrees);
-  if(attr_dim == NULL) 
+  status = read_attribute_int(hdf_file, "/Header", "TreeNHalos", TreeNHalos);
+  if (status == EXIT_FAILURE)
   {
-    fprintf(stderr,  "dimensions of attribute in HDF5 file");
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "Error while processing file %s\n", buf);
+    ABORT(0);
   }
 
-  status = H5Sget_simple_extent_dims(attr_space, attr_dim, NULL);
-  if(status<0.)
-  {
-    fprintf(stderr, "Failed to get dimensions of attribute in HDF5 file");
-    exit(EXIT_FAILURE);
-  }
+  TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
 
-  status = H5Aread(attr_id, H5T_NATIVE_INT, TreeNHalos);
-  if(status<0.)
-  {
-    fprintf(stderr, "Failed to read attribute in HDF5 file");
-    exit(EXIT_FAILURE);
-  }
-  free(attr_dim);
+  for (i = 0; i < 20; ++i)
+    printf("Tree %d: NHalos %d\n", i, TreeNHalos[i]);
 
-  status = H5Sclose(attr_space);
-  status = H5Aclose(attr_id);
-  
-  exit(0);
+  if(Ntrees)
+    TreeFirstHalo[0] = 0;
+  for(i = 1; i < Ntrees; i++)
+    TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
+ exit(0); 
 }
 
+int32_t read_attribute_int(hid_t hdf_file, char *groupname, char *attr_name, int *attribute)
+{
 
+  herr_t status;
+  hid_t attr_id; 
+
+  attr_id = H5Aopen_by_name(hdf_file, groupname, attr_name, H5P_DEFAULT, H5P_DEFAULT);
+  if (attr_id < 0.0)
+  {
+    fprintf(stderr, "Could not open the attribute %s in group %s\n", attr_name, groupname);
+    return EXIT_FAILURE;
+  }
+
+  status = H5Aread(attr_id, H5T_NATIVE_INT, attribute);
+  if (status < 0.0)
+  {
+    fprintf(stderr, "Could not read the attribute %s in group %s\n", attr_name, groupname);
+    return EXIT_FAILURE;
+  }
+    
+  status = H5Aclose(attr_id);
+  if (status < 0.0)
+  {
+    fprintf(stderr, "Error when closing the file.\n"); 
+    return EXIT_FAILURE;
+  }
+   
+  return EXIT_SUCCESS; 
+} 
+
+#endif
 void free_tree_table(void)
 {
   int n;

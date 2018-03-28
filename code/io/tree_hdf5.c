@@ -12,33 +12,21 @@
 #include "../core_proto.h"
 #include "tree_hdf5.h"
 
+// Local Structs //
+
+struct METADATA_NAMES 
+{
+char name_NTrees[MAX_STRING_LEN];
+char name_totNHalos[MAX_STRING_LEN];
+char name_TreeNHalos[MAX_STRING_LEN];
+}; 
+
 // Local Proto-Types //
 
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
 int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, int *attribute);
 
-// Local Functions //
-
-#ifdef HDF5
-int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
-{
-
-  /*
-  switch (my_FileType)
-  {
-
-    case genesis: 
-      printf("Hit genesis!");
-      break;
-
-    case binary: 
-      printf("If the file is binary then this function should never be called.  Something's gone wrong...");
-      return EXIT_FAILURE;
-  }
-  */
-  return EXIT_SUCCESS;
-}
-
+// External Functions //
 
 void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
 {
@@ -107,6 +95,28 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
  exit(0); 
 }
 
+
+// Local Functions //
+
+int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
+{
+
+  /*
+  switch (my_FileType)
+  {
+
+    case genesis: 
+      printf("Hit genesis!");
+      break;
+
+    case binary: 
+      printf("If the file is binary then this function should never be called.  Something's gone wrong...");
+      return EXIT_FAILURE;
+  }
+  */
+  return EXIT_SUCCESS;
+}
+
 int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, int *attribute)
 {
 
@@ -135,6 +145,4 @@ int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, in
   }
    
   return EXIT_SUCCESS; 
-} 
-
-#endif
+}

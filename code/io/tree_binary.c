@@ -12,6 +12,10 @@
 #include "../core_proto.h"
 #include "tree_binary.h"
 
+// Local Proto-Types //
+
+// External Functions //
+
 void load_tree_table_binary(int filenr, FILE *load_fd)
 {
   int i, n, totNHalos;
@@ -57,3 +61,6 @@ void load_tree_table_binary(int filenr, FILE *load_fd)
     TotGalaxies[n] = 0;
   }
 }
+
+// Local Functions //
+

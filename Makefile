@@ -71,7 +71,7 @@ OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   +=   -g -lm  $(GSL_LIBS) 
 
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS +=   -Werror $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 
 default: all
 

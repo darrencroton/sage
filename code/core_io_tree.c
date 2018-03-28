@@ -17,7 +17,7 @@
 FILE* load_fd = NULL;
 
 #ifdef HDF5
-hid_t hdf5_file = NULL;
+hid_t hdf5_file; 
 #endif
 
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)

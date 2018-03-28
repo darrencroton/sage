@@ -50,11 +50,7 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
   {
     ABORT(0);
   }
-
-  snprintf(metadata_names.name_NTrees, 1023, "Ntrees");
-  snprintf(metadata_names.name_totNHalos, 1023, "totNHalos");
-  snprintf(metadata_names.name_TreeNHalos, 1023, "TreeNHalos");
-  
+ 
   status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_NTrees, &Ntrees);
   if (status != EXIT_SUCCESS)
   {
@@ -101,19 +97,22 @@ void load_tree_table_hdf5(int filenr, hid_t hdf5_file)
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
 {
 
-  /*
-  switch (my_FileType)
+  switch (my_TreeType)
   {
 
-    case genesis: 
-      printf("Hit genesis!");
+    case genesis_lhalo_hdf5: 
+  
+      snprintf(metadata_names->name_NTrees, 1023, "Ntrees"); // Total number of trees within the file.
+      snprintf(metadata_names->name_totNHalos, 1023, "totNHalos"); // Total number of halos within the file.
+      snprintf(metadata_names->name_TreeNHalos, 1023, "TreeNHalos"); // Number of halos per tree within the file.
+
       break;
 
-    case binary: 
-      printf("If the file is binary then this function should never be called.  Something's gone wrong...");
+    case lhalo_binary: 
+      fprintf(stderr, "If the file is binary then this function should never be called.  Something's gone wrong...");
       return EXIT_FAILURE;
   }
-  */
+
   return EXIT_SUCCESS;
 }
 
@@ -127,7 +126,7 @@ int32_t read_attribute_int(hid_t hdf5_file, char *groupname, char *attr_name, in
   if (attr_id < 0)
   {
     fprintf(stderr, "Could not open the attribute %s in group %s\n", attr_name, groupname);
-    return status;
+    return attr_id;
   }
 
   status = H5Aread(attr_id, H5T_NATIVE_INT, attribute);

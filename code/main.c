@@ -131,7 +131,7 @@ int main(int argc, char **argv)
       fclose(fd);
 
     FileNum = filenr;
-    load_tree_table(filenr);
+    load_tree_table(filenr, TreeType);
 
     for(tree = 0; tree < Ntrees; tree++)
     {

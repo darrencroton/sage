@@ -12,12 +12,16 @@
 #define INT 3
 #define MAXTAGS 300
 
+// Local Proto-Types //
 
+int strcicmp(char const *a, char const *b);
+
+// Local Functions //
 
 void read_parameter_file(char *fname)
 {
   FILE *fd;
-  char buf[400], buf1[400], buf2[400], buf3[400];
+  char buf[MAX_STRING_LEN], buf1[MAX_STRING_LEN], buf2[MAX_STRING_LEN], buf3[MAX_STRING_LEN], my_treetype[MAX_STRING_LEN];
   int i, j, nt = 0, done;
   int id[MAXTAGS];
   void *addr[MAXTAGS];
@@ -42,8 +46,8 @@ void read_parameter_file(char *fname)
   addr[nt] = TreeName;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "FileType");
-  addr[nt] = FileType;
+  strcpy(tag[nt], "TreeType");
+  addr[nt] = my_treetype;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "SimulationDir");
@@ -303,12 +307,8 @@ void read_parameter_file(char *fname)
 
   // Check file type is valid. 
 
-  if (strncmp(FileType, "binary", 511) == 0) // strncmp returns 0 if the two strings are equal. 
+  if (strncmp(my_treetype, "binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files. 
   {
-    snprintf(TreeExtension, 511, ""); 
-  }
-  else
-  {  
     snprintf(TreeExtension, 511, ".hdf5");
 #ifndef HDF5
     fprintf(stderr, "You have specified to use a HDF5 file but have no compiled with the HDF5 option enabled.\n");
@@ -317,4 +317,16 @@ void read_parameter_file(char *fname)
 #endif
   }
 
+  // Recast the local treetype string to a global TreeType enum.
+
+  if (strcasecmp(my_treetype, "genesis_lhalo_hdf5") == 0)
+  {
+    TreeType = genesis_lhalo_hdf5;
+  }
+  else if (strcasecmp(my_treetype, "lhalo_binary") == 0)
+  {
+    TreeType = lhalo_binary;
+  }
+
 }
+

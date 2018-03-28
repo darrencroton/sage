@@ -22,13 +22,12 @@ int NumGals;			 // Total number of galaxies stored for current tree
 
 int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
 
-char OutputDir[512];
-char FileNameGalaxies[512];
-char TreeName[512];
-char FileType[512];
-char TreeExtension[512]; // If the trees are in HDF5, they will have a .hdf5 extension.
-char SimulationDir[512];
-char FileWithSnapList[512];
+char OutputDir[MAX_STRING_LEN];
+char FileNameGalaxies[MAX_STRING_LEN];
+char TreeName[MAX_STRING_LEN];
+char TreeExtension[MAX_STRING_LEN] = {"\0"}; // If the FileType is HDF5 they will have .hdf5 extension, otherwise nothing.
+char SimulationDir[MAX_STRING_LEN];
+char FileWithSnapList[MAX_STRING_LEN];
 
 int TotHalos;
 int TotGalaxies[ABSOLUTEMAXSNAPS];

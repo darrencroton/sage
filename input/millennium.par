@@ -24,7 +24,7 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %------------------------------------------
 
 TreeName              trees_063   ; assumes the trees are named TreeName.n where n is the file number
-FileType              HDF5 ; either 'HDF5' or 'binary'
+TreeType              genesis-lhalo-hdf5 ; either 'HDF5' or 'binary'
 SimulationDir         ./input/treefiles/millennium_mini/
 FileWithSnapList      ./input/treefiles/millennium_mini/millennium.a_list
 LastSnapShotNr        63

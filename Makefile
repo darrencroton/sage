@@ -15,11 +15,15 @@ OBJS   = 	./code/main.o \
 			./code/model_disk_instability.o \
 			./code/model_reincorporation.o \
 			./code/model_mergers.o \
-			./code/model_misc.o
+			./code/model_misc.o \
+			./code/io/tree_binary.o \
+			./code/io/tree_hdf5.o
 
 INCL   =	./code/core_allvars.h  \
 			./code/core_proto.h  \
 			./code/core_simulation.h  \
+			./code/io/tree_binary.h \
+			./code/io/tree_hdf5.h \
 			./Makefile
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel

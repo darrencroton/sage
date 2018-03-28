@@ -7,6 +7,7 @@ OBJS   = 	./code/main.o \
 			./code/core_cool_func.o \
 			./code/core_build_model.o \
 			./code/core_save.o \
+			./code/io/io_save_hdf5.o \
 			./code/core_mymalloc.o \
 			./code/core_allvars.o \
 			./code/model_infall.o \
@@ -24,7 +25,9 @@ INCL   =	./code/core_allvars.h  \
 			./code/core_simulation.h  \
 			./code/io/tree_binary.h \
 			./code/io/tree_hdf5.h \
+      ./code/io/io_save_hdf5.h \
 			./Makefile
+
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 USE-HDF5 = yes
@@ -41,13 +44,16 @@ else
 endif
 
 ifdef USE-HDF5
-    HDF5INCL := -I/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/include
-    HDF5LIB := -L/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/lib
+    HDF5DIR := usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+    HDF5INCL := -I$(HDF5DIR)/include
+    HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
 
     OPT += -DHDF5
-    LIBS += $(HDF5LIB) -lhdf5
+    LIBS += $(HDF5LIB)
     CFLAGS += $(HDF5INCL) 
 endif
+
+GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 1)"'
 
 # GSL automatic detection
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
@@ -70,8 +76,8 @@ endif
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   +=   -g -lm  $(GSL_LIBS) 
-
 CFLAGS +=   -Werror $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+
 
 default: all
 

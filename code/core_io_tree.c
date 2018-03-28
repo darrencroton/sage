@@ -10,25 +10,26 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+
 #include "io/tree_binary.h"
+#ifdef HDF5
 #include "io/tree_hdf5.h"
+hid_t hdf5_file;
+#endif
 
 // keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
-
-#ifdef HDF5
-hid_t hdf5_file; 
-#endif
 
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
 {
   switch (my_TreeType)
   {
-
+#ifdef HDF5
     case genesis_lhalo_hdf5:
       load_tree_table_hdf5(filenr, hdf5_file);
       break;
-
+#endif
+      
     case lhalo_binary:
       load_tree_table_binary(filenr, load_fd);
       break;
@@ -50,11 +51,11 @@ void free_tree_table(void)
   myfree(TreeFirstHalo);
   myfree(TreeNHalos);
 	
-	// Don't forget to free the open file handle
-	if(load_fd) {
-		fclose(load_fd);
-		load_fd = NULL;
-	}
+  // Don't forget to free the open file handle
+  if(load_fd) {
+    fclose(load_fd);
+    load_fd = NULL;
+  }
 }
 
 

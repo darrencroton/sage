@@ -1,26 +1,38 @@
 #include "core_allvars.h"
 
 
-// galaxy data 
+/*  galaxy data  */
 struct GALAXY			
   *Gal, *HaloGal;
 
 struct halo_data *Halo;
 
-// auxiliary halo data 
+/*  auxiliary halo data  */
 struct halo_aux_data		
   *HaloAux;
 
 
-// misc 
+/*  misc  */
+
+int HDF5Output;
+#ifdef HDF5
+char          *core_output_file;
+size_t         HDF5_dst_size;
+size_t        *HDF5_dst_offsets;
+size_t        *HDF5_dst_sizes;
+const char   **HDF5_field_names;
+hid_t         *HDF5_field_types;
+int            HDF5_n_props;
+#endif
+
 int FirstFile;
 int LastFile;
 int MaxGals;
 int FoF_MaxGals;
-int Ntrees;			   // number of trees in current file 
-int NumGals;			 // Total number of galaxies stored for current tree 
+int Ntrees;			   /*  number of trees in current file  */
+int NumGals;			 /*  Total number of galaxies stored for current tree  */
 
-int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
+int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
 
 char OutputDir[MAX_STRING_LEN];
 char FileNameGalaxies[MAX_STRING_LEN];
@@ -34,6 +46,7 @@ int TotGalaxies[ABSOLUTEMAXSNAPS];
 int *TreeNgals[ABSOLUTEMAXSNAPS];
 
 int LastSnapShotNr;
+double BoxSize;
 
 int *FirstHaloInSnap;
 int *TreeNHalos;
@@ -52,7 +65,7 @@ double EnergySNcode, EnergySN;
 double EtaSNcode, EtaSN;
 
 
-// recipe flags 
+/*  recipe flags  */
 int ReionizationOn;
 int SupernovaRecipeOn;
 int DiskInstabilityOn;
@@ -60,7 +73,12 @@ int AGNrecipeOn;
 int SFprescription;
 
 
-// recipe parameters 
+/*  recipe parameters  */
+int    NParam;
+char   ParamTag[MAXTAGS][50];
+int    ParamID[MAXTAGS];
+void   *ParamAddr[MAXTAGS];
+
 double RecycleFraction;
 double Yield;
 double FracZleaveDisk;
@@ -78,7 +96,7 @@ double Reionization_zr;
 double ThresholdSatDisruption;
 
 
-// more misc 
+/*  more misc  */
 double UnitLength_in_cm,
   UnitTime_in_s,
   UnitVelocity_in_cm_per_s,

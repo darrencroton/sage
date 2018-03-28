@@ -13,7 +13,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
-
+#include "io/io_save_hdf5.h"
 
 char bufz0[1000];
 int exitfail = 1;
@@ -104,6 +104,10 @@ int main(int argc, char **argv)
   read_parameter_file(argv[1]);
   init();
 
+#ifdef HDF5
+  if(HDF5Output)
+    calc_hdf5_props();
+#endif
 	
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
@@ -168,6 +172,20 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
   }
 
+  if(HDF5Output){
+    free_hdf5_ids();
+
+#ifdef MPI
+    // Create a single master HDF5 file with links to the other files...
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (ThisTask == 0)
+#endif
+      write_master_file();
+  
+  }
+
+
+
   //free Ages. But first
   //reset Age to the actual allocated address
   Age--;
@@ -176,4 +194,5 @@ int main(int argc, char **argv)
   exitfail = 0;
   return 0;
 }
+
 

@@ -232,9 +232,9 @@ class Results:
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
 
-        mi = int(np.floor(min(mass)) - 2)
-        ma = int(np.floor(max(mass)) + 2)
-        NB = int((ma - mi) / binwidth)
+        mi = np.floor(min(mass)) - 2)
+        ma = np.floor(max(mass)) + 2)
+        NB = (ma - mi) / binwidth)
         
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -1310,8 +1310,8 @@ if __name__ == '__main__':
         '-f',
         '--file_base',
         dest='FileName',
-        default='HDF5_z0.000',
-        help='filename base (default: binary_z0.000)',
+        default='model_z0.000',
+        help='filename base (default: model_z0.000)',
         metavar='FILE',
         )
     parser.add_option(

@@ -7,7 +7,6 @@ OBJS   = 	./code/main.o \
 			./code/core_cool_func.o \
 			./code/core_build_model.o \
 			./code/core_save.o \
-			./code/io/io_save_hdf5.o \
 			./code/core_mymalloc.o \
 			./code/core_allvars.o \
 			./code/model_infall.o \
@@ -18,15 +17,17 @@ OBJS   = 	./code/main.o \
 			./code/model_mergers.o \
 			./code/model_misc.o \
 			./code/io/tree_binary.o \
-			./code/io/tree_hdf5.o
+			./code/io/tree_hdf5.o 
+#			./code/io/io_save_hdf5.o 
 
 INCL   =	./code/core_allvars.h  \
 			./code/core_proto.h  \
 			./code/core_simulation.h  \
 			./code/io/tree_binary.h \
 			./code/io/tree_hdf5.h \
-      ./code/io/io_save_hdf5.h \
-			./Makefile
+			./Makefile 
+#	        ./code/io/io_save_hdf5.h 
+
 
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
@@ -40,7 +41,7 @@ ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
-    CC = cc  # sets the C-compiler
+    CC = gcc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
@@ -76,7 +77,7 @@ endif
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   +=   -g -lm  $(GSL_LIBS) 
-CFLAGS +=   -Werror $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 
 
 default: all

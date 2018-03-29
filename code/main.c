@@ -105,8 +105,8 @@ int main(int argc, char **argv)
   init();
 
 #ifdef HDF5
-  if(HDF5Output)
-    calc_hdf5_props();
+//  if(HDF5Output)
+//    calc_hdf5_props();
 #endif
 	
 #ifdef MPI
@@ -172,6 +172,7 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
   }
 
+/*
   if(HDF5Output){
     free_hdf5_ids();
 
@@ -180,10 +181,10 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     if (ThisTask == 0)
 #endif
-      write_master_file();
+      //write_master_file();
   
   }
-
+*/
 
 
   //free Ages. But first

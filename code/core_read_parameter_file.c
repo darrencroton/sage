@@ -35,8 +35,8 @@ void read_parameter_file(char *fname)
   ParamAddr[NParam] = &HDF5Output;
   ParamID[NParam++] = INT;
 
-  strcpy(ParamTag[nt], "TreeType");
-  ParamAddr[nt] = my_treetype;
+  strcpy(ParamTag[NParam], "TreeType");
+  ParamAddr[NParam] = my_treetype;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "TreeName");
@@ -205,7 +205,7 @@ void read_parameter_file(char *fname)
 	if(buf1[0] == '%' || buf1[0] == '-')
 	  continue;
 	
-	for(i = 0, j = -1; i < nt; i++)
+	for(i = 0, j = -1; i < NParam; i++)
 	  if(strcmp(buf1, ParamTag[i]) == 0)
 	    {
 	      j = i;

@@ -10,6 +10,8 @@
 #define MODELNAME        "SAGE"
 #endif
 
+#define NDIM 3
+
 #define ABORT(sigterm)                                                  \
 do {                                                                \
   printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \

@@ -167,10 +167,12 @@ int main(int argc, char **argv)
     }
 
     finalize_galaxy_file(filenr);
-    free_tree_table();
+    free_tree_table(TreeType);
 
     printf("\ndone file %d\n\n", filenr);
   }
+
+  printf("Output 0 had %d galaxies\n", TotGalaxies[0]);
 
 /*
   if(HDF5Output){

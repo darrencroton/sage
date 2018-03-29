@@ -2,7 +2,8 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       model
+FileNameGalaxies       HDF5 
+%FileNameGalaxies       binary 
 OutputDir              ./output/millennium/
 
 FirstFile         0
@@ -24,10 +25,12 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %------------------------------------------
 
 TreeName              trees_063   ; assumes the trees are named TreeName.n where n is the file number
-TreeType              genesis-lhalo-hdf5 ; either 'HDF5' or 'binary'
+%TreeType              lhalo_binary ; either 'genesis-lhalo-hdf5' or 'lhalo-binary'
+TreeType              genesis_lhalo_hdf5 ; either 'genesis-lhalo-hdf5' or 'lhalo-binary'
 HDF5Output            1  ; (1 -> output hdf5 files, otherwise binary files)
 
 SimulationDir         ./input/treefiles/millennium_mini/
+%SimulationDir         /lustre/projects/p004_swin/jseiler/millennium_trees/
 FileWithSnapList      ./input/treefiles/millennium_mini/millennium.a_list
 LastSnapShotNr        63
 

@@ -313,7 +313,7 @@ void read_parameter_file(char *fname)
     }
   
   // Check file type is valid. 
-  if (strncmp(my_treetype, "binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files. 
+  if (strncmp(my_treetype, "lhalo_binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files. 
   {
     snprintf(TreeExtension, 511, ".hdf5");
 #ifndef HDF5
@@ -332,6 +332,11 @@ void read_parameter_file(char *fname)
   else if (strcasecmp(my_treetype, "lhalo_binary") == 0)
   {
     TreeType = lhalo_binary;
+  }
+  else
+  {
+    fprintf(stderr, "TreeType %s is not supported\n", my_treetype);
+    ABORT(0);
   }
 
   myfree(used_tag);

@@ -139,9 +139,9 @@ class Results:
         goodfiles = 0
         for fnr in xrange(first_file,last_file+1):
             fname = model_name+'_'+str(fnr)  # Complete filename
-        
+       
             if not os.path.isfile(fname):
-              # print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
+              print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
               continue
 
             if getFileSize(fname) == 0:
@@ -211,6 +211,9 @@ class Results:
         # Calculate the volume given the first_file and last_file
         self.volume = self.BoxSize**3.0 * goodfiles / self.MaxTreeFiles
 
+        print(G[0:10])
+        exit()
+
         return G
 
 # --------------------------------------------------------
@@ -229,10 +232,10 @@ class Results:
         mass = np.log10(G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
 
-        mi = np.floor(min(mass)) - 2
-        ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
-
+        mi = int(np.floor(min(mass)) - 2)
+        ma = int(np.floor(max(mass)) + 2)
+        NB = int((ma - mi) / binwidth)
+        
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
         # Set the x-axis values to be the centre of the bins
@@ -355,7 +358,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
 
-        outputFile = OutputDir + '1.StellarMassFunction' + OutputFormat
+        outputFile = OutputDir + 'HDF5_1.StellarMassFunction' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -1307,8 +1310,8 @@ if __name__ == '__main__':
         '-f',
         '--file_base',
         dest='FileName',
-        default='model_z0.000',
-        help='filename base (default: model_z0.000)',
+        default='HDF5_z0.000',
+        help='filename base (default: binary_z0.000)',
         metavar='FILE',
         )
     parser.add_option(

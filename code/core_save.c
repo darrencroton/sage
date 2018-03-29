@@ -78,10 +78,10 @@ void save_galaxies(int filenr, int tree)
 	  if(HaloGal[i].SnapNum == ListOutputSnaps[n])
 	    {        
 	      prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
+ 
 	      myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-	      
 	      TotGalaxies[n]++;
-	      TreeNgals[n][tree]++;
+	      TreeNgals[n][tree]++;	      
 	    }
 	}
       

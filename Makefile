@@ -93,4 +93,4 @@ clean:
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
-all:  tidy $(EXEC) clean
+all:  $(EXEC) 

@@ -18,7 +18,7 @@ void save_galaxies(int filenr, int tree);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
 
 void free_galaxies_and_tree(void);
-void free_tree_table(void);
+void free_tree_table(enum Valid_TreeTypes TreeType);
 void print_allocated(void);
 
 void read_parameter_file(char *fname);

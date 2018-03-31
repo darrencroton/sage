@@ -18,7 +18,6 @@ OBJS   = 	./code/main.o \
 			./code/model_misc.o \
 			./code/io/tree_binary.o \
 			./code/io/tree_hdf5.o 
-#			./code/io/io_save_hdf5.o 
 
 INCL   =	./code/core_allvars.h  \
 			./code/core_proto.h  \
@@ -26,9 +25,6 @@ INCL   =	./code/core_allvars.h  \
 			./code/io/tree_binary.h \
 			./code/io/tree_hdf5.h \
 			./Makefile 
-#	        ./code/io/io_save_hdf5.h 
-
-
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 USE-HDF5 = yes
@@ -41,7 +37,7 @@ ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
-    CC = gcc  # sets the C-compiler
+    CC = cc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
@@ -88,7 +84,7 @@ $(EXEC): $(OBJS)
 $(OBJS): $(INCL) 
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXEC)
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)

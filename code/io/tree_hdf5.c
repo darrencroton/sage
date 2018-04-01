@@ -13,15 +13,15 @@
 #include "tree_hdf5.h"
 
 // Local Variables //
-hid_t hdf5_file;
+static hid_t hdf5_file;
 
 // Local Structs //
 
 struct METADATA_NAMES 
 {
-char name_NTrees[MAX_STRING_LEN];
-char name_totNHalos[MAX_STRING_LEN];
-char name_TreeNHalos[MAX_STRING_LEN];
+  char name_NTrees[MAX_STRING_LEN];
+  char name_totNHalos[MAX_STRING_LEN];
+  char name_TreeNHalos[MAX_STRING_LEN];
 }; 
 
 // Local Proto-Types //
@@ -41,9 +41,8 @@ void load_tree_table_hdf5(int filenr)
 
   struct METADATA_NAMES metadata_names;
 
-  sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  snprintf(buf, "%s/%s.%d%s", MAX_STRING_LEN - 1, SimulationDir, TreeName, filenr, TreeExtension);
   hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
-  printf("%d\n", hdf5_file);
 
   if (hdf5_file < 0)
   {
@@ -97,16 +96,6 @@ void load_tree_table_hdf5(int filenr)
 
  // H5Fclose(hdf5_file);
 
-}
-
-#define READ_TREE_FIELD(file, name, type, h5type)\
-{\
-  hid_t dataset_id = H5Dopen(file, #name, H5P_DEFAULT);\
-  H5Dread(dataset_id, h5type, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);\
-  for (int ii = 0; ii < NHalos_ThisTree; ++ii)\
-  {\
-    Halo[ii].name = ((type*)buffer)[ii];\
-  }\
 }
 
 void load_tree_hdf5(int32_t filenr, int32_t treenr)
@@ -447,9 +436,9 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
 
     case genesis_lhalo_hdf5: 
   
-      snprintf(metadata_names->name_NTrees, 1023, "Ntrees"); // Total number of trees within the file.
-      snprintf(metadata_names->name_totNHalos, 1023, "totNHalos"); // Total number of halos within the file.
-      snprintf(metadata_names->name_TreeNHalos, 1023, "TreeNHalos"); // Number of halos per tree within the file.
+      snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "Ntrees"); // Total number of trees within the file.
+      snprintf(metadata_names->name_totNHalos, MAX_STRING_LEN - 1, "totNHalos"); // Total number of halos within the file.
+      snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "TreeNHalos"); // Number of halos per tree within the file.
 
       break;
 

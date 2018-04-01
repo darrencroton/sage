@@ -67,7 +67,7 @@ void bye()
 
 int main(int argc, char **argv)
 {
-  int filenr, tree, halonr;
+  int filenr, treenr, halonr;
   struct sigaction current_XCPU;
 
   struct stat filestatus;
@@ -137,32 +137,32 @@ int main(int argc, char **argv)
     FileNum = filenr;
     load_tree_table(filenr, TreeType);
 
-    for(tree = 0; tree < Ntrees; tree++)
+    for(treenr = 0; treenr < Ntrees; treenr++)
     {
       
 			assert(!gotXCPU);
 
-      if(tree % 10000 == 0)
+      if(treenr % 10000 == 0)
       {
 #ifdef MPI
-        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
+        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, treenr, Ntrees);
 #else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+				printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
 #endif
 				fflush(stdout);
       }
 
-      TreeID = tree;
-      load_tree(filenr, tree, TreeType);
+      TreeID = treenr;
+      load_tree(filenr, treenr, TreeType);
 
-      gsl_rng_set(random_generator, filenr * 100000 + tree);
+      gsl_rng_set(random_generator, filenr * 100000 + treenr);
       NumGals = 0;
       GalaxyCounter = 0;
-      for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
+      for(halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)
-        construct_galaxies(halonr, tree);
+        construct_galaxies(halonr, treenr);
 
-      save_galaxies(filenr, tree);
+      save_galaxies(filenr, treenr);
       free_galaxies_and_tree();
     }
 

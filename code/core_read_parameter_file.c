@@ -31,10 +31,6 @@ void read_parameter_file(char *fname)
   ParamAddr[NParam] = OutputDir;
   ParamID[NParam++] = STRING;
 
-  strcpy(ParamTag[NParam], "HDF5Output");
-  ParamAddr[NParam] = &HDF5Output;
-  ParamID[NParam++] = INT;
-
   strcpy(ParamTag[NParam], "TreeType");
   ParamAddr[NParam] = my_treetype;
   ParamID[NParam++] = STRING;

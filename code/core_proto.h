@@ -12,7 +12,7 @@ void init(void);
 void set_units(void);
 
 void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
-void load_tree(int filenr, int nr, enum Valid_TreeTypes TreeType);
+void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
 void save_galaxies(int filenr, int tree);
 
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);

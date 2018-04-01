@@ -23,7 +23,6 @@ do {                                                                \
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
 #define  ABSOLUTEMAXSNAPS 1000  /* The largest number of snapshots for any simulation */
-#define  MAX_STRING_NAME_LEN  1024 /* Max length of a string containing a name*/
 #define  MAXTAGS          300  /* Max number of parameters */
 
 
@@ -43,7 +42,7 @@ do {                                                                \
 #define  SEC_PER_MEGAYEAR   3.155e13
 #define  SEC_PER_YEAR       3.155e7
 
-#define  MAX_STRING_LEN     1024
+#define  MAX_STRING_LEN     1024 /* Max length of a string containing a name */
 
 // This structure contains the properties that are output
 struct GALAXY_OUTPUT  
@@ -195,7 +194,6 @@ struct halo_aux_data
 }
 *HaloAux;
 
-extern int    HDF5Output; 
 extern int    FirstFile;    /* first and last file for processing */
 extern int    LastFile;
 
@@ -312,7 +310,8 @@ extern int            HDF5_n_props;
 enum Valid_TreeTypes
 {
   genesis_lhalo_hdf5 = 0,
-  lhalo_binary = 1
+  lhalo_binary = 1,
+  num_tree_types
 };
 enum Valid_TreeTypes TreeType;
 

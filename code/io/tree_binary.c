@@ -26,7 +26,7 @@ void load_tree_table_binary(int32_t filenr)
   char buf[MAX_STRING_LEN];
 
 	// open the file each time this function is called
-  sprintf(buf, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  snprintf(buf, "%s/%s.%d%s", MAX_STRING_LEN, SimulationDir, TreeName, filenr, TreeExtension);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);

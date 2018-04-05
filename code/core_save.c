@@ -17,7 +17,7 @@ FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 
 void save_galaxies(int filenr, int tree)
 {
-  char buf[MAX_STRING_LEN];
+  char buf[1000];
   int i, n;
   struct GALAXY_OUTPUT galaxy_output;
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;

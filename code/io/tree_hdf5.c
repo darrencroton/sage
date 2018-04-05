@@ -41,7 +41,7 @@ void load_tree_table_hdf5(int filenr)
 
   struct METADATA_NAMES metadata_names;
 
-  snprintf(buf, "%s/%s.%d%s", MAX_STRING_LEN - 1, SimulationDir, TreeName, filenr, TreeExtension);
+  snprintf(buf, MAX_STRING_LEN - 1, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
   hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
 
   if (hdf5_file < 0)
@@ -94,9 +94,39 @@ void load_tree_table_hdf5(int filenr)
   for(i = 1; i < Ntrees; i++)
     TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
 
- // H5Fclose(hdf5_file);
-
 }
+
+#define READ_TREE_PROPERTY(sage_name, hdf5_name, type_int, data_type) \
+{ \
+  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", treenr, #hdf5_name);\
+  status = read_dataset(hdf5_file, dataset_name, type_int, buffer);\
+  if (status != EXIT_SUCCESS) \
+  {\
+    ABORT(0);\
+  }\
+  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)\
+  {\
+    Halo[halo_idx].sage_name = ((data_type*)buffer)[halo_idx];\
+  }\
+} \
+
+#define READ_TREE_PROPERTY_MULTIPLEDIM(sage_name, hdf5_name, type_int, data_type) \
+{ \
+  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", treenr, #hdf5_name);\
+  status = read_dataset(hdf5_file, dataset_name, type_int, buffer_multipledim);\
+  if (status != EXIT_SUCCESS) \
+  {\
+    ABORT(0);\
+  }\
+  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)\
+  {\
+    for (dim = 0; dim < NDIM; ++dim)\
+    { \
+      Halo[halo_idx].sage_name[dim] = ((data_type*)buffer_multipledim)[halo_idx * NDIM + dim];\
+    } \
+  }\
+} \
+
 
 void load_tree_hdf5(int32_t filenr, int32_t treenr)
 {
@@ -104,9 +134,10 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
   char dataset_name[MAX_STRING_LEN];
   int32_t NHalos_ThisTree, status, halo_idx, dim;
 
-  int32_t *buffer_int;
-  float *buffer_float;
-  long long *buffer_longlong;
+  double *buffer; // Buffer to hold the read HDF5 data.  
+                  // The largest data-type will be double. 
+
+  double *buffer_multipledim; // However also need a buffer three times as large to hold data such as position/velocity.
 
   if (hdf5_file <= 0)
   {
@@ -119,295 +150,50 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
 
   Halo = mymalloc(sizeof(struct halo_data) * NHalos_ThisTree); 
 
+  buffer = calloc(NHalos_ThisTree, sizeof(*(buffer)));
+  if (buffer == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for the HDF5 buffer.\n");
+    ABORT(0);
+  }
+
+  buffer_multipledim = calloc(NHalos_ThisTree * NDIM, sizeof(*(buffer_multipledim))); 
+  if (buffer_multipledim == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for the HDF5 multiple dimension buffer.\n");
+    ABORT(0);
+  }
+
   // We now need to read in all the halo fields for this tree.
   // To do so, we read the field into a buffer and then properly slot the field into the Halo struct.
 
-
-  // TODO: This is currently a very (VERY) messy way of doing things.
-  // Ideally we would just like to specify the field name of the HDF5 file and the corresponding field in the Halo struct.
-  // However it's a bit tricky because we would need to account for the case of Position where the HDF5 dataset is Nx3.
-  // Furthermore, also need to think about how to do the slotting into the Halo struct.  I don't think this is possibly to do all at once.
-
   /* Merger Tree Pointers */ 
-
-  // Descendant //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Descendant", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].Descendant = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // First Progenitor //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/FirstProgenitor", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].FirstProgenitor = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // Next Progenitor //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/NextProgenitor", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].NextProgenitor = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // FirstHaloInFOFgroup//
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/FirstHaloInFOFgroup", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].FirstHaloInFOFgroup = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // NextHaloInFOFgroup//
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/NextHaloInFOFgroup", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].NextHaloInFOFgroup= buffer_int[halo_idx];
-  }
-  free(buffer_int);
+  READ_TREE_PROPERTY(Descendant, Descendant, 0, int);
+  READ_TREE_PROPERTY(FirstProgenitor, FirstProgenitor, 0, int);
+  READ_TREE_PROPERTY(NextProgenitor, NextProgenitor, 0, int);
+  READ_TREE_PROPERTY(FirstHaloInFOFgroup, FirstHaloInFOFgroup, 0, int);
+  READ_TREE_PROPERTY(NextHaloInFOFgroup, NextHaloInFOFgroup, 0, int);
 
   /* Halo Properties */ 
+  READ_TREE_PROPERTY(Len, Len, 0, int);
+  READ_TREE_PROPERTY(M_Mean200, M_mean200, 1, float);
+  READ_TREE_PROPERTY(Mvir, Mvir, 1, float);
+  READ_TREE_PROPERTY(M_TopHat, M_TopHat, 1, float);
+  READ_TREE_PROPERTY_MULTIPLEDIM(Pos, Pos, 1, float);
+  READ_TREE_PROPERTY_MULTIPLEDIM(Vel, Vel, 1, float);
+  READ_TREE_PROPERTY(VelDisp, VelDisp, 1, float);
+  READ_TREE_PROPERTY(Vmax, Vmax, 1, float);
+  READ_TREE_PROPERTY_MULTIPLEDIM(Spin, Spin, 1, float);
+  READ_TREE_PROPERTY(MostBoundID, MostBoundID, 2, long long);
 
-  // Len //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Len", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].Len= buffer_int[halo_idx];
-  }
-  free(buffer_int);
+  /* File Position Info */
+  READ_TREE_PROPERTY(SnapNum, SnapNum, 0, int);
+  READ_TREE_PROPERTY(FileNr, Filenr, 0, int);
+  READ_TREE_PROPERTY(SubhaloIndex, SubHaloIndex, 0, int);
+  READ_TREE_PROPERTY(SubHalfMass, SubHalfMass, 0, int);
 
-  // M_mean200 //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/M_mean200", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].M_Mean200 = buffer_float[halo_idx];
-  }
-  free(buffer_float);
-
-  // Mvir //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Mvir", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].Mvir = buffer_float[halo_idx];
-  }
-  free(buffer_float);
-
-  // M_TopHat //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/M_TopHat", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].M_TopHat = buffer_float[halo_idx];
-  }
-  free(buffer_float);
-
-  // Pos //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Pos", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree * 3);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    for (dim = 0; dim < NDIM; ++dim)
-    {    
-      Halo[halo_idx].Pos[dim]= buffer_float[halo_idx * NDIM + dim];
-    }
-  }
-  free(buffer_float);
-
-  // Vel //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Vel", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree * 3);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    for (dim = 0; dim < NDIM; ++dim)
-    {    
-      Halo[halo_idx].Vel[dim]= buffer_float[halo_idx * NDIM + dim];
-    }
-  }
-  free(buffer_float);
-
-  // VelDisp //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/VelDisp", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].VelDisp = buffer_float[halo_idx];
-  }
-  free(buffer_float);
-
-  // Vmax //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Vmax", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].Vmax = buffer_float[halo_idx];
-  }
-  free(buffer_float);
-
-  // Spin //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Spin", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree * 3);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    for (dim = 0; dim < NDIM; ++dim)
-    {    
-      Halo[halo_idx].Spin[dim]= buffer_float[halo_idx * NDIM + dim];
-    }
-  }
-  free(buffer_float);
-
-  // MostBoundID //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/MostBoundID", treenr);
-  buffer_longlong = malloc(sizeof(long long) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 2, buffer_longlong);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].MostBoundID = buffer_longlong[halo_idx];
-  }
-  free(buffer_longlong);
-
-  /* Position in Original Files */
-
-  // SnapNum //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/SnapNum", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].SnapNum = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // FileNr //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/Filenr", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].FileNr = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // SubhaloIndex //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/SubHaloIndex", treenr);
-  buffer_int = malloc(sizeof(int32_t) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 0, buffer_int);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].SubhaloIndex = buffer_int[halo_idx];
-  }
-  free(buffer_int);
-
-  // SubHalfMass //
-  snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/SubHalfMass", treenr);
-  buffer_float = malloc(sizeof(float) * NHalos_ThisTree);
-  status = read_dataset(hdf5_file, dataset_name, 1, buffer_float);
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(0);
-  } 
-  for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx)
-  {
-    Halo[halo_idx].SubHalfMass= buffer_float[halo_idx];
-  }
-  free(buffer_float);
+  free(buffer);
+  free(buffer_multipledim);
 
 #ifdef DEBUG_HDF5_READER 
   int32_t i;
@@ -415,9 +201,13 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
   { 
     printf("halo %d: Descendant %d FirstProg %d x %.4f y %.4f z %.4f\n", i, Halo[i].Descendant, Halo[i].FirstProgenitor, Halo[i].Pos[0], Halo[i].Pos[1], Halo[i].Pos[2]); 
   }
+  ABORT(0);
 #endif 
  
 }
+
+#undef READ_TREE_PROPERTY
+#undef READ_TREE_PROPERTY_MULTIPLEDIM
 
 void close_hdf5_file(void)
 {
@@ -493,10 +283,13 @@ int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, v
 
   if (datatype == 0)
     H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);
-  else if (datatype == 1)
+  else if (datatype == 1)  
     H5Dread(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);
+ 
   else if (datatype == 2)
     H5Dread(dataset_id, H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer);
+
+
   
   return EXIT_SUCCESS;
 }

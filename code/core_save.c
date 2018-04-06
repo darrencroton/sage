@@ -57,7 +57,7 @@ void save_galaxies(int filenr, int tree)
       // only open the file if it is not already open.
       if( !save_fd[n] )
 	    {
-        sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+        snprintf(buf, MAX_STRING_LEN - 1, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
        
         save_fd[n] = fopen(buf, "r+");
         if (save_fd[n] == NULL) 

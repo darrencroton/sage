@@ -229,15 +229,21 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
       snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "Ntrees"); // Total number of trees within the file.
       snprintf(metadata_names->name_totNHalos, MAX_STRING_LEN - 1, "totNHalos"); // Total number of halos within the file.
       snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "TreeNHalos"); // Number of halos per tree within the file.
-
-      break;
+      return EXIT_SUCCESS;
 
     case lhalo_binary: 
       fprintf(stderr, "If the file is binary then this function should never be called.  Something's gone wrong...");
       return EXIT_FAILURE;
+
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``fill_metadata_names`` in ``io/tree_hdf5.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
+
   }
 
-  return EXIT_SUCCESS;
+  return EXIT_FAILURE;
+
 }
 
 int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute)

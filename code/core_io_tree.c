@@ -34,9 +34,10 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
       load_tree_table_binary(filenr);
       break;
 
-    default :
-      fprintf(stderr, "The specified TreeType was my_TreeType\nThis is not a valid option.");
-      ABORT(0);
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
   }
 
   for(n = 0; n < NOUT; n++)
@@ -81,6 +82,12 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
     case lhalo_binary:
       close_binary_file();
       break;
+
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
+
   }
 
 }
@@ -99,6 +106,11 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
     case lhalo_binary:
       load_tree_binary(filenr, treenr);
       break;
+
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
 
   }
 

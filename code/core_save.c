@@ -19,7 +19,7 @@ void save_galaxies(int filenr, int tree)
 {
   char buf[1000];
   int i, n;
-  struct GALAXY_OUTPUT galaxy_output;
+  struct GALAXY_OUTPUT galaxy_output = {0};
   int OutputGalCount[MAXSNAPS], *OutputGalOrder;
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );

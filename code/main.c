@@ -172,6 +172,8 @@ int main(int argc, char **argv)
   //reset Age to the actual allocated address
   Age--;
   myfree(Age);                              
+
+  gsl_rng_free(random_generator);
   
   exitfail = 0;
   return 0;

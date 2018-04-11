@@ -75,7 +75,8 @@ class Results:
         # The input galaxy structure:
         Galdesc_full = [
             ('SnapNum'                      , np.int32),                    
-            ('Type'                         , np.int32),                    
+            ('Type'                         , np.int16),
+            ('isFlyby'                      , np.int16),                                
             ('GalaxyIndex'                  , np.int64),                    
             ('CentralGalaxyIndex'           , np.int64),                    
             ('SAGEHaloIndex'                , np.int32),                    
@@ -1355,7 +1356,7 @@ if __name__ == '__main__':
     res.BaryonFraction(G)
     res.SpinDistribution(G)
     res.VelocityDistribution(G)
-    res.MassReservoirScatter(G)
+    # res.MassReservoirScatter(G)
     res.SpatialDistribution(G)
 
 

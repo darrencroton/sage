@@ -37,7 +37,7 @@ ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
-    CC = cc  # sets the C-compiler
+    CC = gcc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
@@ -70,7 +70,7 @@ else
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
 
-OPTIMIZE = -g -O0 -Wall # optimization and warning flags
+OPTIMIZE = -g -O3 -march=native -Wextra -Wshadow -Wall #-Wpadded # optimization and warning flags
 
 LIBS   +=   -g -lm  $(GSL_LIBS) 
 CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)

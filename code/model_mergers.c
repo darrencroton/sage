@@ -13,6 +13,7 @@
 double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 {
   double coulomb, mergtime, SatelliteMass, SatelliteRadius;
+  const int MinNumPartSatHalo = 10;
 
   if(sat_halo == mother_halo) 
   {
@@ -21,17 +22,18 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
     return -1.0;
   }
   
-  coulomb = log(Halo[mother_halo].Len / ((double) Halo[sat_halo].Len) + 1);
+  coulomb = log(1.0 + Halo[mother_halo].Len / ((double) Halo[sat_halo].Len) );
 
   SatelliteMass = get_virial_mass(sat_halo) + Gal[ngal].StellarMass + Gal[ngal].ColdGas;
   SatelliteRadius = get_virial_radius(mother_halo);
 
-  if(SatelliteMass > 0.0 && coulomb > 0.0)
-    mergtime = 2.0 *
-    1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
-  else
+  if(SatelliteMass > 0.0 && coulomb > 0.0 && Halo[sat_halo].Len >= MinNumPartSatHalo) {
+      mergtime = 2.0 *
+          1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
+  } else {
     mergtime = -1.0;
-  
+  }
+
   return mergtime;
 
 }

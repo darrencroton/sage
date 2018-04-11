@@ -49,7 +49,7 @@ install:
   - conda create -q --yes -n test python=$PYTHON_VERSION
   - source activate test
   - conda install -q --yes -c asmeurer gsl
-  - make -r CC=$COMPILER
+  - make CC=$COMPILER
         
 script:
 

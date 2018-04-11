@@ -19,9 +19,9 @@ OPTS =
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
-    CC = mpicc  # sets the C-compiler
+    CC ?= mpicc  # sets the C-compiler
 else
-    CC = gcc  # sets the C-compiler
+    CC ?= gcc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
@@ -65,7 +65,7 @@ default: all
 $(EXEC): $(OBJS) 
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
-%.o: %.c $(INCL) Makefile
+%.o: %.c $(INCL)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .phony: clean celan celna clena

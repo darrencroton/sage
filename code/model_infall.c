@@ -14,7 +14,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
   int i;
   double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
 	double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
-	double tot_satBaryons, newSatBaryons;
+	double tot_satBaryons;
+  /* double newSatBaryons; */
   double infallingMass, reionization_modifier;
 
   // need to add up all the baryonic mass asociated with the full halo 
@@ -46,8 +47,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
   }
 
-	// the existing baryons that have fallen in with substructure since the last timestep
-	newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons;
+  /*  the existing baryons that have fallen in with substructure since the last timestep */
+  /* newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons; */
 
   // include reionization if necessary 
   if(ReionizationOn)
@@ -57,7 +58,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
 
   infallingMass =
     reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
-    // reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
+  /* reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons; */
 
   // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;

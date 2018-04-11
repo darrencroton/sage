@@ -65,7 +65,7 @@ void construct_galaxies(int halonr, int tree)
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
-    evolve_galaxies(Halo[halonr].FirstHaloInFOFgroup, ngal, tree);
+    evolve_galaxies(Halo[halonr].FirstHaloInFOFgroup, ngal);
   }
 
 }
@@ -74,7 +74,8 @@ void construct_galaxies(int halonr, int tree)
 
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
-  int ngal, prog, mother_halo=-1, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  int ngal, prog,  i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  /* int mother_halo=-1; */
   double previousMvir, previousVvir, previousVmax;
   int step;
 
@@ -95,7 +96,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
     if(Halo[prog].Len > lenmax)
     {
       lenmax = Halo[prog].Len;
-      mother_halo = prog;
+      /* mother_halo = prog; */
     }
     if(lenoccmax != -1 && Halo[prog].Len > lenoccmax && HaloAux[prog].NGalaxies > 0)
     {
@@ -267,7 +268,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
 
 
-void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the FOF-background subhalo (i.e. main halo) 
+void evolve_galaxies(int halonr, int ngal)	// Note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;

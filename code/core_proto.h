@@ -6,13 +6,13 @@ size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
 
 void construct_galaxies(int halonr, int tree);
-void evolve_galaxies(int halonr, int ngal, int tree);
+void evolve_galaxies(int halonr, int ngal);
 int  join_galaxies_of_progenitors(int halonr, int nstart);
 void init(void);
 void set_units(void);
 
 void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
-void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
+void load_tree(int treenr, enum Valid_TreeTypes TreeType);
 void save_galaxies(int filenr, int tree);
 
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
@@ -27,7 +27,7 @@ void *myrealloc(void *p, size_t n);
 void myfree(void *p);
 void myexit(int signum);
 
-void finalize_galaxy_file(int filenr);
+void finalize_galaxy_file(void);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step);
 void add_galaxies_together(int t, int p);

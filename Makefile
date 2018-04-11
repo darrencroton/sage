@@ -83,8 +83,12 @@ $(EXEC): $(OBJS)
 
 $(OBJS): $(INCL) 
 
+.phony: clean celan celna clena
+
 clean:
 	rm -f $(OBJS) $(EXEC)
+
+celan celna clena: clean
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)

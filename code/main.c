@@ -153,7 +153,7 @@ int main(int argc, char **argv)
       }
 
       TreeID = treenr;
-      load_tree(filenr, treenr, TreeType);
+      load_tree(treenr, TreeType);
 
       gsl_rng_set(random_generator, filenr * 100000 + treenr);
       NumGals = 0;
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
       free_galaxies_and_tree();
     }
 
-    finalize_galaxy_file(filenr);
+    finalize_galaxy_file();
     free_tree_table(TreeType);
 
     printf("\ndone file %d\n\n", filenr);

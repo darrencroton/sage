@@ -48,7 +48,7 @@ void load_tree_table_binary(int32_t filenr)
 
 }
 
-void load_tree_binary(int32_t filenr, int32_t treenr)
+void load_tree_binary(int32_t treenr)
 {
   // must have an FD
   assert(load_fd );

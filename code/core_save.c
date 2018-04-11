@@ -236,7 +236,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
 
 
-void finalize_galaxy_file(int filenr)
+void finalize_galaxy_file(void)
 {
   int n, nwritten;
 

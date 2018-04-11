@@ -28,7 +28,7 @@ struct METADATA_NAMES
 
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
 int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute);
-int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, void *buffer);
+int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer);
 
 // External Functions //
 
@@ -99,7 +99,7 @@ void load_tree_table_hdf5(int filenr)
 #define READ_TREE_PROPERTY(sage_name, hdf5_name, type_int, data_type) \
 { \
   snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", treenr, #hdf5_name);\
-  status = read_dataset(hdf5_file, dataset_name, type_int, buffer);\
+  status = read_dataset(dataset_name, type_int, buffer);\
   if (status != EXIT_SUCCESS) \
   {\
     ABORT(0);\
@@ -113,7 +113,7 @@ void load_tree_table_hdf5(int filenr)
 #define READ_TREE_PROPERTY_MULTIPLEDIM(sage_name, hdf5_name, type_int, data_type) \
 { \
   snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", treenr, #hdf5_name);\
-  status = read_dataset(hdf5_file, dataset_name, type_int, buffer_multipledim);\
+  status = read_dataset(dataset_name, type_int, buffer_multipledim);\
   if (status != EXIT_SUCCESS) \
   {\
     ABORT(0);\
@@ -128,7 +128,7 @@ void load_tree_table_hdf5(int filenr)
 } \
 
 
-void load_tree_hdf5(int32_t filenr, int32_t treenr)
+void load_tree_hdf5(int32_t treenr)
 {
 
   char dataset_name[MAX_STRING_LEN];
@@ -142,7 +142,7 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
   if (hdf5_file <= 0)
   {
     fprintf(stderr, "The HDF5 file should still be opened when reading the halos in the tree.\n");
-    fprintf(stderr, "For tree %d we encountered error %d\n", treenr, hdf5_file);
+    fprintf(stderr, "For tree %d we encountered error %ld\n", treenr, hdf5_file);
     ABORT(0);
   }
 
@@ -276,14 +276,14 @@ int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name,
   return EXIT_SUCCESS; 
 }
 
-int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, void *buffer)
+int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer)
 {
   hid_t dataset_id;
 
   dataset_id = H5Dopen2(hdf5_file, dataset_name, H5P_DEFAULT);
   if (dataset_id < 0)
   {
-    fprintf(stderr, "Error %d when trying to open up dataset %s\n", dataset_id, dataset_name); 
+    fprintf(stderr, "Error %ld when trying to open up dataset %s\n", dataset_id, dataset_name); 
     return dataset_id;
   }
 

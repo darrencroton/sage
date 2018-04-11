@@ -92,7 +92,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
 
 }
 
-void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
+void load_tree(int treenr, enum Valid_TreeTypes my_TreeType)
 {
   int32_t i;
 
@@ -100,11 +100,11 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
   {
 
     case genesis_lhalo_hdf5:
-      load_tree_hdf5(filenr, treenr);
+      load_tree_hdf5(treenr);
       break;
 
     case lhalo_binary:
-      load_tree_binary(filenr, treenr);
+      load_tree_binary(treenr);
       break;
 
     default:

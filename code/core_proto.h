@@ -1,5 +1,6 @@
 #include "core_allvars.h"
 
+
 size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
@@ -10,14 +11,14 @@ int  join_galaxies_of_progenitors(int halonr, int nstart);
 void init(void);
 void set_units(void);
 
-void load_tree_table(int filenr);
-void load_tree(int filenr, int nr);
+void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
+void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
 void save_galaxies(int filenr, int tree);
 
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
 
 void free_galaxies_and_tree(void);
-void free_tree_table(void);
+void free_tree_table(enum Valid_TreeTypes TreeType);
 void print_allocated(void);
 
 void read_parameter_file(char *fname);
@@ -70,7 +71,3 @@ double integrand_time_to_present(double a, void *param);
 double metallicity_dependent_star_formation(int p);
 double Z_dependent_SF(float lower_limit, float upper_limit, float Sigma_c0, float Xi, float gamma);
 double integrand_Z_dependent_SF(double q, void *p);
-
-
-
-

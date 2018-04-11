@@ -11,42 +11,38 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+#include "io/tree_binary.h"
+#ifdef HDF5
+#include "io/tree_hdf5.h"
+#endif
 
-// keep a static file handle to remove the need to do constant seeking
-FILE* load_fd = NULL;
-
-
-void load_tree_table(int filenr)
+void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
 {
-  int i, n, totNHalos;
-  char buf[1000];
+  int i, n;
   FILE *fd;
+  char buf[MAX_STRING_LEN];
 
-	// open the file each time this function is called
-  sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
-  if(!(load_fd = fopen(buf, "r")))
+  switch (my_TreeType)
   {
-    printf("can't open file `%s'\n", buf);
-    ABORT(0);
+#ifdef HDF5
+    case genesis_lhalo_hdf5:
+      load_tree_table_hdf5(filenr);
+      break;
+#endif
+      
+    case lhalo_binary:
+      load_tree_table_binary(filenr);
+      break;
+
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
   }
 
-  myfread(&Ntrees, 1, sizeof(int), load_fd);
-  myfread(&totNHalos, 1, sizeof(int), load_fd);
-
-  TreeNHalos = mymalloc(sizeof(int) * Ntrees);
-  TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
-
-  for(n = 0; n < NOUT; n++)
-    TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
-  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
-
-  if(Ntrees)
-    TreeFirstHalo[0] = 0;
-  for(i = 1; i < Ntrees; i++)
-    TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
-
   for(n = 0; n < NOUT; n++)
   {
+    TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
     for(i = 0; i < Ntrees; i++)
       TreeNgals[n][i] = 0;
 
@@ -60,11 +56,10 @@ void load_tree_table(int filenr)
     fclose(fd);
     TotGalaxies[n] = 0;
   }
+
 }
 
-
-
-void free_tree_table(void)
+void free_tree_table(enum Valid_TreeTypes my_TreeType)
 {
   int n;
 
@@ -74,46 +69,70 @@ void free_tree_table(void)
   myfree(TreeFirstHalo);
   myfree(TreeNHalos);
 	
-	// Don't forget to free the open file handle
-	if(load_fd) {
-		fclose(load_fd);
-		load_fd = NULL;
-	}
+  // Don't forget to free the open file handle
+
+  switch (my_TreeType)
+  {
+#ifdef HDF5
+    case genesis_lhalo_hdf5:
+      close_hdf5_file();
+      break;
+#endif
+      
+    case lhalo_binary:
+      close_binary_file();
+      break;
+
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
+
+  }
+
 }
 
-
-
-void load_tree(int filenr, int nr)
+void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
 {
-  int i;
+  int32_t i;
 
-  // must have an FD
-  assert( load_fd );
+  switch (my_TreeType)
+  {
 
-  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);
+    case genesis_lhalo_hdf5:
+      load_tree_hdf5(filenr, treenr);
+      break;
 
-  myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
+    case lhalo_binary:
+      load_tree_binary(filenr, treenr);
+      break;
 
-  MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
+    default:
+      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree`` in ``core_io_tree.c``.\n");
+      fprintf(stderr, "Please add it there.\n");
+      ABORT(EXIT_FAILURE);
+
+  }
+
+  MaxGals = (int)(MAXGALFAC * TreeNHalos[treenr]);
   if(MaxGals < 10000)
     MaxGals = 10000;
 
   FoF_MaxGals = 10000;
 
-  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
+  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[treenr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
 
-  for(i = 0; i < TreeNHalos[nr]; i++)
+  for(i = 0; i < TreeNHalos[treenr]; i++)
   {
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
   }
 
+
 }
-
-
 
 void free_galaxies_and_tree(void)
 {
@@ -122,8 +141,6 @@ void free_galaxies_and_tree(void)
   myfree(HaloAux);
   myfree(Halo);
 }
-
-
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {

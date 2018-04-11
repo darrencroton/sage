@@ -13,7 +13,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
-
+#include "io/io_save_hdf5.h"
 
 char bufz0[1000];
 int exitfail = 1;
@@ -67,7 +67,7 @@ void bye()
 
 int main(int argc, char **argv)
 {
-  int filenr, tree, halonr;
+  int filenr, treenr, halonr;
   struct sigaction current_XCPU;
 
   struct stat filestatus;
@@ -104,6 +104,10 @@ int main(int argc, char **argv)
   read_parameter_file(argv[1]);
   init();
 
+#ifdef HDF5
+//  if(HDF5Output)
+//    calc_hdf5_props();
+#endif
 	
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
@@ -111,7 +115,7 @@ int main(int argc, char **argv)
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-    sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
+    sprintf(bufz0, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);
@@ -131,49 +135,69 @@ int main(int argc, char **argv)
       fclose(fd);
 
     FileNum = filenr;
-    load_tree_table(filenr);
+    load_tree_table(filenr, TreeType);
 
-    for(tree = 0; tree < Ntrees; tree++)
+    for(treenr = 0; treenr < Ntrees; treenr++)
     {
       
 			assert(!gotXCPU);
 
-      if(tree % 10000 == 0)
+      if(treenr % 10000 == 0)
       {
 #ifdef MPI
-        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
+        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, treenr, Ntrees);
 #else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+				printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
 #endif
 				fflush(stdout);
       }
 
-      TreeID = tree;
-      load_tree(filenr, tree);
+      TreeID = treenr;
+      load_tree(filenr, treenr, TreeType);
 
-      gsl_rng_set(random_generator, filenr * 100000 + tree);
+      gsl_rng_set(random_generator, filenr * 100000 + treenr);
       NumGals = 0;
       GalaxyCounter = 0;
-      for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
+      for(halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)
-        construct_galaxies(halonr, tree);
+        construct_galaxies(halonr, treenr);
 
-      save_galaxies(filenr, tree);
+      save_galaxies(filenr, treenr);
       free_galaxies_and_tree();
     }
 
     finalize_galaxy_file(filenr);
-    free_tree_table();
+    free_tree_table(TreeType);
 
     printf("\ndone file %d\n\n", filenr);
   }
+
+  printf("Output 0 had %d galaxies\n", TotGalaxies[0]);
+
+/*
+  if(HDF5Output){
+    free_hdf5_ids();
+
+#ifdef MPI
+    // Create a single master HDF5 file with links to the other files...
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (ThisTask == 0)
+#endif
+      //write_master_file();
+  
+  }
+*/
+
 
   //free Ages. But first
   //reset Age to the actual allocated address
   Age--;
   myfree(Age);                              
-  
+
+  gsl_rng_free(random_generator); 
+
   exitfail = 0;
   return 0;
 }
+
 

@@ -1,30 +1,14 @@
-EXEC   = sage 
+SRC := main.c core_read_parameter_file.c core_init.c core_io_tree.c \
+       core_cool_func.c core_build_model.c core_save.c core_mymalloc.c \
+       core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
+       model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
+       io/tree_binary.c io/tree_hdf5.c
+SRC  := $(addprefix src/, $(SRC))
+OBJS := $(SRC:.c=.o)
+INCL := core_allvars.h core_proto.h core_simulation.h io/tree_binary.h io/tree_hdf5.h Makefile
+INCL := $(addprefix src/, $(INCL))
 
-OBJS   = 	./code/main.o \
-			./code/core_read_parameter_file.o \
-			./code/core_init.o \
-			./code/core_io_tree.o \
-			./code/core_cool_func.o \
-			./code/core_build_model.o \
-			./code/core_save.o \
-			./code/core_mymalloc.o \
-			./code/core_allvars.o \
-			./code/model_infall.o \
-			./code/model_cooling_heating.o \
-			./code/model_starformation_and_feedback.o \
-			./code/model_disk_instability.o \
-			./code/model_reincorporation.o \
-			./code/model_mergers.o \
-			./code/model_misc.o \
-			./code/io/tree_binary.o \
-			./code/io/tree_hdf5.o 
-
-INCL   =	./code/core_allvars.h  \
-			./code/core_proto.h  \
-			./code/core_simulation.h  \
-			./code/io/tree_binary.h \
-			./code/io/tree_hdf5.h \
-			./Makefile 
+EXEC := sage 
 
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 USE-HDF5 = yes
@@ -79,9 +63,10 @@ CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
 default: all
 
 $(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
-$(OBJS): $(INCL) 
+%.o: %.c $(INCL) Makefile
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .phony: clean celan celna clena
 

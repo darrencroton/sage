@@ -1,7 +1,7 @@
 # Semi-Analytic Galaxy Evolution (SAGE)
 
-[![DOI](https://zenodo.org/badge/13542/darrencroton/sage.svg)](https://zenodo.org/badge/latestdoi/13542/darrencroton/sage)
 [![Build Status](https://travis-ci.org/manodeep/sage.svg?branch=lhvt)](https://travis-ci.org/manodeep/sage)
+[![DOI](https://zenodo.org/badge/13542/darrencroton/sage.svg)](https://zenodo.org/badge/latestdoi/13542/darrencroton/sage)
 
 SAGE is a publicly available code-base for modelling galaxy formation in a cosmological context. A description of the model and its default calibration results can be found in [Croton et al. (2016)](http://arxiv.org/abs/1601.04709). These calibration results can also be explored in an iPython notebook showcasing the key figures [here](https://github.com/darrencroton/sage/blob/master/output/SAGE_MM.ipynb). SAGE is a significant update to that previously used in [Croton et al. (2006)](http://arxiv.org/abs/astro-ph/0508046).
 

@@ -25,11 +25,42 @@ else
     CC := gcc  # sets the C-compiler
 endif
 
+
+ON_CI := false
+ifeq ($(CI), true)
+    ON_CI := true
+endif
+
+ifeq ($(TRAVIS), true)
+    ON_CI := true
+endif
+
+# Add the -Werror flag if running on some continuous integration provider
+ifeq ($(ON_CI), true)
+    CCFLAGS += -Werror -Wno-unknown-warning-option
+endif
+
 ifdef USE-HDF5
     ifndef HDF5_DIR
         $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
         $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
-        HDF5_DIR := /usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+        ifeq ($(ON_CI), true)
+            $(info Looks like we are building on a continuous integration service)
+            CONDA_FOUND := $(shell conda -V 2>/dev/null)
+            ifndef CONDA_FOUND
+               H5DIFF_LOC := $(shell which h5diff 2>/dev/null)
+               ifndef H5DIFF_LOC
+                   $(error Could not locate HDF5_DIR on continuous integration service (likely linux))
+               endif 
+               HDF5_DIR := $(H5DIFF_LOC)/..
+            else 
+               CONDA_BASE := $(shell conda info --base 2>/dev/null)
+               HDF5_DIR := $(CONDA_BASE)
+            endif
+        else
+            HDF5_DIR := /usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+        endif
+
         $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
     endif
 
@@ -63,6 +94,7 @@ else
 endif
 CCFLAGS += $(GSL_INCL)
 LIBS += $(GSL_LIBS)
+
 
 OPTIMIZE = -O3 -march=native # optimization and warning flags
 CCFLAGS += -g -Wextra -Wshadow -Wall  #-Wpadded 

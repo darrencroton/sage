@@ -13,7 +13,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.8
+      - gcc-6.4
       - libgsl0-dev
       - libhdf5-serial-dev
 
@@ -51,9 +51,9 @@ install:
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  conda install -q --yes -c anaconda hdf5 ; fi
-  - make CC=$COMPILER
         
-script: true
+script: 
+  - make -r CC=$COMPILER
 
 
   

@@ -15,7 +15,6 @@ addons:
     packages:
       - gcc-4.8
       - libgsl0-dev
-      - libhdf5-serial-dev
 
 matrix:
   fast_finish: true
@@ -50,7 +49,7 @@ install:
   - conda create -q --yes -n test python=$PYTHON_VERSION
   - source activate test
   - conda install -q --yes -c asmeurer gsl
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  conda install -q --yes -c conda-forge hdf5 ; fi
+  - conda install -q --yes -c conda-forge hdf5
         
 script: 
   - make -r CC=$COMPILER

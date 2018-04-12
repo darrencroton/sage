@@ -43,27 +43,17 @@ endif
 
 ifdef USE-HDF5
     ifndef HDF5_DIR
-        $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
-        $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
         ifeq ($(ON_CI), true)
-            $(info Looks like we are building on a continuous integration service. Assuming that the `hdf5` package installs `h5diff`)
-            CONDA_FOUND := $(shell conda -V 2>/dev/null)
-            ifndef CONDA_FOUND
-                H5DIFF_LOC := $(shell which h5diff 2>/dev/null)
-                $(warning $$H5DIFF_LOC is [${H5DIFF_LOC}])
-                ifndef H5DIFF_LOC
-                   $(warning Could not locate HDF5_DIR on continuous integration service)
-                endif 
-                HDF5_DIR := $(H5DIFF_LOC)/..
-            else 
-                CONDA_BASE := $(shell conda info --base 2>/dev/null)
-                HDF5_DIR := $(CONDA_BASE)
-            endif
+            $(info Looks like we are building on a continuous integration service)
+            $(info Assuming that the `hdf5` package and `gsl-config` are both installed by `conda` into the same directory)
+            CONDA_BASE := $(shell gsl-config --prefix 2>/dev/null)
+            HDF5_DIR := $(CONDA_BASE)
         else
+            $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
+            $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
             HDF5_DIR := /usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+            $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
         endif
-
-        $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
     endif
 
     HDF5_INCL := -I$(HDF5_DIR)/include

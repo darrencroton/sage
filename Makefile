@@ -1,3 +1,4 @@
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SRC := main.c core_read_parameter_file.c core_init.c core_io_tree.c \
        core_cool_func.c core_build_model.c core_save.c core_mymalloc.c \
        core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
@@ -14,12 +15,12 @@ EXEC := sage
 USE-HDF5 = yes
 
 LIBS :=
-OPTS :=
-CCFLAGS := 
+OPTS := -DROOT_DIR='"${ROOT_DIR}"'
+CCFLAGS := -DGNU_SOURCE -std=gnu99
 
 
 ifdef USE-MPI
-    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else
     CC := gcc  # sets the C-compiler
@@ -67,7 +68,7 @@ ifdef USE-HDF5
     HDF5_INCL := -I$(HDF5_DIR)/include
     HDF5_LIB := -L$(HDF5_DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5_DIR)/lib
 
-    OPT += -DHDF5
+    OPTS += -DHDF5
     LIBS += $(HDF5_LIB)
     CCFLAGS += $(HDF5_INCL) 
 endif
@@ -106,7 +107,7 @@ $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 %.o: %.c $(INCL) Makefile
-	$(CC) $(OPT) $(OPTIMIZE) $(CCFLAGS) -c $< -o $@
+	$(CC) $(OPTS) $(OPTIMIZE) $(CCFLAGS) -c $< -o $@
 
 .phony: clean celan celna clena
 

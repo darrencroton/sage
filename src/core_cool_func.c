@@ -9,6 +9,7 @@
 
 
 #define TABSIZE 91
+#define LAST_TAB_INDEX (TABSIZE - 1)
 
 
 static char *name[] = {
@@ -35,37 +36,42 @@ static double metallicities[8] = {
 	+0.5
 };
 
-static double CoolRate[8][TABSIZE];
+double get_rate(int tab, double logTemp);
 
+#define NUM_METALS_TABLE        sizeof(metallicities)/sizeof(metallicities[0])
 
+static double CoolRate[NUM_METALS_TABLE][TABSIZE];
 
 void read_cooling_functions(void)
 {
-  FILE *fd;
-  char buf[200];
-  int i, n;
-  float sd_logT, sd_ne, sd_nh, sd_nt, sd_logLnet,
-    sd_logLnorm, sd_logU, sd_logTau, sd_logP12, sd_logRho24, sd_ci, sd_mubar;
+  char buf[MAX_STRING_LEN];
+  
+  const double log10_zerop02 = log10(0.02);
+  for(size_t i = 0; i < NUM_METALS_TABLE; i++) {
+    metallicities[i] += log10_zerop02;     // add solar metallicity 
+  }
 
-  for(i = 0; i < 8; i++)
-    metallicities[i] += log10(0.02);     // add solar metallicity 
-
-  for(i = 0; i < 8; i++)
+  for(size_t i = 0; i < NUM_METALS_TABLE; i++)
   {
-    sprintf(buf, "extra/CoolFunctions/%s", name[i]);
-
-    if(!(fd = fopen(buf, "r")))
-    {
+    /* Concatenates the actual path to the root directory 
+       The variable ROOT_DIR is defined in the Makefile. C token pasting 
+       automatically concats the ROOT_DIR string and the "extra/..." string
+     */
+    snprintf(buf, MAX_STRING_LEN, ROOT_DIR "extra/CoolFunctions/%s", name[i]);
+    FILE *fd = fopen(buf, "r");
+    if(fd == NULL) {
       printf("file `%s' not found\n", buf);
       ABORT(0);
     }
-
-    for(n = 0; n <= 90; n++)
+    for(int n = 0; n < TABSIZE; n++)
     {
-      fscanf(fd, " %f %f %f %f %f %f %f %f %f %f %f %f ",
-        &sd_logT, &sd_ne, &sd_nh, &sd_nt,
-        &sd_logLnet, &sd_logLnorm, &sd_logU,
-        &sd_logTau, &sd_logP12, &sd_logRho24, &sd_ci, &sd_mubar);
+      float sd_logLnorm;
+      const int nitems = fscanf(fd, " %*f %*f %*f %*f %*f %f%*[^\n]",
+				&sd_logLnorm);
+      if(nitems != 1) {
+	fprintf(stderr,"Error: Could not read cooling rate on line %d\n", n);
+	ABORT(0);
+      }
 
       CoolRate[i][n] = sd_logLnorm;
     }
@@ -80,14 +86,37 @@ void read_cooling_functions(void)
 
 }
 
+double get_rate(int tab, double logTemp)
+{
+  int index;
+  double rate1, rate2, rate, logTindex;
+  const double dlogT = 0.05;
+  const double inv_dlogT = 1.0/dlogT;
+
+  if(logTemp < 4.0)
+    logTemp = 4.0;
+
+  index = (logTemp - 4.0) * inv_dlogT;
+  if(index >= LAST_TAB_INDEX) {
+    /*MS: because index+1 is also accessed, therefore index can be at most LAST_TAB_INDEX */
+    index = LAST_TAB_INDEX - 1;
+  }
+
+  logTindex = 4.0 + 0.05 * index;
+
+  rate1 = CoolRate[tab][index];
+  rate2 = CoolRate[tab][index + 1];
+
+  rate = rate1 + (rate2 - rate1) * inv_dlogT * (logTemp - logTindex);
+
+  return rate;
+}
 
 
 double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 
 {
   int i;
-  double get_rate(int tab, double logTemp);
   double rate1, rate2, rate;
-
 
   if(logZ < metallicities[0])
     logZ = metallicities[0];
@@ -105,30 +134,8 @@ double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: lo
 
   rate = rate1 + (rate2 - rate1) / (metallicities[i + 1] - metallicities[i]) * (logZ - metallicities[i]);
 
-  return pow(10, rate);
+  return pow(10.0, rate);
 }
 
 
-
-double get_rate(int tab, double logTemp)
-{
-  int index;
-  double rate1, rate2, rate, logTindex;
-
-  if(logTemp < 4.0)
-    logTemp = 4.0;
-
-  index = (logTemp - 4.0) / 0.05;
-  if(index >= 90)
-    index = 89;
-
-  logTindex = 4.0 + 0.05 * index;
-
-  rate1 = CoolRate[tab][index];
-  rate2 = CoolRate[tab][index + 1];
-
-  rate = rate1 + (rate2 - rate1) / (0.05) * (logTemp - logTindex);
-
-  return rate;
-}
 

@@ -142,7 +142,8 @@ void load_tree_hdf5(int32_t treenr)
   if (hdf5_file <= 0)
   {
     fprintf(stderr, "The HDF5 file should still be opened when reading the halos in the tree.\n");
-    fprintf(stderr, "For tree %d we encountered error %ld\n", treenr, hdf5_file);
+    fprintf(stderr, "For tree %d we encountered error\n", treenr);
+    H5Eprint(hdf5_file, stderr);
     ABORT(0);
   }
 
@@ -270,6 +271,7 @@ int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name,
   if (status < 0)
   {
     fprintf(stderr, "Error when closing the file.\n"); 
+    H5Eprint(status, stderr);
     return status;
   }
    
@@ -283,7 +285,8 @@ int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer)
   dataset_id = H5Dopen2(hdf5_file, dataset_name, H5P_DEFAULT);
   if (dataset_id < 0)
   {
-    fprintf(stderr, "Error %ld when trying to open up dataset %s\n", dataset_id, dataset_name); 
+    fprintf(stderr, "Error encountered when trying to open up dataset %s\n", dataset_name); 
+    H5Eprint(dataset_id, stderr);
     return dataset_id;
   }
 

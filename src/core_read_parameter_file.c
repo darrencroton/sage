@@ -194,8 +194,8 @@ void read_parameter_file(char *fname)
     while(!feof(fd))
       {
 	*buf = 0;
-	fgets(buf, 200, fd);
-	if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
+
+	if(fscanf(fd, "%s%s%s", buf1, buf2, buf3) < 2)
 	  continue;
 	
 	if(buf1[0] == '%' || buf1[0] == '-')

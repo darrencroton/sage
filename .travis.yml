@@ -14,7 +14,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - gcc-4.8
-      - libgsl0-dev
 
 matrix:
   fast_finish: true

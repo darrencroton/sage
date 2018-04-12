@@ -50,7 +50,7 @@ install:
   - conda create -q --yes -n test python=$PYTHON_VERSION
   - source activate test
   - conda install -q --yes -c asmeurer gsl
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  conda install -c anaconda hdf5 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  conda install -q --yes -c anaconda hdf5 ; fi
   - make CC=$COMPILER
         
 script: true

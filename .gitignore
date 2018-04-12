@@ -1,5 +1,4 @@
 sage
-input/treefiles
-output/results
+src/auxdata/trees/*
 *.o
 *.*~

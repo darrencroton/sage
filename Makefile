@@ -38,7 +38,7 @@ endif
 
 # Add the -Werror flag if running on some continuous integration provider
 ifeq ($(ON_CI), true)
-    CCFLAGS += -Werror -Wno-unknown-warning-option
+    CCFLAGS += -Werror
 endif
 
 ifdef USE-HDF5

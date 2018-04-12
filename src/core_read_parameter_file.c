@@ -284,26 +284,25 @@ void read_parameter_file(char *fname)
       fd = fopen(fname, "r");
       
       done = 0;
-      while(!feof(fd) && !done)
-	{
-	  // scan down to find the line with the snapshots
-	  fscanf(fd, "%s", buf);
-	  if(strcmp(buf, "->") == 0)
-	    {
-	      // read the snapshots into ListOutputSnaps
-	      for (i=0; i<NOUT; i++)
-		{
-		  fscanf(fd, "%d", &ListOutputSnaps[i]);
-		  printf("%i ", ListOutputSnaps[i]);
-		}
-	      done = 1;
-	    }
-	}
+      while(!feof(fd) && !done) {
+          /* scan down to find the line with the snapshots */
+          if(fscanf(fd, "%s", buf) == 0) continue;
+          if(strcmp(buf, "->") == 0) {
+              // read the snapshots into ListOutputSnaps
+              for(i=0; i<NOUT; i++) {
+                  if(fscanf(fd, "%d", &ListOutputSnaps[i]) == 1){ ;
+                      printf("%d ", ListOutputSnaps[i]);
+                  }
+              }
+              done = 1;
+              break;
+          }
+      }
       
       fclose(fd);
       if(! done ) {
-	fprintf(stderr,"Error: Could not properly parse output snapshots\n");
-	ABORT(2);
+          fprintf(stderr,"Error: Could not properly parse output snapshots\n");
+          ABORT(2);
       }
       printf("\n");
     }

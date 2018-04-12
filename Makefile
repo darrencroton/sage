@@ -46,7 +46,7 @@ ifdef USE-HDF5
         $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
         $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
         ifeq ($(ON_CI), true)
-            $(info Looks like we are building on a continuous integration service. Assuming that the package `hdf5tools` are installed)
+            $(info Looks like we are building on a continuous integration service. Assuming that the `hdf5` package installs `h5diff`)
             CONDA_FOUND := $(shell conda -V 2>/dev/null)
             ifndef CONDA_FOUND
                 H5DIFF_LOC := $(shell which h5diff 2>/dev/null)

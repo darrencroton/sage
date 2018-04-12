@@ -20,12 +20,19 @@ matrix:
 
   include:
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode8
+      compiler: clang
+      env: COMPILER=clang FAMILY=clang V='Apple LLVM 7.0.0' PYTHON_VERSION=2.7
+      before_install:
+        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+
+    - os: osx
+      osx_image: xcode9.3
       compiler: clang
       env: COMPILER=clang FAMILY=clang V='Apple LLVM 7.0.0' PYTHON_VERSION=3.6
       before_install:
         - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
-
+        
     - os: linux
       dist: trusty
       sudo: required
@@ -48,10 +55,15 @@ install:
   - conda create -q --yes -n test python=$PYTHON_VERSION
   - source activate test
   - conda install -q --yes -c asmeurer gsl
-  - conda install -q --yes -c conda-forge hdf5
-        
-script: 
+  - conda install -q --yes -c conda-forge hdf5 git-lfs
+
+before_script:
+  - git lfs install
+  - git lfs pull
+
+Script:
   - make -r CC=$COMPILER
+  - find . -type f -name "trees_*"
 
 
   

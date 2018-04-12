@@ -61,7 +61,7 @@ before_script:
   - git lfs install
   - git lfs pull
 
-Script:
+script:
   - make -r CC=$COMPILER
   - find . -type f -name "trees_*"
 

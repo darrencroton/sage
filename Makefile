@@ -5,7 +5,7 @@ SRC := main.c core_read_parameter_file.c core_init.c core_io_tree.c \
        io/tree_binary.c io/tree_hdf5.c
 SRC  := $(addprefix src/, $(SRC))
 OBJS := $(SRC:.c=.o)
-INCL := core_allvars.h core_proto.h core_simulation.h io/tree_binary.h io/tree_hdf5.h Makefile
+INCL := core_allvars.h core_proto.h core_simulation.h io/tree_binary.h io/tree_hdf5.h
 INCL := $(addprefix src/, $(INCL))
 
 EXEC := sage 
@@ -13,25 +13,32 @@ EXEC := sage
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
 USE-HDF5 = yes
 
-LIBS =
-CFLAGS =
-OPTS =
+LIBS :=
+OPTS :=
+CCFLAGS := 
+
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
-    CC ?= mpicc  # sets the C-compiler
+    CC := mpicc  # sets the C-compiler
 else
-    CC ?= gcc  # sets the C-compiler
+    CC := gcc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
-    HDF5DIR := usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
-    HDF5INCL := -I$(HDF5DIR)/include
-    HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
+    ifndef HDF5_DIR
+        $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
+        $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
+        HDF5_DIR := /usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+        $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
+    endif
+
+    HDF5_INCL := -I$(HDF5_DIR)/include
+    HDF5_LIB := -L$(HDF5_DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5_DIR)/lib
 
     OPT += -DHDF5
-    LIBS += $(HDF5LIB)
-    CFLAGS += $(HDF5INCL) 
+    LIBS += $(HDF5_LIB)
+    CCFLAGS += $(HDF5_INCL) 
 endif
 
 GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 1)"'
@@ -40,6 +47,7 @@ GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
 ifndef GSL_FOUND
   $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
+  $(warning Assuming GSL *might* be in $(GSL_DIR) and trying to compile)
   # if the automatic detection fails, set GSL_DIR appropriately
   GSL_DIR := /opt/local
   GSL_INCL := -I$(GSL_DIR)/include  
@@ -53,20 +61,20 @@ else
   GSL_LIBDIR := $(shell gsl-config --prefix)/lib
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
+CCFLAGS += $(GSL_INCL)
+LIBS += $(GSL_LIBS)
 
-OPTIMIZE = -g -O3 -march=native -Wextra -Wshadow -Wall #-Wpadded # optimization and warning flags
-
-LIBS   +=   -g -lm  $(GSL_LIBS) 
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
-
+OPTIMIZE = -O3 -march=native # optimization and warning flags
+CCFLAGS += -g -Wextra -Wshadow -Wall  #-Wpadded 
+LIBS   +=   -lm
 
 default: all
 
 $(EXEC): $(OBJS) 
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
-%.o: %.c $(INCL)
-	$(CC) $(CFLAGS) -c $< -o $@
+%.o: %.c $(INCL) Makefile
+	$(CC) $(OPT) $(OPTIMIZE) $(CCFLAGS) -c $< -o $@
 
 .phony: clean celan celna clena
 

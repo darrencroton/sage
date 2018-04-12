@@ -15,6 +15,7 @@ addons:
     packages:
       - gcc-4.8
       - libgsl0-dev
+      - libhdf5-serial-dev
 
 matrix:
   fast_finish: true
@@ -51,7 +52,7 @@ install:
   - conda install -q --yes -c asmeurer gsl
   - make CC=$COMPILER
         
-script:
+script: true
 
 
   

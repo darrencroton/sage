@@ -37,7 +37,7 @@ int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
 char OutputDir[MAX_STRING_LEN];
 char FileNameGalaxies[MAX_STRING_LEN];
 char TreeName[MAX_STRING_LEN];
-char TreeExtension[MAX_STRING_LEN] = {"\0"}; /* If the FileType is HDF5 they will have .hdf5 extension, otherwise nothing. */
+char TreeExtension[MAX_STRING_LEN] = {'\0'}; /* If the FileType is HDF5 they will have .hdf5 extension, otherwise nothing. */
 char SimulationDir[MAX_STRING_LEN];
 char FileWithSnapList[MAX_STRING_LEN];
 

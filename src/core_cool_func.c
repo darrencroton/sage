@@ -57,7 +57,7 @@ void read_cooling_functions(void)
        The variable ROOT_DIR is defined in the Makefile. C token pasting 
        automatically concats the ROOT_DIR string and the "extra/..." string
      */
-    snprintf(buf, MAX_STRING_LEN, ROOT_DIR "src/auxdata/CoolFunctions/%s", name[i]);
+    snprintf(buf, MAX_STRING_LEN, ROOT_DIR "/src/auxdata/CoolFunctions/%s", name[i]);
     FILE *fd = fopen(buf, "r");
     if(fd == NULL) {
       printf("file `%s' not found\n", buf);

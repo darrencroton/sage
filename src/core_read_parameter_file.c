@@ -10,8 +10,6 @@
 void read_parameter_file(char *fname)
 {
   FILE *fd;
-  char buf[MAX_STRING_LEN], buf1[MAX_STRING_LEN];
-  char buf2[MAX_STRING_LEN], buf3[MAX_STRING_LEN];
   int i, j, done;
   int errorFlag = 0;
   int *used_tag = 0;
@@ -189,72 +187,70 @@ void read_parameter_file(char *fname)
     errorFlag = 1;
   }
   
-  if(fd != NULL) 
-  {
-    while(!feof(fd))
-      {
-	*buf = 0;
-
-	if(fscanf(fd, "%s%s%s", buf1, buf2, buf3) < 2)
-	  continue;
-	
-	if(buf1[0] == '%' || buf1[0] == '-')
-	  continue;
-	
-	for(i = 0, j = -1; i < NParam; i++)
-	  if(strcmp(buf1, ParamTag[i]) == 0)
-	    {
-	      j = i;
-	      ParamTag[i][0] = 0;
-	      used_tag[i] = 0;
-	      break;
-	    }
-	
-	if(j >= 0)
-	  {
+  if(fd != NULL) {
+      char buffer[MAX_STRING_LEN];
+      while(fgets(&(buffer[0]), MAX_STRING_LEN, fd) != NULL) {
+          char buf1[MAX_STRING_LEN], buf2[MAX_STRING_LEN];
+          if(sscanf(buffer, "%s%s%*[^\n]", buf1, buf2) < 2) {
+              continue;
+          }
+          
+          if(buf1[0] == '%' || buf1[0] == '-') {
+              continue;
+          }
+          
+          for(i = 0, j = -1; i < NParam; i++)
+              if(strcmp(buf1, ParamTag[i]) == 0)
+                  {
+                      j = i;
+                      ParamTag[i][0] = 0;
+                      used_tag[i] = 0;
+                      break;
+                  }
+          
+          if(j >= 0)
+              {
 #ifdef MPI
-	    if(ThisTask == 0)
+                  if(ThisTask == 0)
 #endif
-	      printf("%35s\t%10s\n", buf1, buf2);
-	    
-	    switch (ParamID[j])
-	      {
-	      case DOUBLE:
-		*((double *) ParamAddr[j]) = atof(buf2);
-		break;
-	      case STRING:
-		strcpy(ParamAddr[j], buf2);
-		break;
-	      case INT:
-		*((int *) ParamAddr[j]) = atoi(buf2);
-		break;
-	      }
-	  }
-	else
-	{
-	  printf("Error in file %s:   Tag '%s' not allowed or multiply defined.\n", fname, buf1);
-	  errorFlag = 1;
-	}
+                      printf("%35s\t%10s\n", buf1, buf2);
+                  
+                  switch (ParamID[j])
+                      {
+                      case DOUBLE:
+                          *((double *) ParamAddr[j]) = atof(buf2);
+                          break;
+                      case STRING:
+                          strcpy(ParamAddr[j], buf2);
+                          break;
+                      case INT:
+                          *((int *) ParamAddr[j]) = atoi(buf2);
+                          break;
+                      }
+              }
+          else
+              {
+                  printf("Error in file %s:   Tag '%s' not allowed or multiply defined.\n", fname, buf1);
+                  errorFlag = 1;
+              }
       }
-    fclose(fd);
-
-    i = strlen(OutputDir);
-    if(i > 0)
-      if(OutputDir[i - 1] != '/')
-	strcat(OutputDir, "/");
+      fclose(fd);
+      
+      i = strlen(OutputDir);
+      if(i > 0)
+          if(OutputDir[i - 1] != '/')
+              strcat(OutputDir, "/");
   }
   
-  for(i = 0; i < NParam; i++)
-    {
-      if(used_tag[i])
-	{
-	  printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", ParamTag[i], fname);
-	  errorFlag = 1;
-	}
-    }
+  for(i = 0; i < NParam; i++) {
+      if(used_tag[i]) {
+          printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", ParamTag[i], fname);
+          errorFlag = 1;
+      }
+  }
   
   if(errorFlag) {
-    ABORT(1);
+      ABORT(1);
   }
   printf("\n");
   
@@ -272,19 +268,21 @@ void read_parameter_file(char *fname)
   // read in the output snapshot list
   if(NOUT == -1)
     {
-      NOUT = MAXSNAPS;
-      for (i=NOUT-1; i>=0; i--)
-	ListOutputSnaps[i] = i;
-      printf("all %i snapshots selected for output\n", NOUT);
+        NOUT = MAXSNAPS;
+        for (i=NOUT-1; i>=0; i--)
+            ListOutputSnaps[i] = i;
+        printf("all %i snapshots selected for output\n", NOUT);
     }
   else
-    {
+      {
       printf("%i snapshots selected for output: ", NOUT);
       // reopen the parameter file
       fd = fopen(fname, "r");
       
       done = 0;
       while(!feof(fd) && !done) {
+            char buf[MAX_STRING_LEN];
+
           /* scan down to find the line with the snapshots */
           if(fscanf(fd, "%s", buf) == 0) continue;
           if(strcmp(buf, "->") == 0) {

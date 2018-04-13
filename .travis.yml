@@ -60,7 +60,7 @@ install:
 before_script:
   - cd src/auxdata/trees/mini-millennium
   - wget https://data-portal.hpc.swin.edu.au/dataset/7bab038b-1d1f-4e79-8cfc-ea171dd1492f/resource/7ff28a50-c401-4a07-9041-13524cbac5c9/download/mini-millennium.tar
-  - tar xvf mini-millennium.tar && cd $HOME/sage
+  - tar xvf mini-millennium.tar && cd ../../../../
 
 script:
   - make -r CC=$COMPILER

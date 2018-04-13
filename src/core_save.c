@@ -146,7 +146,9 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;
   o->SimulationHaloIndex = llabs(Halo[g->HaloNr].MostBoundID);
+#if 0
   o->isFlyby = Halo[g->HaloNr].MostBoundID < 0 ? 1:0;
+#endif  
 
   o->mergeType = g->mergeType;
   o->mergeIntoID = g->mergeIntoID;

@@ -63,7 +63,8 @@ before_script:
 
 script:
   - make -r CC=$COMPILER
-  - find . -type f -name "trees_*"
+  - ./sage src/auxdata/trees/mini-millennium/mini-millennium.par
+  - cd src/auxdata/trees/mini-millennium/ && ./check_files.sh
 
 
   

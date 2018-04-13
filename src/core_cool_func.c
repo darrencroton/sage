@@ -65,14 +65,13 @@ void read_cooling_functions(void)
     }
     for(int n = 0; n < TABSIZE; n++)
     {
-      float sd_logLnorm;
-      const int nitems = fscanf(fd, " %*f %*f %*f %*f %*f %f%*[^\n]",
-				&sd_logLnorm);
-      if(nitems != 1) {
-	fprintf(stderr,"Error: Could not read cooling rate on line %d\n", n);
-	ABORT(0);
-      }
-
+        float sd_logLnorm;
+        const int nitems = fscanf(fd, " %*f %*f %*f %*f %*f %f%*[^\n]",
+                                  &sd_logLnorm);
+        if(nitems != 1) {
+            fprintf(stderr,"Error: Could not read cooling rate on line %d\n", n);
+            ABORT(0);
+        }
       CoolRate[i][n] = sd_logLnorm;
     }
 
@@ -85,6 +84,7 @@ void read_cooling_functions(void)
     printf("cooling functions read\n\n");
 
 }
+
 
 double get_rate(int tab, double logTemp)
 {
@@ -111,7 +111,6 @@ double get_rate(int tab, double logTemp)
 
   return rate;
 }
-
 
 double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 
 {

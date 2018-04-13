@@ -48,8 +48,13 @@ do {                                                                \
 struct GALAXY_OUTPUT  
 {
   int   SnapNum;
+
+#if 0    
   short Type;
   short isFlyby;
+#else
+  int Type;
+#endif    
 
   long long   GalaxyIndex;
   long long   CentralGalaxyIndex;

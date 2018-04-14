@@ -8,21 +8,14 @@ notifications:
     on_success: change
     on_failure: always
 
-addons: 
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.8
-
 matrix:
   fast_finish: true
 
   include:
     - os: osx
       osx_image: xcode8
-      compiler: clang
-      env: COMPILER=clang FAMILY=clang V='Apple LLVM 7.0.0' PYTHON_VERSION=2.7
+      compiler: gcc
+      env: COMPILER=gcc PYTHON_VERSION=2.7
       before_install:
         - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
 
@@ -56,6 +49,7 @@ install:
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c conda-forge hdf5
+  - conda install -q --yes -c anaconda gcc
 
 before_script:
   - cd src/auxdata/trees/mini-millennium

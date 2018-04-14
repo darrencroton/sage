@@ -14,6 +14,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 #include "io/io_save_hdf5.h"
+#include "progressbar.h"
 
 char bufz0[1000];
 int exitfail = 1;
@@ -67,11 +68,8 @@ void bye()
 
 int main(int argc, char **argv)
 {
-  int filenr, treenr, halonr;
   struct sigaction current_XCPU;
-
   struct stat filestatus;
-  FILE *fd;
 
 #ifdef MPI
   MPI_Init(&argc, &argv);
@@ -110,19 +108,19 @@ int main(int argc, char **argv)
 #endif
 	
 #ifdef MPI
-  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
+  for(int filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else
-  for(filenr = FirstFile; filenr <= LastFile; filenr++)
+  for(int filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
     sprintf(bufz0, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
-    if(!(fd = fopen(bufz0, "r")))
-    {
+    FILE *fd = fopen(bufz0, "r");
+    if (fd == NULL) {
       printf("-- missing tree %s ... skipping\n", bufz0);
       continue;  // tree file does not exist, move along
-    }
-    else
+    } else {
       fclose(fd);
+    }
 
     sprintf(bufz0, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)
@@ -131,45 +129,46 @@ int main(int argc, char **argv)
       continue;  // output seems to already exist, dont overwrite, move along
     }
 
-    if((fd = fopen(bufz0, "w")))
+    fd = fopen(bufz0, "w");
+    if(fd != NULL) {
       fclose(fd);
+    }
 
     FileNum = filenr;
     load_tree_table(filenr, TreeType);
-
-    for(treenr = 0; treenr < Ntrees; treenr++)
-    {
-      
-			assert(!gotXCPU);
-
-      if(treenr % 10000 == 0)
-      {
+    int interrupted=0;
+    init_my_progressbar(stderr, Ntrees, &interrupted);
+    for(int treenr = 0; treenr < Ntrees; treenr++) {
+        assert(!gotXCPU);
 #ifdef MPI
-        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, treenr, Ntrees);
-#else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
-#endif
-				fflush(stdout);
-      }
-
-      TreeID = treenr;
-      load_tree(treenr, TreeType);
-
-      gsl_rng_set(random_generator, filenr * 100000 + treenr);
-      NumGals = 0;
-      GalaxyCounter = 0;
-      for(halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
-        if(HaloAux[halonr].DoneFlag == 0)
-        construct_galaxies(halonr, treenr);
-
-      save_galaxies(filenr, treenr);
-      free_galaxies_and_tree();
+        if(ThisTask == 0)
+#endif            
+            my_progressbar(stderr, treenr, &interrupted);
+        
+        TreeID = treenr;
+        load_tree(treenr, TreeType);
+        
+        gsl_rng_set(random_generator, filenr * 100000 + treenr);
+        NumGals = 0;
+        GalaxyCounter = 0;
+        for(int halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
+            if(HaloAux[halonr].DoneFlag == 0)
+                construct_galaxies(halonr, treenr);
+        
+        save_galaxies(filenr, treenr);
+        free_galaxies_and_tree();
     }
-
+    
     finalize_galaxy_file();
     free_tree_table(TreeType);
-
-    printf("\ndone file %d\n\n", filenr);
+    
+    finish_myprogressbar(stderr, &interrupted);
+    
+#ifdef MPI
+    if(ThisTask == 0)
+#endif            
+        fprintf(stdout, "\ndone file %d\n\n", filenr);
+    interrupted=1;
   }
 
   printf("Output 0 had %d galaxies\n", TotGalaxies[0]);

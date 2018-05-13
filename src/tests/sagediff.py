@@ -4,6 +4,10 @@ from __future__ import print_function
 import numpy as np
 import os
 from os.path import getsize as getFileSize
+try:
+    xrange
+except NameError:
+    xrange = range
 
 class sageResults(object):
 
@@ -194,7 +198,11 @@ def compare_catalogs(g1, g2):
                    "galaxies\n".format(n1, n2)
             raise ValueError(msg)
 
-    from tqdm import trange
+    try:
+        from tqdm import trange
+    except ImportError:
+        trange = xrange
+        
     for treenum in trange(g1.totntrees):
         if g1.ngal_per_tree[treenum] == 0:
             continue

@@ -50,6 +50,7 @@ install:
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c conda-forge hdf5
   - conda install -q --yes -c anaconda gcc
+  - conda install -q --yes tqdm numpy=1.14
 
 before_script:
   - cd src/auxdata/trees/mini-millennium

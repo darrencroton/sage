@@ -84,13 +84,16 @@ class sageResults(object):
         except AttributeError:
             _mode = os.O_RDONLY
             
-        self.file = os.open(filename, _mode)
+        self.fd = os.open(filename, _mode)
+        self.fp = open(filename, _mode)
+        
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        os.close(self.file)
+        os.close(self.fd)
+        close(self.fp)
 
     def read_header(self):
         """
@@ -98,16 +101,15 @@ class sageResults(object):
         """
         import numpy as np
 
-        with open(self.filename, 'rb') as fin:
-            # Read number of trees in file
-            totntrees = np.fromfile(fin, dtype=np.int32, count=1)[0]
-            
-            # Read number of gals in file.
-            totngals = np.fromfile(fin, dtype=np.int32, count=1)[0]
-            
-            # Read the number of gals in each tree
-            ngal_per_tree = np.fromfile(fin, dtype=np.int32, count=totntrees)
-
+        # Read number of trees in file
+        totntrees = np.fromfile(self.fp, dtype=np.int32, count=1)[0]
+        
+        # Read number of gals in file.
+        totngals = np.fromfile(self.fp, dtype=np.int32, count=1)[0]
+    
+        # Read the number of gals in each tree
+        ngal_per_tree = np.fromfile(self.fp, dtype=np.int32, count=totntrees)
+        
         self.totntrees = totntrees
         self.totngals = totngals
         self.ngal_per_tree = ngal_per_tree
@@ -155,21 +157,23 @@ class sageResults(object):
             return None
 
         # This section could have been used to
-        # read trees in arbitrary order
+        # read trees in arbitrary order.
+        ## WARNING: DO NOT mix reads from self.fd
+        ## and self.fp 
         # nbytes = ngal * self.dtype.itemsize
         # offset = self.bytes_offset_per_tree[treenum]
         # try:
-        #     tree = os.pread(self.file, nbytes, offset)
+        #     tree = os.pread(self.fd, nbytes, offset)
         # except AttributeError:
         #     # seek to the offset (where offset is
         #     # defined from the beginnng of file)
-        #     os.lseek(self.file, offset, os.SEEK_SET)
-        #     tree = os.read(self.file, nbytes)
+        #     os.lseek(self.fd, offset, os.SEEK_SET)
+        #     tree = os.read(self.fd, nbytes)
         # 
         # tree = np.asarray(tree, dtype=self.dtype)
         
         # This assumes sequential reads
-        tree = np.fromfile(self.file, dtype=self.dtype, count=ngal)
+        tree = np.fromfile(self.fp, dtype=self.dtype, count=ngal)
         return tree
 
 def compare_catalogs(g1, g2):

@@ -162,7 +162,7 @@ class sageResults(object):
             os.lseek(self.file, offset, os.SEEK_SET)
             tree = os.read(self.file, nbytes)
         
-        tree = np.array(tree, dtype=self.dtype)
+        tree = np.asarray(tree, dtype=self.dtype)
         return tree
 
 def compare_catalogs(g1, g2):

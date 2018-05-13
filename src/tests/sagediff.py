@@ -151,6 +151,9 @@ class sageResults(object):
             raise ValueError(msg)
         
         ngal = self.ngal_per_tree[treenum]
+        if ngal == 0:
+            return None
+        
         nbytes = ngal * self.dtype.itemsize
         offset = self.bytes_offset_per_tree[treenum]
         
@@ -209,6 +212,14 @@ def compare_catalogs(g1, g2):
         
         t1 = g1.read_tree(treenum)
         t2 = g2.read_tree(treenum)
+        if (t1 is None and t1 != t2) or \
+           (t2 is None and t1 != t2):
+            msg = "Error: Exactly one of the trees contains "\
+                  "no galaxies.\nt1 = {0}\nt2 = {1}\n"\
+                  .format(t1, t2)
+            raise ValueError(msg)
+
+        
         if t1.shape != t2.shape:
             msg = "Error: Bug in read routine or corrupted/truncated file\n"\
                 "Expected to find exactly {0} galaxies in both catalogs\n"\

@@ -244,7 +244,7 @@ def compare_catalogs(g1, g2):
             f2 = t2[fld]
             msg = "Field = `{0}` not the same between the two catalogs\n"\
                 .format(fld)
-            if not np.all(f1 == f2):
+            if not np.allclose(f1, f2):
                 msg += "f1 = {0}\nf2 = {1}".format(f1, f2)
                 raise ValueError(msg)
                 

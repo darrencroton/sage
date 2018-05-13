@@ -45,12 +45,11 @@ matrix:
 install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda create -q --yes -n test python=$PYTHON_VERSION
+  - conda create -q --yes -n test python=$PYTHON_VERSION tqdm numpy nomkl
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c conda-forge hdf5
   - conda install -q --yes -c anaconda gcc
-  - conda install -q --yes tqdm numpy
 
 before_script:
   - cd src/auxdata/trees/mini-millennium

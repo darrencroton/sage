@@ -153,19 +153,23 @@ class sageResults(object):
         ngal = self.ngal_per_tree[treenum]
         if ngal == 0:
             return None
+
+        # This section could have been used to
+        # read trees in arbitrary order
+        # nbytes = ngal * self.dtype.itemsize
+        # offset = self.bytes_offset_per_tree[treenum]
+        # try:
+        #     tree = os.pread(self.file, nbytes, offset)
+        # except AttributeError:
+        #     # seek to the offset (where offset is
+        #     # defined from the beginnng of file)
+        #     os.lseek(self.file, offset, os.SEEK_SET)
+        #     tree = os.read(self.file, nbytes)
+        # 
+        # tree = np.asarray(tree, dtype=self.dtype)
         
-        nbytes = ngal * self.dtype.itemsize
-        offset = self.bytes_offset_per_tree[treenum]
-        
-        try:
-            tree = os.pread(self.file, nbytes, offset)
-        except AttributeError:
-            # seek to the offset (where offset is
-            # defined from the beginnng of file)
-            os.lseek(self.file, offset, os.SEEK_SET)
-            tree = os.read(self.file, nbytes)
-        
-        tree = np.asarray(tree, dtype=self.dtype)
+        # This assumes sequential reads
+        tree = np.fromfile(self.file, dtype=self.dtype, count=ngal)
         return tree
 
 def compare_catalogs(g1, g2):

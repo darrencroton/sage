@@ -96,13 +96,13 @@ class sageResults(object):
 
         with open(self.filename, 'rb') as fin:
             # Read number of trees in file
-            totntrees = np.fromfile(fin, np.int32, 1)
+            totntrees = np.fromfile(fin, dtype=np.int32, count=1)[0]
             
             # Read number of gals in file.
-            totngals = np.fromfile(fin, np.int32,1)[0]
+            totngals = np.fromfile(fin, dtype=np.int32, count=1)[0]
             
             # Read the number of gals in each tree
-            ngal_per_tree = np.fromfile(fin, np.int32, totntrees)
+            ngal_per_tree = np.fromfile(fin, dtype=np.int32, count=totntrees)
 
         self.totntrees = totntrees
         self.totngals = totngals
@@ -169,30 +169,30 @@ def compare_catalogs(g1, g2):
     if not (isinstance(g1, sageResults) and 
             isinstance(g2, sageResults)):
         msg = "Both inputs must be objects the class 'sageResults'"\
-            "type(Object1) = {0} type(Object2) = {1}"\
+            "type(Object1) = {0} type(Object2) = {1}\n"\
             .format(type(g1), type(g2))
         raise ValueError
     
     msg = "Total number of trees must be identical\n"
     if g1.totntrees != g2.totntrees:
-        msg += "catalog1 has {0} trees while catalog2 has {1} trees"\
+        msg += "catalog1 has {0} trees while catalog2 has {1} trees\n"\
             .format(g1.totntrees, g2.totntrees)
-        raise ValidationError(msg)
+        raise ValueError(msg)
     
     msg = "Total number of galaxies must be identical\n"    
     if g1.totngals != g2.totngals:
-        msg += "catalog1 has {0} galaxies while catalog2 has {1} galaxies"\
-            .format(g1.totngals, g2.totngals)
-        raise ValidationError(msg)
+        msg += "catalog1 has {0} galaxies while catalog2 has {1} "\
+               "galaxies\n".format(g1.totngals, g2.totngals)
+        raise ValueError(msg)
 
     for treenum, (n1, n2) in enumerate(zip(g1.ngal_per_tree,
                                            g2.ngal_per_tree)):
         msg = "Treenumber {0} should have exactly the same number of "\
             "galaxies\n".format(treenum)
         if n1 != n2:
-            msg += "catalog1 has {0} galaxies while catalog2 has {1} galaxies"\
-                .format(n1, n2)
-            raise ValidationError(msg)
+            msg += "catalog1 has {0} galaxies while catalog2 has {1} "\
+                   "galaxies\n".format(n1, n2)
+            raise ValueError(msg)
 
     from tqdm import trange
     for treenum in trange(g1.totntrees):
@@ -205,21 +205,21 @@ def compare_catalogs(g1, g2):
             msg = "Error: Bug in read routine or corrupted/truncated file\n"\
                 "Expected to find exactly {0} galaxies in both catalogs\n"\
                 "Instead first catalog has the shape {1}\n"\
-                "and the second catalog has the shape {2}"\
+                "and the second catalog has the shape {2}\n"\
                 .format(g1.ngal_per_tree[treenum],
                         t1.shape,
                         t2.shape)
-            raise ValidationError(msg)
+            raise ValueError(msg)
         
         dtype = g1.dtype
         for fld in g1.dtype.names:
             f1 = t1[fld]
             f2 = t2[fld]
-            msg = "Field = {0} not the same between the two catalogs"\
+            msg = "Field = `{0}` not the same between the two catalogs\n"\
                 .format(fld)
             if not np.all(f1 == f2):
-                msg += "f1 = {0}\nf2={1}".format(f1, f2)
-                raise ValidationError(msg)
+                msg += "f1 = {0}\nf2 = {1}".format(f1, f2)
+                raise ValueError(msg)
                 
     
 #  'Main' section of code.  This if statement executes
@@ -236,7 +236,6 @@ if __name__ == '__main__':
                         help='the second file (say, model2_z0.000.0)')
 
     args = parser.parse_args()
-    print(args)
 
     g1 = sageResults(args.file1)
     g2 = sageResults(args.file2)
@@ -244,7 +243,8 @@ if __name__ == '__main__':
     g1.read_header()
     g2.read_header()
     
-    print('Running sagediff...')
+    print('\nRunning sagediff on files {0} and {1}'.format(args.file1,
+                                                           args.file2))
 
     compare_catalogs(g1, g2)
 

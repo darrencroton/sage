@@ -23,7 +23,7 @@ ifdef USE-MPI
     OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else
-    CC := gcc  # sets the C-compiler
+    CC := clang  # sets the C-compiler
 endif
 
 
@@ -109,6 +109,9 @@ clean:
 	rm -f $(OBJS) $(EXEC)
 
 celan celna clena: clean
+
+tests: $(EXEC)
+	./src/tests/test_sage.sh
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)

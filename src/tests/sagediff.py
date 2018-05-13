@@ -85,7 +85,7 @@ class sageResults(object):
             _mode = os.O_RDONLY
             
         self.fd = os.open(filename, _mode)
-        self.fp = open(filename, _mode)
+        self.fp = open(filename, 'rb')
         
 
     def __enter__(self):

@@ -58,8 +58,7 @@ before_script:
 
 script:
   - make -r CC=$COMPILER
-  - ./sage src/auxdata/trees/mini-millennium/mini-millennium.par
-  - cd src/auxdata/trees/mini-millennium/ && ./check_files.sh
+  - make tests
   
 
 

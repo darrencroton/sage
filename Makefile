@@ -1,37 +1,34 @@
-EXEC   = sage 
-
-OBJS   = 	./code/main.o \
-			./code/core_read_parameter_file.o \
-			./code/core_init.o \
-			./code/core_io_tree.o \
-			./code/core_cool_func.o \
-			./code/core_build_model.o \
-			./code/core_save.o \
-			./code/core_mymalloc.o \
-			./code/core_allvars.o \
-			./code/model_infall.o \
-			./code/model_cooling_heating.o \
-			./code/model_starformation_and_feedback.o \
-			./code/model_disk_instability.o \
-			./code/model_reincorporation.o \
-			./code/model_mergers.o \
-			./code/model_misc.o \
-			./code/io/tree_binary.o \
-			./code/io/tree_hdf5.o 
-
-INCL   =	./code/core_allvars.h  \
-			./code/core_proto.h  \
-			./code/core_simulation.h  \
-			./code/io/tree_binary.h \
-			./code/io/tree_hdf5.h \
-			./Makefile 
-
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
-USE-HDF5 = yes
+# USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
-LIBS =
-CFLAGS =
-OPTS =
+LIBS :=
+CFLAGS :=
+OPT := 
+
+EXEC := sage 
+OBJS := ./code/main.o \
+	./code/core_read_parameter_file.o \
+	./code/core_init.o \
+	./code/core_io_tree.o \
+	./code/core_cool_func.o \
+	./code/core_build_model.o \
+	./code/core_save.o \
+	./code/core_mymalloc.o \
+	./code/core_allvars.o \
+	./code/model_infall.o \
+	./code/model_cooling_heating.o \
+	./code/model_starformation_and_feedback.o \
+	./code/model_disk_instability.o \
+	./code/model_reincorporation.o \
+	./code/model_mergers.o \
+	./code/model_misc.o \
+	./code/io/tree_binary.o
+
+INCL := ./code/core_allvars.h  \
+	./code/core_proto.h  \
+	./code/core_simulation.h  \
+	./code/io/tree_binary.h \
+	./Makefile 
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -44,6 +41,9 @@ ifdef USE-HDF5
     HDF5DIR := usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
     HDF5INCL := -I$(HDF5DIR)/include
     HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
+
+    OBJS += ./code/io/tree_hdf5.o
+    INCL += ./code/io/tree_hdf5.h
 
     OPT += -DHDF5
     LIBS += $(HDF5LIB)

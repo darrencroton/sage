@@ -99,10 +99,11 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
   switch (my_TreeType)
   {
 
-    case genesis_lhalo_hdf5:
+#ifdef HDF5
+  case genesis_lhalo_hdf5:
       load_tree_hdf5(filenr, treenr);
       break;
-
+#endif
     case lhalo_binary:
       load_tree_binary(filenr, treenr);
       break;

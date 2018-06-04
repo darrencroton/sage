@@ -159,8 +159,12 @@ int main(int argc, char **argv)
                 construct_galaxies(halonr, Halo, HaloAux, Gal, HaloGal);
 #endif
             }
-        
+
+#ifdef OLD_VERSION        
         save_galaxies(filenr, treenr);
+#else
+        save_galaxies(filenr, treenr, Halo, HaloAux, HaloGal);
+#endif        
         free_galaxies_and_tree();
     }
     

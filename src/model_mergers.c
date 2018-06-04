@@ -9,307 +9,299 @@
 #include "core_proto.h"
 
 
-
-double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
+double estimate_merging_time(const int sat_halo, const int mother_halo, const int ngal, struct halo_data *halos, struct GALAXY *galaxies)
 {
-  double coulomb, mergtime, SatelliteMass, SatelliteRadius;
-  const int MinNumPartSatHalo = 10;
-
-  if(sat_halo == mother_halo) 
-  {
-    printf("\t\tSnapNum, Type, IDs, sat radius:\t%i\t%i\t%i\t%i\t--- sat/cent have the same ID\n", 
-      Gal[ngal].SnapNum, Gal[ngal].Type, sat_halo, mother_halo);
-    return -1.0;
-  }
+    double coulomb, mergtime, SatelliteMass, SatelliteRadius;
+    const int MinNumPartSatHalo = 10;
+    
+    if(sat_halo == mother_halo) {
+        printf("\t\tSnapNum, Type, IDs, sat radius:\t%i\t%i\t%i\t%i\t--- sat/cent have the same ID\n", 
+               galaxies[ngal].SnapNum, galaxies[ngal].Type, sat_halo, mother_halo);
+        return -1.0;
+    }
   
-  coulomb = log(1.0 + Halo[mother_halo].Len / ((double) Halo[sat_halo].Len) );
+    coulomb = log(1.0 + halos[mother_halo].Len / ((double) halos[sat_halo].Len) );
 
-  SatelliteMass = get_virial_mass(sat_halo) + Gal[ngal].StellarMass + Gal[ngal].ColdGas;
-  SatelliteRadius = get_virial_radius(mother_halo);
+    SatelliteMass = get_virial_mass(sat_halo, halos) + galaxies[ngal].StellarMass + galaxies[ngal].ColdGas;
+    SatelliteRadius = get_virial_radius(mother_halo, halos);
 
-  if(SatelliteMass > 0.0 && coulomb > 0.0 && Halo[sat_halo].Len >= MinNumPartSatHalo) {
-      mergtime = 2.0 *
-          1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
-  } else {
-    mergtime = -1.0;
-  }
+    if(SatelliteMass > 0.0 && coulomb > 0.0 && halos[sat_halo].Len >= MinNumPartSatHalo) {
+        mergtime = 2.0 *
+            1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo, halos) / (coulomb * G * SatelliteMass);
+    } else {
+        mergtime = -1.0;
+    }
 
-  return mergtime;
+    return mergtime;
 
 }
 
 
 
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step)
+void deal_with_galaxy_merger(const int p, const int merger_centralgal, const int centralgal,
+                             const double time, const double dt, const int halonr, const int step,
+                             struct GALAXY *galaxies)
 {
-  double mi, ma, mass_ratio;
+    double mi, ma, mass_ratio;
 
-  // calculate mass ratio of merging galaxies 
-  if(Gal[p].StellarMass + Gal[p].ColdGas <
-    Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas)
-  {
-    mi = Gal[p].StellarMass + Gal[p].ColdGas;
-    ma = Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas;
-  }
-  else
-  {
-    mi = Gal[merger_centralgal].StellarMass + Gal[merger_centralgal].ColdGas;
-    ma = Gal[p].StellarMass + Gal[p].ColdGas;
-  }
+    // calculate mass ratio of merging galaxies 
+    if(galaxies[p].StellarMass + galaxies[p].ColdGas <
+       galaxies[merger_centralgal].StellarMass + galaxies[merger_centralgal].ColdGas) {
+        mi = galaxies[p].StellarMass + galaxies[p].ColdGas;
+        ma = galaxies[merger_centralgal].StellarMass + galaxies[merger_centralgal].ColdGas;
+    } else {
+        mi = galaxies[merger_centralgal].StellarMass + galaxies[merger_centralgal].ColdGas;
+        ma = galaxies[p].StellarMass + galaxies[p].ColdGas;
+    }
 
-  if(ma > 0)
-    mass_ratio = mi / ma;
-  else
-    mass_ratio = 1.0;
+    if(ma > 0) {
+        mass_ratio = mi / ma;
+    } else {
+        mass_ratio = 1.0;
+    }
 
-  add_galaxies_together(merger_centralgal, p);
+    add_galaxies_together(merger_centralgal, p, galaxies);
 
-  // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
-  if(AGNrecipeOn)
-    grow_black_hole(merger_centralgal, mass_ratio);
+    // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
+    if(AGNrecipeOn) {
+        grow_black_hole(merger_centralgal, mass_ratio, galaxies);
+    }
   
-  // starburst recipe similar to Somerville et al. 2001
-  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
+    // starburst recipe similar to Somerville et al. 2001
+    collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, galaxies);
 
-  if(mass_ratio > 0.1)
-		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
+    if(mass_ratio > 0.1) {
+		galaxies[merger_centralgal].TimeOfLastMinorMerger = time;
+    }
 
-  if(mass_ratio > ThreshMajorMerger)
-  {
-    make_bulge_from_burst(merger_centralgal);
-    Gal[merger_centralgal].TimeOfLastMajorMerger = time;
-    Gal[p].mergeType = 2;  // mark as major merger
-  }
-  else
-  {
-    Gal[p].mergeType = 1;  // mark as minor merger
-  }
+    if(mass_ratio > ThreshMajorMerger) {
+        make_bulge_from_burst(merger_centralgal, galaxies);
+        galaxies[merger_centralgal].TimeOfLastMajorMerger = time;
+        galaxies[p].mergeType = 2;  // mark as major merger
+    } else {
+        galaxies[p].mergeType = 1;  // mark as minor merger
+    }
 
 }
 
 
 
-void grow_black_hole(int merger_centralgal, double mass_ratio)
+void grow_black_hole(const int merger_centralgal, const double mass_ratio, struct GALAXY *galaxies)
 {
-  double BHaccrete, metallicity;
+    double BHaccrete, metallicity;
 
-  if(Gal[merger_centralgal].ColdGas > 0.0)
-  {
-    BHaccrete = BlackHoleGrowthRate * mass_ratio / 
-      (1.0 + pow(280.0 / Gal[merger_centralgal].Vvir, 2.0)) * Gal[merger_centralgal].ColdGas;
-
-    // cannot accrete more gas than is available! 
-    if(BHaccrete > Gal[merger_centralgal].ColdGas)
-      BHaccrete = Gal[merger_centralgal].ColdGas;
-
-    metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-    Gal[merger_centralgal].BlackHoleMass += BHaccrete;
-    Gal[merger_centralgal].ColdGas -= BHaccrete;
-    Gal[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
-
-    Gal[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
-
-    quasar_mode_wind(merger_centralgal, BHaccrete);
-  }
+    if(galaxies[merger_centralgal].ColdGas > 0.0) {
+        BHaccrete = BlackHoleGrowthRate * mass_ratio / 
+            (1.0 + pow(280.0 / galaxies[merger_centralgal].Vvir, 2.0)) * galaxies[merger_centralgal].ColdGas;
+        
+        // cannot accrete more gas than is available! 
+        if(BHaccrete > galaxies[merger_centralgal].ColdGas) {
+            BHaccrete = galaxies[merger_centralgal].ColdGas;
+        }
+        
+        metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
+        galaxies[merger_centralgal].BlackHoleMass += BHaccrete;
+        galaxies[merger_centralgal].ColdGas -= BHaccrete;
+        galaxies[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
+        
+        galaxies[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
+        
+        quasar_mode_wind(merger_centralgal, BHaccrete, galaxies);
+    }
 }
 
 
 
-void quasar_mode_wind(int gal, float BHaccrete)
+void quasar_mode_wind(const int gal, const double BHaccrete, struct GALAXY *galaxies)
 {
-  float quasar_energy, cold_gas_energy, hot_gas_energy;
+    float quasar_energy, cold_gas_energy, hot_gas_energy;
   
-  // work out total energies in quasar wind (eta*m*c^2), cold and hot gas (1/2*m*Vvir^2)
-  quasar_energy = QuasarModeEfficiency * 0.1 * BHaccrete * (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
-  cold_gas_energy = 0.5 * Gal[gal].ColdGas * Gal[gal].Vvir * Gal[gal].Vvir;
-  hot_gas_energy = 0.5 * Gal[gal].HotGas * Gal[gal].Vvir * Gal[gal].Vvir;
+    // work out total energies in quasar wind (eta*m*c^2), cold and hot gas (1/2*m*Vvir^2)
+    quasar_energy = QuasarModeEfficiency * 0.1 * BHaccrete * (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
+    cold_gas_energy = 0.5 * galaxies[gal].ColdGas * galaxies[gal].Vvir * galaxies[gal].Vvir;
+    hot_gas_energy = 0.5 * galaxies[gal].HotGas * galaxies[gal].Vvir * galaxies[gal].Vvir;
    
-  // compare quasar wind and cold gas energies and eject cold
-  if(quasar_energy > cold_gas_energy)
-  {
-    Gal[gal].EjectedMass += Gal[gal].ColdGas;
-    Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
-   
-    Gal[gal].ColdGas = 0.0;
-    Gal[gal].MetalsColdGas = 0.0;
-  }
+    // compare quasar wind and cold gas energies and eject cold
+    if(quasar_energy > cold_gas_energy) {
+        galaxies[gal].EjectedMass += galaxies[gal].ColdGas;
+        galaxies[gal].MetalsEjectedMass += galaxies[gal].MetalsColdGas;
+        
+        galaxies[gal].ColdGas = 0.0;
+        galaxies[gal].MetalsColdGas = 0.0;
+    }
   
-  // compare quasar wind and cold+hot gas energies and eject hot
-  if(quasar_energy > cold_gas_energy + hot_gas_energy)
-  {
-    Gal[gal].EjectedMass += Gal[gal].HotGas;
-    Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas;
-   
-    Gal[gal].HotGas = 0.0;
-    Gal[gal].MetalsHotGas = 0.0;
-  }
+    // compare quasar wind and cold+hot gas energies and eject hot
+    if(quasar_energy > cold_gas_energy + hot_gas_energy) {
+        galaxies[gal].EjectedMass += galaxies[gal].HotGas;
+        galaxies[gal].MetalsEjectedMass += galaxies[gal].MetalsHotGas;
+        
+        galaxies[gal].HotGas = 0.0;
+        galaxies[gal].MetalsHotGas = 0.0;
+    }
 }
 
 
 
-void add_galaxies_together(int t, int p)
+void add_galaxies_together(const int t, const int p, struct GALAXY *galaxies)
 {
-  int step;
+    galaxies[t].ColdGas += galaxies[p].ColdGas;
+    galaxies[t].MetalsColdGas += galaxies[p].MetalsColdGas;
   
-  Gal[t].ColdGas += Gal[p].ColdGas;
-  Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
+    galaxies[t].StellarMass += galaxies[p].StellarMass;
+    galaxies[t].MetalsStellarMass += galaxies[p].MetalsStellarMass;
+
+    galaxies[t].HotGas += galaxies[p].HotGas;
+    galaxies[t].MetalsHotGas += galaxies[p].MetalsHotGas;
   
-  Gal[t].StellarMass += Gal[p].StellarMass;
-  Gal[t].MetalsStellarMass += Gal[p].MetalsStellarMass;
-
-  Gal[t].HotGas += Gal[p].HotGas;
-  Gal[t].MetalsHotGas += Gal[p].MetalsHotGas;
+    galaxies[t].EjectedMass += galaxies[p].EjectedMass;
+    galaxies[t].MetalsEjectedMass += galaxies[p].MetalsEjectedMass;
   
-  Gal[t].EjectedMass += Gal[p].EjectedMass;
-  Gal[t].MetalsEjectedMass += Gal[p].MetalsEjectedMass;
-  
-  Gal[t].ICS += Gal[p].ICS;
-  Gal[t].MetalsICS += Gal[p].MetalsICS;
+    galaxies[t].ICS += galaxies[p].ICS;
+    galaxies[t].MetalsICS += galaxies[p].MetalsICS;
 
-  Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
+    galaxies[t].BlackHoleMass += galaxies[p].BlackHoleMass;
 
-  // add merger to bulge
-	Gal[t].BulgeMass += Gal[p].StellarMass;
-	Gal[t].MetalsBulgeMass += Gal[p].MetalsStellarMass;		
+    // add merger to bulge
+    galaxies[t].BulgeMass += galaxies[p].StellarMass;
+    galaxies[t].MetalsBulgeMass += galaxies[p].MetalsStellarMass;		
 
-  for(step = 0; step < STEPS; step++)
-  {
-    Gal[t].SfrBulge[step] += Gal[p].SfrDisk[step] + Gal[p].SfrBulge[step];
-    Gal[t].SfrBulgeColdGas[step] += Gal[p].SfrDiskColdGas[step] + Gal[p].SfrBulgeColdGas[step];
-    Gal[t].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step] + Gal[p].SfrBulgeColdGasMetals[step];
-  }
+    for(int step = 0; step < STEPS; step++) {
+        galaxies[t].SfrBulge[step] += galaxies[p].SfrDisk[step] + galaxies[p].SfrBulge[step];
+        galaxies[t].SfrBulgeColdGas[step] += galaxies[p].SfrDiskColdGas[step] + galaxies[p].SfrBulgeColdGas[step];
+        galaxies[t].SfrBulgeColdGasMetals[step] += galaxies[p].SfrDiskColdGasMetals[step] + galaxies[p].SfrBulgeColdGasMetals[step];
+    }
 }
 
 
 
-void make_bulge_from_burst(int p)
+void make_bulge_from_burst(const int p, struct GALAXY *galaxies)
 {
-  int step;
-  
-  // generate bulge 
-  Gal[p].BulgeMass = Gal[p].StellarMass;
-  Gal[p].MetalsBulgeMass = Gal[p].MetalsStellarMass;
+    // generate bulge 
+    galaxies[p].BulgeMass = galaxies[p].StellarMass;
+    galaxies[p].MetalsBulgeMass = galaxies[p].MetalsStellarMass;
 
-  // update the star formation rate 
-  for(step = 0; step < STEPS; step++)
-  {
-    Gal[p].SfrBulge[step] += Gal[p].SfrDisk[step];
-    Gal[p].SfrBulgeColdGas[step] += Gal[p].SfrDiskColdGas[step];
-    Gal[p].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step];
-    Gal[p].SfrDisk[step] = 0.0;
-    Gal[p].SfrDiskColdGas[step] = 0.0;
-    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
-  }
+    // update the star formation rate 
+    for(int step = 0; step < STEPS; step++) {
+        galaxies[p].SfrBulge[step] += galaxies[p].SfrDisk[step];
+        galaxies[p].SfrBulgeColdGas[step] += galaxies[p].SfrDiskColdGas[step];
+        galaxies[p].SfrBulgeColdGasMetals[step] += galaxies[p].SfrDiskColdGasMetals[step];
+        galaxies[p].SfrDisk[step] = 0.0;
+        galaxies[p].SfrDiskColdGas[step] = 0.0;
+        galaxies[p].SfrDiskColdGasMetals[step] = 0.0;
+    }
 }
 
 
 
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
+void collisional_starburst_recipe(const double mass_ratio, const int merger_centralgal, const int centralgal,
+                                  const double time, const double dt, const int halonr, const int mode, const int step,
+                                  struct GALAXY *galaxies)
 {
-  double stars, reheated_mass, ejected_mass, fac, metallicity, eburst;
-  double FracZleaveDiskVal;
+    double stars, reheated_mass, ejected_mass, fac, metallicity, eburst;
+    double FracZleaveDiskVal;
 
-  // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
-  // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
+    // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
+    // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
 
-  // the bursting fraction 
-  if(mode == 1)
-    eburst = mass_ratio;
-  else
-    eburst = 0.56 * pow(mass_ratio, 0.7);
+    // the bursting fraction 
+    if(mode == 1) {
+        eburst = mass_ratio;
+    } else {
+        eburst = 0.56 * pow(mass_ratio, 0.7);
+    }
 
-  stars = eburst * Gal[merger_centralgal].ColdGas;
-  if(stars < 0.0)
-    stars = 0.0;
+    stars = eburst * galaxies[merger_centralgal].ColdGas;
+    if(stars < 0.0) {
+        stars = 0.0;
+    }
 
-  // this bursting results in SN feedback on the cold/hot gas 
-  if(SupernovaRecipeOn == 1)
-    reheated_mass = FeedbackReheatingEpsilon * stars;
-  else
-    reheated_mass = 0.0;
+    // this bursting results in SN feedback on the cold/hot gas 
+    if(SupernovaRecipeOn == 1) {
+        reheated_mass = FeedbackReheatingEpsilon * stars;
+    } else {
+        reheated_mass = 0.0;
+    }
 
 	assert(reheated_mass >= 0.0);
 
-  // can't use more cold gas than is available! so balance SF and feedback 
-  if((stars + reheated_mass) > Gal[merger_centralgal].ColdGas)
-  {
-    fac = Gal[merger_centralgal].ColdGas / (stars + reheated_mass);
-    stars *= fac;
-    reheated_mass *= fac;
-  }
+    // can't use more cold gas than is available! so balance SF and feedback 
+    if((stars + reheated_mass) > galaxies[merger_centralgal].ColdGas) {
+        fac = galaxies[merger_centralgal].ColdGas / (stars + reheated_mass);
+        stars *= fac;
+        reheated_mass *= fac;
+    }
 
-  // determine ejection
-  if(SupernovaRecipeOn == 1)
-  {
-    if(Gal[centralgal].Vvir > 0.0)
-			ejected_mass = 
-				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - 
-					FeedbackReheatingEpsilon) * stars;
-		else
-			ejected_mass = 0.0;
+    // determine ejection
+    if(SupernovaRecipeOn == 1) {
+        if(galaxies[centralgal].Vvir > 0.0) {
+            ejected_mass = 
+                (FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (galaxies[centralgal].Vvir * galaxies[centralgal].Vvir) - 
+                 FeedbackReheatingEpsilon) * stars;
+        } else {
+            ejected_mass = 0.0;
+        }
 		
-    if(ejected_mass < 0.0)
-      ejected_mass = 0.0;
-  }
-  else
-    ejected_mass = 0.0;
+        if(ejected_mass < 0.0) {
+            ejected_mass = 0.0;
+        }
+    } else {
+        ejected_mass = 0.0;
+    }
 
-  // starbursts add to the bulge
-  Gal[merger_centralgal].SfrBulge[step] += stars / dt;
-  Gal[merger_centralgal].SfrBulgeColdGas[step] += Gal[merger_centralgal].ColdGas;
-  Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
+    // starbursts add to the bulge
+    galaxies[merger_centralgal].SfrBulge[step] += stars / dt;
+    galaxies[merger_centralgal].SfrBulgeColdGas[step] += galaxies[merger_centralgal].ColdGas;
+    galaxies[merger_centralgal].SfrBulgeColdGasMetals[step] += galaxies[merger_centralgal].MetalsColdGas;
 
-  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-  update_from_star_formation(merger_centralgal, stars, metallicity);
+    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
+    update_from_star_formation(merger_centralgal, stars, metallicity, galaxies);
 
-  Gal[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
-  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
+    galaxies[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
+    galaxies[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
 
-  // recompute the metallicity of the cold phase
-  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
+    // recompute the metallicity of the cold phase
+    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
 
-  // update from feedback 
-  update_from_feedback(merger_centralgal, centralgal, reheated_mass, ejected_mass, metallicity);
+    // update from feedback 
+    update_from_feedback(merger_centralgal, centralgal, reheated_mass, ejected_mass, metallicity, galaxies);
 
-  // check for disk instability
-  if(DiskInstabilityOn && mode == 0)
-    if(mass_ratio < ThreshMajorMerger)
-    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step);
+    // check for disk instability
+    if(DiskInstabilityOn && mode == 0) {
+        if(mass_ratio < ThreshMajorMerger) {
+            check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step, galaxies);
+        }
+    }
 
-  // formation of new metals - instantaneous recycling approximation - only SNII 
-  if(Gal[merger_centralgal].ColdGas > 1e-8 && mass_ratio < ThreshMajorMerger)
-  {
-    FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
-    Gal[merger_centralgal].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
-    Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
-  }
-  else
-    Gal[centralgal].MetalsHotGas += Yield * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * stars;
+    // formation of new metals - instantaneous recycling approximation - only SNII 
+    if(galaxies[merger_centralgal].ColdGas > 1e-8 && mass_ratio < ThreshMajorMerger) {
+        FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * galaxies[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
+        galaxies[merger_centralgal].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
+        galaxies[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
+        // galaxies[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
+    } else {
+        galaxies[centralgal].MetalsHotGas += Yield * stars;
+        // galaxies[centralgal].MetalsEjectedMass += Yield * stars;
+    }
 }
 
 
 
-void disrupt_satellite_to_ICS(int centralgal, int gal)
+void disrupt_satellite_to_ICS(const int centralgal, const int gal, struct GALAXY *galaxies)
 {  
-  Gal[centralgal].HotGas += Gal[gal].ColdGas + Gal[gal].HotGas;
-  Gal[centralgal].MetalsHotGas += Gal[gal].MetalsColdGas + Gal[gal].MetalsHotGas;
+    galaxies[centralgal].HotGas += galaxies[gal].ColdGas + galaxies[gal].HotGas;
+    galaxies[centralgal].MetalsHotGas += galaxies[gal].MetalsColdGas + galaxies[gal].MetalsHotGas;
   
-  Gal[centralgal].EjectedMass += Gal[gal].EjectedMass;
-  Gal[centralgal].MetalsEjectedMass += Gal[gal].MetalsEjectedMass;
+    galaxies[centralgal].EjectedMass += galaxies[gal].EjectedMass;
+    galaxies[centralgal].MetalsEjectedMass += galaxies[gal].MetalsEjectedMass;
   
-  Gal[centralgal].ICS += Gal[gal].ICS;
-  Gal[centralgal].MetalsICS += Gal[gal].MetalsICS;
+    galaxies[centralgal].ICS += galaxies[gal].ICS;
+    galaxies[centralgal].MetalsICS += galaxies[gal].MetalsICS;
 
-  Gal[centralgal].ICS += Gal[gal].StellarMass;
-  Gal[centralgal].MetalsICS += Gal[gal].MetalsStellarMass;
+    galaxies[centralgal].ICS += galaxies[gal].StellarMass;
+    galaxies[centralgal].MetalsICS += galaxies[gal].MetalsStellarMass;
   
-  // what should we do with the disrupted satellite BH?
-  
-  Gal[gal].mergeType = 4;  // mark as disruption to the ICS
-  
-
+    // what should we do with the disrupted satellite BH?
+    galaxies[gal].mergeType = 4;  // mark as disruption to the ICS
 }
 
 

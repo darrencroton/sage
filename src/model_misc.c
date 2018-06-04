@@ -10,174 +10,168 @@
 #include "core_proto.h"
 
 
-
+#ifdef OLD_VERSION
 void init_galaxy(int p, int halonr)
+#else
+void init_galaxy(const int p, const int halonr, struct halo_data *halos,
+                 struct GALAXY *galaxies)
+#endif    
 {
-  int j, step;
+#ifdef OLD_VERSION
+    struct halo_data *halos = Halo;
+    struct GALAXY *galaxies = Gal;
+#endif  
 
-	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
-
-  Gal[p].Type = 0;
-
-  Gal[p].GalaxyNr = GalaxyCounter;
-  GalaxyCounter++;
   
-  Gal[p].HaloNr = halonr;
-  Gal[p].MostBoundID = Halo[halonr].MostBoundID;
-  Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
+	assert(halonr == halos[halonr].FirstHaloInFOFgroup);
+    
+    galaxies[p].Type = 0;
+    
+    galaxies[p].GalaxyNr = GalaxyCounter;
+    GalaxyCounter++;
+    
+    galaxies[p].HaloNr = halonr;
+    galaxies[p].MostBoundID = halos[halonr].MostBoundID;
+    galaxies[p].SnapNum = halos[halonr].SnapNum - 1;
+    
+    galaxies[p].mergeType = 0;
+    galaxies[p].mergeIntoID = -1;
+    galaxies[p].mergeIntoSnapNum = -1;
+    galaxies[p].dT = -1.0;
+    
+    for(int j = 0; j < 3; j++) {
+        galaxies[p].Pos[j] = halos[halonr].Pos[j];
+        galaxies[p].Vel[j] = halos[halonr].Vel[j];
+    }
 
-  Gal[p].mergeType = 0;
-  Gal[p].mergeIntoID = -1;
-  Gal[p].mergeIntoSnapNum = -1;
-  Gal[p].dT = -1.0;
+    galaxies[p].Len = halos[halonr].Len;
+    galaxies[p].Vmax = halos[halonr].Vmax;
+    galaxies[p].Vvir = get_virial_velocity(halonr, halos);
+    galaxies[p].Mvir = get_virial_mass(halonr, halos);
+    galaxies[p].Rvir = get_virial_radius(halonr, halos);
+    
+    galaxies[p].deltaMvir = 0.0;
+    
+    galaxies[p].ColdGas = 0.0;
+    galaxies[p].StellarMass = 0.0;
+    galaxies[p].BulgeMass = 0.0;
+    galaxies[p].HotGas = 0.0;
+    galaxies[p].EjectedMass = 0.0;
+    galaxies[p].BlackHoleMass = 0.0;
+    galaxies[p].ICS = 0.0;
+    
+    galaxies[p].MetalsColdGas = 0.0;
+    galaxies[p].MetalsStellarMass = 0.0;
+    galaxies[p].MetalsBulgeMass = 0.0;
+    galaxies[p].MetalsHotGas = 0.0;
+    galaxies[p].MetalsEjectedMass = 0.0;
+    galaxies[p].MetalsICS = 0.0;
+    
+    for(int step = 0; step < STEPS; step++) {
+        galaxies[p].SfrDisk[step] = 0.0;
+        galaxies[p].SfrBulge[step] = 0.0;
+        galaxies[p].SfrDiskColdGas[step] = 0.0;
+        galaxies[p].SfrDiskColdGasMetals[step] = 0.0;
+        galaxies[p].SfrBulgeColdGas[step] = 0.0;
+        galaxies[p].SfrBulgeColdGasMetals[step] = 0.0;
+    }
 
-  for(j = 0; j < 3; j++)
-  {
-    Gal[p].Pos[j] = Halo[halonr].Pos[j];
-    Gal[p].Vel[j] = Halo[halonr].Vel[j];
-  }
-
-  Gal[p].Len = Halo[halonr].Len;
-  Gal[p].Vmax = Halo[halonr].Vmax;
-  Gal[p].Vvir = get_virial_velocity(halonr);
-  Gal[p].Mvir = get_virial_mass(halonr);
-  Gal[p].Rvir = get_virial_radius(halonr);
-
-  Gal[p].deltaMvir = 0.0;
-
-  Gal[p].ColdGas = 0.0;
-  Gal[p].StellarMass = 0.0;
-  Gal[p].BulgeMass = 0.0;
-  Gal[p].HotGas = 0.0;
-  Gal[p].EjectedMass = 0.0;
-  Gal[p].BlackHoleMass = 0.0;
-  Gal[p].ICS = 0.0;
-
-  Gal[p].MetalsColdGas = 0.0;
-  Gal[p].MetalsStellarMass = 0.0;
-  Gal[p].MetalsBulgeMass = 0.0;
-  Gal[p].MetalsHotGas = 0.0;
-  Gal[p].MetalsEjectedMass = 0.0;
-  Gal[p].MetalsICS = 0.0;
-  
-  for(step = 0; step < STEPS; step++)
-  {
-    Gal[p].SfrDisk[step] = 0.0;
-    Gal[p].SfrBulge[step] = 0.0;
-    Gal[p].SfrDiskColdGas[step] = 0.0;
-    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
-    Gal[p].SfrBulgeColdGas[step] = 0.0;
-    Gal[p].SfrBulgeColdGasMetals[step] = 0.0;
-  }
-
-  Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
-  Gal[p].MergTime = 999.9;
-  Gal[p].Cooling = 0.0;
-  Gal[p].Heating = 0.0;
-  Gal[p].r_heat = 0.0;
-  Gal[p].QuasarModeBHaccretionMass = 0.0;
-  Gal[p].TimeOfLastMajorMerger = -1.0;
-  Gal[p].TimeOfLastMinorMerger = -1.0;
-  Gal[p].OutflowRate = 0.0;
-	Gal[p].TotalSatelliteBaryons = 0.0;
-
+    galaxies[p].DiskScaleRadius = get_disk_radius(halonr, p, halos, galaxies);
+    galaxies[p].MergTime = 999.9;
+    galaxies[p].Cooling = 0.0;
+    galaxies[p].Heating = 0.0;
+    galaxies[p].r_heat = 0.0;
+    galaxies[p].QuasarModeBHaccretionMass = 0.0;
+    galaxies[p].TimeOfLastMajorMerger = -1.0;
+    galaxies[p].TimeOfLastMinorMerger = -1.0;
+    galaxies[p].OutflowRate = 0.0;
+	galaxies[p].TotalSatelliteBaryons = 0.0;
+    
 	// infall properties
-  Gal[p].infallMvir = -1.0;  
-  Gal[p].infallVvir = -1.0;
-  Gal[p].infallVmax = -1.0;
-  
+    galaxies[p].infallMvir = -1.0;  
+    galaxies[p].infallVvir = -1.0;
+    galaxies[p].infallVmax = -1.0;
+    
 }
 
 
 
-double get_disk_radius(int halonr, int p)
+double get_disk_radius(const int halonr, const int p, struct halo_data *halos, struct GALAXY *galaxies)
 {
-  double SpinMagnitude, SpinParameter;
-  
-	if(Gal[p].Vvir > 0.0 && Gal[p].Rvir > 0.0)
-	{
+	if(galaxies[p].Vvir > 0.0 && galaxies[p].Rvir > 0.0) {
 		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
-		SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
-			Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
-  
-		SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-		return (SpinParameter / 1.414) * Gal[p].Rvir;		
-	}
-	else
-		return 0.1 * Gal[p].Rvir;
-
+		double SpinMagnitude = sqrt(halos[halonr].Spin[0] * halos[halonr].Spin[0] + 
+                                    halos[halonr].Spin[1] * halos[halonr].Spin[1] + halos[halonr].Spin[2] * halos[halonr].Spin[2]);
+        
+		double SpinParameter = SpinMagnitude / ( 1.414 * galaxies[p].Vvir * galaxies[p].Rvir);
+		return (SpinParameter / 1.414 ) * galaxies[p].Rvir;
+        /* return SpinMagnitude * 0.5 / galaxies[p].Vvir; /\* should be equivalent to previous call *\/ */
+	} else {
+		return 0.1 * galaxies[p].Rvir;
+    }
 }
 
 
 
-double get_metallicity(double gas, double metals)
+double get_metallicity(const double gas, const double metals)
 {
-  double metallicity;
+  double metallicity = 0.0;
 
-  if(gas > 0.0 && metals > 0.0)
-  {
-    metallicity = metals / gas;
-    if(metallicity < 1.0)
-      return metallicity;
-    else
-      return 1.0;
+  if(gas > 0.0 && metals > 0.0) {
+      metallicity = metals / gas;
+      metallicity = metallicity >= 1.0 ? 1.0:metallicity;
   }
-  else
-    return 0.0;
 
+  return metallicity;
 }
 
 
 
 double dmax(double x, double y)
 {
-  if(x > y)
-    return x;
-  else
-    return y;
+    return (x > y) ? x:y;
 }
 
 
 
-double get_virial_mass(int halonr)
+double get_virial_mass(const int halonr, struct halo_data *halos)
 {
-  if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
-    return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
+  if(halonr == halos[halonr].FirstHaloInFOFgroup && halos[halonr].Mvir >= 0.0)
+    return halos[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
   else
-    return Halo[halonr].Len * PartMass;
+    return halos[halonr].Len * PartMass;
 }
 
 
 
-double get_virial_velocity(int halonr)
+double get_virial_velocity(const int halonr, struct halo_data *halos)
 {
 	double Rvir;
 	
-	Rvir = get_virial_radius(halonr);
+	Rvir = get_virial_radius(halonr, halos);
 	
-  if(Rvir > 0.0)
-		return sqrt(G * get_virial_mass(halonr) / Rvir);
+    if(Rvir > 0.0)
+		return sqrt(G * get_virial_mass(halonr, halos) / Rvir);
 	else
 		return 0.0;
 }
 
 
-
-double get_virial_radius(int halonr)
+double get_virial_radius(const int halonr, struct halo_data *halos)
 {
-  // return Halo[halonr].Rvir;  // Used for Bolshoi
+  // return halos[halonr].Rvir;  // Used for Bolshoi
 
   double zplus1, hubble_of_z_sq, rhocrit, fac;
   
-  zplus1 = 1 + ZZ[Halo[halonr].SnapNum];
+  zplus1 = 1.0 + ZZ[halos[halonr].SnapNum];
   hubble_of_z_sq =
-    Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
+    Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1.0 - Omega - OmegaLambda) * zplus1 * zplus1 +
     OmegaLambda);
   
-  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * G);
-  fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);
+  rhocrit = 3.0 * hubble_of_z_sq / (8.0 * M_PI * G);
+  fac = 1.0 / (200.0 * 4.0 * M_PI / 3.0 * rhocrit);
   
-  return cbrt(get_virial_mass(halonr) * fac);
+  return cbrt(get_virial_mass(halonr, halos) * fac);
 }
 
 

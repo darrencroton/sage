@@ -44,6 +44,7 @@ do {                                                                \
 
 #define  MAX_STRING_LEN     1024 /* Max length of a string containing a name */
 
+
 // This structure contains the properties that are output
 struct GALAXY_OUTPUT  
 {

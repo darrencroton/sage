@@ -184,13 +184,13 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
                     galaxies[ngal].Len = halos[halonr].Len;
                     galaxies[ngal].Vmax = halos[halonr].Vmax;
 
-                    galaxies[ngal].deltaMvir = get_virial_mass(halonr) - galaxies[ngal].Mvir;
+                    galaxies[ngal].deltaMvir = get_virial_mass(halonr, halos) - galaxies[ngal].Mvir;
 
-                    if(get_virial_mass(halonr) > galaxies[ngal].Mvir) {
-                        galaxies[ngal].Rvir = get_virial_radius(halonr);  // use the maximum Rvir in model
-                        galaxies[ngal].Vvir = get_virial_velocity(halonr);  // use the maximum Vvir in model
+                    if(get_virial_mass(halonr, halos) > galaxies[ngal].Mvir) {
+                        galaxies[ngal].Rvir = get_virial_radius(halonr, halos);  // use the maximum Rvir in model
+                        galaxies[ngal].Vvir = get_virial_velocity(halonr, halos);  // use the maximum Vvir in model
                     }
-                    galaxies[ngal].Mvir = get_virial_mass(halonr);
+                    galaxies[ngal].Mvir = get_virial_mass(halonr, halos);
 
                     galaxies[ngal].Cooling = 0.0;
                     galaxies[ngal].Heating = 0.0;
@@ -209,7 +209,7 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
                         galaxies[ngal].mergeIntoID = -1;
                         galaxies[ngal].MergTime = 999.9;            
 
-                        galaxies[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
+                        galaxies[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal, halos, galaxies);
             
                         galaxies[ngal].Type = 0;
                     } else {
@@ -225,7 +225,7 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
 
                         if(galaxies[ngal].Type == 0 || galaxies[ngal].MergTime > 999.0) {
                             // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.
-                            galaxies[ngal].MergTime = estimate_merging_time(halonr, halos[halonr].FirstHaloInFOFgroup, ngal);
+                            galaxies[ngal].MergTime = estimate_merging_time(halonr, halos[halonr].FirstHaloInFOFgroup, ngal, halos, galaxies);
                         }
             
                         galaxies[ngal].Type = 1;
@@ -255,8 +255,12 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
     }
 
     if(ngal == 0) {
-        // We have no progenitors with galaxies. This means we create a new galaxy. 
+        // We have no progenitors with galaxies. This means we create a new galaxy.
+#ifdef OLD_VERSION        
         init_galaxy(ngal, halonr);
+#else
+        init_galaxy(ngal, halonr, halos, galaxies);
+#endif        
         ngal++;
     }
 
@@ -336,7 +340,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
             cool_gas_onto_galaxy(p, coolingGas);
             
             // stars form and then explode!
-            starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
+            starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, galaxies);
         }
         
         // check for satellite disruption and merger events
@@ -365,12 +369,12 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
 
                     // disruption has occured!
                     if(galaxies[p].MergTime > 0.0) {
-                        disrupt_satellite_to_ICS(merger_centralgal, p);
+                        disrupt_satellite_to_ICS(merger_centralgal, p, galaxies);
                     } else {
                         // a merger has occured!
                         if(galaxies[p].MergTime <= 0.0)  {
                             double time = Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
-                            deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
+                            deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, galaxies);
                         }
                     }
                 }

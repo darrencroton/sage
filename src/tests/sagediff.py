@@ -270,9 +270,8 @@ if __name__ == '__main__':
     g1.read_header()
     g2.read_header()
     
-    print('\nRunning sagediff on files {0} and {1}'.format(args.file1,
-                                                           args.file2))
+    print('Running sagediff on files {0} and {1}'.format(args.file1,
+                                                         args.file2))
 
     compare_catalogs(g1, g2)
-
-
+    print("")

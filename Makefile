@@ -3,7 +3,7 @@ USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libra
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIBS :=
-OPTS := -DROOT_DIR='"${ROOT_DIR}"'
+OPTS := -DROOT_DIR='"${ROOT_DIR}"' #-DOLD_VERSION
 CCFLAGS := -DGNU_SOURCE -std=gnu99
 SRC_PREFIX := src
 

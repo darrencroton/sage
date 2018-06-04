@@ -5,9 +5,29 @@ size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
 
+#ifdef OLD_VERSION
 void construct_galaxies(int halonr, int tree);
+#else
+void construct_galaxies(const int halonr, struct halo_data *halos,
+                        struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
+#endif
+
+#ifdef OLD_VERSION
 void evolve_galaxies(int halonr, int ngal);
-int  join_galaxies_of_progenitors(int halonr, int nstart);
+#else
+void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
+                     struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
+#endif    
+
+
+#ifdef OLD_VERSION
+int join_galaxies_of_progenitors(int halonr, int ngalstart);
+#else
+int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct halo_data *halos,
+                                 struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
+#endif
+
+
 void init(void);
 void set_units(void);
 

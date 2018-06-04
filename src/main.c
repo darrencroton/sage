@@ -152,8 +152,13 @@ int main(int argc, char **argv)
         NumGals = 0;
         GalaxyCounter = 0;
         for(int halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
-            if(HaloAux[halonr].DoneFlag == 0)
+            if(HaloAux[halonr].DoneFlag == 0) {
+#ifdef OLD_VERSION        
                 construct_galaxies(halonr, treenr);
+#else
+                construct_galaxies(halonr, Halo, HaloAux, Gal, HaloGal);
+#endif
+            }
         
         save_galaxies(filenr, treenr);
         free_galaxies_and_tree();

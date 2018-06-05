@@ -127,7 +127,7 @@ double get_metallicity(const double gas, const double metals)
 
 
 
-double dmax(double x, double y)
+double dmax(const double x, const double y)
 {
     return (x > y) ? x:y;
 }

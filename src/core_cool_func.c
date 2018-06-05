@@ -44,96 +44,92 @@ static double CoolRate[NUM_METALS_TABLE][TABSIZE];
 
 void read_cooling_functions(void)
 {
-  char buf[MAX_STRING_LEN];
+    char buf[MAX_STRING_LEN];
   
-  const double log10_zerop02 = log10(0.02);
-  for(size_t i = 0; i < NUM_METALS_TABLE; i++) {
-    metallicities[i] += log10_zerop02;     // add solar metallicity 
-  }
-
-  for(size_t i = 0; i < NUM_METALS_TABLE; i++)
-  {
-    /* Concatenates the actual path to the root directory 
-       The variable ROOT_DIR is defined in the Makefile. C token pasting 
-       automatically concats the ROOT_DIR string and the "extra/..." string
-     */
-    snprintf(buf, MAX_STRING_LEN, ROOT_DIR "/src/auxdata/CoolFunctions/%s", name[i]);
-    FILE *fd = fopen(buf, "r");
-    if(fd == NULL) {
-      printf("file `%s' not found\n", buf);
-      ABORT(0);
+    const double log10_zerop02 = log10(0.02);
+    for(size_t i = 0; i < NUM_METALS_TABLE; i++) {
+        metallicities[i] += log10_zerop02;     // add solar metallicity 
     }
-    for(int n = 0; n < TABSIZE; n++)
-    {
-        float sd_logLnorm;
-        const int nitems = fscanf(fd, " %*f %*f %*f %*f %*f %f%*[^\n]",
-                                  &sd_logLnorm);
-        if(nitems != 1) {
-            fprintf(stderr,"Error: Could not read cooling rate on line %d\n", n);
+
+    for(size_t i = 0; i < NUM_METALS_TABLE; i++) {
+        /* Concatenates the actual path to the root directory 
+           The variable ROOT_DIR is defined in the Makefile. C token pasting 
+           automatically concats the ROOT_DIR string and the "extra/..." string
+        */
+        snprintf(buf, MAX_STRING_LEN - 1, ROOT_DIR "/src/auxdata/CoolFunctions/%s", name[i]);
+        FILE *fd = fopen(buf, "r");
+        if(fd == NULL) {
+            printf("file `%s' not found\n", buf);
             ABORT(0);
         }
-      CoolRate[i][n] = sd_logLnorm;
+        for(int n = 0; n < TABSIZE; n++) {
+            float sd_logLnorm;
+            const int nitems = fscanf(fd, " %*f %*f %*f %*f %*f %f%*[^\n]",
+                                      &sd_logLnorm);
+            if(nitems != 1) {
+                fprintf(stderr,"Error: Could not read cooling rate on line %d\n", n);
+                ABORT(0);
+            }
+            CoolRate[i][n] = sd_logLnorm;
+        }
+        
+        fclose(fd);
     }
 
-    fclose(fd);
-  }
-
 #ifdef MPI
-  if(ThisTask == 0)
+    if(ThisTask == 0)
 #endif
-    printf("cooling functions read\n\n");
+        printf("cooling functions read\n\n");
 
 }
 
 
 double get_rate(int tab, double logTemp)
 {
-  int index;
-  double rate1, rate2, rate, logTindex;
-  const double dlogT = 0.05;
-  const double inv_dlogT = 1.0/dlogT;
+    int index;
+    double rate1, rate2, rate, logTindex;
+    const double dlogT = 0.05;
+    const double inv_dlogT = 1.0/dlogT;
 
-  if(logTemp < 4.0)
-    logTemp = 4.0;
+    if(logTemp < 4.0) {
+        logTemp = 4.0;
+    }
 
-  index = (logTemp - 4.0) * inv_dlogT;
-  if(index >= LAST_TAB_INDEX) {
-    /*MS: because index+1 is also accessed, therefore index can be at most LAST_TAB_INDEX */
-    index = LAST_TAB_INDEX - 1;
-  }
+    index = (logTemp - 4.0) * inv_dlogT;
+    if(index >= LAST_TAB_INDEX) {
+        /*MS: because index+1 is also accessed, therefore index can be at most LAST_TAB_INDEX */
+        index = LAST_TAB_INDEX - 1;
+    }
 
-  logTindex = 4.0 + 0.05 * index;
+    logTindex = 4.0 + 0.05 * index;
 
-  rate1 = CoolRate[tab][index];
-  rate2 = CoolRate[tab][index + 1];
+    rate1 = CoolRate[tab][index];
+    rate2 = CoolRate[tab][index + 1];
 
-  rate = rate1 + (rate2 - rate1) * inv_dlogT * (logTemp - logTindex);
+    rate = rate1 + (rate2 - rate1) * inv_dlogT * (logTemp - logTindex);
 
-  return rate;
+    return rate;
 }
 
-double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 
+double get_metaldependent_cooling_rate(const double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 
 {
-  int i;
-  double rate1, rate2, rate;
+    if(logZ < metallicities[0])
+        logZ = metallicities[0];
 
-  if(logZ < metallicities[0])
-    logZ = metallicities[0];
+    if(logZ > metallicities[7])
+        logZ = metallicities[7];
 
-  if(logZ > metallicities[7])
-    logZ = metallicities[7];
+    int i = 0;
+    while(logZ > metallicities[i + 1]) {
+        i++;
+    }
 
-  i = 0;
-  while(logZ > metallicities[i + 1])
-    i++;
+    // look up at i and i+1 
+    const double rate1 = get_rate(i, logTemp);
+    const double rate2 = get_rate(i + 1, logTemp);
+    const double rate = rate1 + (rate2 - rate1) / (metallicities[i + 1] - metallicities[i]) * (logZ - metallicities[i]);
 
-  // look up at i and i+1 
-  rate1 = get_rate(i, logTemp);
-  rate2 = get_rate(i + 1, logTemp);
-
-  rate = rate1 + (rate2 - rate1) / (metallicities[i + 1] - metallicities[i]) * (logZ - metallicities[i]);
-
-  return pow(10.0, rate);
+    return pow(10.0, rate);
 }
 
 

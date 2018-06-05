@@ -302,8 +302,15 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
 
     const int centralgal = galaxies[0].CentralGal;
     assert(galaxies[centralgal].Type == 0 && galaxies[centralgal].HaloNr == halonr);
-    
-    const double infallingGas = infall_recipe(centralgal, ngal, ZZ[halos[halonr].SnapNum]);
+    /*
+      MS: Note save halo_snapnum and galaxy_snapnum to local variables
+          and replace all instances of snapnum to those local variables
+     */
+
+    const int halo_snapnum = halos[halonr].SnapNum;
+    const double Zcurr = ZZ[halo_snapnum];
+    const double halo_age = Age[halo_snapnum];
+    const double infallingGas = infall_recipe(centralgal, ngal, Zcurr, galaxies);
 
     // We integrate things forward by using a number of intervals equal to STEPS
     for(int step = 0; step < STEPS; step++) {
@@ -315,7 +322,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
                 continue;
             }
             
-            const double deltaT = Age[galaxies[p].SnapNum] - Age[halos[halonr].SnapNum];
+            const double deltaT = Age[galaxies[p].SnapNum] - halo_age;
             const double time = Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
             
             if(galaxies[p].dT < 0.0) {
@@ -324,20 +331,20 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
             
             // For the central galaxy only
             if(p == centralgal) {
-                add_infall_to_hot(centralgal, infallingGas / STEPS);
+                add_infall_to_hot(centralgal, infallingGas / STEPS, galaxies);
 
                 if(ReIncorporationFactor > 0.0) {
                     reincorporate_gas(centralgal, deltaT / STEPS);
                 }
             } else {
                 if(galaxies[p].Type == 1 && galaxies[p].HotGas > 0.0) {
-                    strip_from_satellite(halonr, centralgal, p);
+                    strip_from_satellite(centralgal, p, Zcurr, galaxies);
                 }
             }
             
             // Determine the cooling gas given the halo properties
-            double coolingGas = cooling_recipe(p, deltaT / STEPS);
-            cool_gas_onto_galaxy(p, coolingGas);
+            double coolingGas = cooling_recipe(p, deltaT / STEPS, galaxies);
+            cool_gas_onto_galaxy(p, coolingGas, galaxies);
             
             // stars form and then explode!
             starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, galaxies);
@@ -350,7 +357,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
             if((galaxies[p].Type == 1 || galaxies[p].Type == 2) && galaxies[p].mergeType == 0) {
                 assert(galaxies[p].MergTime < 999.0);
                 
-                const double deltaT = Age[galaxies[p].SnapNum] - Age[halos[halonr].SnapNum];
+                const double deltaT = Age[galaxies[p].SnapNum] - halo_age;
                 galaxies[p].MergTime -= deltaT / STEPS;
                 
                 // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
@@ -386,7 +393,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
 
     // Extra miscellaneous stuff before finishing this halo
     galaxies[centralgal].TotalSatelliteBaryons = 0.0;
-    const double deltaT = Age[galaxies[0].SnapNum] - Age[halos[halonr].SnapNum];
+    const double deltaT = Age[galaxies[0].SnapNum] - halo_age;
     const double inv_deltaT = 1.0/deltaT;
     
     for(int p = 0; p < ngal; p++) {

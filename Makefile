@@ -1,5 +1,5 @@
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
-USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
+#USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIBS :=

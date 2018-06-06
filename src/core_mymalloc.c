@@ -9,87 +9,111 @@
 
 #define MAXBLOCKS 2048
 
-static unsigned long Nblocks = 0;
+static long Nblocks = 0;
 static void *Table[MAXBLOCKS];
 static size_t SizeTable[MAXBLOCKS];
 static size_t TotMem = 0, HighMarkMem = 0, OldPrintedHighMark = 0;
 
-
+/* file-local function */
+long find_block(const void *p);
 
 void *mymalloc(size_t n)
 {
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
+    if((n % 8) > 0)
+        n = (n / 8 + 1) * 8;
 
-  if(n == 0)
-    n = 8;
-
-  if(Nblocks >= MAXBLOCKS)
-  {
-      printf("Nblocks = %lu No blocks left in mymalloc().\n", Nblocks);
-      ABORT(0);
-  }
-
-  SizeTable[Nblocks] = n;
-  TotMem += n;
-  if(TotMem > HighMarkMem)
-  {
-    HighMarkMem = TotMem;
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
+    if(n == 0) {
+        n = 8;
     }
-  }
 
-  if(!(Table[Nblocks] = malloc(n)))
-  {
-    printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
-    ABORT(0);
-  }
+    if(Nblocks >= MAXBLOCKS) {
+        printf("Nblocks = %lu No blocks left in mymalloc().\n", Nblocks);
+        ABORT(0);
+    }
 
-  Nblocks += 1;
+    SizeTable[Nblocks] = n;
+    TotMem += n;
+    if(TotMem > HighMarkMem) {
+        HighMarkMem = TotMem;
+        if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0) {
+            printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+            OldPrintedHighMark = HighMarkMem;
+        }
+    }
 
-  return Table[Nblocks - 1];
+    Table[Nblocks] = malloc(n);
+    if(Table[Nblocks] == NULL) {
+        printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
+        ABORT(0);
+    }
+
+    Nblocks += 1;
+
+    return Table[Nblocks - 1];
+}
+
+long find_block(const void *p)
+{
+    /* MS: Added on 6th June 2018
+       Previously, the code only allowed re-allocation of the last block
+       But really any block could be re-allocated -- we just need to search
+       through and find the correct pointer
+     */
+    long iblock = Nblocks - 1;
+    for(;iblock >= 0;iblock--) {
+        if(p == Table[iblock]) break;
+    }
+    if(iblock < 0 || iblock >= Nblocks) {
+        return -1;
+    }
+    
+    return iblock;
 }
 
 
 void *myrealloc(void *p, size_t n)
 {
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
+    if((n % 8) > 0)
+        n = (n / 8 + 1) * 8;
 
-  if(n == 0)
-    n = 8;
+    if(n == 0)
+        n = 8;
 
-   if(p != Table[Nblocks - 1])
-   {
-      printf("Wrong call of myrealloc() p = %p is not the last allocated block = %p!\n", p, Table[Nblocks-1]);
-      ABORT(0);
-  }
-  
-  void *newp = realloc(Table[Nblocks-1], n);
-  if(newp == NULL) {
-      printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
-      ABORT(0);
-   }
-  Table[Nblocks-1] = newp;
-  
-  TotMem -= SizeTable[Nblocks-1];
-  TotMem += n;
-  SizeTable[Nblocks-1] = n;
-  
-  if(TotMem > HighMarkMem)
-  {
-    HighMarkMem = TotMem;
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
+#if 0    
+    if(p != Table[Nblocks - 1]) {
+        printf("Wrong call of myrealloc() p = %p is not the last allocated block = %p!\n", p, Table[Nblocks-1]);
+        ABORT(0);
     }
-  }
+#endif
 
-  return Table[Nblocks - 1];
+    long iblock = find_block(p);
+    if(iblock < 0) {
+        fprintf(stderr,"Error: Could not locate ptr address = %p within the allocated blocks\n", p);
+        for(int i=0;i<Nblocks;i++) {
+            fprintf(stderr,"Address = %p size = %zu bytes\n", Table[i], SizeTable[i]);
+        }
+        ABORT(0);
+    }
+    void *newp = realloc(Table[iblock], n);
+    if(newp == NULL) {
+        printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
+        ABORT(0);
+    }
+    Table[iblock] = newp;
+  
+    TotMem -= SizeTable[iblock];
+    TotMem += n;
+    SizeTable[iblock] = n;
+  
+    if(TotMem > HighMarkMem) {
+        HighMarkMem = TotMem;
+        if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0) {
+            printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+            OldPrintedHighMark = HighMarkMem;
+        }
+    }
+
+    return Table[iblock];
 }
 
 
@@ -97,23 +121,46 @@ void myfree(void *p)
 {
 	assert(Nblocks > 0);
 
-  if(p != Table[Nblocks - 1])
-  {
-    printf("Wrong call of myfree() - not the last allocated block!\n");
-    ABORT(0);
-  }
+#if 0    
+    if(p != Table[Nblocks - 1]) {
+        printf("Wrong call of myfree() - not the last allocated block!\n");
+        ABORT(0);
+    }
+    free(p);
+    Nblocks -= 1;
+    TotMem -= SizeTable[Nblocks];
+#endif
 
-  free(p);
+    long iblock = find_block(p);
+    if(iblock < 0) {
+        fprintf(stderr,"Error: Could not locate ptr address = %p within the allocated blocks\n", p);
+        for(int i=0;i<Nblocks;i++) {
+            fprintf(stderr,"Address = %p size = %zu bytes\n", Table[i], SizeTable[i]);
+        }
+        ABORT(0);
+    }
 
-  Nblocks -= 1;
+    free(p);
+    TotMem -= SizeTable[iblock];
 
-  TotMem -= SizeTable[Nblocks];
+    /*
+      If not removing the last allocated pointer,
+      move the last allocated pointer to this new
+      vacant spot (i.e., don't leave a hole in the
+      table of allocated pointer addresses)
+      MS: 6/6/2018
+     */
+    if(iblock != Nblocks - 1) {
+        Table[iblock] = Table[Nblocks - 1];
+        SizeTable[iblock] = SizeTable[Nblocks - 1];
+    }
+    Nblocks--;
 }
 
 
 
 void print_allocated(void)
 {
-  printf("allocated = %g MB\n", TotMem / (1024.0 * 1024.0));
+    printf("allocated = %g MB\n", TotMem / (1024.0 * 1024.0));
 }
 

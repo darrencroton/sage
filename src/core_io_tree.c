@@ -16,143 +16,188 @@
 #include "io/tree_hdf5.h"
 #endif
 
+#ifdef OLD_VERSION
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
-{
-  int i, n;
-  FILE *fd;
-  char buf[MAX_STRING_LEN];
-
-  switch (my_TreeType)
-  {
-#ifdef HDF5
-    case genesis_lhalo_hdf5:
-      load_tree_table_hdf5(filenr);
-      break;
+#else
+void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees, int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
 #endif
-      
-    case lhalo_binary:
-      load_tree_table_binary(filenr);
-      break;
+{
 
-    default:
-      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
-      fprintf(stderr, "Please add it there.\n");
-      ABORT(EXIT_FAILURE);
-  }
+#ifdef OLD_VERSION
+    int *ntrees = &Ntrees;
+    int **treenhalos = &TreeNHalos;
+    int **treefirsthalo = &TreeFirstHalo;
+    int **treengals = (int **) TreeNgals;
+    int *totgalaxies = (int *) TotGalaxies;
+#endif 
+    
+    switch (my_TreeType)
+        {
+#ifdef HDF5
+        case genesis_lhalo_hdf5:
+            load_tree_table_hdf5(filenr);
+            break;
+#endif
 
-  for(n = 0; n < NOUT; n++)
-  {
-    TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
-    for(i = 0; i < Ntrees; i++)
-      TreeNgals[n][i] = 0;
+        case lhalo_binary:
+            load_tree_table_binary(filenr, ntrees, treenhalos, treefirsthalo);
+            break;
 
-    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+        default:
+            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Please add it there.\n");
+            ABORT(EXIT_FAILURE);
+        }
 
-    if(!(fd = fopen(buf, "w")))
-    {
-      printf("can't open file `%s'\n", buf);
-      ABORT(0);
+    const int local_ntrees = *ntrees;
+    for(int n = 0; n < NOUT; n++) {
+        treengals[n] = mymalloc(sizeof(int) * local_ntrees);
+        for(int i = 0; i < local_ntrees; i++) {
+            treengals[n][i] = 0;
+        }
+        char buf[MAX_STRING_LEN + 1];
+        snprintf(buf, MAX_STRING_LEN, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+
+        FILE *fd = fopen(buf, "w"); 
+        if(fd == NULL) {
+            printf("can't open file `%s'\n", buf);
+            ABORT(0);
+        }
+        fclose(fd);
+        totgalaxies[n] = 0;
     }
-    fclose(fd);
-    TotGalaxies[n] = 0;
-  }
-
 }
 
+#ifdef OLD_VERSION
 void free_tree_table(enum Valid_TreeTypes my_TreeType)
+#else
+void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo)    
+#endif    
 {
-  int n;
+    
+#ifdef OLD_VERSION
+    int **treengals = (int **) TreeNgals;
+    int *treenhalos = TreeNHalos;
+    int *treefirsthalo = TreeFirstHalo;
+#endif    
 
-  for(n = NOUT - 1; n >= 0; n--)
-    myfree(TreeNgals[n]);
 
-  myfree(TreeFirstHalo);
-  myfree(TreeNHalos);
-	
-  // Don't forget to free the open file handle
+    for(int n = 0; n < NOUT; n++) {
+        myfree(treengals[n]);
+    }
 
-  switch (my_TreeType)
-  {
+    myfree(treenhalos);
+    myfree(treefirsthalo);
+
+    // Don't forget to free the open file handle
+    switch (my_TreeType)
+        {
 #ifdef HDF5
-    case genesis_lhalo_hdf5:
-      close_hdf5_file();
-      break;
+        case genesis_lhalo_hdf5:
+            close_hdf5_file();
+            break;
 #endif
-      
-    case lhalo_binary:
-      close_binary_file();
-      break;
-
-    default:
-      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
-      fprintf(stderr, "Please add it there.\n");
-      ABORT(EXIT_FAILURE);
-
-  }
-
+            
+        case lhalo_binary:
+            close_binary_file();
+            break;
+            
+        default:
+            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Please add it there.\n");
+            ABORT(EXIT_FAILURE);
+            
+        }
 }
 
-void load_tree(int treenr, enum Valid_TreeTypes my_TreeType)
+
+#ifdef OLD_VERSION
+void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType)
+#else
+void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
+               struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
+#endif    
 {
-  int32_t i;
+#ifdef OLD_VERSION
+    struct halo_data **halos = &Halo;
+    struct halo_aux_data **haloaux = &HaloAux;
+    struct GALAXY **galaxies = &Gal;
+    struct GALAXY **halogal = &HaloGal;
+#endif    
 
-  switch (my_TreeType)
-  {
+#ifndef HDF5
+    (void) treenr; /* treenr is only used for the hdf5 files */
+#endif    
 
-    case genesis_lhalo_hdf5:
-      load_tree_hdf5(treenr);
-      break;
+    
+    switch (my_TreeType)
+        {
+            
+#ifdef HDF5
+        case genesis_lhalo_hdf5:
+            load_tree_hdf5(treenr);
+            break;
+#endif            
+            
+        case lhalo_binary:
+            load_tree_binary(nhalos, halos);
+            break;
+            
+        default:
+            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Please add it there.\n");
+            ABORT(EXIT_FAILURE);
+            
+        }
 
-    case lhalo_binary:
-      load_tree_binary(treenr);
-      break;
+    MaxGals = (int)(MAXGALFAC * nhalos);
+    if(MaxGals < 10000) MaxGals = 10000;
 
-    default:
-      fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree`` in ``core_io_tree.c``.\n");
-      fprintf(stderr, "Please add it there.\n");
-      ABORT(EXIT_FAILURE);
+    FoF_MaxGals = 10000;
 
-  }
+    *haloaux = mymalloc(sizeof(struct halo_aux_data) * nhalos);
+    *halogal = mymalloc(sizeof(struct GALAXY) * MaxGals);
+    *galaxies = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
 
-  MaxGals = (int)(MAXGALFAC * TreeNHalos[treenr]);
-  if(MaxGals < 10000)
-    MaxGals = 10000;
-
-  FoF_MaxGals = 10000;
-
-  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[treenr]);
-  HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
-  Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-
-  for(i = 0; i < TreeNHalos[treenr]; i++)
-  {
-    HaloAux[i].DoneFlag = 0;
-    HaloAux[i].HaloFlag = 0;
-    HaloAux[i].NGalaxies = 0;
-  }
-
-
+    struct halo_aux_data *tmp_halo_aux = *haloaux;
+    for(int i = 0; i < nhalos; i++) {
+        tmp_halo_aux->DoneFlag = 0;
+        tmp_halo_aux->HaloFlag = 0;
+        tmp_halo_aux->NGalaxies = 0;
+        tmp_halo_aux++;
+    }
 }
 
+#ifdef OLD_VERSION
 void free_galaxies_and_tree(void)
+#else
+void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos)
+#endif    
 {
-  myfree(Gal);
-  myfree(HaloGal);
-  myfree(HaloAux);
-  myfree(Halo);
+#ifdef OLD_VERSION
+    struct GALAXY *galaxies = Gal;
+    struct GALAXY *halogal = HaloGal;
+    struct halo_aux_data *haloaux = HaloAux;
+    struct halo_data *halos = Halo; 
+#endif
+
+    myfree(galaxies);
+    myfree(halogal);
+    myfree(haloaux);
+    myfree(halos);
 }
 
-size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
+size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream)
 {
-  return fread(ptr, size, nmemb, stream);
+    return fread(ptr, size, nmemb, stream);
 }
 
-size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
+size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream)
 {
-  return fwrite(ptr, size, nmemb, stream);
+    return fwrite(ptr, size, nmemb, stream);
 }
 
-int myfseek(FILE * stream, long offset, int whence)
+int myfseek(FILE * stream, const long offset, const int whence)
 {
-  return fseek(stream, offset, whence);
+    return fseek(stream, offset, whence);
 }

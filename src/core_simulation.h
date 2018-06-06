@@ -23,8 +23,11 @@ struct halo_data
   int FileNr;
   int SubhaloIndex;
   float SubHalfMass;
-}
-*Halo;
+};
+
+#ifdef OLD_VERSION
+extern struct halo_data *Halo;
+#endif
 
 
 

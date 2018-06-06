@@ -334,7 +334,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
                 add_infall_to_hot(centralgal, infallingGas / STEPS, galaxies);
 
                 if(ReIncorporationFactor > 0.0) {
-                    reincorporate_gas(centralgal, deltaT / STEPS);
+                    reincorporate_gas(centralgal, deltaT / STEPS, galaxies);
                 }
             } else {
                 if(galaxies[p].Type == 1 && galaxies[p].HotGas > 0.0) {

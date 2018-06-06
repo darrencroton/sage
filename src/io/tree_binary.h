@@ -1,9 +1,21 @@
-#ifndef TREE_BINARY_H 
-#define TREE_BINARY_H 
+#pragma once
 
-// Proto-Types //
+#include <stdint.h>
+#include "../core_allvars.h"
 
-void load_tree_table_binary(int32_t filenr); 
-void load_tree_binary(int32_t treenr); 
+#ifdef __cplusplus
+extern "C" {
+#if 0
+/* just to fool the editor that there is no opening brace*/
+} /* unreachable */
+#endif    
+#endif /* working with c++ compiler */
+
+/* Proto-Types */
+void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo);
+void load_tree_binary(const int32_t nhalos, struct halo_data **halos);
 void close_binary_file(void);
+
+#ifdef __cplusplus
+}
 #endif

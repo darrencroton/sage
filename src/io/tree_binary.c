@@ -14,58 +14,64 @@
 
 // Local Variables //
 
-FILE *load_fd;
-
+static FILE *load_fd = NULL;
 // Local Proto-Types //
 
 // External Functions //
-
-void load_tree_table_binary(int32_t filenr) 
+void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
 {
-  int i, totNHalos;
-  char buf[MAX_STRING_LEN];
+    char buf[MAX_STRING_LEN + 1];
 
 	// open the file each time this function is called
-  snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
-  if(!(load_fd = fopen(buf, "r")))
-  {
-    printf("can't open file `%s'\n", buf);
-    ABORT(0);
-  }
+    snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    load_fd = fopen(buf, "r");
+    if(load_fd == NULL) {
+        printf("can't open file `%s'\n", buf);
+        ABORT(0);
+    }
+    int local_ntrees=0;
+    int local_totnhalos=0;
+    
+    myfread(&local_ntrees, 1, sizeof(int), load_fd);
+    myfread(&local_totnhalos, 1, sizeof(int), load_fd);
 
-  myfread(&Ntrees, 1, sizeof(int), load_fd);
-  myfread(&totNHalos, 1, sizeof(int), load_fd);
+    int *local_treenhalos = mymalloc(sizeof(int) * local_ntrees);
+    int *local_treefirsthalo = mymalloc(sizeof(int) * local_ntrees);
 
-  TreeNHalos = mymalloc(sizeof(int) * Ntrees);
-  TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
+    myfread(local_treenhalos, local_ntrees, sizeof(int), load_fd);
 
-  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
+    if(local_ntrees) {
+        local_treefirsthalo[0] = 0;
+    }
+    for(int i = 1; i < local_ntrees; i++) {
+        local_treefirsthalo[i] = local_treefirsthalo[i - 1] + local_treenhalos[i - 1];
+    }
 
-  if(Ntrees)
-    TreeFirstHalo[0] = 0;
-  for(i = 1; i < Ntrees; i++)
-    TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
-
+    *ntrees = local_ntrees;
+    *treenhalos = local_treenhalos;
+    *treefirsthalo = local_treefirsthalo;
 }
 
-void load_tree_binary(int32_t treenr)
+void load_tree_binary(const int32_t nhalos, struct halo_data **halos)
 {
-  // must have an FD
-  assert(load_fd );
+    // must have an FD
+    assert(load_fd );
 
-  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[treenr]);
+    /* also assumes that file pointer is at correct location */
+    struct halo_data *local_halos = mymalloc(sizeof(struct halo_data) * nhalos);
+    myfread(local_halos, nhalos, sizeof(struct halo_data), load_fd);
 
-  myfread(Halo, TreeNHalos[treenr], sizeof(struct halo_data), load_fd);
-
+    *halos = local_halos;
 }
+
 
 void close_binary_file(void)
 {
-  if(load_fd) 
-  {
-    fclose(load_fd);
-    load_fd = NULL;
-  }
+    if(load_fd != NULL) {
+        fclose(load_fd);
+        load_fd = NULL;
+    }
 }
-// Local Functions //
+
+// Local Functions are after here //
 

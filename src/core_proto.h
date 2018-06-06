@@ -1,11 +1,6 @@
 #include "core_allvars.h"
 
 
-size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
-size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
-int myfseek(FILE *stream, long offset, int whence);
-
-
 /* functions in core_build_model.c */
 #ifdef OLD_VERSION
 void construct_galaxies(int halonr, int tree);
@@ -26,42 +21,64 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
 void init(void);
    
 
-void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
-void load_tree(int treenr, enum Valid_TreeTypes TreeType);
+/* core_io_tree.c */
+#ifdef OLD_VERSION
+void load_tree_table(const int filenr, enum Valid_TreeTypes TreeType);
+void load_tree(const int treenr, const int nhalos, const enum Valid_TreeTypes TreeType);
+void free_tree_table(const enum Valid_TreeTypes TreeType);
+void free_galaxies_and_tree(void);
+#else
+void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees, int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies);
+void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
+               struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal);
+void free_tree_table(const enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo);
+void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos);
+#endif
+/* utility functions in core_io_tree.c -> perhaps should be moved to core_utils.c */
+size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream);
+size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream);
+int myfseek(FILE * stream, const long offset, const int whence);
 
 
 /* Functions in core_save.c */
 #ifdef OLD_VERSION
 void save_galaxies(const int filenr, const int tree);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
+void finalize_galaxy_file(void);
 #else
-void save_galaxies(const int filenr, const int tree, struct halo_data *halos,
+void save_galaxies(const int filenr, const int tree, const int ntrees, struct halo_data *halos,
                    struct halo_aux_data *haloaux, struct GALAXY *halogal);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o, struct halo_data *halos,
                                struct halo_aux_data *haloaux, struct GALAXY *halogal);
+void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals);
 #endif    
 
 
-void free_galaxies_and_tree(void);
-void free_tree_table(enum Valid_TreeTypes TreeType);
-void print_allocated(void);
 
-void read_parameter_file(char *fname);
+/* functions in core_read_parameter_file.c */
+void read_parameter_file(const char *fname);
+
+
+/* functions in core_mymalloc.c */
 void *mymalloc(size_t n);
 void *myrealloc(void *p, size_t n);
 void myfree(void *p);
+void print_allocated(void);
+
+
+
+/* main */
 void myexit(int signum);
 
-void finalize_galaxy_file(void);
+
 
 /* functions in model_starformation_and_feedback.c */
 void starformation_and_feedback(const int p, const int centralgal, const double time, const double dt, const int halonr, const int step, struct GALAXY *galaxies);
 void update_from_star_formation(const int p, const double stars, const double metallicity, struct GALAXY *galaxies);
 void update_from_feedback(const int p, const int centralgal, const double reheated_mass, double ejected_mass, const double metallicity, struct GALAXY *galaxies);
 
-
-void reincorporate_gas(int centralgal, double dt);
-
+/* functions in model_reincorporation.c */
+void reincorporate_gas(const int centralgal, const double dt, struct GALAXY *galaxies);
 
 /* functions in model_disk_instability.c */
 void check_disk_instability(const int p, const int centralgal, const int halonr, const double time, const double dt, const int step, struct GALAXY *galaxies);

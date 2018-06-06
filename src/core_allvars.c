@@ -1,17 +1,6 @@
 #include "core_allvars.h"
 
 
-/*  galaxy data  */
-struct GALAXY			
-  *Gal, *HaloGal;
-
-struct halo_data *Halo;
-
-/*  auxiliary halo data  */
-struct halo_aux_data		
-  *HaloAux;
-
-
 /*  misc  */
 
 int HDF5Output;
@@ -29,7 +18,6 @@ int FirstFile;
 int LastFile;
 int MaxGals;
 int FoF_MaxGals;
-int Ntrees;			   /*  number of trees in current file  */
 int NumGals;			 /*  Total number of galaxies stored for current tree  */
 
 int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
@@ -41,16 +29,29 @@ char TreeExtension[MAX_STRING_LEN] = {'\0'}; /* If the FileType is HDF5 they wil
 char SimulationDir[MAX_STRING_LEN];
 char FileWithSnapList[MAX_STRING_LEN];
 
-int TotHalos;
+/* int TotHalos; */
 int TotGalaxies[ABSOLUTEMAXSNAPS];
 int *TreeNgals[ABSOLUTEMAXSNAPS];
 
 int LastSnapShotNr;
 double BoxSize;
 
-int *FirstHaloInSnap;
+#ifdef OLD_VERSION
+int Ntrees;			   /*  number of trees in current file  */
 int *TreeNHalos;
 int *TreeFirstHalo;
+/*  galaxy data  */
+struct GALAXY *Gal, *HaloGal;
+
+struct halo_data *Halo;
+
+/*  auxiliary halo data  */
+struct halo_aux_data  *HaloAux;
+#endif
+
+
+
+
 
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;

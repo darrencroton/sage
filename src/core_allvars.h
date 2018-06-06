@@ -187,8 +187,8 @@ struct GALAXY
   float infallMvir;
   float infallVvir;
   float infallVmax;
-}
-*Gal, *HaloGal;
+};
+
 
 
 /* auxiliary halo data */
@@ -198,13 +198,21 @@ struct halo_aux_data
   int HaloFlag;
   int NGalaxies;
   int FirstGalaxy;
-}
-*HaloAux;
+};
+
+#ifdef OLD_VERSION
+extern struct GALAXY *Gal, *HaloGal;
+extern struct halo_aux_data *HaloAux;
+extern int    Ntrees;      /* number of trees in current file  */
+extern int    *TreeNHalos;
+extern int    *TreeFirstHalo;
+#endif
+
 
 extern int    FirstFile;    /* first and last file for processing */
 extern int    LastFile;
 
-extern int    Ntrees;      /* number of trees in current file  */
+
 extern int    NumGals;     /* Total number of galaxies stored for current tree */
 extern int    MaxGals;     /* Maximum number of galaxies allowed for current tree */  
 extern int    FoF_MaxGals;
@@ -220,14 +228,9 @@ extern char   TreeExtension[MAX_STRING_LEN]; // If the trees are in HDF5, they w
 extern char   SimulationDir[MAX_STRING_LEN];
 extern char   FileWithSnapList[MAX_STRING_LEN];
 
-extern int    TotHalos;
 extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
 extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
 
-extern int    *FirstHaloInSnap;
-
-extern int    *TreeNHalos;
-extern int    *TreeFirstHalo;
 
 #ifdef MPI
 extern int ThisTask, NTask, nodeNameLen;

@@ -9,28 +9,25 @@
 
 
 
-void reincorporate_gas(int centralgal, double dt)
+void reincorporate_gas(const int centralgal, const double dt, struct GALAXY *galaxies)
 {
-  double reincorporated, metallicity;
-  
-  // SN velocity is 630km/s, and the condition for reincorporation is that the 
-  // halo has an escape velocity greater than this, i.e. V_SN/sqrt(2) = 445.48km/s
-  double Vcrit = 445.48 * ReIncorporationFactor;  
+    // SN velocity is 630km/s, and the condition for reincorporation is that the 
+    // halo has an escape velocity greater than this, i.e. V_SN/sqrt(2) = 445.48km/s
+    const double Vcrit = 445.48 * ReIncorporationFactor;  
 	
-  if(Gal[centralgal].Vvir > Vcrit)
-  {
-    reincorporated = 
-      ( Gal[centralgal].Vvir / Vcrit - 1.0 ) *
-				Gal[centralgal].EjectedMass / (Gal[centralgal].Rvir / Gal[centralgal].Vvir) * dt; 
+    if(galaxies[centralgal].Vvir > Vcrit) {
+        double reincorporated = 
+            ( galaxies[centralgal].Vvir / Vcrit - 1.0 ) *
+            galaxies[centralgal].EjectedMass / (galaxies[centralgal].Rvir / galaxies[centralgal].Vvir) * dt; 
 
-    if(reincorporated > Gal[centralgal].EjectedMass)
-      reincorporated = Gal[centralgal].EjectedMass;
+        if(reincorporated > galaxies[centralgal].EjectedMass)
+            reincorporated = galaxies[centralgal].EjectedMass;
 
-    metallicity = get_metallicity(Gal[centralgal].EjectedMass, Gal[centralgal].MetalsEjectedMass);
-    Gal[centralgal].EjectedMass -= reincorporated;
-    Gal[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
-    Gal[centralgal].HotGas += reincorporated;
-    Gal[centralgal].MetalsHotGas += metallicity * reincorporated;
-  }
+        const double metallicity = get_metallicity(galaxies[centralgal].EjectedMass, galaxies[centralgal].MetalsEjectedMass);
+        galaxies[centralgal].EjectedMass -= reincorporated;
+        galaxies[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
+        galaxies[centralgal].HotGas += reincorporated;
+        galaxies[centralgal].MetalsHotGas += metallicity * reincorporated;
+    }
 
 }

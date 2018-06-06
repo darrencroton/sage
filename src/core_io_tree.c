@@ -112,9 +112,9 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *tre
 
 
 #ifdef OLD_VERSION
-void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType)
+int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType)
 #else
-void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
+int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
 #endif    
 {
@@ -150,14 +150,12 @@ void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeT
             
         }
 
-    MaxGals = (int)(MAXGALFAC * nhalos);
-    if(MaxGals < 10000) MaxGals = 10000;
-
-    FoF_MaxGals = 10000;
+    int maxgals = (int)(MAXGALFAC * nhalos);
+    if(maxgals < 10000) maxgals = 10000;
 
     *haloaux = mymalloc(sizeof(struct halo_aux_data) * nhalos);
-    *halogal = mymalloc(sizeof(struct GALAXY) * MaxGals);
-    *galaxies = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
+    *halogal = mymalloc(sizeof(struct GALAXY) * maxgals);
+    *galaxies = mymalloc(sizeof(struct GALAXY) * maxgals);/* used to be fof_maxgals instead of maxgals*/
 
     struct halo_aux_data *tmp_halo_aux = *haloaux;
     for(int i = 0; i < nhalos; i++) {
@@ -166,6 +164,8 @@ void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeT
         tmp_halo_aux->NGalaxies = 0;
         tmp_halo_aux++;
     }
+
+    return maxgals;
 }
 
 #ifdef OLD_VERSION

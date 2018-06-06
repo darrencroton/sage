@@ -18,14 +18,17 @@ FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 #ifdef OLD_VERSION
 void save_galaxies(const int filenr, const int tree)
 #else
-void save_galaxies(const int filenr, const int tree, const int ntrees, struct halo_data *halos,
-                   struct halo_aux_data *haloaux, struct GALAXY *halogal)
+void save_galaxies(const int filenr, const int tree, const int ntrees, const int numgals, struct halo_data *halos,
+                   struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies)
 #endif    
 {
 
 #ifdef OLD_VERSION
     struct GALAXY *halogal = HaloGal;
     const int ntrees = Ntrees;
+    const int numgals = NumGals;
+    int **treengals = (int **) TreeNgals;
+    int *totgalaxies = TotGalaxies;
 #endif    
 
     char buf[MAX_STRING_LEN];
@@ -33,9 +36,9 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, struct ha
     memset(&galaxy_output, 0, sizeof(struct GALAXY_OUTPUT));
     int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
 
-    OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
+    OutputGalOrder = (int*)malloc( numgals*sizeof(int) );
     if(OutputGalOrder == NULL) {
-        fprintf(stderr,"Error: Could not allocate memory for %d int elements in array `OutputGalOrder`\n", NumGals);
+        fprintf(stderr,"Error: Could not allocate memory for %d int elements in array `OutputGalOrder`\n", numgals);
         ABORT(10);
     }
 
@@ -44,13 +47,13 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, struct ha
         OutputGalCount[i] = 0;
     }
 
-    for(int i = 0; i < NumGals; i++) {
+    for(int i = 0; i < numgals; i++) {
         OutputGalOrder[i] = -1;
     }
   
     // first update mergeIntoID to point to the correct galaxy in the output
     for(int n = 0; n < NOUT; n++) {
-        for(int i = 0; i < NumGals; i++) {
+        for(int i = 0; i < numgals; i++) {
             if(halogal[i].SnapNum == ListOutputSnaps[n]) {
                 OutputGalOrder[i] = OutputGalCount[n];
                 OutputGalCount[n]++;
@@ -58,7 +61,7 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, struct ha
         }
     }
   
-    for(int i = 0; i < NumGals; i++) {
+    for(int i = 0; i < numgals; i++) {
         if(halogal[i].mergeIntoID > -1) {
             halogal[i].mergeIntoID = OutputGalOrder[halogal[i].mergeIntoID];
         }
@@ -93,7 +96,7 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, struct ha
             free( tmp_buf );
         }
       
-        for(int i = 0; i < NumGals; i++) {
+        for(int i = 0; i < numgals; i++) {
             if(halogal[i].SnapNum == ListOutputSnaps[n]) {
 #ifdef OLD_VERSION                
                 prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output);
@@ -107,8 +110,8 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, struct ha
                             " Meant to write 1 element but only wrote %d elements.\n", i, n, nwritten); 
                 }
           
-                TotGalaxies[n]++;
-                TreeNgals[n][tree]++;	      
+                totgalaxies[n]++;
+                treengals[n][tree]++;	      
             }
         }
     }

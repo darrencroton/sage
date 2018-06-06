@@ -206,6 +206,17 @@ extern struct halo_aux_data *HaloAux;
 extern int    Ntrees;      /* number of trees in current file  */
 extern int    *TreeNHalos;
 extern int    *TreeFirstHalo;
+extern int    NumGals;     /* Total number of galaxies stored for current tree */
+extern int    MaxGals;     /* Maximum number of galaxies allowed for current tree */  
+extern int    FoF_MaxGals;
+
+extern int    GalaxyCounter;     /* unique galaxy ID for main progenitor line in tree */
+
+extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
+extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
+
+extern int TreeID;
+extern int FileNum;
 #endif
 
 
@@ -213,23 +224,12 @@ extern int    FirstFile;    /* first and last file for processing */
 extern int    LastFile;
 
 
-extern int    NumGals;     /* Total number of galaxies stored for current tree */
-extern int    MaxGals;     /* Maximum number of galaxies allowed for current tree */  
-extern int    FoF_MaxGals;
-
-extern int    GalaxyCounter;     /* unique galaxy ID for main progenitor line in tree */
-
-extern int    LastSnapShotNr;
-
 extern char   OutputDir[MAX_STRING_LEN];
 extern char   FileNameGalaxies[MAX_STRING_LEN];
 extern char   TreeName[MAX_STRING_LEN];
 extern char   TreeExtension[MAX_STRING_LEN]; // If the trees are in HDF5, they will have a .hdf5 extension. Otherwise they have no extension.
 extern char   SimulationDir[MAX_STRING_LEN];
 extern char   FileWithSnapList[MAX_STRING_LEN];
-
-extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
-extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
 
 
 #ifdef MPI
@@ -250,12 +250,6 @@ extern int    SupernovaRecipeOn;
 extern int    DiskInstabilityOn;
 extern int    AGNrecipeOn;
 extern int    SFprescription;
-
-/* recipe parameters */
-extern int    NParam;
-extern char   ParamTag[MAXTAGS][50];
-extern int    ParamID[MAXTAGS];
-extern void   *ParamAddr[MAXTAGS];
 
 extern double RecycleFraction;
 extern double Yield;
@@ -296,11 +290,9 @@ extern double *Age;
 extern int    MAXSNAPS;
 extern int    NOUT;
 extern int    Snaplistlen;
+extern int    LastSnapShotNr;
 
 extern gsl_rng *random_generator;
-
-extern int TreeID;
-extern int FileNum;
 
 #ifdef HDF5
 extern char          *core_output_file;

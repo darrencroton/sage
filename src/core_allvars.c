@@ -1,8 +1,7 @@
 #include "core_allvars.h"
 
 
-/*  misc  */
-
+/*  Parameters */
 int HDF5Output;
 #ifdef HDF5
 char          *core_output_file;
@@ -16,25 +15,12 @@ int            HDF5_n_props;
 
 int FirstFile;
 int LastFile;
-int MaxGals;
-int FoF_MaxGals;
-int NumGals;			 /*  Total number of galaxies stored for current tree  */
-
-int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
-
 char OutputDir[MAX_STRING_LEN];
 char FileNameGalaxies[MAX_STRING_LEN];
 char TreeName[MAX_STRING_LEN];
 char TreeExtension[MAX_STRING_LEN] = {'\0'}; /* If the FileType is HDF5 they will have .hdf5 extension, otherwise nothing. */
 char SimulationDir[MAX_STRING_LEN];
 char FileWithSnapList[MAX_STRING_LEN];
-
-/* int TotHalos; */
-int TotGalaxies[ABSOLUTEMAXSNAPS];
-int *TreeNgals[ABSOLUTEMAXSNAPS];
-
-int LastSnapShotNr;
-double BoxSize;
 
 #ifdef OLD_VERSION
 int Ntrees;			   /*  number of trees in current file  */
@@ -47,9 +33,15 @@ struct halo_data *Halo;
 
 /*  auxiliary halo data  */
 struct halo_aux_data  *HaloAux;
+int MaxGals;
+int FoF_MaxGals;
+int NumGals;			 /*  Total number of galaxies stored for current tree  */
+
+int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
+int TotGalaxies[ABSOLUTEMAXSNAPS];
+int *TreeNgals[ABSOLUTEMAXSNAPS];
+
 #endif
-
-
 
 
 
@@ -64,7 +56,7 @@ double Hubble_h;
 double PartMass;
 double EnergySNcode, EnergySN;
 double EtaSNcode, EtaSN;
-
+double BoxSize;
 
 /*  recipe flags  */
 int ReionizationOn;
@@ -73,12 +65,6 @@ int DiskInstabilityOn;
 int AGNrecipeOn;
 int SFprescription;
 
-
-/*  recipe parameters  */
-int    NParam;
-char   ParamTag[MAXTAGS][50];
-int    ParamID[MAXTAGS];
-void   *ParamAddr[MAXTAGS];
 
 double RecycleFraction;
 double Yield;
@@ -115,6 +101,7 @@ double *Age;
 int MAXSNAPS;
 int NOUT;
 int Snaplistlen;
+int LastSnapShotNr;
 
 gsl_rng *random_generator;
 

@@ -3,16 +3,16 @@
 
 /* functions in core_build_model.c */
 #ifdef OLD_VERSION
-void construct_galaxies(int halonr, int tree);
-void evolve_galaxies(int halonr, int ngal);
-int join_galaxies_of_progenitors(int halonr, int ngalstart);
+void construct_galaxies(int halonr, int tree, int *numgals, int *galaxycounter, int *maxgals);
+void evolve_galaxies(int halonr, int ngal, int *numgals, int *maxgals);
+int join_galaxies_of_progenitors(int halonr, int ngalstart, int *galaxycounter, int *maxgals);
 #else
-void construct_galaxies(const int halonr, struct halo_data *halos,
-                        struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
-void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
-                     struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
-int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct halo_data *halos,
-                                 struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal);
+void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int *maxgals, struct halo_data *halos,
+                       struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal);
+void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgals, struct halo_data *halos,
+                     struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal);
+int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *galaxycounter, int *maxgals, struct halo_data *halos,
+                                 struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal);
 #endif
 
 
@@ -24,12 +24,12 @@ void init(void);
 /* core_io_tree.c */
 #ifdef OLD_VERSION
 void load_tree_table(const int filenr, enum Valid_TreeTypes TreeType);
-void load_tree(const int treenr, const int nhalos, const enum Valid_TreeTypes TreeType);
+int load_tree(const int treenr, const int nhalos, const enum Valid_TreeTypes TreeType);
 void free_tree_table(const enum Valid_TreeTypes TreeType);
 void free_galaxies_and_tree(void);
 #else
 void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees, int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies);
-void load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
+int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal);
 void free_tree_table(const enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo);
 void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos);
@@ -46,8 +46,8 @@ void save_galaxies(const int filenr, const int tree);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
 void finalize_galaxy_file(void);
 #else
-void save_galaxies(const int filenr, const int tree, const int ntrees, struct halo_data *halos,
-                   struct halo_aux_data *haloaux, struct GALAXY *halogal);
+void save_galaxies(const int filenr, const int tree, const int ntrees, const int numgals, struct halo_data *halos,
+                   struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o, struct halo_data *halos,
                                struct halo_aux_data *haloaux, struct GALAXY *halogal);
 void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals);
@@ -110,9 +110,9 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
 
 /* functions in model_misc.c */
 #ifdef OLD_VERSION
-void init_galaxy(const int p, const int halonr);
+void init_galaxy(const int p, const int halonr, int *galaxycounter);
 #else
-void init_galaxy(const int p, const int halonr, struct halo_data *halos, struct GALAXY *galaxies);
+void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_data *halos, struct GALAXY *galaxies);
 #endif
 double get_metallicity(const double gas, const double metals);
 double get_virial_velocity(const int halonr, struct halo_data *halos);

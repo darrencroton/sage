@@ -12,6 +12,12 @@ void read_parameter_file(const char *fname)
     int errorFlag = 0;
     int *used_tag = 0;
     char my_treetype[MAX_STRING_LEN];
+    /*  recipe parameters  */
+    int NParam = 0;
+    char ParamTag[MAXTAGS][50];
+    int  ParamID[MAXTAGS];
+    void *ParamAddr[MAXTAGS];
+
     NParam = 0;
 
 #ifdef MPI

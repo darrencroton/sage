@@ -3,7 +3,7 @@
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIBS :=
-OPTS := -DROOT_DIR='"${ROOT_DIR}"' #-DOLD_VERSION
+OPTS := -DROOT_DIR='"${ROOT_DIR}"' -DOLD_VERSION
 CCFLAGS := -DGNU_SOURCE -std=gnu99
 SRC_PREFIX := src
 

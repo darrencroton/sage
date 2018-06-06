@@ -13,6 +13,12 @@ fi
 # cd back into the sage root directory and then run sage
 cd ../../../../
 ./sage "$parent_path"/$datadir/mini-millennium.par
+if [[ $? != 0 ]]; then
+    echo "sage exited abnormally...aborting tests"
+    echo "Failed"
+    exit 1
+fi
+
 
 # now cd into the output directory for this sage-run
 cd "$parent_path"/$datadir

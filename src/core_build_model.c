@@ -13,10 +13,10 @@
 
 
 #ifdef OLD_VERSION
-void construct_galaxies(int halonr, int tree)
+void construct_galaxies(int halonr, int tree, int *numgals, int *galaxycounter, int *maxgals)
 #else
-void construct_galaxies(const int halonr, struct halo_data *halos,
-                        struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal)
+void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int *maxgals, struct halo_data *halos,
+                       struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
 #endif
 {
   static int halosdone = 0;
@@ -26,8 +26,7 @@ void construct_galaxies(const int halonr, struct halo_data *halos,
   struct halo_data *halos = Halo;
   struct halo_aux_data *haloaux = HaloAux;
 #endif
-  
-  
+
   haloaux[halonr].DoneFlag = 1;
   halosdone++;
   
@@ -35,9 +34,9 @@ void construct_galaxies(const int halonr, struct halo_data *halos,
   while(prog >= 0) {
       if(haloaux[prog].DoneFlag == 0) {
 #ifdef OLD_VERSION        
-          construct_galaxies(prog, tree);
+          construct_galaxies(prog, tree, numgals, galaxycounter, maxgals);
 #else
-          construct_galaxies(prog, halos, haloaux, galaxies, halogal);
+          construct_galaxies(prog, numgals, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
 #endif
       }
       prog = halos[prog].NextProgenitor;
@@ -51,9 +50,9 @@ void construct_galaxies(const int halonr, struct halo_data *halos,
           while(prog >= 0) {
               if(haloaux[prog].DoneFlag == 0) {
 #ifdef OLD_VERSION        
-                  construct_galaxies(prog, tree);
+                  construct_galaxies(prog, tree, numgals, galaxycounter, maxgals);
 #else
-                  construct_galaxies(prog, halos, haloaux, galaxies, halogal);
+                  construct_galaxies(prog, numgals, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
 #endif
               }
               prog = halos[prog].NextProgenitor;
@@ -76,17 +75,17 @@ void construct_galaxies(const int halonr, struct halo_data *halos,
 
     while(fofhalo >= 0) {
 #ifdef OLD_VERSION
-        ngal = join_galaxies_of_progenitors(fofhalo, ngal);
+        ngal = join_galaxies_of_progenitors(fofhalo, ngal, galaxycounter, maxgals);
 #else
-        ngal = join_galaxies_of_progenitors(fofhalo, ngal, halos, haloaux, galaxies, halogal);
+        ngal = join_galaxies_of_progenitors(fofhalo, ngal, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
 #endif        
         fofhalo = halos[fofhalo].NextHaloInFOFgroup;
     }
 
 #ifdef OLD_VERSION
-    evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal);
+    evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal, numgals, maxgals);
 #else
-    evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal, halos, haloaux, galaxies, halogal);
+    evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal, numgals, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
 #endif
   }
 
@@ -94,19 +93,22 @@ void construct_galaxies(const int halonr, struct halo_data *halos,
 /* end of construct_galaxies*/
 
 #ifdef OLD_VERSION
-int join_galaxies_of_progenitors(int halonr, int ngalstart)
+int join_galaxies_of_progenitors(int halonr, int ngalstart, int *galaxycounter, int *maxgals)
 #else
-int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct halo_data *halos,
-                                 struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal)
+int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *galaxycounter, int *maxgals, struct halo_data *halos,
+                                 struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
 #endif
 {
     int ngal, prog,  first_occupied, lenmax, lenoccmax;
 #ifdef OLD_VERSION
     struct halo_data *halos = Halo;
     struct halo_aux_data *haloaux = HaloAux;
-    struct GALAXY *galaxies = Gal;
-    struct GALAXY *halogal = HaloGal;
+    struct GALAXY **ptr_to_galaxies = &Gal;
+    struct GALAXY **ptr_to_halogal = &HaloGal;
 #endif
+
+    struct GALAXY *galaxies = *ptr_to_galaxies;
+    struct GALAXY *halogal = *ptr_to_halogal;
     
     lenmax = 0;
     lenoccmax = 0;
@@ -139,14 +141,12 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
 
     while(prog >= 0) {
         for(int i = 0; i < haloaux[prog].NGalaxies; i++) {
-            if(ngal == (FoF_MaxGals-1)) {
-                FoF_MaxGals += 10000;
+            if(ngal == (*maxgals - 1)) {
+                *maxgals += 10000;
 
-                /* BUG -> need to accept pointer to pointer in order to realloc */
-                assert(0 && "Need a pointer to pointer to succeed -> increase the value of FoF_MaxGals in core_allvars.c to fix for now");
-                galaxies = myrealloc(galaxies, FoF_MaxGals * sizeof(struct GALAXY));
+                *ptr_to_galaxies = myrealloc(*ptr_to_galaxies, *maxgals * sizeof(struct GALAXY));
             }
-            assert(ngal < FoF_MaxGals && ngal < MaxGals);
+            assert(ngal < *maxgals);
             
 
             // This is the cruical line in which the properties of the progenitor galaxies 
@@ -257,9 +257,9 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
     if(ngal == 0) {
         // We have no progenitors with galaxies. This means we create a new galaxy.
 #ifdef OLD_VERSION        
-        init_galaxy(ngal, halonr);
+        init_galaxy(ngal, halonr, galaxycounter);
 #else
-        init_galaxy(ngal, halonr, halos, galaxies);
+        init_galaxy(ngal, halonr, galaxycounter, halos, galaxies);
 #endif        
         ngal++;
     }
@@ -287,18 +287,20 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, struct h
 /* end of join_galaxies_of_progenitors */
 
 #ifdef OLD_VERSION
-void evolve_galaxies(int halonr, int ngal)	// Note: halonr is here the FOF-background subhalo (i.e. main halo)
+void evolve_galaxies(int halonr, int ngal, int *numgals, int *maxgals)	// Note: halonr is here the FOF-background subhalo (i.e. main halo)
 #else
-void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
-                     struct halo_aux_data *haloaux, struct GALAXY *galaxies, struct GALAXY *halogal)
+void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgals, struct halo_data *halos,
+                    struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
 #endif    
 {
 #ifdef OLD_VERSION
     struct halo_data *halos = Halo;
     struct halo_aux_data *haloaux = HaloAux;
-    struct GALAXY *galaxies = Gal;
-    struct GALAXY *halogal = HaloGal;
+    struct GALAXY **ptr_to_galaxies = &Gal;
+    struct GALAXY **ptr_to_halogal = &HaloGal;
 #endif  
+    struct GALAXY *galaxies = *ptr_to_galaxies;
+    struct GALAXY *halogal = *ptr_to_halogal;
 
     const int centralgal = galaxies[0].CentralGal;
     assert(galaxies[centralgal].Type == 0 && galaxies[centralgal].HaloNr == halonr);
@@ -372,7 +374,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
                         merger_centralgal = galaxies[merger_centralgal].CentralGal;
                     }
                     
-                    galaxies[p].mergeIntoID = NumGals + merger_centralgal;  // position in output
+                    galaxies[p].mergeIntoID = *numgals + merger_centralgal;  // position in output
 
                     // disruption has occured!
                     if(galaxies[p].MergTime > 0.0) {
@@ -419,7 +421,7 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
     for(int p = 0, currenthalo = -1; p < ngal; p++) {
         if(galaxies[p].HaloNr != currenthalo) {
             currenthalo = galaxies[p].HaloNr;
-            haloaux[currenthalo].FirstGalaxy = NumGals;
+            haloaux[currenthalo].FirstGalaxy = *numgals;
             haloaux[currenthalo].NGalaxies = 0;
         }
 
@@ -456,11 +458,14 @@ void evolve_galaxies(const int halonr, const int ngal, struct halo_data *halos,
         }
         
         if(galaxies[p].mergeType == 0) {
-            assert(NumGals < MaxGals);
+            /* MS: 6/6/2018: This could use a realloc on halogal */
+            assert(*numgals < *maxgals);
 
             galaxies[p].SnapNum = halos[currenthalo].SnapNum;
-            halogal[NumGals++] = galaxies[p];
+            halogal[*numgals] = galaxies[p];
+            (*numgals)++;
             haloaux[currenthalo].NGalaxies++;
         }
     }
+
 }

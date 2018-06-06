@@ -11,9 +11,9 @@
 
 
 #ifdef OLD_VERSION
-void init_galaxy(int p, int halonr)
+void init_galaxy(int p, int halonr, int *galaxycounter)
 #else
-void init_galaxy(const int p, const int halonr, struct halo_data *halos,
+void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_data *halos,
                  struct GALAXY *galaxies)
 #endif    
 {
@@ -27,8 +27,8 @@ void init_galaxy(const int p, const int halonr, struct halo_data *halos,
     
     galaxies[p].Type = 0;
     
-    galaxies[p].GalaxyNr = GalaxyCounter;
-    GalaxyCounter++;
+    galaxies[p].GalaxyNr = *galaxycounter;
+    (*galaxycounter)++;
     
     galaxies[p].HaloNr = halonr;
     galaxies[p].MostBoundID = halos[halonr].MostBoundID;
@@ -91,7 +91,7 @@ void init_galaxy(const int p, const int halonr, struct halo_data *halos,
     galaxies[p].infallMvir = -1.0;  
     galaxies[p].infallVvir = -1.0;
     galaxies[p].infallVmax = -1.0;
-    
+
 }
 
 

@@ -105,7 +105,8 @@ int main(int argc, char **argv)
     }
 #endif
 #endif
-    
+
+
 #ifdef MPI
     for(int filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask) {
 #else
@@ -131,13 +132,15 @@ int main(int argc, char **argv)
             fclose(fd);
         }
 
-        FileNum = filenr;
 #ifdef OLD_VERSION
         load_tree_table(filenr, TreeType);
 #else
+        
         int Ntrees = 0;
         int *TreeNHalos = NULL;
         int *TreeFirstHalo = NULL;
+        int TotGalaxies[ABSOLUTEMAXSNAPS];
+        int *TreeNgals[ABSOLUTEMAXSNAPS];
         load_tree_table(filenr, TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
 #endif        
         
@@ -162,34 +165,33 @@ int main(int argc, char **argv)
 #endif            
                 my_progressbar(stderr, treenr, &interrupted);
         
-            TreeID = treenr;
             const int nhalos = TreeNHalos[treenr];
 #ifdef OLD_VERSION
-            load_tree(treenr, nhalos, TreeType);
+            int maxgals = load_tree(treenr, nhalos, TreeType);
 #else            
-            load_tree(treenr, nhalos, TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+            int maxgals = load_tree(treenr, nhalos, TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
 #endif            
             
             gsl_rng_set(random_generator, filenr * 100000 + treenr);
-            NumGals = 0;
-            GalaxyCounter = 0;
-            for(int halonr = 0; halonr < nhalos; halonr++)
+            int numgals = 0;
+            int galaxycounter = 0;
+            for(int halonr = 0; halonr < nhalos; halonr++) {
                 if(HaloAux[halonr].DoneFlag == 0) {
 #ifdef OLD_VERSION        
-                    construct_galaxies(halonr, treenr);
+                    construct_galaxies(halonr, treenr, &numgals, &galaxycounter, &maxgals);
 #else
-                    construct_galaxies(halonr, Halo, HaloAux, Gal, HaloGal);
+                    construct_galaxies(halonr, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
 #endif
                 }
+            }
 
 #ifdef OLD_VERSION        
             save_galaxies(filenr, treenr);
             free_galaxies_and_tree();
 #else
-            save_galaxies(filenr, treenr, Ntrees, Halo, HaloAux, HaloGal);
+            save_galaxies(filenr, treenr, Ntrees, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies);
             free_galaxies_and_tree(Gal, HaloGal, HaloAux, Halo);
 #endif        
-            
         }
     
 #ifdef OLD_VERSION
@@ -209,7 +211,7 @@ int main(int argc, char **argv)
             fprintf(stdout, "\ndone file %d\n\n", filenr);
         interrupted=1;
     }
-    printf("Output 0 had %d galaxies\n", TotGalaxies[0]);
+    /* printf("Output 0 had %d galaxies\n", TotGalaxies[0]); */
     
 #if 0
     if(HDF5Output) {

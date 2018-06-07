@@ -35,7 +35,7 @@ void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, i
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_table_hdf5(filenr);
+            load_tree_table_hdf5(filenr, ntrees, treenhalos, treefirsthalo);
             break;
 #endif
 
@@ -44,7 +44,7 @@ void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, i
             break;
 
         default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
             fprintf(stderr, "Please add it there.\n");
             ABORT(EXIT_FAILURE);
         }
@@ -103,7 +103,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *tre
             break;
             
         default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree_table`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
             fprintf(stderr, "Please add it there.\n");
             ABORT(EXIT_FAILURE);
             
@@ -135,7 +135,7 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
             
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_hdf5(treenr);
+            load_tree_hdf5(treenr, nhalos, halos);
             break;
 #endif            
             

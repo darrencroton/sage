@@ -6,10 +6,24 @@ datadir=../auxdata/trees/mini-millennium
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"/$datadir
 if [ ! -f trees_063.7 ]; then
-    curl -s https://data-portal.hpc.swin.edu.au/dataset/7bab038b-1d1f-4e79-8cfc-ea171dd1492f/resource/7ff28a50-c401-4a07-9041-13524cbac5c9/download/mini-millennium.tar | tar xvf -
-else
-    rm -f model_z*
+    curl -O https://data-portal.hpc.swin.edu.au/dataset/7bab038b-1d1f-4e79-8cfc-ea171dd1492f/resource/7ff28a50-c401-4a07-9041-13524cbac5c9/download/mini-millennium.tar 
+    if [[ $? != 0 ]]; then
+        echo "Could not download tree files from the Swinburne data portal...aborting tests"
+        echo "Failed"
+        exit 1
+    fi
+    
+    tar xvf mini-millennium.tar
+    if [[ $? != 0 ]]; then
+        echo "Could not untar the mini-millennium tree files...aborting tests"
+        echo "Failed"
+        exit 1
+    fi
 fi
+
+
+rm -f model_z*
+
 # cd back into the sage root directory and then run sage
 cd ../../../../
 ./sage "$parent_path"/$datadir/mini-millennium.par

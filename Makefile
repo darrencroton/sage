@@ -23,7 +23,7 @@ ifdef USE-MPI
     OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else
-    CC := clang  # sets the C-compiler
+    CC := gcc  # sets the C-compiler
 endif
 
 

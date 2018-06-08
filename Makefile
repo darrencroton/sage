@@ -19,11 +19,17 @@ INCL := $(addprefix $(SRC_PREFIX)/, $(INCL))
 
 EXEC := sage 
 
+UNAME := $(shell uname)
 ifdef USE-MPI
     OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else
-    CC := gcc  # sets the C-compiler
+    # use clang by default on OSX and gcc on linux
+    ifeq ($(UNAME), Darwin)    
+      CC := clang
+    else
+      CC := gcc
+    endif
 endif
 
 

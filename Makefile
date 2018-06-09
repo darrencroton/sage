@@ -7,14 +7,14 @@ OPTS := -DROOT_DIR='"${ROOT_DIR}"' #-DOLD_VERSION
 CCFLAGS := -DGNU_SOURCE -std=gnu99
 SRC_PREFIX := src
 
-SRC := main.c core_read_parameter_file.c core_init.c core_io_tree.c \
+SRC := main.c sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
        core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
        core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
        model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
        io/tree_binary.c 
 SRC  := $(addprefix $(SRC_PREFIX)/, $(SRC))
 OBJS := $(SRC:.c=.o)
-INCL := core_allvars.h core_proto.h core_simulation.h core_utils.h progressbar.h io/tree_binary.h 
+INCL := core_allvars.h sage.h core_proto.h core_simulation.h core_utils.h progressbar.h io/tree_binary.h 
 INCL := $(addprefix $(SRC_PREFIX)/, $(INCL))
 
 EXEC := sage 

@@ -25,9 +25,6 @@ struct halo_data
   float SubHalfMass;
 };
 
-#ifdef OLD_VERSION
-extern struct halo_data *Halo;
-#endif
 
 
 

@@ -15,21 +15,9 @@
 // keep a static file handle to remove the need to do constant seeking.
 FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 
-#ifdef OLD_VERSION
-void save_galaxies(const int filenr, const int tree)
-#else
 void save_galaxies(const int filenr, const int tree, const int ntrees, const int numgals, struct halo_data *halos,
                    struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies)
-#endif    
 {
-
-#ifdef OLD_VERSION
-    struct GALAXY *halogal = HaloGal;
-    const int ntrees = Ntrees;
-    const int numgals = NumGals;
-    int **treengals = (int **) TreeNgals;
-    int *totgalaxies = TotGalaxies;
-#endif    
 
     char buf[MAX_STRING_LEN];
     struct GALAXY_OUTPUT galaxy_output;
@@ -98,11 +86,7 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
       
         for(int i = 0; i < numgals; i++) {
             if(halogal[i].SnapNum == ListOutputSnaps[n]) {
-#ifdef OLD_VERSION                
-                prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output);
-#else
                 prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output, halos, haloaux, halogal);
-#endif                
    
                 nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
                 if (nwritten != 1) {
@@ -122,20 +106,11 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
 }
 
 
-#ifdef OLD_VERSION
-void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
-#else
+
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o,
                                struct halo_data *halos,
                                struct halo_aux_data *haloaux, struct GALAXY *halogal)
-#endif    
 {
-#ifdef OLD_VERSION
-    struct halo_data *halos = Halo;
-    struct halo_aux_data *haloaux = HaloAux;
-    struct GALAXY *halogal = HaloGal;
-#endif  
-
     o->SnapNum = g->SnapNum;
     assert(g->Type >= SHRT_MIN && g->Type <= SHRT_MAX && "Converting galaxy type while saving from integer to short will result in data corruption");
     o->Type = g->Type;
@@ -257,19 +232,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 }
 
 
-#ifdef OLD_VERSION
-void finalize_galaxy_file(void)
-#else
 void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals)    
-#endif    
 {
-
-#ifdef OLD_VERSION
-    const int ntrees = Ntrees;
-    const int *totgalaxies = TotGalaxies;
-    const int **treengals = (const int **) TreeNgals;
-#endif    
-    
     for(int n = 0; n < NOUT; n++) {
         // file must already be open.
         assert( save_fd[n] );

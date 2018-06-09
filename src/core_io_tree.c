@@ -16,21 +16,9 @@
 #include "io/tree_hdf5.h"
 #endif
 
-#ifdef OLD_VERSION
-void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
-#else
 void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees, int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
-#endif
 {
 
-#ifdef OLD_VERSION
-    int *ntrees = &Ntrees;
-    int **treenhalos = &TreeNHalos;
-    int **treefirsthalo = &TreeFirstHalo;
-    int **treengals = (int **) TreeNgals;
-    int *totgalaxies = (int *) TotGalaxies;
-#endif 
-    
     switch (my_TreeType)
         {
 #ifdef HDF5
@@ -68,20 +56,9 @@ void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, i
     }
 }
 
-#ifdef OLD_VERSION
-void free_tree_table(enum Valid_TreeTypes my_TreeType)
-#else
 void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo)    
-#endif    
 {
     
-#ifdef OLD_VERSION
-    int **treengals = (int **) TreeNgals;
-    int *treenhalos = TreeNHalos;
-    int *treefirsthalo = TreeFirstHalo;
-#endif    
-
-
     for(int n = 0; n < NOUT; n++) {
         myfree(treengals[n]);
     }
@@ -111,19 +88,9 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *tre
 }
 
 
-#ifdef OLD_VERSION
-int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType)
-#else
 int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
-#endif    
 {
-#ifdef OLD_VERSION
-    struct halo_data **halos = &Halo;
-    struct halo_aux_data **haloaux = &HaloAux;
-    struct GALAXY **galaxies = &Gal;
-    struct GALAXY **halogal = &HaloGal;
-#endif    
 
 #ifndef HDF5
     (void) treenr; /* treenr is only used for the hdf5 files */
@@ -168,19 +135,8 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
     return maxgals;
 }
 
-#ifdef OLD_VERSION
-void free_galaxies_and_tree(void)
-#else
 void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos)
-#endif    
 {
-#ifdef OLD_VERSION
-    struct GALAXY *galaxies = Gal;
-    struct GALAXY *halogal = HaloGal;
-    struct halo_aux_data *haloaux = HaloAux;
-    struct halo_data *halos = Halo; 
-#endif
-
     myfree(galaxies);
     myfree(halogal);
     myfree(haloaux);

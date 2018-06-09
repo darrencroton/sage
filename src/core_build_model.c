@@ -12,20 +12,11 @@
 #include "core_proto.h"
 
 
-#ifdef OLD_VERSION
-void construct_galaxies(int halonr, int tree, int *numgals, int *galaxycounter, int *maxgals)
-#else
 void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int *maxgals, struct halo_data *halos,
                        struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
-#endif
 {
   static int halosdone = 0;
   int prog, fofhalo;
-
-#ifdef OLD_VERSION
-  struct halo_data *halos = Halo;
-  struct halo_aux_data *haloaux = HaloAux;
-#endif
 
   haloaux[halonr].DoneFlag = 1;
   halosdone++;
@@ -33,11 +24,7 @@ void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int 
   prog = halos[halonr].FirstProgenitor;
   while(prog >= 0) {
       if(haloaux[prog].DoneFlag == 0) {
-#ifdef OLD_VERSION        
-          construct_galaxies(prog, tree, numgals, galaxycounter, maxgals);
-#else
           construct_galaxies(prog, numgals, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
-#endif
       }
       prog = halos[prog].NextProgenitor;
   }
@@ -49,15 +36,10 @@ void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int 
           prog = halos[fofhalo].FirstProgenitor;
           while(prog >= 0) {
               if(haloaux[prog].DoneFlag == 0) {
-#ifdef OLD_VERSION        
-                  construct_galaxies(prog, tree, numgals, galaxycounter, maxgals);
-#else
-                  construct_galaxies(prog, numgals, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
-#endif
+                  construct_galaxies(prog, numgals, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);                  
               }
               prog = halos[prog].NextProgenitor;
           }
-
           fofhalo = halos[fofhalo].NextHaloInFOFgroup;
       }
   }
@@ -74,39 +56,20 @@ void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int 
     haloaux[fofhalo].HaloFlag = 2;
 
     while(fofhalo >= 0) {
-#ifdef OLD_VERSION
-        ngal = join_galaxies_of_progenitors(fofhalo, ngal, galaxycounter, maxgals);
-#else
         ngal = join_galaxies_of_progenitors(fofhalo, ngal, galaxycounter, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
-#endif        
         fofhalo = halos[fofhalo].NextHaloInFOFgroup;
     }
 
-#ifdef OLD_VERSION
-    evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal, numgals, maxgals);
-#else
     evolve_galaxies(halos[halonr].FirstHaloInFOFgroup, ngal, numgals, maxgals, halos, haloaux, ptr_to_galaxies, ptr_to_halogal);
-#endif
   }
 
 }
 /* end of construct_galaxies*/
 
-#ifdef OLD_VERSION
-int join_galaxies_of_progenitors(int halonr, int ngalstart, int *galaxycounter, int *maxgals)
-#else
 int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *galaxycounter, int *maxgals, struct halo_data *halos,
                                  struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
-#endif
 {
     int ngal, prog,  first_occupied, lenmax, lenoccmax;
-#ifdef OLD_VERSION
-    struct halo_data *halos = Halo;
-    struct halo_aux_data *haloaux = HaloAux;
-    struct GALAXY **ptr_to_galaxies = &Gal;
-    struct GALAXY **ptr_to_halogal = &HaloGal;
-#endif
-
     struct GALAXY *galaxies = *ptr_to_galaxies;
     struct GALAXY *halogal = *ptr_to_halogal;
     
@@ -256,11 +219,7 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *gal
 
     if(ngal == 0) {
         // We have no progenitors with galaxies. This means we create a new galaxy.
-#ifdef OLD_VERSION        
-        init_galaxy(ngal, halonr, galaxycounter);
-#else
         init_galaxy(ngal, halonr, galaxycounter, halos, galaxies);
-#endif        
         ngal++;
     }
 
@@ -286,19 +245,9 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *gal
 }
 /* end of join_galaxies_of_progenitors */
 
-#ifdef OLD_VERSION
-void evolve_galaxies(int halonr, int ngal, int *numgals, int *maxgals)	// Note: halonr is here the FOF-background subhalo (i.e. main halo)
-#else
 void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgals, struct halo_data *halos,
                     struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
-#endif    
 {
-#ifdef OLD_VERSION
-    struct halo_data *halos = Halo;
-    struct halo_aux_data *haloaux = HaloAux;
-    struct GALAXY **ptr_to_galaxies = &Gal;
-    struct GALAXY **ptr_to_halogal = &HaloGal;
-#endif  
     struct GALAXY *galaxies = *ptr_to_galaxies;
     struct GALAXY *halogal = *ptr_to_halogal;
 

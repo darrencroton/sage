@@ -200,26 +200,6 @@ struct halo_aux_data
   int FirstGalaxy;
 };
 
-#ifdef OLD_VERSION
-extern struct GALAXY *Gal, *HaloGal;
-extern struct halo_aux_data *HaloAux;
-extern int    Ntrees;      /* number of trees in current file  */
-extern int    *TreeNHalos;
-extern int    *TreeFirstHalo;
-extern int    NumGals;     /* Total number of galaxies stored for current tree */
-extern int    MaxGals;     /* Maximum number of galaxies allowed for current tree */  
-extern int    FoF_MaxGals;
-
-extern int    GalaxyCounter;     /* unique galaxy ID for main progenitor line in tree */
-
-extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
-extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
-
-extern int TreeID;
-extern int FileNum;
-#endif
-
-
 extern int    FirstFile;    /* first and last file for processing */
 extern int    LastFile;
 

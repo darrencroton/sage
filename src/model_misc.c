@@ -10,18 +10,9 @@
 #include "core_proto.h"
 
 
-#ifdef OLD_VERSION
-void init_galaxy(int p, int halonr, int *galaxycounter)
-#else
 void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_data *halos,
                  struct GALAXY *galaxies)
-#endif    
 {
-#ifdef OLD_VERSION
-    struct halo_data *halos = Halo;
-    struct GALAXY *galaxies = Gal;
-#endif  
-
   
 	assert(halonr == halos[halonr].FirstHaloInFOFgroup);
     

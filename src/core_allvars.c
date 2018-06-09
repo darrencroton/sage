@@ -22,29 +22,6 @@ char TreeExtension[MAX_STRING_LEN] = {'\0'}; /* If the FileType is HDF5 they wil
 char SimulationDir[MAX_STRING_LEN];
 char FileWithSnapList[MAX_STRING_LEN];
 
-#ifdef OLD_VERSION
-int Ntrees;			   /*  number of trees in current file  */
-int *TreeNHalos;
-int *TreeFirstHalo;
-/*  galaxy data  */
-struct GALAXY *Gal, *HaloGal;
-
-struct halo_data *Halo;
-
-/*  auxiliary halo data  */
-struct halo_aux_data  *HaloAux;
-int MaxGals;
-int FoF_MaxGals;
-int NumGals;			 /*  Total number of galaxies stored for current tree  */
-
-int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
-int TotGalaxies[ABSOLUTEMAXSNAPS];
-int *TreeNgals[ABSOLUTEMAXSNAPS];
-
-#endif
-
-
-
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
@@ -105,5 +82,3 @@ int LastSnapShotNr;
 
 gsl_rng *random_generator;
 
-int TreeID;
-int FileNum;

@@ -66,6 +66,7 @@ void construct_galaxies(const int halonr, int *numgals, int *galaxycounter, int 
 }
 /* end of construct_galaxies*/
 
+
 int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *galaxycounter, int *maxgals, struct halo_data *halos,
                                  struct halo_aux_data *haloaux, struct GALAXY **ptr_to_galaxies, struct GALAXY **ptr_to_halogal)
 {
@@ -108,6 +109,9 @@ int join_galaxies_of_progenitors(const int halonr, const int ngalstart, int *gal
                 *maxgals += 10000;
 
                 *ptr_to_galaxies = myrealloc(*ptr_to_galaxies, *maxgals * sizeof(struct GALAXY));
+                *ptr_to_halogal  = myrealloc(*ptr_to_halogal, *maxgals * sizeof(struct GALAXY));
+                galaxies = *ptr_to_galaxies;
+                halogal = *ptr_to_halogal;
             }
             assert(ngal < *maxgals);
             
@@ -407,7 +411,15 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
         }
         
         if(galaxies[p].mergeType == 0) {
-            /* MS: 6/6/2018: This could use a realloc on halogal */
+            /* realloc if needed */
+            if(*numgals == (*maxgals - 1)) {
+                *maxgals += 10000;
+
+                *ptr_to_galaxies = myrealloc(*ptr_to_galaxies, *maxgals * sizeof(struct GALAXY));
+                *ptr_to_halogal  = myrealloc(*ptr_to_halogal, *maxgals * sizeof(struct GALAXY));
+                galaxies = *ptr_to_galaxies;
+                halogal = *ptr_to_halogal;
+            }
             assert(*numgals < *maxgals);
 
             galaxies[p].SnapNum = halos[currenthalo].SnapNum;

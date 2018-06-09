@@ -116,7 +116,7 @@ ifeq ($(DO_CHECKS), 1)
   # This decision was driven by the fact the adding the `-march=native` flag
   # produces test failures on ozstar (https://supercomputing.swin.edu.au/ozstar/)
   # Good news is that even at -O3 the tests pass
-  OPTIMIZE := -O2
+  OPTIMIZE := -O2 -march=native -mno-fma
 
   CCFLAGS += -g -Wextra -Wshadow -Wall  #-Wpadded # and more warning flags 
   LIBS   +=   -lm

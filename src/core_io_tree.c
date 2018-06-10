@@ -38,13 +38,13 @@ void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, i
         }
 
     const int local_ntrees = *ntrees;
-    for(int n = 0; n < NOUT; n++) {
+    for(int n = 0; n < run_params.NOUT; n++) {
         treengals[n] = mymalloc(sizeof(int) * local_ntrees);
         for(int i = 0; i < local_ntrees; i++) {
             treengals[n][i] = 0;
         }
-        char buf[MAX_STRING_LEN + 1];
-        snprintf(buf, MAX_STRING_LEN, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+        char buf[4*MAX_STRING_LEN + 1];
+        snprintf(buf, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies, run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
 
         FILE *fd = fopen(buf, "w"); 
         if(fd == NULL) {
@@ -59,7 +59,7 @@ void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, i
 void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo)    
 {
     
-    for(int n = 0; n < NOUT; n++) {
+    for(int n = 0; n < run_params.NOUT; n++) {
         myfree(treengals[n]);
     }
 

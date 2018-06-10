@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 void sage(const int filenr);
-
+void finalize_sage(void);
 
 #ifdef __cplusplus
 }

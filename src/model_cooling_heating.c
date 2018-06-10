@@ -25,7 +25,7 @@ double cooling_recipe(const int gal, const double dt, struct GALAXY *galaxies)
 
         double lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
         double x = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
-        x /= (UnitDensity_in_cgs * UnitTime_in_s);         // now in internal units 
+        x /= (run_params.UnitDensity_in_cgs * run_params.UnitTime_in_s);         // now in internal units 
         const double rho_rcool = x / tcool * 0.885;  // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
         // an isothermal density profile for the hot gas is assumed here 
@@ -50,7 +50,7 @@ double cooling_recipe(const int gal, const double dt, struct GALAXY *galaxies)
 		// at this point we have calculated the maximal cooling rate
 		// if AGNrecipeOn we now reduce it in line with past heating before proceeding
 
-		if(AGNrecipeOn > 0 && coolingGas > 0.0) {
+		if(run_params.AGNrecipeOn > 0 && coolingGas > 0.0) {
 			coolingGas = do_AGN_heating(coolingGas, gal, dt, x, rcool, galaxies);
         }
 	
@@ -83,10 +83,10 @@ double do_AGN_heating(double coolingGas, const int centralgal, const double dt, 
 
 	// now calculate the new heating rate
     if(galaxies[centralgal].HotGas > 0.0) {
-        if(AGNrecipeOn == 2) {
+        if(run_params.AGNrecipeOn == 2) {
             // Bondi-Hoyle accretion recipe
-            AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * galaxies[centralgal].BlackHoleMass * RadioModeEfficiency;
-        } else if(AGNrecipeOn == 3) {
+            AGNrate = (2.5 * M_PI * run_params.G) * (0.375 * 0.6 * x) * galaxies[centralgal].BlackHoleMass * run_params.RadioModeEfficiency;
+        } else if(run_params.AGNrecipeOn == 3) {
             // Cold cloud accretion: trigger: rBH > 1.0e-4 Rsonic, and accretion rate = 0.01% cooling rate 
             if(galaxies[centralgal].BlackHoleMass > 0.0001 * galaxies[centralgal].Mvir * pow(rcool/galaxies[centralgal].Rvir, 3.0)) {
                 AGNrate = 0.0001 * coolingGas / dt;
@@ -96,17 +96,17 @@ double do_AGN_heating(double coolingGas, const int centralgal, const double dt, 
         } else {
             // empirical (standard) accretion recipe 
             if(galaxies[centralgal].Mvir > 0.0) {
-                AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+                AGNrate = run_params.RadioModeEfficiency / (run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
                     * (galaxies[centralgal].BlackHoleMass / 0.01) * pow(galaxies[centralgal].Vvir / 200.0, 3.0)
                     * ((galaxies[centralgal].HotGas / galaxies[centralgal].Mvir) / 0.1);
             } else {
-                AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+                AGNrate = run_params.RadioModeEfficiency / (run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
                     * (galaxies[centralgal].BlackHoleMass / 0.01) * pow(galaxies[centralgal].Vvir / 200.0, 3.0);
             }
         }
         
         // Eddington rate 
-        EDDrate = (1.3e38 * galaxies[centralgal].BlackHoleMass * 1e10 / Hubble_h) / (UnitEnergy_in_cgs / UnitTime_in_s) / (0.1 * 9e10);
+        EDDrate = (1.3e38 * galaxies[centralgal].BlackHoleMass * 1e10 / run_params.Hubble_h) / (run_params.UnitEnergy_in_cgs / run_params.UnitTime_in_s) / (0.1 * 9e10);
         
         // accretion onto BH is always limited by the Eddington rate 
         if(AGNrate > EDDrate) {

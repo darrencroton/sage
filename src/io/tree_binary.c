@@ -20,10 +20,10 @@ static FILE *load_fd = NULL;
 // External Functions //
 void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
 {
-    char buf[MAX_STRING_LEN + 1];
-
+    char buf[4*MAX_STRING_LEN + 1];
+    
 	// open the file each time this function is called
-    snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    snprintf(buf, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
     load_fd = fopen(buf, "r");
     if(load_fd == NULL) {
         printf("can't open file `%s'\n", buf);

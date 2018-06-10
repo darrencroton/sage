@@ -40,7 +40,7 @@ void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treef
 
     struct METADATA_NAMES metadata_names;
 
-    snprintf(buf, MAX_STRING_LEN - 1, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    snprintf(buf, MAX_STRING_LEN - 1, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
     hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
 
     if (hdf5_file < 0) {
@@ -48,7 +48,7 @@ void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treef
         ABORT(0);    
     }
 
-    status = fill_metadata_names(&metadata_names, TreeType);
+    status = fill_metadata_names(&metadata_names, run_params.TreeType);
     if (status != EXIT_SUCCESS) {
         ABORT(0);
     }

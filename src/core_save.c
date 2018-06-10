@@ -18,20 +18,20 @@ FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 void save_galaxies(const int filenr, const int tree, const int ntrees, const int numgals, struct halo_data *halos,
                    struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies)
 {
-
-    char buf[MAX_STRING_LEN];
+    char buffer[4*MAX_STRING_LEN + 1];
     struct GALAXY_OUTPUT galaxy_output;
     memset(&galaxy_output, 0, sizeof(struct GALAXY_OUTPUT));
-    int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
-
-    OutputGalOrder = (int*)malloc( numgals*sizeof(int) );
+    int OutputGalCount[run_params.MAXSNAPS];
+    int nwritten;
+    
+    int *OutputGalOrder = (int*)malloc( numgals*sizeof(*OutputGalOrder) );
     if(OutputGalOrder == NULL) {
         fprintf(stderr,"Error: Could not allocate memory for %d int elements in array `OutputGalOrder`\n", numgals);
         ABORT(10);
     }
 
     // reset the output galaxy count and order
-    for(int i = 0; i < MAXSNAPS; i++) {
+    for(int i = 0; i < run_params.MAXSNAPS; i++) {
         OutputGalCount[i] = 0;
     }
 
@@ -40,9 +40,9 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
     }
   
     // first update mergeIntoID to point to the correct galaxy in the output
-    for(int n = 0; n < NOUT; n++) {
+    for(int n = 0; n < run_params.NOUT; n++) {
         for(int i = 0; i < numgals; i++) {
-            if(halogal[i].SnapNum == ListOutputSnaps[n]) {
+            if(halogal[i].SnapNum == run_params.ListOutputSnaps[n]) {
                 OutputGalOrder[i] = OutputGalCount[n];
                 OutputGalCount[n]++;
             }
@@ -56,14 +56,15 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
     }
   
     // now prepare and write galaxies
-    for(int n = 0; n < NOUT; n++) {
+    for(int n = 0; n < run_params.NOUT; n++) {
         // only open the file if it is not already open.
         if( !save_fd[n] ) {
-            snprintf(buf, MAX_STRING_LEN - 1, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+            snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies,
+                     run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
        
-            save_fd[n] = fopen(buf, "r+");
+            save_fd[n] = fopen(buffer, "r+");
             if (save_fd[n] == NULL) {
-                fprintf(stderr, "Error: Can't open file `%s'\n", buf);
+                fprintf(stderr, "Error: Can't open file `%s'\n", buffer);
                 ABORT(0);
             }
         
@@ -85,7 +86,7 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
         }
       
         for(int i = 0; i < numgals; i++) {
-            if(halogal[i].SnapNum == ListOutputSnaps[n]) {
+            if(halogal[i].SnapNum == run_params.ListOutputSnaps[n]) {
                 prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output, halos, haloaux, halogal);
    
                 nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
@@ -117,7 +118,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
     // assume that because there are so many files, the trees per file will be less than 100000
     // required for limits of long long
-    if(LastFile>=10000) {
+    if(run_params.LastFile>=10000) {
         assert( g->GalaxyNr < TREE_MUL_FAC ); // breaking tree size assumption
         assert(tree < (FILENR_MUL_FAC/10)/TREE_MUL_FAC);
         o->GalaxyIndex = g->GalaxyNr + TREE_MUL_FAC * tree + (FILENR_MUL_FAC/10) * filenr;
@@ -148,7 +149,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->mergeType = g->mergeType;
     o->mergeIntoID = g->mergeIntoID;
     o->mergeIntoSnapNum = g->mergeIntoSnapNum;
-    o->dT = g->dT * UnitTime_in_s / SEC_PER_MEGAYEAR;
+    o->dT = g->dT * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR;
 
     for(int j = 0; j < 3; j++) {
         o->Pos[j] = g->Pos[j];
@@ -186,8 +187,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   
     // NOTE: in Msun/yr 
     for(int step = 0; step < STEPS; step++) {
-        o->SfrDisk += g->SfrDisk[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
-        o->SfrBulge += g->SfrBulge[step] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+        o->SfrDisk += g->SfrDisk[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+        o->SfrBulge += g->SfrBulge[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
         
         if(g->SfrDiskColdGas[step] > 0.0) {
             o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
@@ -201,23 +202,23 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->DiskScaleRadius = g->DiskScaleRadius;
 
     if (g->Cooling > 0.0) {
-        o->Cooling = log10(g->Cooling * UnitEnergy_in_cgs / UnitTime_in_s);
+        o->Cooling = log10(g->Cooling * run_params.UnitEnergy_in_cgs / run_params.UnitTime_in_s);
     } else {
         o->Cooling = 0.0;
     }
 
     if (g->Heating > 0.0) {
-        o->Heating = log10(g->Heating * UnitEnergy_in_cgs / UnitTime_in_s);
+        o->Heating = log10(g->Heating * run_params.UnitEnergy_in_cgs / run_params.UnitTime_in_s);
     } else {
         o->Heating = 0.0;
     }
 
     o->QuasarModeBHaccretionMass = g->QuasarModeBHaccretionMass;
 
-    o->TimeOfLastMajorMerger = g->TimeOfLastMajorMerger * UnitTime_in_Megayears;
-    o->TimeOfLastMinorMerger = g->TimeOfLastMinorMerger * UnitTime_in_Megayears;
+    o->TimeOfLastMajorMerger = g->TimeOfLastMajorMerger * run_params.UnitTime_in_Megayears;
+    o->TimeOfLastMinorMerger = g->TimeOfLastMinorMerger * run_params.UnitTime_in_Megayears;
 	
-    o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+    o->OutflowRate = g->OutflowRate * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
 
     //infall properties
     if(g->Type != 0) {
@@ -234,7 +235,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
 void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals)    
 {
-    for(int n = 0; n < NOUT; n++) {
+    for(int n = 0; n < run_params.NOUT; n++) {
         // file must already be open.
         assert( save_fd[n] );
 

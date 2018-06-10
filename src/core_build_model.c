@@ -263,8 +263,8 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
      */
 
     const int halo_snapnum = halos[halonr].SnapNum;
-    const double Zcurr = ZZ[halo_snapnum];
-    const double halo_age = Age[halo_snapnum];
+    const double Zcurr = run_params.ZZ[halo_snapnum];
+    const double halo_age = run_params.Age[halo_snapnum];
     const double infallingGas = infall_recipe(centralgal, ngal, Zcurr, galaxies);
 
     // We integrate things forward by using a number of intervals equal to STEPS
@@ -277,8 +277,8 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
                 continue;
             }
             
-            const double deltaT = Age[galaxies[p].SnapNum] - halo_age;
-            const double time = Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+            const double deltaT = run_params.Age[galaxies[p].SnapNum] - halo_age;
+            const double time = run_params.Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
             
             if(galaxies[p].dT < 0.0) {
                 galaxies[p].dT = deltaT;
@@ -288,7 +288,7 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
             if(p == centralgal) {
                 add_infall_to_hot(centralgal, infallingGas / STEPS, galaxies);
 
-                if(ReIncorporationFactor > 0.0) {
+                if(run_params.ReIncorporationFactor > 0.0) {
                     reincorporate_gas(centralgal, deltaT / STEPS, galaxies);
                 }
             } else {
@@ -312,14 +312,14 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
             if((galaxies[p].Type == 1 || galaxies[p].Type == 2) && galaxies[p].mergeType == 0) {
                 assert(galaxies[p].MergTime < 999.0);
                 
-                const double deltaT = Age[galaxies[p].SnapNum] - halo_age;
+                const double deltaT = run_params.Age[galaxies[p].SnapNum] - halo_age;
                 galaxies[p].MergTime -= deltaT / STEPS;
                 
                 // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
                 // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
                 double currentMvir = galaxies[p].Mvir - galaxies[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
                 double galaxyBaryons = galaxies[p].StellarMass + galaxies[p].ColdGas;
-                if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption))) {
+                if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= run_params.ThresholdSatDisruption))) {
 
                     int merger_centralgal = galaxies[p].Type==1 ? centralgal:galaxies[p].CentralGal;
                     
@@ -335,7 +335,7 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
                     } else {
                         // a merger has occured!
                         if(galaxies[p].MergTime <= 0.0)  {
-                            double time = Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+                            double time = run_params.Age[galaxies[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
                             deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, galaxies);
                         }
                     }
@@ -348,7 +348,7 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
 
     // Extra miscellaneous stuff before finishing this halo
     galaxies[centralgal].TotalSatelliteBaryons = 0.0;
-    const double deltaT = Age[galaxies[0].SnapNum] - halo_age;
+    const double deltaT = run_params.Age[galaxies[0].SnapNum] - halo_age;
     const double inv_deltaT = 1.0/deltaT;
     
     for(int p = 0; p < ngal; p++) {

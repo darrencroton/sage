@@ -49,15 +49,15 @@ double infall_recipe(const int centralgal, const int ngal, const double Zcurr, s
     /* newSatBaryons = tot_satBaryons - galaxies[centralgal].TotalSatelliteBaryons; */
 
     // include reionization if necessary 
-    if(ReionizationOn) {
+    if(run_params.ReionizationOn) {
         reionization_modifier = do_reionization(centralgal, Zcurr, galaxies);
     } else {
         reionization_modifier = 1.0;
     }
 
     infallingMass =
-        reionization_modifier * BaryonFrac * galaxies[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
-    /* reionization_modifier * BaryonFrac * galaxies[centralgal].deltaMvir - newSatBaryons; */
+        reionization_modifier * run_params.BaryonFrac * galaxies[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
+    /* reionization_modifier * run_params.BaryonFrac * galaxies[centralgal].deltaMvir - newSatBaryons; */
 
     // the central galaxy keeps all the ejected mass
     galaxies[centralgal].EjectedMass = tot_ejected;
@@ -100,7 +100,7 @@ void strip_from_satellite(const int centralgal, const int gal, const double Zcur
 {
     double reionization_modifier;
   
-    if(ReionizationOn) {
+    if(run_params.ReionizationOn) {
         /* reionization_modifier = do_reionization(gal, ZZ[halos[halonr].SnapNum]); */
         reionization_modifier = do_reionization(gal, Zcurr, galaxies);
     } else {
@@ -108,8 +108,8 @@ void strip_from_satellite(const int centralgal, const int gal, const double Zcur
     }
   
     double strippedGas = -1.0 *
-        (reionization_modifier * BaryonFrac * galaxies[gal].Mvir - (galaxies[gal].StellarMass + galaxies[gal].ColdGas + galaxies[gal].HotGas + galaxies[gal].EjectedMass + galaxies[gal].BlackHoleMass + galaxies[gal].ICS) ) / STEPS;
-    // ( reionization_modifier * BaryonFrac * galaxies[gal].deltaMvir ) / STEPS;
+        (reionization_modifier * run_params.BaryonFrac * galaxies[gal].Mvir - (galaxies[gal].StellarMass + galaxies[gal].ColdGas + galaxies[gal].HotGas + galaxies[gal].EjectedMass + galaxies[gal].BlackHoleMass + galaxies[gal].ICS) ) / STEPS;
+    // ( reionization_modifier * run_params.BaryonFrac * galaxies[gal].deltaMvir ) / STEPS;
 
     if(strippedGas > 0.0) {
         const double metallicity = get_metallicity(galaxies[gal].HotGas, galaxies[gal].MetalsHotGas);
@@ -131,52 +131,51 @@ void strip_from_satellite(const int centralgal, const int gal, const double Zcur
 
 double do_reionization(const int gal, const double Zcurr, struct GALAXY *galaxies)
 {
-    double alpha, a, f_of_a, a_on_a0, a_on_ar, Mfiltering, Mjeans, Mchar, mass_to_use, modifier;
-    double Tvir, Vchar, omegaZ, xZ, deltacritZ, HubbleZ;
+    double f_of_a;
 
     // we employ the reionization recipie described in Gnedin (2000), however use the fitting 
     // formulas given by Kravtsov et al (2004) Appendix B 
 
     // here are two parameters that Kravtsov et al keep fixed, alpha gives the best fit to the Gnedin data 
-    alpha = 6.0;
-    Tvir = 1e4;
+    const double alpha = 6.0;
+    const double Tvir = 1e4;
 
     // calculate the filtering mass 
-    a = 1.0 / (1.0 + Zcurr);
-    a_on_a0 = a / a0;
-    a_on_ar = a / ar;
+    const double a = 1.0 / (1.0 + Zcurr);
+    const double a_on_a0 = a / run_params.a0;
+    const double a_on_ar = a / run_params.ar;
 
-    if(a <= a0) {
+    if(a <= run_params.a0) {
         f_of_a = 3.0 * a / ((2.0 + alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
-    } else if((a > a0) && (a < ar)) {
+    } else if((a > run_params.a0) && (a < run_params.ar)) {
         f_of_a =
-            (3.0 / a) * a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
-            a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5));
+            (3.0 / a) * run_params.a0 * run_params.a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
+            a * a / 10.0 - (run_params.a0 * run_params.a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5));
     } else {
         f_of_a =
-            (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
-                         (ar * ar / 10.0) * (5.0 - 4.0 * pow(a_on_ar, -0.5)) - (a0 * a0 / 10.0) * (5.0 -
+            (3.0 / a) * (run_params.a0 * run_params.a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
+                         (run_params.ar * run_params.ar / 10.0) * (5.0 - 4.0 * pow(a_on_ar, -0.5)) - (run_params.a0 * run_params.a0 / 10.0) * (5.0 -
                                                                                                    4.0 / sqrt(a_on_a0)
                                                                                                    ) +
-                         a * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 / sqrt(a_on_ar)));
+                         a * run_params.ar / 3.0 - (run_params.ar * run_params.ar / 3.0) * (3.0 - 2.0 / sqrt(a_on_ar)));
     }
     
     // this is in units of 10^10Msun/h, note mu=0.59 and mu^-1.5 = 2.21 
-    Mjeans = 25.0 / sqrt(Omega) * 2.21;
-    Mfiltering = Mjeans * pow(f_of_a, 1.5);
+    const double Mjeans = 25.0 / sqrt(run_params.Omega) * 2.21;
+    const double Mfiltering = Mjeans * pow(f_of_a, 1.5);
 
     // calculate the characteristic mass coresponding to a halo temperature of 10^4K 
-    Vchar = sqrt(Tvir / 36.0);
-    omegaZ = Omega * (pow(1.0 + Zcurr, 3.0) / (Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda));
-    xZ = omegaZ - 1.0;
-    deltacritZ = 18.0 * M_PI * M_PI + 82.0 * xZ - 39.0 * xZ * xZ;
-    HubbleZ = Hubble * sqrt(Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda);
+    const double Vchar = sqrt(Tvir / 36.0);
+    const double omegaZ = run_params.Omega * (pow(1.0 + Zcurr, 3.0) / (run_params.Omega * pow(1.0 + Zcurr, 3.0) + run_params.OmegaLambda));
+    const double xZ = omegaZ - 1.0;
+    const double deltacritZ = 18.0 * M_PI * M_PI + 82.0 * xZ - 39.0 * xZ * xZ;
+    const double HubbleZ = run_params.Hubble * sqrt(run_params.Omega * pow(1.0 + Zcurr, 3.0) + run_params.OmegaLambda);
 
-    Mchar = Vchar * Vchar * Vchar / (G * HubbleZ * sqrt(0.5 * deltacritZ));
+    const double Mchar = Vchar * Vchar * Vchar / (run_params.G * HubbleZ * sqrt(0.5 * deltacritZ));
 
     // we use the maximum of Mfiltering and Mchar 
-    mass_to_use = dmax(Mfiltering, Mchar);
-    modifier = 1.0 / pow(1.0 + 0.26 * (mass_to_use / galaxies[gal].Mvir), 3.0);
+    const double mass_to_use = dmax(Mfiltering, Mchar);
+    const double modifier = 1.0 / pow(1.0 + 0.26 * (mass_to_use / galaxies[gal].Mvir), 3.0);
 
     return modifier;
 

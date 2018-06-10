@@ -13,7 +13,7 @@ void reincorporate_gas(const int centralgal, const double dt, struct GALAXY *gal
 {
     // SN velocity is 630km/s, and the condition for reincorporation is that the 
     // halo has an escape velocity greater than this, i.e. V_SN/sqrt(2) = 445.48km/s
-    const double Vcrit = 445.48 * ReIncorporationFactor;  
+    const double Vcrit = 445.48 * run_params.ReIncorporationFactor;  
 	
     if(galaxies[centralgal].Vvir > Vcrit) {
         double reincorporated = 

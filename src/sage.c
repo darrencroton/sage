@@ -7,8 +7,8 @@
 
 void sage(const int filenr)
 {
-    char buffer[MAX_STRING_LEN + 1];
-    snprintf(buffer, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    char buffer[4*MAX_STRING_LEN + 1];
+    snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
     FILE *fd = fopen(buffer, "r");
     if (fd == NULL) {
         printf("-- missing tree %s ... skipping\n", buffer);
@@ -17,7 +17,7 @@ void sage(const int filenr)
         fclose(fd);
     }
     
-    snprintf(buffer, MAX_STRING_LEN, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+    snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies, run_params.ZZ[run_params.ListOutputSnaps[0]], filenr);
     struct stat filestatus;
 
     if(stat(buffer, &filestatus) == 0) {
@@ -35,7 +35,7 @@ void sage(const int filenr)
     int *TreeFirstHalo = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS];
     int *TreeNgals[ABSOLUTEMAXSNAPS];
-    load_tree_table(filenr, TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
+    load_tree_table(filenr, run_params.TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
         
     int interrupted=0;
     init_my_progressbar(stderr, Ntrees, &interrupted);
@@ -57,7 +57,7 @@ void sage(const int filenr)
             my_progressbar(stderr, treenr, &interrupted);
         
         const int nhalos = TreeNHalos[treenr];
-        int maxgals = load_tree(treenr, nhalos, TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+        int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
         gsl_rng_set(random_generator, filenr * 100000 + treenr);
         int numgals = 0;
         int galaxycounter = 0;
@@ -72,7 +72,7 @@ void sage(const int filenr)
     }
     
     finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals);
-    free_tree_table(TreeType, (int **) TreeNgals, TreeNHalos, TreeFirstHalo);
+    free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos, TreeFirstHalo);
         
     finish_myprogressbar(stderr, &interrupted);
     
@@ -81,4 +81,29 @@ void sage(const int filenr)
 #endif            
         fprintf(stdout, "\ndone file %d\n\n", filenr);
     interrupted=1;
+}
+
+
+void finalize_sage(void)
+{
+
+#if 0
+    if(HDF5Output) {
+        free_hdf5_ids();
+      
+#ifdef MPI
+        // Create a single master HDF5 file with links to the other files...
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (ThisTask == 0)
+#endif
+            write_master_file();
+    }
+#endif /* commented out the section for hdf5 output */    
+
+    //free Ages. But first
+    //reset Age to the actual allocated address
+    run_params.Age--;
+    myfree(run_params.Age);                              
+    
+    gsl_rng_free(random_generator); 
 }

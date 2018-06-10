@@ -130,7 +130,7 @@ double get_virial_mass(const int halonr, struct halo_data *halos)
   if(halonr == halos[halonr].FirstHaloInFOFgroup && halos[halonr].Mvir >= 0.0)
     return halos[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
   else
-    return halos[halonr].Len * PartMass;
+    return halos[halonr].Len * run_params.PartMass;
 }
 
 
@@ -142,7 +142,7 @@ double get_virial_velocity(const int halonr, struct halo_data *halos)
 	Rvir = get_virial_radius(halonr, halos);
 	
     if(Rvir > 0.0)
-		return sqrt(G * get_virial_mass(halonr, halos) / Rvir);
+		return sqrt(run_params.G * get_virial_mass(halonr, halos) / Rvir);
 	else
 		return 0.0;
 }
@@ -151,16 +151,14 @@ double get_virial_velocity(const int halonr, struct halo_data *halos)
 double get_virial_radius(const int halonr, struct halo_data *halos)
 {
   // return halos[halonr].Rvir;  // Used for Bolshoi
-
-  double zplus1, hubble_of_z_sq, rhocrit, fac;
+  const int snapnum = halos[halonr].SnapNum;
+  const double zplus1 = 1.0 + run_params.ZZ[snapnum];
+  const double hubble_of_z_sq =
+      run_params.Hubble * run_params.Hubble *(run_params.Omega * zplus1 * zplus1 * zplus1 + (1.0 - run_params.Omega - run_params.OmegaLambda) * zplus1 * zplus1 +
+                                              run_params.OmegaLambda);
   
-  zplus1 = 1.0 + ZZ[halos[halonr].SnapNum];
-  hubble_of_z_sq =
-    Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1.0 - Omega - OmegaLambda) * zplus1 * zplus1 +
-    OmegaLambda);
-  
-  rhocrit = 3.0 * hubble_of_z_sq / (8.0 * M_PI * G);
-  fac = 1.0 / (200.0 * 4.0 * M_PI / 3.0 * rhocrit);
+  const double rhocrit = 3.0 * hubble_of_z_sq / (8.0 * M_PI * run_params.G);
+  const double fac = 1.0 / (200.0 * 4.0 * M_PI / 3.0 * rhocrit);
   
   return cbrt(get_virial_mass(halonr, halos) * fac);
 }

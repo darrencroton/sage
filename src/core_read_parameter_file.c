@@ -26,11 +26,11 @@ void read_parameter_file(const char *fname)
         printf("\nreading parameter file:\n\n");
 
     strcpy(ParamTag[NParam], "FileNameGalaxies");
-    ParamAddr[NParam] = FileNameGalaxies;
+    ParamAddr[NParam] = run_params.FileNameGalaxies;
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "OutputDir");
-    ParamAddr[NParam] = OutputDir;
+    ParamAddr[NParam] = run_params.OutputDir;
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "TreeType");
@@ -38,147 +38,147 @@ void read_parameter_file(const char *fname)
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "TreeName");
-    ParamAddr[NParam] = TreeName;
+    ParamAddr[NParam] = run_params.TreeName;
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "SimulationDir");
-    ParamAddr[NParam] = SimulationDir;
+    ParamAddr[NParam] = run_params.SimulationDir;
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "FileWithSnapList");
-    ParamAddr[NParam] = FileWithSnapList;
+    ParamAddr[NParam] = run_params.FileWithSnapList;
     ParamID[NParam++] = STRING;
 
     strcpy(ParamTag[NParam], "LastSnapShotNr");
-    ParamAddr[NParam] = &LastSnapShotNr;
+    ParamAddr[NParam] = &(run_params.LastSnapShotNr);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "FirstFile");
-    ParamAddr[NParam] = &FirstFile;
+    ParamAddr[NParam] = &(run_params.FirstFile);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "LastFile");
-    ParamAddr[NParam] = &LastFile;
+    ParamAddr[NParam] = &(run_params.LastFile);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "ThreshMajorMerger");
-    ParamAddr[NParam] = &ThreshMajorMerger;
+    ParamAddr[NParam] = &(run_params.ThreshMajorMerger);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "RecycleFraction");
-    ParamAddr[NParam] = &RecycleFraction;
+    ParamAddr[NParam] = &(run_params.RecycleFraction);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "ReIncorporationFactor");
-    ParamAddr[NParam] = &ReIncorporationFactor;
+    ParamAddr[NParam] = &(run_params.ReIncorporationFactor);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "UnitVelocity_in_cm_per_s");
-    ParamAddr[NParam] = &UnitVelocity_in_cm_per_s;
+    ParamAddr[NParam] = &(run_params.UnitVelocity_in_cm_per_s);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "UnitLength_in_cm");
-    ParamAddr[NParam] = &UnitLength_in_cm;
+    ParamAddr[NParam] = &(run_params.UnitLength_in_cm);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "UnitMass_in_g");
-    ParamAddr[NParam] = &UnitMass_in_g;
+    ParamAddr[NParam] = &(run_params.UnitMass_in_g);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "Hubble_h");
-    ParamAddr[NParam] = &Hubble_h;
+    ParamAddr[NParam] = &(run_params.Hubble_h);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "ReionizationOn");
-    ParamAddr[NParam] = &ReionizationOn;
+    ParamAddr[NParam] = &(run_params.ReionizationOn);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "SupernovaRecipeOn");
-    ParamAddr[NParam] = &SupernovaRecipeOn;
+    ParamAddr[NParam] = &(run_params.SupernovaRecipeOn);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "DiskInstabilityOn");
-    ParamAddr[NParam] = &DiskInstabilityOn;
+    ParamAddr[NParam] = &(run_params.DiskInstabilityOn);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "SFprescription");
-    ParamAddr[NParam] = &SFprescription;
+    ParamAddr[NParam] = &(run_params.SFprescription);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "AGNrecipeOn");
-    ParamAddr[NParam] = &AGNrecipeOn;
+    ParamAddr[NParam] = &(run_params.AGNrecipeOn);
     ParamID[NParam++] = INT;
 
     strcpy(ParamTag[NParam], "BaryonFrac");
-    ParamAddr[NParam] = &BaryonFrac;
+    ParamAddr[NParam] = &(run_params.BaryonFrac);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "Omega");
-    ParamAddr[NParam] = &Omega;
+    ParamAddr[NParam] = &(run_params.Omega);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "OmegaLambda");
-    ParamAddr[NParam] = &OmegaLambda;
+    ParamAddr[NParam] = &(run_params.OmegaLambda);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "PartMass");
-    ParamAddr[NParam] = &PartMass;
+    ParamAddr[NParam] = &(run_params.PartMass);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "EnergySN");
-    ParamAddr[NParam] = &EnergySN;
+    ParamAddr[NParam] = &(run_params.EnergySN);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "EtaSN");
-    ParamAddr[NParam] = &EtaSN;
+    ParamAddr[NParam] = &(run_params.EtaSN);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "Yield");
-    ParamAddr[NParam] = &Yield;
+    ParamAddr[NParam] = &(run_params.Yield);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "FracZleaveDisk");
-    ParamAddr[NParam] = &FracZleaveDisk;
+    ParamAddr[NParam] = &(run_params.FracZleaveDisk);
     ParamID[NParam++] = DOUBLE;
-
+    
     strcpy(ParamTag[NParam], "SfrEfficiency");
-    ParamAddr[NParam] = &SfrEfficiency;
+    ParamAddr[NParam] = &(run_params.SfrEfficiency);
     ParamID[NParam++] = DOUBLE;
-
+    
     strcpy(ParamTag[NParam], "FeedbackReheatingEpsilon");
-    ParamAddr[NParam] = &FeedbackReheatingEpsilon;
+    ParamAddr[NParam] = &(run_params.FeedbackReheatingEpsilon);
     ParamID[NParam++] = DOUBLE;
-
+    
     strcpy(ParamTag[NParam], "FeedbackEjectionEfficiency");
-    ParamAddr[NParam] = &FeedbackEjectionEfficiency;
+    ParamAddr[NParam] = &(run_params.FeedbackEjectionEfficiency);
     ParamID[NParam++] = DOUBLE;
-
+    
     strcpy(ParamTag[NParam], "BlackHoleGrowthRate");
-    ParamAddr[NParam] = &BlackHoleGrowthRate;
+    ParamAddr[NParam] = &(run_params.BlackHoleGrowthRate);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "RadioModeEfficiency");
-    ParamAddr[NParam] = &RadioModeEfficiency;
+    ParamAddr[NParam] = &(run_params.RadioModeEfficiency);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "QuasarModeEfficiency");
-    ParamAddr[NParam] = &QuasarModeEfficiency;
+    ParamAddr[NParam] = &(run_params.QuasarModeEfficiency);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "Reionization_z0");
-    ParamAddr[NParam] = &Reionization_z0;
+    ParamAddr[NParam] = &(run_params.Reionization_z0);
     ParamID[NParam++] = DOUBLE;
-
+    
     strcpy(ParamTag[NParam], "Reionization_zr");
-    ParamAddr[NParam] = &Reionization_zr;
+    ParamAddr[NParam] = &(run_params.Reionization_zr);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "ThresholdSatDisruption");
-    ParamAddr[NParam] = &ThresholdSatDisruption;
+    ParamAddr[NParam] = &(run_params.ThresholdSatDisruption);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "NumOutputs");
-    ParamAddr[NParam] = &NOUT;
+    ParamAddr[NParam] = &(run_params.NOUT);
     ParamID[NParam++] = INT;
 
     used_tag = mymalloc(sizeof(int) * NParam);
@@ -239,10 +239,10 @@ void read_parameter_file(const char *fname)
         }
         fclose(fd);
       
-        int i = strlen(OutputDir);
+        int i = strlen(run_params.OutputDir);
         if(i > 0) {
-            if(OutputDir[i - 1] != '/')
-                strcat(OutputDir, "/");
+            if(run_params.OutputDir[i - 1] != '/')
+                strcat(run_params.OutputDir, "/");
         }
     }
   
@@ -258,26 +258,26 @@ void read_parameter_file(const char *fname)
     }
     printf("\n");
   
-    if( ! (LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
-        fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", LastSnapShotNr, ABSOLUTEMAXSNAPS);
+    if( ! (run_params.LastSnapShotNr+1 > 0 && run_params.LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
+        fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", run_params.LastSnapShotNr, ABSOLUTEMAXSNAPS);
         ABORT(1);
     }
-    MAXSNAPS = LastSnapShotNr + 1;
-  
-    if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS))) {
+    run_params.MAXSNAPS = run_params.LastSnapShotNr + 1;
+    
+    if(!(run_params.NOUT == -1 || (run_params.NOUT > 0 && run_params.NOUT <= ABSOLUTEMAXSNAPS))) {
         fprintf(stderr,"NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
         ABORT(1);
     }
   
     // read in the output snapshot list
-    if(NOUT == -1) {
-        NOUT = MAXSNAPS;
-        for (int i=NOUT-1; i>=0; i--) {
-            ListOutputSnaps[i] = i;
+    if(run_params.NOUT == -1) {
+        run_params.NOUT = run_params.MAXSNAPS;
+        for (int i=run_params.NOUT-1; i>=0; i--) {
+            run_params.ListOutputSnaps[i] = i;
         }
-        printf("all %d snapshots selected for output\n", NOUT);
+        printf("all %d snapshots selected for output\n", run_params.NOUT);
     } else {
-        printf("%d snapshots selected for output: ", NOUT);
+        printf("%d snapshots selected for output: ", run_params.NOUT);
         // reopen the parameter file
         fd = fopen(fname, "r");
         
@@ -289,9 +289,9 @@ void read_parameter_file(const char *fname)
             if(fscanf(fd, "%s", buf) == 0) continue;
             if(strcmp(buf, "->") == 0) {
                 // read the snapshots into ListOutputSnaps
-                for(int i=0; i<NOUT; i++) {
-                    if(fscanf(fd, "%d", &ListOutputSnaps[i]) == 1) { 
-                        printf("%d ", ListOutputSnaps[i]);
+                for(int i=0; i<run_params.NOUT; i++) {
+                    if(fscanf(fd, "%d", &(run_params.ListOutputSnaps[i])) == 1) { 
+                        printf("%d ", run_params.ListOutputSnaps[i]);
                     }
                 }
                 done = 1;
@@ -306,10 +306,15 @@ void read_parameter_file(const char *fname)
         }
         printf("\n");
     }
-  
+
+    /* because in the default case of 'lhalo-binary', nothing
+       gets written to "treeextension", we need to 
+       null terminate tree-extension first
+     */
+    run_params.TreeExtension[0] = '\0';
     // Check file type is valid. 
     if (strncmp(my_treetype, "lhalo_binary", 511) != 0) { // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files. 
-        snprintf(TreeExtension, 511, ".hdf5");
+        snprintf(run_params.TreeExtension, 511, ".hdf5");
 #ifndef HDF5
         fprintf(stderr, "You have specified to use a HDF5 file but have no compiled with the HDF5 option enabled.\n");
         fprintf(stderr, "Please check your file type and compiler options.\n");
@@ -319,9 +324,9 @@ void read_parameter_file(const char *fname)
 
     // Recast the local treetype string to a global TreeType enum.
     if (strcasecmp(my_treetype, "genesis_lhalo_hdf5") == 0) {
-        TreeType = genesis_lhalo_hdf5;
+        run_params.TreeType = genesis_lhalo_hdf5;
     } else if (strcasecmp(my_treetype, "lhalo_binary") == 0) {
-        TreeType = lhalo_binary;
+        run_params.TreeType = lhalo_binary;
     } else {
         fprintf(stderr, "TreeType %s is not supported\n", my_treetype);
         ABORT(0);

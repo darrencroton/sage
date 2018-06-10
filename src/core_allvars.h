@@ -200,77 +200,10 @@ struct halo_aux_data
   int FirstGalaxy;
 };
 
-extern int    FirstFile;    /* first and last file for processing */
-extern int    LastFile;
-
-
-extern char   OutputDir[MAX_STRING_LEN];
-extern char   FileNameGalaxies[MAX_STRING_LEN];
-extern char   TreeName[MAX_STRING_LEN];
-extern char   TreeExtension[MAX_STRING_LEN]; // If the trees are in HDF5, they will have a .hdf5 extension. Otherwise they have no extension.
-extern char   SimulationDir[MAX_STRING_LEN];
-extern char   FileWithSnapList[MAX_STRING_LEN];
-
-
 #ifdef MPI
-extern int ThisTask, NTask, nodeNameLen;
-extern char *ThisNode;
+extern int ThisTask, NTasks;
 #endif
 
-extern double Omega;
-extern double OmegaLambda;
-extern double PartMass;
-extern double Hubble_h;
-extern double EnergySNcode, EnergySN;
-extern double EtaSNcode, EtaSN;
-
-/* recipe flags */
-extern int    ReionizationOn;
-extern int    SupernovaRecipeOn;
-extern int    DiskInstabilityOn;
-extern int    AGNrecipeOn;
-extern int    SFprescription;
-
-extern double RecycleFraction;
-extern double Yield;
-extern double FracZleaveDisk;
-extern double ReIncorporationFactor;
-extern double ThreshMajorMerger;
-extern double BaryonFrac;
-extern double SfrEfficiency;
-extern double FeedbackReheatingEpsilon;
-extern double FeedbackEjectionEfficiency;
-extern double RadioModeEfficiency;
-extern double QuasarModeEfficiency;
-extern double BlackHoleGrowthRate;
-extern double Reionization_z0;
-extern double Reionization_zr;
-extern double ThresholdSatDisruption;
-
-extern double UnitLength_in_cm,
-  UnitTime_in_s,
-  UnitVelocity_in_cm_per_s,
-  UnitMass_in_g,
-  RhoCrit,
-  UnitPressure_in_cgs,
-  UnitDensity_in_cgs,
-  UnitCoolingRate_in_cgs,
-  UnitEnergy_in_cgs,
-  UnitTime_in_Megayears, 
-  G,
-  Hubble,
-  a0, ar;
-
-extern int    ListOutputSnaps[ABSOLUTEMAXSNAPS];
-
-extern double ZZ[ABSOLUTEMAXSNAPS];
-extern double AA[ABSOLUTEMAXSNAPS];
-extern double *Age;
-
-extern int    MAXSNAPS;
-extern int    NOUT;
-extern int    Snaplistlen;
-extern int    LastSnapShotNr;
 
 extern gsl_rng *random_generator;
 
@@ -295,7 +228,78 @@ enum Valid_TreeTypes
   lhalo_binary = 1,
   num_tree_types
 };
-enum Valid_TreeTypes TreeType;
+
+struct params
+{
+    int    FirstFile;    /* first and last file for processing */
+    int    LastFile;
+
+    char   OutputDir[MAX_STRING_LEN];
+    char   FileNameGalaxies[MAX_STRING_LEN];
+    char   TreeName[MAX_STRING_LEN];
+    char   TreeExtension[MAX_STRING_LEN]; // If the trees are in HDF5, they will have a .hdf5 extension. Otherwise they have no extension.
+    char   SimulationDir[MAX_STRING_LEN];
+    char   FileWithSnapList[MAX_STRING_LEN];
+
+    double Omega;
+    double OmegaLambda;
+    double PartMass;
+    double Hubble_h;
+    double EnergySNcode;
+    double EnergySN;
+    double EtaSNcode;
+    double EtaSN;
+
+    /* recipe flags */
+    int    ReionizationOn;
+    int    SupernovaRecipeOn;
+    int    DiskInstabilityOn;
+    int    AGNrecipeOn;
+    int    SFprescription;
+    
+    double RecycleFraction;
+    double Yield;
+    double FracZleaveDisk;
+    double ReIncorporationFactor;
+    double ThreshMajorMerger;
+    double BaryonFrac;
+    double SfrEfficiency;
+    double FeedbackReheatingEpsilon;
+    double FeedbackEjectionEfficiency;
+    double RadioModeEfficiency;
+    double QuasarModeEfficiency;
+    double BlackHoleGrowthRate;
+    double Reionization_z0;
+    double Reionization_zr;
+    double ThresholdSatDisruption;
+
+    double UnitLength_in_cm;
+    double UnitVelocity_in_cm_per_s;
+    double UnitMass_in_g;
+    double UnitTime_in_s;
+    double RhoCrit;
+    double UnitPressure_in_cgs;
+    double UnitDensity_in_cgs;
+    double UnitCoolingRate_in_cgs;
+    double UnitEnergy_in_cgs;
+    double UnitTime_in_Megayears;
+    double G;
+    double Hubble;
+    double a0;
+    double ar;
+
+    int LastSnapShotNr;
+    int MAXSNAPS;
+    int NOUT;
+    int Snaplistlen;
+    enum Valid_TreeTypes TreeType;
+
+    int ListOutputSnaps[ABSOLUTEMAXSNAPS];
+    double ZZ[ABSOLUTEMAXSNAPS];
+    double AA[ABSOLUTEMAXSNAPS];
+    double *Age;
+};
+extern struct params run_params;
 
 
 #endif  /* #ifndef ALLVARS_H */

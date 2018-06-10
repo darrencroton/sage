@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 void init_sage(const char *param_file);
-void sage(const int filenr);
+void sage(const int ThisTask, const int NTasks);
 void finalize_sage(void);
 
 #ifdef __cplusplus

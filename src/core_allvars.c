@@ -1,11 +1,6 @@
 #include "core_allvars.h"
 
-
 /*  Parameters */
-#ifdef MPI
-int ThisTask, NTasks;
-#endif
-
 struct params run_params;
 gsl_rng *random_generator;
 

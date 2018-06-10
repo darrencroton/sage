@@ -9,6 +9,46 @@
 
 #pragma once
 
+
+#ifdef HDF5
+#include <hdf5.h>
+#define MODELNAME        "SAGE"
+#endif
+
+#define NDIM 3
+
+#define ABORT(sigterm)                                              \
+    do {                                                                \
+        printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
+        printf("exit code = %d\n", sigterm);                            \
+    } while(0)
+
+#define  STEPS 10         /* Number of integration intervals between two snapshots */
+#define  MAXGALFAC 1
+#define  ALLOCPARAMETER 10.0
+#define  MAX_NODE_NAME_LEN 50
+#define  ABSOLUTEMAXSNAPS 1000  /* The largest number of snapshots for any simulation */
+#define  MAXTAGS          300  /* Max number of parameters */
+
+
+#define  GRAVITY     6.672e-8
+#define  SOLAR_MASS  1.989e33
+#define  SOLAR_LUM   3.826e33
+#define  RAD_CONST   7.565e-15
+#define  AVOGADRO    6.0222e23
+#define  BOLTZMANN   1.3806e-16
+#define  GAS_CONST   8.31425e7
+#define  C           2.9979e10
+#define  PLANCK      6.6262e-27
+#define  CM_PER_MPC  3.085678e24
+#define  PROTONMASS  1.6726e-24
+#define  HUBBLE      3.2407789e-18   /* in h/sec */
+
+#define  SEC_PER_MEGAYEAR   3.155e13
+#define  SEC_PER_YEAR       3.155e7
+
+#define  MAX_STRING_LEN     1024 /* Max length of a string containing a name */
+
 #define ADD_DIFF_TIME(t0, t1) ((t1.tv_sec - t0.tv_sec) + 1e-6 * (t1.tv_usec - t0.tv_usec))
 #define REALTIME_ELAPSED_NS(t0, t1)                                                                \
   ((t1.tv_sec - t0.tv_sec) * 1000000000.0 + (t1.tv_nsec - t0.tv_nsec))

@@ -1,40 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #ifdef MPI
 #include <mpi.h>
 #endif
 
-#include "core_allvars.h"
-#include "core_proto.h"
+#include "macros.h"
 #include "sage.h"
-
-
-void myexit(int signum)
-{
-#ifdef MPI
-    printf("Task: %d out of %d tasks \tis exiting\n\n\n", ThisTask, NTasks);
-#else
-    printf("We're exiting\n\n\n");
-#endif
-    exit(signum);
-}
-
-
-
-void bye()
-{
-#ifdef MPI
-    MPI_Finalize();
-#endif
-
-}
-
 
 
 int main(int argc, char **argv)
 {
+    int ThisTask = 0;
+    int NTasks = 1;
+
 #ifdef MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
@@ -46,22 +25,18 @@ int main(int argc, char **argv)
         ABORT(0);
     }
 
-    atexit(bye);
-
     /* initialize sage (read parameter file, setup units, read cooling tables etc) */
     init_sage(argv[1]);
 
-#ifdef MPI
-    for(int filenr = run_params.FirstFile+ThisTask; filenr <= run_params.LastFile; filenr += NTasks) {
-#else
-    for(int filenr = run_params.FirstFile; filenr <= run_params.LastFile; filenr++) {
-#endif
-        /* run the sage model on all trees within the file*/
-        sage(filenr);
-    }
+    /* run sage over all files */
+    sage(ThisTask, NTasks);
     
     /* run the final steps and any cleanup */
     finalize_sage();
+
+#ifdef MPI
+    MPI_Finalize();
+#endif
     
     return EXIT_SUCCESS;
 }

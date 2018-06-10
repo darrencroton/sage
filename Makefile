@@ -132,14 +132,14 @@ endif # End of DO_CHECKS if condition -> i.e., we do need to care about paths an
 
 all:  $(EXEC) $(SAGELIB)
 
-$(EXEC): $(OBJS) 
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
+$(EXEC): $(OBJS)
+	$(CC) $(CCFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 %.o: %.c $(INCL) Makefile
 	$(CC) $(OPTS) $(OPTIMIZE) $(CCFLAGS) -c $< -o $@
 
 $(SAGELIB): $(LIBOBJS)
-	ar rcs $@ $(LIBOBJS)
+	ar rcs $@ $(LIBOBJS) 
 
 .phony: clean celan celna clena
 

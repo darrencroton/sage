@@ -2,8 +2,13 @@
 #include <sys/stat.h>
 
 #include "sage.h"
+#include "core_allvars.h"
 #include "core_proto.h"
 #include "progressbar.h"
+
+
+/* main sage -> not exposed externally */
+static void sage_per_file(const int filenr);
 
 void init_sage(const char *param_file)
 {
@@ -11,8 +16,50 @@ void init_sage(const char *param_file)
     init();
 }
 
+void sage(const int ThisTask, const int NTasks)
+{
 
-void sage(const int filenr)
+#ifdef MPI
+    for(int filenr = run_params.FirstFile+ThisTask; filenr <= run_params.LastFile; filenr += NTasks) {
+#else
+    (void) ThisTask, (void) NTasks;    
+    for(int filenr = run_params.FirstFile; filenr <= run_params.LastFile; filenr++) {
+#endif
+        /* run the sage model on all trees within the file*/
+        sage_per_file(filenr);
+    }
+
+}
+
+
+void finalize_sage(void)
+{
+
+#if 0
+    if(HDF5Output) {
+        free_hdf5_ids();
+      
+#ifdef MPI
+        // Create a single master HDF5 file with links to the other files...
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (ThisTask == 0)
+#endif
+            write_master_file();
+    }
+#endif /* commented out the section for hdf5 output */    
+
+    //free Ages. But first
+    //reset Age to the actual allocated address
+    run_params.Age--;
+    myfree(run_params.Age);                              
+    
+    gsl_rng_free(random_generator); 
+}
+
+
+
+/* Main sage -> not exposed externally */ 
+void sage_per_file(const int filenr)
 {
     char buffer[4*MAX_STRING_LEN + 1];
     snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
@@ -91,26 +138,4 @@ void sage(const int filenr)
 }
 
 
-void finalize_sage(void)
-{
-
-#if 0
-    if(HDF5Output) {
-        free_hdf5_ids();
-      
-#ifdef MPI
-        // Create a single master HDF5 file with links to the other files...
-        MPI_Barrier(MPI_COMM_WORLD);
-        if (ThisTask == 0)
-#endif
-            write_master_file();
-    }
-#endif /* commented out the section for hdf5 output */    
-
-    //free Ages. But first
-    //reset Age to the actual allocated address
-    run_params.Age--;
-    myfree(run_params.Age);                              
-    
-    gsl_rng_free(random_generator); 
-}
+ 

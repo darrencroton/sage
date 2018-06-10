@@ -3,7 +3,12 @@
 
 #include "sage.h"
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_init.h"
+#include "core_read_parameter_file.h"
+#include "core_io_tree.h"
+#include "core_mymalloc.h"
+#include "core_build_model.h"
+#include "core_save.h"
 #include "progressbar.h"
 
 

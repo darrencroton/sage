@@ -6,8 +6,10 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_cool_func.h"
 
+#include "model_cooling_heating.h"
+#include "model_misc.h"
 
 
 double cooling_recipe(const int gal, const double dt, struct GALAXY *galaxies)

@@ -7,7 +7,6 @@
 #include <hdf5_hl.h>
 
 #include "io_save_hdf5.h"
-#include "../core_proto.h"
 
 #define TRUE  1
 #define FALSE 0

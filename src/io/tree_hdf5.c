@@ -9,7 +9,6 @@
 #include <assert.h>
 
 #include "../core_allvars.h"
-#include "../core_proto.h"
 #include "tree_hdf5.h"
 
 // Local Variables //

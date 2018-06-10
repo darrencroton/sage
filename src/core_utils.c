@@ -122,3 +122,20 @@ char *get_time_string(struct timeval t0, struct timeval t1)
 }
 
 
+size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream)
+{
+    return fread(ptr, size, nmemb, stream);
+}
+
+size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream)
+{
+    return fwrite(ptr, size, nmemb, stream);
+}
+
+int myfseek(FILE * stream, const long offset, const int whence)
+{
+    return fseek(stream, offset, whence);
+}
+    
+
+

@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_mymalloc.h"
 
 #define MAXBLOCKS 2048
 

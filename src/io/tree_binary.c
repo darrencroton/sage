@@ -9,7 +9,8 @@
 #include <assert.h>
 
 #include "../core_allvars.h"
-#include "../core_proto.h"
+#include "../core_mymalloc.h"
+#include "../core_utils.h"
 #include "tree_binary.h"
 
 // Local Variables //

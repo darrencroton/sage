@@ -6,8 +6,11 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
+#include "model_mergers.h"
+#include "model_misc.h"
+#include "model_starformation_and_feedback.h"
+#include "model_disk_instability.h"
 
 double estimate_merging_time(const int sat_halo, const int mother_halo, const int ngal, struct halo_data *halos, struct GALAXY *galaxies)
 {

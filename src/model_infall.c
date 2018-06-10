@@ -5,8 +5,9 @@
 #include <time.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
+#include "model_infall.h"
+#include "model_misc.h"
 
 
 double infall_recipe(const int centralgal, const int ngal, const double Zcurr, struct GALAXY *galaxies)

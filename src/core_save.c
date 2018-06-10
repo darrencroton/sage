@@ -7,7 +7,9 @@
 #include <limits.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_save.h"
+#include "core_utils.h"
+#include "model_misc.h"
 
 #define TREE_MUL_FAC        (1000000000LL)
 #define FILENR_MUL_FAC      (1000000000000000LL)

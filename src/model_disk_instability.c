@@ -5,9 +5,10 @@
 #include <time.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
-
+#include "model_disk_instability.h"
+#include "model_misc.h"
+#include "model_mergers.h"
 
 void check_disk_instability(const int p, const int centralgal, const int halonr, const double time, const double dt, const int step, struct GALAXY *galaxies)
 {

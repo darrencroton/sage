@@ -5,8 +5,7 @@
 #include <time.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
-
+#include "core_cool_func.h"
 
 #define TABSIZE 91
 #define LAST_TAB_INDEX (TABSIZE - 1)

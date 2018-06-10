@@ -20,17 +20,13 @@
 extern "C" {
 #endif
 
-#if 0    
-/* To prevent text editors from being confused about the open brace*/
-}
-#endif
+    extern int my_snprintf(char *buffer, int len, const char *format, ...)
+        __attribute__((format(printf, 3, 4)));
+    extern char *get_time_string(struct timeval t0, struct timeval t1);
+    extern size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream);
+    extern size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream);
+    extern int myfseek(FILE * stream, const long offset, const int whence);
     
-extern int my_snprintf(char *buffer, int len, const char *format, ...)
-    __attribute__((format(printf, 3, 4)));
-extern char *get_time_string(struct timeval t0, struct timeval t1);
-
-
-
 #ifdef __cplusplus
 }
 #endif

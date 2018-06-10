@@ -9,6 +9,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+#include "model_misc.h"
 
 void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_data *halos,
                  struct GALAXY *galaxies)

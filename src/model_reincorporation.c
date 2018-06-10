@@ -5,9 +5,9 @@
 #include <time.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
-
+#include "model_reincorporation.h"
+#include "model_misc.h"
 
 void reincorporate_gas(const int centralgal, const double dt, struct GALAXY *galaxies)
 {

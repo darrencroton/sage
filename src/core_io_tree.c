@@ -9,7 +9,8 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_mymalloc.h"
+#include "core_io_tree.h"
 
 #include "io/tree_binary.h"
 #ifdef HDF5
@@ -143,17 +144,3 @@ void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, str
     myfree(halos);
 }
 
-size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream)
-{
-    return fread(ptr, size, nmemb, stream);
-}
-
-size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream)
-{
-    return fwrite(ptr, size, nmemb, stream);
-}
-
-int myfseek(FILE * stream, const long offset, const int whence)
-{
-    return fseek(stream, offset, whence);
-}

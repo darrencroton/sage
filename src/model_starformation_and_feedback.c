@@ -6,9 +6,10 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
-
+#include "model_starformation_and_feedback.h"
+#include "model_misc.h"
+#include "model_disk_instability.h"
 
 void starformation_and_feedback(const int p, const int centralgal, const double time, const double dt, const int halonr, const int step, struct GALAXY *galaxies)
 {

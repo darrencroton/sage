@@ -11,7 +11,10 @@
 #include <gsl/gsl_integration.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
+#include "core_init.h"
+#include "core_mymalloc.h"
+#include "core_cool_func.h"
+
 
 /* These functions do not need to be exposed externally */
 double integrand_time_to_present(const double a, void *param);
@@ -19,8 +22,9 @@ void set_units(void);
 void read_snap_list(void);
 double time_to_present(const double z);
 
-
+#ifdef HDF5
 #include "io/io_save_hdf5.h"
+#endif
 
 void init(void)
 {

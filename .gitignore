@@ -2,3 +2,4 @@ sage
 src/auxdata/trees/*
 *.o
 *.*~
+libsage.a

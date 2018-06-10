@@ -11,6 +11,7 @@ extern "C" {
 }
 #endif
 
+void init_sage(const char *param_file);
 void sage(const int filenr);
 void finalize_sage(void);
 

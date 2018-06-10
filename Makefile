@@ -4,20 +4,28 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIBS :=
 OPTS := -DROOT_DIR='"${ROOT_DIR}"'
-CCFLAGS := -DGNU_SOURCE -std=gnu99
+CCFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC
 SRC_PREFIX := src
 
-SRC := main.c sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
-       core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
-       core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
-       model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
-       io/tree_binary.c 
+LIBNAME := sage
+LIBSRC := sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
+          core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
+          core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
+          model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
+          io/tree_binary.c
+
+SRC := main.c $(LIBSRC)
 SRC  := $(addprefix $(SRC_PREFIX)/, $(SRC))
 OBJS := $(SRC:.c=.o)
+
+LIBSRC  := $(addprefix $(SRC_PREFIX)/, $(LIBSRC))
+LIBOBJS := $(LIBSRC:.c=.o)
+SAGELIB := lib$(LIBNAME).a
+
 INCL := core_allvars.h sage.h core_proto.h core_simulation.h core_utils.h progressbar.h io/tree_binary.h 
 INCL := $(addprefix $(SRC_PREFIX)/, $(INCL))
 
-EXEC := sage 
+EXEC := $(LIBNAME)
 
 UNAME := $(shell uname)
 ifdef USE-MPI
@@ -122,7 +130,7 @@ ifeq ($(DO_CHECKS), 1)
   LIBS   +=   -lm
 endif # End of DO_CHECKS if condition -> i.e., we do need to care about paths and such
 
-default: all
+all:  $(EXEC) $(SAGELIB)
 
 $(EXEC): $(OBJS) 
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
@@ -130,18 +138,19 @@ $(EXEC): $(OBJS)
 %.o: %.c $(INCL) Makefile
 	$(CC) $(OPTS) $(OPTIMIZE) $(CCFLAGS) -c $< -o $@
 
+$(SAGELIB): $(LIBOBJS)
+	ar rcs $@ $(LIBOBJS)
+
 .phony: clean celan celna clena
 
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) $(SAGELIB)
 
 celan celna clena: clean
 
 tests: $(EXEC)
 	./src/tests/test_sage.sh
 
-tidy:
-	rm -f $(OBJS) ./$(EXEC)
 
-all:  $(EXEC) 
+
 

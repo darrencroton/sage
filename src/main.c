@@ -48,15 +48,15 @@ int main(int argc, char **argv)
 
     atexit(bye);
 
-    read_parameter_file(argv[1]);
-    init();
+    /* initialize sage (read parameter file, setup units, read cooling tables etc) */
+    init_sage(argv[1]);
 
 #ifdef MPI
     for(int filenr = run_params.FirstFile+ThisTask; filenr <= run_params.LastFile; filenr += NTasks) {
 #else
     for(int filenr = run_params.FirstFile; filenr <= run_params.LastFile; filenr++) {
 #endif
-        /* run the sage model */
+        /* run the sage model on all trees within the file*/
         sage(filenr);
     }
     

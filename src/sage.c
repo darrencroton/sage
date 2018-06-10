@@ -5,6 +5,13 @@
 #include "core_proto.h"
 #include "progressbar.h"
 
+void init_sage(const char *param_file)
+{
+    read_parameter_file(param_file);
+    init();
+}
+
+
 void sage(const int filenr)
 {
     char buffer[4*MAX_STRING_LEN + 1];

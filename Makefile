@@ -97,9 +97,14 @@ ifeq ($(DO_CHECKS), 1)
         HDF5_DIR := $(CONDA_BASE)
       else
         ## Check if h5tools are installed and use the base directory
+        ## Assumes that the return value from 'which' will be
+        ## something like /path/to/bin/h5ls; the 'sed' command
+        ## replaces the '/bin/h5ls' with '' (i.e., removes '/bin/h5ls')
+        ## and returns '/path/to' (without the trailing '/')
         HDF5_DIR := `which h5ls 2>/dev/null | sed 's/\/bin\/h5ls//'`
         ifndef HDF5_DIR
           $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
+          $(warning Could not locate hdf5 tools either)
           $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
           ## Define your HDF5 install directory here
           ## or outside before the USE-HDF5 if condition

@@ -13,11 +13,7 @@ LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
            core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/tree_binary.c
-LIBINCL := sage.h core_read_parameter_file.h core_init.h core_io_tree.h \
-           core_cool_func.h core_build_model.h core_save.h core_mymalloc.h core_utils.h progressbar.h \
-           core_allvars.h model_infall.h model_cooling_heating.h model_starformation_and_feedback.h \
-           model_disk_instability.h model_reincorporation.h model_mergers.h model_misc.h \
-           io/tree_binary.h
+LIBINCL := $(LIBSRC:.c=.h)
 
 SRC := main.c $(LIBSRC)
 SRC  := $(addprefix $(SRC_PREFIX)/, $(SRC))

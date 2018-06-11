@@ -14,17 +14,46 @@
 #define TREE_MUL_FAC        (1000000000LL)
 #define FILENR_MUL_FAC      (1000000000000000LL)
 
-// keep a static file handle to remove the need to do constant seeking.
-FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
-
-void save_galaxies(const int filenr, const int tree, const int ntrees, const int numgals, struct halo_data *halos,
-                   struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies)
+void initialize_galaxy_files(const int filenr, const int ntrees, FILE **save_fd)
 {
     char buffer[4*MAX_STRING_LEN + 1];
+    /* Open all the output files */
+    for(int n = 0; n < run_params.NOUT; n++) {
+        snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies,
+                 run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
+        
+        save_fd[n] = fopen(buffer, "r+");
+        if (save_fd[n] == NULL) {
+            fprintf(stderr, "Error: Can't open file `%s'\n", buffer);
+            ABORT(0);
+        }
+        
+        // write out placeholders for the header data.
+        size_t size = (ntrees + 2)*sizeof(int); /* Extra two inegers are for saving the total number of trees and total number of galaxies in this file */
+        int* tmp_buf = (int*)malloc( size );
+        if (tmp_buf == NULL) {
+            fprintf(stderr, "Error: Could not allocate memory for header information for file %d\n", n);
+            ABORT(10);
+        }
+        
+        memset( tmp_buf, 0, size );
+        int nwritten = fwrite( tmp_buf, sizeof(int), ntrees + 2, save_fd[n] );
+        if (nwritten != ntrees + 2) {
+            fprintf(stderr, "Error: Failed to write out %d elements for header information for file %d. "
+                    "Only wrote %d elements.\n", ntrees + 2, n, nwritten);
+        }
+        free( tmp_buf );
+    }
+
+}
+
+
+void save_galaxies(const int filenr, const int tree, const int numgals, struct halo_data *halos,
+                   struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies, FILE **save_fd)
+{
     struct GALAXY_OUTPUT galaxy_output;
     memset(&galaxy_output, 0, sizeof(struct GALAXY_OUTPUT));
     int OutputGalCount[run_params.MAXSNAPS];
-    int nwritten;
     
     int *OutputGalOrder = (int*)malloc( numgals*sizeof(*OutputGalOrder) );
     if(OutputGalOrder == NULL) {
@@ -59,39 +88,12 @@ void save_galaxies(const int filenr, const int tree, const int ntrees, const int
   
     // now prepare and write galaxies
     for(int n = 0; n < run_params.NOUT; n++) {
-        // only open the file if it is not already open.
-        if( !save_fd[n] ) {
-            snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies,
-                     run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
-       
-            save_fd[n] = fopen(buffer, "r+");
-            if (save_fd[n] == NULL) {
-                fprintf(stderr, "Error: Can't open file `%s'\n", buffer);
-                ABORT(0);
-            }
-        
-            // write out placeholders for the header data.
-            size_t size = (ntrees + 2)*sizeof(int); /* Extra two inegers are for saving the total number of trees and total number of galaxies in this file */
-            int* tmp_buf = (int*)malloc( size );
-            if (tmp_buf == NULL) {
-                fprintf(stderr, "Error: Could not allocate memory for header information for file %d\n", n);
-                ABORT(10);
-            }
-
-            memset( tmp_buf, 0, size );
-            nwritten = fwrite( tmp_buf, sizeof(int), ntrees + 2, save_fd[n] );
-            if (nwritten != ntrees + 2) {
-                fprintf(stderr, "Error: Failed to write out %d elements for header information for file %d. "
-                        "Only wrote %d elements.\n", ntrees + 2, n, nwritten);
-            }
-            free( tmp_buf );
-        }
-      
+        assert(save_fd[n] && "output file ptr must be non-NULL");
         for(int i = 0; i < numgals; i++) {
             if(halogal[i].SnapNum == run_params.ListOutputSnaps[n]) {
                 prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output, halos, haloaux, halogal);
    
-                nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
+                int nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
                 if (nwritten != 1) {
                     fprintf(stderr, "Error: Failed to write out the galaxy struct for galaxy %d within file %d. "
                             " Meant to write 1 element but only wrote %d elements.\n", i, n, nwritten); 
@@ -235,7 +237,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 }
 
 
-void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals)    
+void finalize_galaxy_file(const int ntrees, const int *totgalaxies, const int **treengals, FILE **save_fd)    
 {
     for(int n = 0; n < run_params.NOUT; n++) {
         // file must already be open.

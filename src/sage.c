@@ -95,8 +95,13 @@ void sage_per_file(const int ThisTask, const int filenr)
     int *TreeFirstHalo = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS];
     int *TreeNgals[ABSOLUTEMAXSNAPS];
+    FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
+    
     load_tree_table(ThisTask, filenr, run_params.TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
-        
+
+    /* open all the output files corresponding to this tree file (specified by filenr) */
+    initialize_galaxy_files(filenr, Ntrees, save_fd);
+    
     int interrupted=0;
     if(ThisTask == 0) {
         init_my_progressbar(stderr, Ntrees, &interrupted);
@@ -128,22 +133,17 @@ void sage_per_file(const int ThisTask, const int filenr)
             }
         }
 
-        save_galaxies(filenr, treenr, Ntrees, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies);
+        save_galaxies(filenr, treenr, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies, save_fd);
         free_galaxies_and_tree(Gal, HaloGal, HaloAux, Halo);
     }
     
-    finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals);
+    finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals, save_fd);
     free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos, TreeFirstHalo);
 
     if(ThisTask == 0) {
         finish_myprogressbar(stderr, &interrupted);
-    }
-    
-#ifdef MPI
-    if(ThisTask == 0)
-#endif            
         fprintf(stdout, "\ndone file %d\n\n", filenr);
-    interrupted=1;
+    }
 }
 
 

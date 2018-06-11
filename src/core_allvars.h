@@ -162,7 +162,6 @@ struct halo_aux_data
   int FirstGalaxy;
 };
 
-extern gsl_rng *random_generator;
 
 #ifdef HDF5
 extern char          *core_output_file;

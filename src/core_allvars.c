@@ -2,7 +2,6 @@
 
 /*  Parameters */
 struct params run_params;
-gsl_rng *random_generator;
 
 #ifdef HDF5
 char          *core_output_file;

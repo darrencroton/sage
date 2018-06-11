@@ -30,9 +30,6 @@ void init(const int ThisTask)
 {
     run_params.Age = mymalloc(ABSOLUTEMAXSNAPS*sizeof(*(run_params.Age)));
   
-    random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-    gsl_rng_set(random_generator, 42);	 // start-up seed 
-
     set_units();
 
     read_snap_list(ThisTask);

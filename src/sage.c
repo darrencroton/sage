@@ -18,7 +18,6 @@ static void sage_per_file(const int ThisTask, const int filenr);
 void init_sage(const int ThisTask, const char *param_file)
 {
     read_parameter_file(ThisTask, param_file);
-    
     init(ThisTask);
 }
 
@@ -59,7 +58,6 @@ void finalize_sage(void)
     run_params.Age--;
     myfree(run_params.Age);                              
     
-    gsl_rng_free(random_generator); 
 }
 
 
@@ -124,7 +122,6 @@ void sage_per_file(const int ThisTask, const int filenr)
         
         const int nhalos = TreeNHalos[treenr];
         int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
-        gsl_rng_set(random_generator, filenr * 100000 + treenr);
         int numgals = 0;
         int galaxycounter = 0;
         for(int halonr = 0; halonr < nhalos; halonr++) {

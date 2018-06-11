@@ -17,18 +17,20 @@
 #include "io/tree_hdf5.h"
 #endif
 
-void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees, int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
+void load_tree_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
+                     int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
 {
 
     switch (my_TreeType)
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_table_hdf5(filenr, ntrees, treenhalos, treefirsthalo);
+            load_tree_table_hdf5(ThisTask, filenr, ntrees, treenhalos, treefirsthalo);
             break;
 #endif
 
         case lhalo_binary:
+            (void) ThisTask;
             load_tree_table_binary(filenr, ntrees, treenhalos, treefirsthalo);
             break;
 

@@ -19,14 +19,14 @@
 /* These functions do not need to be exposed externally */
 double integrand_time_to_present(const double a, void *param);
 void set_units(void);
-void read_snap_list(void);
+void read_snap_list(const int ThisTask);
 double time_to_present(const double z);
 
 #ifdef HDF5
 #include "io/io_save_hdf5.h"
 #endif
 
-void init(void)
+void init(const int ThisTask)
 {
     run_params.Age = mymalloc(ABSOLUTEMAXSNAPS*sizeof(*(run_params.Age)));
   
@@ -35,7 +35,7 @@ void init(void)
 
     set_units();
 
-    read_snap_list();
+    read_snap_list(ThisTask);
 
     //Hack to fix deltaT for snapshot 0
     //This way, galsnapnum = -1 will not segfault.
@@ -51,7 +51,10 @@ void init(void)
     run_params.ar = 1.0 / (1.0 + run_params.Reionization_zr);
 
     read_cooling_functions();
-
+    if(ThisTask == 0) {
+        printf("cooling functions read\n\n");
+    }
+    
 #if 0    
 #ifdef HDF5
     if(HDF5Output) {
@@ -87,7 +90,7 @@ void set_units(void)
 
 
 
-void read_snap_list(void)
+void read_snap_list(const int ThisTask)
 {
     char fname[MAX_STRING_LEN+1];
 
@@ -108,10 +111,9 @@ void read_snap_list(void)
     } while(run_params.Snaplistlen < run_params.MAXSNAPS);
     fclose(fd);
 
-#ifdef MPI
-    if(ThisTask == 0)
-#endif
+    if(ThisTask == 0) {
         printf("found %d defined times in snaplist\n", run_params.Snaplistlen);
+    }
 }
 
 

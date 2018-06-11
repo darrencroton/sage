@@ -9,6 +9,7 @@
 #include <assert.h>
 
 #include "../core_allvars.h"
+#include "../core_mymalloc.h"
 #include "tree_hdf5.h"
 
 // Local Variables //
@@ -31,15 +32,15 @@ int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer);
 
 // External Functions //
 
-void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
+void load_tree_table_hdf5(const int ThisTask, int filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
 {
-    char buf[MAX_STRING_LEN];
+    char buf[4*MAX_STRING_LEN + 1];
     int32_t totNHalos;
     int32_t status;
 
     struct METADATA_NAMES metadata_names;
 
-    snprintf(buf, MAX_STRING_LEN - 1, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
+    snprintf(buf, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
     hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
 
     if (hdf5_file < 0) {
@@ -66,10 +67,9 @@ void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treef
         fprintf(stderr, "Error code is %d\n", status);
         ABORT(0);
     }
-#ifdef MPI
-    if(ThisTask == 0)
-#endif
+    if(ThisTask == 0) {
         printf("There are %d trees and %d total halos\n", local_ntrees, totNHalos);
+    }
 
   
     *treenhalos = mymalloc(sizeof(int) * local_ntrees); 
@@ -85,12 +85,11 @@ void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treef
     *treefirsthalo = mymalloc(sizeof(int) * local_ntrees);
     int *local_treefirsthalo = *treefirsthalo;
 
-#ifdef MPI
-    if(ThisTask == 0)
-#endif        
+    if(ThisTask == 0) {
         for (int i = 0; i < 20; ++i) {
             printf("Tree %d: NHalos %d\n", i, local_treenhalos[i]);
         }
+    }
 
     if(local_ntrees) {
         local_treefirsthalo[0] = 0;

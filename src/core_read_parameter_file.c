@@ -7,7 +7,7 @@
 #include "core_allvars.h"
 #include "core_mymalloc.h"
 
-void read_parameter_file(const char *fname)
+void read_parameter_file(const int ThisTask, const char *fname)
 {
     int errorFlag = 0;
     int *used_tag = 0;
@@ -20,10 +20,9 @@ void read_parameter_file(const char *fname)
 
     NParam = 0;
 
-#ifdef MPI
-    if(ThisTask == 0)
-#endif
+    if(ThisTask == 0) {
         printf("\nreading parameter file:\n\n");
+    }
 
     strcpy(ParamTag[NParam], "FileNameGalaxies");
     ParamAddr[NParam] = run_params.FileNameGalaxies;
@@ -215,10 +214,9 @@ void read_parameter_file(const char *fname)
             }
           
             if(j >= 0) {
-#ifdef MPI
-                if(ThisTask == 0)
-#endif
+                if(ThisTask == 0) {
                     printf("%35s\t%10s\n", buf1, buf2);
+                }
                   
                 switch (ParamID[j])
                     {

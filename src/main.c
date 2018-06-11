@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     }
 
     /* initialize sage (read parameter file, setup units, read cooling tables etc) */
-    init_sage(argv[1]);
+    init_sage(ThisTask, argv[1]);
 
     /* run sage over all files */
     sage(ThisTask, NTasks);

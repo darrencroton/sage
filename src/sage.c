@@ -13,12 +13,13 @@
 
 
 /* main sage -> not exposed externally */
-static void sage_per_file(const int filenr);
+static void sage_per_file(const int ThisTask, const int filenr);
 
-void init_sage(const char *param_file)
+void init_sage(const int ThisTask, const char *param_file)
 {
-    read_parameter_file(param_file);
-    init();
+    read_parameter_file(ThisTask, param_file);
+    
+    init(ThisTask);
 }
 
 void sage(const int ThisTask, const int NTasks)
@@ -27,11 +28,11 @@ void sage(const int ThisTask, const int NTasks)
 #ifdef MPI
     for(int filenr = run_params.FirstFile+ThisTask; filenr <= run_params.LastFile; filenr += NTasks) {
 #else
-    (void) ThisTask, (void) NTasks;    
+    (void) NTasks;
     for(int filenr = run_params.FirstFile; filenr <= run_params.LastFile; filenr++) {
 #endif
         /* run the sage model on all trees within the file*/
-        sage_per_file(filenr);
+        sage_per_file(ThisTask, filenr);
     }
 
 }
@@ -64,7 +65,7 @@ void finalize_sage(void)
 
 
 /* Main sage -> not exposed externally */ 
-void sage_per_file(const int filenr)
+void sage_per_file(const int ThisTask, const int filenr)
 {
     char buffer[4*MAX_STRING_LEN + 1];
     snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
@@ -94,10 +95,12 @@ void sage_per_file(const int filenr)
     int *TreeFirstHalo = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS];
     int *TreeNgals[ABSOLUTEMAXSNAPS];
-    load_tree_table(filenr, run_params.TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
+    load_tree_table(ThisTask, filenr, run_params.TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
         
     int interrupted=0;
-    init_my_progressbar(stderr, Ntrees, &interrupted);
+    if(ThisTask == 0) {
+        init_my_progressbar(stderr, Ntrees, &interrupted);
+    }
     
     for(int treenr = 0; treenr < Ntrees; treenr++) {
 
@@ -110,10 +113,9 @@ void sage_per_file(const int filenr)
         /*  auxiliary halo data  */
         struct halo_aux_data  *HaloAux = NULL;
             
-#ifdef MPI
-        if(ThisTask == 0)
-#endif            
+        if(ThisTask == 0) {
             my_progressbar(stderr, treenr, &interrupted);
+        }
         
         const int nhalos = TreeNHalos[treenr];
         int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
@@ -132,8 +134,10 @@ void sage_per_file(const int filenr)
     
     finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals);
     free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos, TreeFirstHalo);
-        
-    finish_myprogressbar(stderr, &interrupted);
+
+    if(ThisTask == 0) {
+        finish_myprogressbar(stderr, &interrupted);
+    }
     
 #ifdef MPI
     if(ThisTask == 0)

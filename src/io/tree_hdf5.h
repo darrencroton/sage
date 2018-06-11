@@ -5,7 +5,7 @@
 #include <hdf5.h>
 
 // Proto-Types //
-void load_tree_table_hdf5(int filenr, int *ntrees, int **treenhalos, int **treefirsthalo);
+void load_tree_table_hdf5(const int ThisTask, int filenr, int *ntrees, int **treenhalos, int **treefirsthalo);
 void load_tree_hdf5(int32_t treenr, const int32_t nhalos, struct halo_data **halos);
 void close_hdf5_file(void);
 

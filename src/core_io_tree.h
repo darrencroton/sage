@@ -7,7 +7,7 @@ extern "C" {
     #include "core_allvars.h"
     
     /* core_io_tree.c */
-    extern void load_tree_table(const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
+    extern void load_tree_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
                                 int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies);
     extern int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
                          struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal);

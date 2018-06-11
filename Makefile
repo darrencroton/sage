@@ -8,22 +8,27 @@ CCFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC
 SRC_PREFIX := src
 
 LIBNAME := sage
-LIBSRC := sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
-          core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
-          core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
-          model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
-          io/tree_binary.c
+LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
+           core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
+           core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
+           model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
+           io/tree_binary.c
+LIBINCL := sage.h core_read_parameter_file.h core_init.h core_io_tree.h \
+           core_cool_func.h core_build_model.h core_save.h core_mymalloc.h core_utils.h progressbar.h \
+           core_allvars.h model_infall.h model_cooling_heating.h model_starformation_and_feedback.h \
+           model_disk_instability.h model_reincorporation.h model_mergers.h model_misc.h \
+           io/tree_binary.h
 
 SRC := main.c $(LIBSRC)
 SRC  := $(addprefix $(SRC_PREFIX)/, $(SRC))
 OBJS := $(SRC:.c=.o)
+INCL := core_allvars.h macros.h core_simulation.h $(LIBINCL)
+INCL := $(addprefix $(SRC_PREFIX)/, $(INCL))
 
 LIBSRC  := $(addprefix $(SRC_PREFIX)/, $(LIBSRC))
+LIBINCL := $(addprefix $(SRC_PREFIX)/, $(LIBINCL))
 LIBOBJS := $(LIBSRC:.c=.o)
 SAGELIB := lib$(LIBNAME).a
-
-INCL := core_allvars.h sage.h core_proto.h core_simulation.h core_utils.h progressbar.h io/tree_binary.h 
-INCL := $(addprefix $(SRC_PREFIX)/, $(INCL))
 
 EXEC := $(LIBNAME)
 
@@ -82,6 +87,10 @@ ifeq ($(DO_CHECKS), 1)
         $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
       endif
     endif
+
+    LIBSRCS += $(SRC_PREFIX)/io/tree_hdf5.c
+    LIBOBJS += $(SRC_PREFIX)/io/tree_hdf5.o
+    LIBINCL += $(SRC_PREFIX)/io/tree_hdf5.h
 
     SRCS += $(SRC_PREFIX)/io/tree_hdf5.c
     OBJS += $(SRC_PREFIX)/io/tree_hdf5.o
@@ -142,11 +151,9 @@ $(SAGELIB): $(LIBOBJS)
 	ar rcs $@ $(LIBOBJS) 
 
 .phony: clean celan celna clena
-
+celan celna clena: clean
 clean:
 	rm -f $(OBJS) $(EXEC) $(SAGELIB)
-
-celan celna clena: clean
 
 tests: $(EXEC)
 	./src/tests/test_sage.sh

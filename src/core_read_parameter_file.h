@@ -5,7 +5,7 @@ extern "C" {
 #endif
     
     /* functions in core_read_parameter_file.c */
-    extern void read_parameter_file(const char *fname);
+    extern void read_parameter_file(const int ThisTask, const char *fname);
 
 #ifdef __cplusplus
 }

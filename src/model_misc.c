@@ -7,7 +7,6 @@
 #include <assert.h>
 
 #include "core_allvars.h"
-#include "core_proto.h"
 
 #include "model_misc.h"
 

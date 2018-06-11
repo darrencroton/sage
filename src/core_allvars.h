@@ -2,7 +2,6 @@
 #define ALLVARS_H
 
 #include <stdio.h>
-#include <gsl/gsl_rng.h>
 
 #include "macros.h"
 #include "core_simulation.h"
@@ -162,7 +161,7 @@ struct halo_aux_data
   int FirstGalaxy;
 };
 
-
+#if 0
 #ifdef HDF5
 extern char          *core_output_file;
 extern size_t         HDF5_dst_size;
@@ -172,7 +171,7 @@ extern const char   **HDF5_field_names;
 extern hid_t         *HDF5_field_types;
 extern int            HDF5_n_props;
 #endif
-
+#endif
 
 #define DOUBLE 1
 #define STRING 2

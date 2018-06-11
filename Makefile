@@ -38,13 +38,12 @@ ifdef USE-MPI
     CC := mpicc  # sets the C-compiler
 else
     # use clang by default on OSX and gcc on linux
-    ifeq ($(UNAME), Darwin)    
+    ifeq ($(UNAME), Darwin)
       CC := clang
     else
       CC := gcc
     endif
 endif
-
 
 # No need to do the path + library checks if
 # only attempting to clean the build
@@ -69,6 +68,29 @@ ifeq ($(DO_CHECKS), 1)
   ifeq ($(ON_CI), true)
     CCFLAGS += -Werror
   endif
+
+  ## Check if CC is clang under the hood
+  CC_VERSION := $(shell $(CC) --version 2>/dev/null)
+  ifndef CC_VERSION
+    $(info Error: Could find compiler = ${CC})
+    $(info Please either set "CC" in "Makefile" or via the command-line "make CC=yourcompiler")
+    $(info And please check that the specified compiler is in your "$$PATH" variables)
+    $(error )
+  endif
+  ifeq (clang,$(findstring clang,$(CC_VERSION)))
+    CC_IS_CLANG := 1
+  else
+    CC_IS_CLANG := 0
+  endif
+  ifeq ($(UNAME), Darwin)    
+    ifeq ($(CC_IS_CLANG), 0)
+      ## gcc on OSX has trouble with
+      ## AVX+ instructions. This flag uses
+      ## the clang assembler
+      CCFLAGS += -Wa,-q
+    endif
+  endif
+  ## end of checking is CC 
 
   ifdef USE-HDF5
     ifndef HDF5_DIR

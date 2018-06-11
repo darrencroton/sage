@@ -100,13 +100,17 @@ ifeq ($(DO_CHECKS), 1)
         CONDA_BASE := $(shell gsl-config --prefix 2>/dev/null)
         HDF5_DIR := $(CONDA_BASE)
       else
-        $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
-        $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
-        ## Define your HDF5 install directory here
-        ## or outside before the USE-HDF5 if condition
-        ## to avoid the warning message in the following line
-        HDF5_DIR:= ${HOME}/anaconda3
-        $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
+        ## Check if h5tools are installed and use the base directory
+        HDF5_DIR := `which h5ls 2>/dev/null | sed 's/\/bin\/h5ls//'`
+        ifndef HDF5_DIR
+          $(warning $$HDF5_DIR environment variable is not defined but HDF5 is requested)
+          $(warning Please install HDF5 (or perhaps load the HDF5 module 'module load hdf5-serial') or disable the 'USE-HDF5' option in the 'Makefile')
+          ## Define your HDF5 install directory here
+          ## or outside before the USE-HDF5 if condition
+          ## to avoid the warning message in the following line
+          HDF5_DIR:= ${HOME}/anaconda3
+          $(warning Proceeding with a default directory of `[${HDF5_DIR}]` - compilation might fail)
+        endif
       endif
     endif
 
@@ -132,7 +136,7 @@ ifeq ($(DO_CHECKS), 1)
   GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
   ifndef GSL_FOUND
     $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
-    $(warning Assuming GSL *might* be in $(GSL_DIR) and trying to compile)
+    $(warning Assuming GSL *might* be in '$(GSL_DIR)' and trying to compile)
     # if the automatic detection fails, set GSL_DIR appropriately
     GSL_DIR := /opt/local
     GSL_INCL := -I$(GSL_DIR)/include  

@@ -252,12 +252,16 @@ def compare_catalogs(g1, g2):
                   file=sys.stderr)
             print("#######################################", file=sys.stderr)
             print("# index          field1          field2", file=sys.stderr)
+            numbad = 0
             for _ii, (_f1, _f2) in enumerate(zip(f1, f2)):
                 if np.allclose(_f1, _f2): continue
 
                 # if control reaches here -> not equal values
                 print("{0} {1} {2}".format(_ii, _f1, _f2), file=sys.stderr)
+                numbad += 1
 
+            print("------ Found {0} mis-matched values out of a total of {1} "
+                  "------".format(numbad, len(f1)), file=sys.stderr)
             print("#######################################\n", file=sys.stderr)
             # printed out the offending values
             # now raise the error

@@ -294,7 +294,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    ignored_fields = ["SAGEHaloIndex", "GalaxyIndex", "CentralGalaxyIndex"]
+    ignored_fields = ["SAGEHaloIndex", "GalaxyIndex",
+                      "CentralGalaxyIndex", "mergeIntoID"]
     
     g1 = sageResults(args.file1, ignored_fields)
     g2 = sageResults(args.file2, ignored_fields)

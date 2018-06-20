@@ -124,6 +124,11 @@ void sage_per_file(const int ThisTask, const int filenr)
         int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
         int numgals = 0;
         int galaxycounter = 0;
+
+        /* First run construct_galaxies outside for loop -> takes care of the main tree */
+        construct_galaxies(0, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
+
+        /* But there are sub-trees within one tree file that are not reachable via the recursive routine -> do those as well */
         for(int halonr = 0; halonr < nhalos; halonr++) {
             if(HaloAux[halonr].DoneFlag == 0) {
                 construct_galaxies(halonr, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);

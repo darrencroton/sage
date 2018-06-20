@@ -15,7 +15,7 @@ class sageResults(object):
     """ The following methods of this class generate the figures and plot them.
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename, ignored_fields=[]):
         """
         Set up instance variables
         """
@@ -80,6 +80,7 @@ class sageResults(object):
         self.totngals = None
         self.ngal_per_tree = None
         self.bytes_offset_per_tree = None
+        self.ignored_fields = ignored_fields
         try:
             _mode = os.O_RDONLY | os.O_BINARY
         except AttributeError:
@@ -214,7 +215,8 @@ def compare_catalogs(g1, g2):
         from tqdm import trange
     except ImportError:
         trange = xrange
-        
+
+    ignored_fields = [a for a in g1.ignored_fields if a in g2.ignored_fields]
     for treenum in trange(g1.totntrees):
         if g1.ngal_per_tree[treenum] == 0:
             continue
@@ -228,6 +230,11 @@ def compare_catalogs(g1, g2):
                   .format(t1, t2)
             raise ValueError(msg)
 
+        xx = np.argsort(t1['SimulationHaloIndex'])
+        t1 = t1[xx]
+
+        xx = np.argsort(t2['SimulationHaloIndex'])
+        t2 = t2[xx]
         
         if t1.shape != t2.shape:
             msg = "Error: Bug in read routine or corrupted/truncated file\n"\
@@ -241,8 +248,12 @@ def compare_catalogs(g1, g2):
         
         dtype = g1.dtype
         for fld in g1.dtype.names:
+            if fld in ignored_fields:
+                continue
+
             f1 = t1[fld]
             f2 = t2[fld]
+
             msg = "Field = `{0}` not the same between the two catalogs\n"\
                 .format(fld)
             if np.allclose(f1, f2): continue
@@ -283,8 +294,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    g1 = sageResults(args.file1)
-    g2 = sageResults(args.file2)
+    ignored_fields = ["SAGEHaloIndex", "GalaxyIndex", "CentralGalaxyIndex"]
+    
+    g1 = sageResults(args.file1, ignored_fields)
+    g2 = sageResults(args.file2, ignored_fields)
 
     g1.read_header()
     g2.read_header()

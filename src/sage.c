@@ -122,6 +122,13 @@ void sage_per_file(const int ThisTask, const int filenr)
         
         const int nhalos = TreeNHalos[treenr];
         int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+#if 0        
+        for(int halonr = 0; halonr < nhalos; halonr++) {
+            fprintf(stderr,"halonr = %d snap = %03d mvir = %14.6e firstfofhalo = %8d nexthalo = %8d\n",
+                    halonr, Halo[halonr].SnapNum, Halo[halonr].Mvir, Halo[halonr].FirstHaloInFOFgroup, Halo[halonr].NextHaloInFOFgroup);
+        }
+#endif
+        
         int numgals = 0;
         int galaxycounter = 0;
 

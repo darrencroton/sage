@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <gsl/gsl_rng.h>
 #include <assert.h>
 
 #include "core_allvars.h"

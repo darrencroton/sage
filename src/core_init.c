@@ -6,9 +6,10 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_math.h>
+
+#ifdef GSL_FOUND
 #include <gsl/gsl_integration.h>
+#endif
 
 #include "core_allvars.h"
 #include "core_init.h"
@@ -51,7 +52,7 @@ void init(const int ThisTask)
     if(ThisTask == 0) {
         printf("cooling functions read\n\n");
     }
-    
+
 #if 0    
 #ifdef HDF5
     if(HDF5Output) {
@@ -117,24 +118,43 @@ void read_snap_list(const int ThisTask)
 
 double time_to_present(const double z)
 {
+    const double end_limit = 1.0;
+    const double start_limit = 1.0/(1 + z);
+    double result=0.0;
+#ifdef GSL_FOUND
 #define WORKSIZE 1000
     gsl_function F;
     gsl_integration_workspace *workspace;
-    double time, result, abserr;
+    double abserr;
 
     workspace = gsl_integration_workspace_alloc(WORKSIZE);
     F.function = &integrand_time_to_present;
 
-    gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / run_params.Hubble,
-                        1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
+    gsl_integration_qag(&F, start_limit, end_limit, 1.0 / run_params.Hubble,
+                        1.0e-9, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
 
-    time = 1.0 / run_params.Hubble * result;
-    
     gsl_integration_workspace_free(workspace);
+
+#undef WORKSIZE    
+#else
+    /* Do not have GSL - let's integrate numerically ourselves */
+    const double step  = 1e-7;
+    const int64_t nsteps = (end_limit - start_limit)/step;
+    result = 0.0;
+    const double y0 = integrand_time_to_present(start_limit + 0*step, NULL);
+    const double yn = integrand_time_to_present(start_limit + nsteps*step, NULL);
+    for(int64_t i=1; i<nsteps; i++) {
+        result  += integrand_time_to_present(start_limit + i*step, NULL);
+    }
+
+    result = (step*0.5)*(y0 + yn + 2.0*result);
+#endif
+
+    /* convert into Myrs/h (I think -> MS 23/6/2018) */
+    const double time = 1.0 / run_params.Hubble * result;
 
     // return time to present as a function of redshift 
     return time;
-#undef WORKSIZE    
 }
 
 

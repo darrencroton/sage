@@ -37,25 +37,36 @@ fi
 # now cd into the output directory for this sage-run
 cd "$parent_path"/$datadir
 files=`ls model_z*`
-npassed=0
-nbitwise=0
-nfiles=0
-nfailed=0
-for f in $files; do
-    ((nfiles++))
-    diff -q   $f  output/$f
-    if [[ $? == 0 ]]; then
-        ((npassed++))
-        ((nbitwise++))
-    else
-        python "$parent_path"/sagediff.py $f output/$f         
-        if [[ $? == 0 ]]; then 
+if [[ $? == 0 ]]; then
+    npassed=0
+    nbitwise=0
+    nfiles=0
+    nfailed=0
+    for f in $files; do
+        ((nfiles++))
+        diff -q   $f  output/$f
+        if [[ $? == 0 ]]; then
             ((npassed++))
+            ((nbitwise++))
         else
-            ((nfailed++))
+            python "$parent_path"/sagediff.py $f output/$f         
+            if [[ $? == 0 ]]; then 
+                ((npassed++))
+            else
+                ((nfailed++))
+            fi
         fi
-    fi
-done
+    done
+else
+    # even the simple ls model_z* failed
+    # which means the code didnt produce the output files
+    # everything failed
+    npassed=0
+    # use the knowledge that there should have been 64
+    # files for mini-millennium test case
+    nfiles=64
+    nfailed=$nfiles
+fi
 echo "Passed: $npassed. Bitwise identical: $nbitwise"
 echo "Failed: $nfailed"
 # restore the original working dir

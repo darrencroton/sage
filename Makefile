@@ -135,21 +135,14 @@ ifeq ($(DO_CHECKS), 1)
 
   # GSL automatic detection
   GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
-  ifndef GSL_FOUND
-    $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
-    $(warning Assuming GSL *might* be in '$(GSL_DIR)' and trying to compile)
-    # if the automatic detection fails, set GSL_DIR appropriately
-    GSL_DIR := /opt/local
-    GSL_INCL := -I$(GSL_DIR)/include  
-    GSL_LIBDIR := $(GSL_DIR)/lib
-    # since GSL is not in PATH, the runtime environment might not be setup correctly either
-    # therefore, adding the compiletime library path is even more important (the -Xlinker bit)
-    GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
-  else
+  ifdef GSL_FOUND
+    OPTS += -DGSL_FOUND
     # GSL is probably configured correctly, pick up the locations automatically
     GSL_INCL := $(shell gsl-config --cflags)
     GSL_LIBDIR := $(shell gsl-config --prefix)/lib
     GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
+  else
+    $(warning GSL not found in $$PATH environment variable. Tests will be disabled)
   endif
   CCFLAGS += $(GSL_INCL)
   LIBS += $(GSL_LIBS)
@@ -183,7 +176,11 @@ clean:
 	rm -f $(OBJS) $(EXEC) $(SAGELIB)
 
 tests: $(EXEC)
+ifdef GSL_FOUND
 	./src/tests/test_sage.sh
+else
+	$(error GSL is required to run the tests)
+endif
 
 
 

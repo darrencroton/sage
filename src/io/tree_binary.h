@@ -13,7 +13,7 @@ extern "C" {
 
 /* Proto-Types */
 void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo);
-void load_tree_binary(const int32_t nhalos, struct halo_data **halos);
+void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index);
 void close_binary_file(void);
 
 #ifdef __cplusplus

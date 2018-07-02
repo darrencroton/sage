@@ -159,6 +159,8 @@ struct halo_aux_data
   int HaloFlag;
   int NGalaxies;
   int FirstGalaxy;
+  int orig_index;
+  int padding;/*might as well explicitly include the padding */
 };
 
 #if 0

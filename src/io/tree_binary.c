@@ -18,7 +18,7 @@
 
 
 int fix_mergertree_index(struct halo_data *tree, const int64_t nhalos, const int32_t *index);
-int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, const int32_t test);
+int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, const int32_t test, int32_t **orig_index);
 
 // Local Variables //
 
@@ -60,7 +60,7 @@ void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos,
     *treefirsthalo = local_treefirsthalo;
 }
 
-void load_tree_binary(const int32_t nhalos, struct halo_data **halos)
+void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index)
 {
     // must have an FD
     assert(load_fd );
@@ -70,7 +70,7 @@ void load_tree_binary(const int32_t nhalos, struct halo_data **halos)
     myfread(local_halos, nhalos, sizeof(struct halo_data), load_fd);
 
     /* re-arrange the halos into a locally horizontal vertical tree */
-    int status = reorder_lhalo_to_lhvt(nhalos, local_halos, 0);/* the last parameter is for testing the reorder code */
+    int status = reorder_lhalo_to_lhvt(nhalos, local_halos, 0, orig_index);/* the 3rd parameter is for testing the reorder code */
     if(status != EXIT_SUCCESS) {
         ABORT(100024323);
     }
@@ -78,7 +78,7 @@ void load_tree_binary(const int32_t nhalos, struct halo_data **halos)
     *halos = local_halos;
 }
 
-int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t test)
+int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t test, int32_t **orig_index)
 {
     int32_t *prog_len=NULL, *desc_len=NULL;
     int32_t *len=NULL, *foflen=NULL;
@@ -267,7 +267,13 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
         free(prog_len); free(desc_len);
         free(len);free(foflen);
     }
-    free(index);
+
+    /* because the halos have been re-ordered, the current
+       halo-index does not correspond to that in the input tree.
+       For any matching purposes, we return the original index for
+       each halo
+    */
+    *orig_index = index;
 
     return EXIT_SUCCESS;
 }

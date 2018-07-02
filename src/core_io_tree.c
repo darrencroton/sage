@@ -20,7 +20,6 @@
 void load_tree_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
                      int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
 {
-
     switch (my_TreeType)
         {
 #ifdef HDF5
@@ -96,9 +95,10 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
 {
 
 #ifndef HDF5
-    (void) treenr; /* treenr is only used for the hdf5 files */
+    (void) treenr; /* treenr is currently only used for the hdf5 files */
 #endif    
 
+    int32_t *orig_index=NULL;
     
     switch (my_TreeType)
         {
@@ -110,7 +110,7 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
 #endif            
             
         case lhalo_binary:
-            load_tree_binary(nhalos, halos);
+            load_tree_binary(nhalos, halos, &orig_index);
             break;
             
         default:
@@ -132,9 +132,15 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
         tmp_halo_aux->DoneFlag = 0;
         tmp_halo_aux->HaloFlag = 0;
         tmp_halo_aux->NGalaxies = 0;
+        tmp_halo_aux->orig_index = orig_index[i];
         tmp_halo_aux++;
     }
-
+    /* orig_index was allocated within the corresponding
+       load_tree_* function. The values have now been copied into
+       `haloaux` -- so we can free the memory
+    */
+    free(orig_index);
+    
     return maxgals;
 }
 

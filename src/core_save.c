@@ -143,7 +143,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 #undef TREE_MUL_FAC
 #undef FILENR_MUL_FAC
 
-    o->SAGEHaloIndex = g->HaloNr;
+    o->SAGEHaloIndex = g->HaloNr;/* if the original input halonr is required, then use haloaux[halonr].orig_index: MS 29/6/2018 */
     o->SAGETreeIndex = tree;
     o->SimulationHaloIndex = llabs(halos[g->HaloNr].MostBoundID);
 #if 0

@@ -247,6 +247,11 @@ def compare_catalogs(g1, g2):
             raise ValueError(msg)
         
         dtype = g1.dtype
+        
+        # set the error tolerance
+        rtol = 1e-7
+        atol = 1e-10
+        
         for fld in g1.dtype.names:
             if fld in ignored_fields:
                 continue
@@ -256,16 +261,18 @@ def compare_catalogs(g1, g2):
 
             msg = "Field = `{0}` not the same between the two catalogs\n"\
                 .format(fld)
-            if np.allclose(f1, f2): continue
+            if np.allclose(f1, f2, rtol=rtol,  atol=atol): continue
 
-            # If control reaches here, then the fields are not equal
+
+            # If control reaches here, then the arrays are not equal
             print("Printing values that were different side-by side\n",
                   file=sys.stderr)
             print("#######################################", file=sys.stderr)
-            print("# index          field1          field2", file=sys.stderr)
+            print("# index          {0}1          {0}2".format(fld),
+                  file=sys.stderr)
             numbad = 0
             for _ii, (_f1, _f2) in enumerate(zip(f1, f2)):
-                if np.allclose(_f1, _f2): continue
+                if np.allclose(_f1, _f2, rtol=rtol,  atol=atol): continue
 
                 # if control reaches here -> not equal values
                 print("{0} {1} {2}".format(_ii, _f1, _f2), file=sys.stderr)

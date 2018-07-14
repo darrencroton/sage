@@ -26,7 +26,7 @@ static FILE *load_fd = NULL;
 // Local Proto-Types //
 
 // External Functions //
-void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
+void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos)
 {
     char buf[4*MAX_STRING_LEN + 1];
     
@@ -44,20 +44,11 @@ void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos,
     myfread(&local_totnhalos, 1, sizeof(int), load_fd);
 
     int *local_treenhalos = mymalloc(sizeof(int) * local_ntrees);
-    int *local_treefirsthalo = mymalloc(sizeof(int) * local_ntrees);
 
     myfread(local_treenhalos, local_ntrees, sizeof(int), load_fd);
 
-    if(local_ntrees) {
-        local_treefirsthalo[0] = 0;
-    }
-    for(int i = 1; i < local_ntrees; i++) {
-        local_treefirsthalo[i] = local_treefirsthalo[i - 1] + local_treenhalos[i - 1];
-    }
-
     *ntrees = local_ntrees;
     *treenhalos = local_treenhalos;
-    *treefirsthalo = local_treefirsthalo;
 }
 
 void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index)

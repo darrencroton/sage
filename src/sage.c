@@ -14,6 +14,7 @@
 
 /* main sage -> not exposed externally */
 static void sage_per_file(const int ThisTask, const int filenr);
+static void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted);
 
 void init_sage(const int ThisTask, const char *param_file)
 {
@@ -90,12 +91,11 @@ void sage_per_file(const int ThisTask, const int filenr)
 
     int Ntrees = 0;
     int *TreeNHalos = NULL;
-    int *TreeFirstHalo = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS];
     int *TreeNgals[ABSOLUTEMAXSNAPS];
     FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
     
-    load_tree_table(ThisTask, filenr, run_params.TreeType, &Ntrees, &TreeNHalos, &TreeFirstHalo, (int **) TreeNgals, (int *) TotGalaxies);
+    load_tree_table(ThisTask, filenr, run_params.TreeType, &Ntrees, &TreeNHalos, (int **) TreeNgals, (int *) TotGalaxies);
 
     /* open all the output files corresponding to this tree file (specified by filenr) */
     initialize_galaxy_files(filenr, Ntrees, save_fd);
@@ -105,49 +105,17 @@ void sage_per_file(const int ThisTask, const int filenr)
         init_my_progressbar(stderr, Ntrees, &interrupted);
     }
     
+    
     for(int treenr = 0; treenr < Ntrees; treenr++) {
-
-        /*  galaxy data  */
-        struct GALAXY  *Gal = NULL, *HaloGal = NULL;
-            
-        /* simulation merger-tree data */
-        struct halo_data *Halo = NULL;
-
-        /*  auxiliary halo data  */
-        struct halo_aux_data  *HaloAux = NULL;
-            
         if(ThisTask == 0) {
             my_progressbar(stderr, treenr, &interrupted);
         }
         
-        const int nhalos = TreeNHalos[treenr];
-        int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
-#if 0        
-        for(int halonr = 0; halonr < nhalos; halonr++) {
-            fprintf(stderr,"halonr = %d snap = %03d mvir = %14.6e firstfofhalo = %8d nexthalo = %8d\n",
-                    halonr, Halo[halonr].SnapNum, Halo[halonr].Mvir, Halo[halonr].FirstHaloInFOFgroup, Halo[halonr].NextHaloInFOFgroup);
-        }
-#endif
-        
-        int numgals = 0;
-        int galaxycounter = 0;
-
-        /* First run construct_galaxies outside for loop -> takes care of the main tree */
-        construct_galaxies(0, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
-
-        /* But there are sub-trees within one tree file that are not reachable via the recursive routine -> do those as well */
-        for(int halonr = 0; halonr < nhalos; halonr++) {
-            if(HaloAux[halonr].DoneFlag == 0) {
-                construct_galaxies(halonr, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
-            }
-        }
-
-        save_galaxies(filenr, treenr, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies, save_fd);
-        free_galaxies_and_tree(Gal, HaloGal, HaloAux, Halo);
+        sage_per_tree(filenr, treenr, TreeNHalos, TotGalaxies, TreeNgals, save_fd, &interrupted);
     }
     
     finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals, save_fd);
-    free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos, TreeFirstHalo);
+    free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos);
 
     if(ThisTask == 0) {
         finish_myprogressbar(stderr, &interrupted);
@@ -156,4 +124,41 @@ void sage_per_file(const int ThisTask, const int filenr)
 }
 
 
- 
+void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted)
+{
+    (void) interrupted;
+    
+    /*  galaxy data  */
+    struct GALAXY  *Gal = NULL, *HaloGal = NULL;
+    
+    /* simulation merger-tree data */
+    struct halo_data *Halo = NULL;
+    
+    /*  auxiliary halo data  */
+    struct halo_aux_data  *HaloAux = NULL;
+    
+    const int nhalos = TreeNHalos[treenr];
+    int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+#if 0        
+    for(int halonr = 0; halonr < nhalos; halonr++) {
+        fprintf(stderr,"halonr = %d snap = %03d mvir = %14.6e firstfofhalo = %8d nexthalo = %8d\n",
+                halonr, Halo[halonr].SnapNum, Halo[halonr].Mvir, Halo[halonr].FirstHaloInFOFgroup, Halo[halonr].NextHaloInFOFgroup);
+    }
+#endif
+    
+    int numgals = 0;
+    int galaxycounter = 0;
+    
+    /* First run construct_galaxies outside for loop -> takes care of the main tree */
+    construct_galaxies(0, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
+    
+    /* But there are sub-trees within one tree file that are not reachable via the recursive routine -> do those as well */
+    for(int halonr = 0; halonr < nhalos; halonr++) {
+        if(HaloAux[halonr].DoneFlag == 0) {
+            construct_galaxies(halonr, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
+        }
+    }
+    
+    save_galaxies(filenr, treenr, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies, save_fd);
+    free_galaxies_and_tree(Gal, HaloGal, HaloAux, Halo);
+}    

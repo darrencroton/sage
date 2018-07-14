@@ -5,16 +5,12 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-/* just to fool the editor that there is no opening brace*/
-} /* unreachable */
-#endif    
 #endif /* working with c++ compiler */
 
 /* Proto-Types */
-void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos, int **treefirsthalo);
-void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index);
-void close_binary_file(void);
+extern void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos);
+extern void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index);
+extern void close_binary_file(void);
 
 #ifdef __cplusplus
 }

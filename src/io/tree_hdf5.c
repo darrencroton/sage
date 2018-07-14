@@ -32,7 +32,7 @@ int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer);
 
 // External Functions //
 
-void load_tree_table_hdf5(const int ThisTask, int filenr, int *ntrees, int **treenhalos, int **treefirsthalo)
+void load_tree_table_hdf5(const int ThisTask, int filenr, int *ntrees, int **treenhalos)
 {
     char buf[4*MAX_STRING_LEN + 1];
     int32_t totNHalos;
@@ -82,20 +82,10 @@ void load_tree_table_hdf5(const int ThisTask, int filenr, int *ntrees, int **tre
         ABORT(0);
     }
 
-    *treefirsthalo = mymalloc(sizeof(int) * local_ntrees);
-    int *local_treefirsthalo = *treefirsthalo;
-
     if(ThisTask == 0) {
         for (int i = 0; i < 20; ++i) {
             printf("Tree %d: NHalos %d\n", i, local_treenhalos[i]);
         }
-    }
-
-    if(local_ntrees) {
-        local_treefirsthalo[0] = 0;
-    }
-    for(int i = 1; i < local_ntrees; i++) {
-        local_treefirsthalo[i] = local_treefirsthalo[i - 1] + local_treenhalos[i - 1];
     }
 
 }

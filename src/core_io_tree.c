@@ -18,19 +18,19 @@
 #endif
 
 void load_tree_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
-                     int **treenhalos, int **treefirsthalo, int **treengals, int *totgalaxies)
+                     int **treenhalos, int **treengals, int *totgalaxies)
 {
     switch (my_TreeType)
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_table_hdf5(ThisTask, filenr, ntrees, treenhalos, treefirsthalo);
+            load_tree_table_hdf5(ThisTask, filenr, ntrees, treenhalos);
             break;
 #endif
 
         case lhalo_binary:
             (void) ThisTask;
-            load_tree_table_binary(filenr, ntrees, treenhalos, treefirsthalo);
+            load_tree_table_binary(filenr, ntrees, treenhalos);
             break;
 
         default:
@@ -58,7 +58,7 @@ void load_tree_table(const int ThisTask, const int filenr, const enum Valid_Tree
     }
 }
 
-void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos, int *treefirsthalo)    
+void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos)    
 {
     
     for(int n = 0; n < run_params.NOUT; n++) {
@@ -66,7 +66,6 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *tre
     }
 
     myfree(treenhalos);
-    myfree(treefirsthalo);
 
     // Don't forget to free the open file handle
     switch (my_TreeType)

@@ -17,20 +17,20 @@
 #include "io/tree_hdf5.h"
 #endif
 
-void load_tree_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *ntrees,
-                     int **treenhalos, int **treengals, int *totgalaxies)
+void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *nforests,
+                     int **forestnhalos, int **forestngals, int *totgalaxies)
 {
     switch (my_TreeType)
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_table_hdf5(ThisTask, filenr, ntrees, treenhalos);
+            load_forest_table_hdf5(ThisTask, filenr, nforests, forestnhalos);
             break;
 #endif
 
         case lhalo_binary:
             (void) ThisTask;
-            load_tree_table_binary(filenr, ntrees, treenhalos);
+            load_forest_table_binary(filenr, nforests, forestnhalos);
             break;
 
         default:
@@ -39,11 +39,11 @@ void load_tree_table(const int ThisTask, const int filenr, const enum Valid_Tree
             ABORT(EXIT_FAILURE);
         }
 
-    const int local_ntrees = *ntrees;
+    const int local_nforests = *nforests;
     for(int n = 0; n < run_params.NOUT; n++) {
-        treengals[n] = mymalloc(sizeof(int) * local_ntrees);
-        for(int i = 0; i < local_ntrees; i++) {
-            treengals[n][i] = 0;
+        forestngals[n] = mymalloc(sizeof(int) * local_nforests);
+        for(int i = 0; i < local_nforests; i++) {
+            forestngals[n][i] = 0;
         }
         char buf[4*MAX_STRING_LEN + 1];
         snprintf(buf, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies, run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
@@ -58,14 +58,14 @@ void load_tree_table(const int ThisTask, const int filenr, const enum Valid_Tree
     }
 }
 
-void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *treenhalos)    
+void free_forest_table(enum Valid_TreeTypes my_TreeType, int **forestngals, int *forestnhalos)    
 {
     
     for(int n = 0; n < run_params.NOUT; n++) {
-        myfree(treengals[n]);
+        myfree(forestngals[n]);
     }
 
-    myfree(treenhalos);
+    myfree(forestnhalos);
 
     // Don't forget to free the open file handle
     switch (my_TreeType)
@@ -89,12 +89,12 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType, int **treengals, int *tre
 }
 
 
-int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
+int load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
 {
 
 #ifndef HDF5
-    (void) treenr; /* treenr is currently only used for the hdf5 files */
+    (void) forestnr; /* forestnr is currently only used for the hdf5 files */
 #endif    
 
     int32_t *orig_index=NULL;
@@ -104,16 +104,17 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
             
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_tree_hdf5(treenr, nhalos, halos);
+            load_forest_hdf5(forestnr, nhalos, halos);
             break;
 #endif            
             
         case lhalo_binary:
-            load_tree_binary(nhalos, halos, &orig_index);
+            load_forest_binary(nhalos, halos, &orig_index);
             break;
             
         default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for ``load_tree`` in ``core_io_tree.c``.\n");
+            fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in ``%s``.\n",
+                    __FUNCTION__, __FILE__);
             fprintf(stderr, "Please add it there.\n");
             ABORT(EXIT_FAILURE);
             
@@ -135,7 +136,7 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
         tmp_halo_aux++;
     }
     /* orig_index was allocated within the corresponding
-       load_tree_* function. The values have now been copied into
+       load_forest_* function. The values have now been copied into
        `haloaux` -- so we can free the memory
     */
     free(orig_index);
@@ -143,7 +144,7 @@ int load_tree(const int treenr, const int nhalos, enum Valid_TreeTypes my_TreeTy
     return maxgals;
 }
 
-void free_galaxies_and_tree(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos)
+void free_galaxies_and_forest(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos)
 {
     myfree(galaxies);
     myfree(halogal);

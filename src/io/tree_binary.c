@@ -26,7 +26,7 @@ static FILE *load_fd = NULL;
 // Local Proto-Types //
 
 // External Functions //
-void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos)
+void load_forest_table_binary(const int32_t filenr, int *nforests, int **forestnhalos)
 {
     char buf[4*MAX_STRING_LEN + 1];
     
@@ -37,21 +37,21 @@ void load_tree_table_binary(const int32_t filenr, int *ntrees, int **treenhalos)
         printf("can't open file `%s'\n", buf);
         ABORT(0);
     }
-    int local_ntrees=0;
+    int local_nforests=0;
     int local_totnhalos=0;
     
-    myfread(&local_ntrees, 1, sizeof(int), load_fd);
+    myfread(&local_nforests, 1, sizeof(int), load_fd);
     myfread(&local_totnhalos, 1, sizeof(int), load_fd);
 
-    int *local_treenhalos = mymalloc(sizeof(int) * local_ntrees);
+    int *local_forestnhalos = mymalloc(sizeof(int) * local_nforests);
 
-    myfread(local_treenhalos, local_ntrees, sizeof(int), load_fd);
+    myfread(local_forestnhalos, local_nforests, sizeof(int), load_fd);
 
-    *ntrees = local_ntrees;
-    *treenhalos = local_treenhalos;
+    *nforests = local_nforests;
+    *forestnhalos = local_forestnhalos;
 }
 
-void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index)
+void load_forest_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index)
 {
     // must have an FD
     assert(load_fd );
@@ -60,7 +60,7 @@ void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **
     struct halo_data *local_halos = mymalloc(sizeof(struct halo_data) * nhalos);
     myfread(local_halos, nhalos, sizeof(struct halo_data), load_fd);
 
-    /* re-arrange the halos into a locally horizontal vertical tree */
+    /* re-arrange the halos into a locally horizontal vertical forest */
     int status = reorder_lhalo_to_lhvt(nhalos, local_halos, 0, orig_index);/* the 3rd parameter is for testing the reorder code */
     if(status != EXIT_SUCCESS) {
         ABORT(100024323);
@@ -69,7 +69,7 @@ void load_tree_binary(const int32_t nhalos, struct halo_data **halos, int32_t **
     *halos = local_halos;
 }
 
-int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t test, int32_t **orig_index)
+int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *forest, int32_t test, int32_t **orig_index)
 {
     int32_t *prog_len=NULL, *desc_len=NULL;
     int32_t *len=NULL, *foflen=NULL;
@@ -90,7 +90,7 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
     int32_t *index = calloc(nhalos, sizeof(*index));
     if(index == NULL) {
         perror(NULL);
-        fprintf(stderr,"Error: Could not allocate memory for the index array for a tree with nhalos = %d. "
+        fprintf(stderr,"Error: Could not allocate memory for the index array for a forest with nhalos = %d. "
                 "Requested size = %zu\n",nhalos, sizeof(*index) * nhalos);
         return EXIT_FAILURE;
     }
@@ -99,21 +99,21 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
     for(int32_t i=0;i<nhalos;i++) {
         index[i] = i;//Keep track of the original indices
         if(test > 0) {
-            len[i] = tree[i].Len;
-            if(tree[i].FirstHaloInFOFgroup < 0 || tree[i].FirstHaloInFOFgroup >= nhalos){
+            len[i] = forest[i].Len;
+            if(forest[i].FirstHaloInFOFgroup < 0 || forest[i].FirstHaloInFOFgroup >= nhalos){
                 fprintf(stderr,"For halonum = %d fofhalo index = %d should be within limits [0, %d)",
-                        i, tree[i].FirstHaloInFOFgroup, nhalos);
+                        i, forest[i].FirstHaloInFOFgroup, nhalos);
                 return EXIT_FAILURE;
             }
-            foflen[i] = tree[tree[i].FirstHaloInFOFgroup].Len;
-            if(tree[i].FirstProgenitor == -1 || (tree[i].FirstProgenitor >= 0 && tree[i].FirstProgenitor < nhalos)) {
-                prog_len[i] = tree[i].FirstProgenitor == -1 ? -1:tree[tree[i].FirstProgenitor].Len;
+            foflen[i] = forest[forest[i].FirstHaloInFOFgroup].Len;
+            if(forest[i].FirstProgenitor == -1 || (forest[i].FirstProgenitor >= 0 && forest[i].FirstProgenitor < nhalos)) {
+                prog_len[i] = forest[i].FirstProgenitor == -1 ? -1:forest[forest[i].FirstProgenitor].Len;
             } else {
                 fprintf(stderr,"Error. In %s: halonum = %d with FirstProg = %d has invalid value. Should be within [0, %d)\n",
-                        __FUNCTION__,i,tree[i].FirstProgenitor, nhalos);
+                        __FUNCTION__,i,forest[i].FirstProgenitor, nhalos);
                 return EXIT_FAILURE;
             }
-            desc_len[i] = tree[i].Descendant == -1 ? -1:tree[tree[i].Descendant].Len;
+            desc_len[i] = forest[i].Descendant == -1 ? -1:forest[forest[i].Descendant].Len;
         }
     }
 
@@ -124,11 +124,11 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
 #define FOFHALO_SUBLEN_COMPARATOR(x, i, j)     ((x[i].FirstHaloInFOFgroup == index[i]) ? -1:( (x[j].FirstHaloInFOFgroup == index[j]) ? 1: (x[j].Len - x[i].Len)) )
 
 #define MULTIPLE_ARRAY_EXCHANGER(type,a,i,j) {                      \
-        SGLIB_ARRAY_ELEMENTS_EXCHANGER(struct halo_data, tree,i,j); \
+        SGLIB_ARRAY_ELEMENTS_EXCHANGER(struct halo_data, forest,i,j); \
         SGLIB_ARRAY_ELEMENTS_EXCHANGER(int32_t, index, i, j);       \
     }
 
-    SGLIB_ARRAY_HEAP_SORT_MULTICOMP(struct halo_data, tree, nhalos, SNAPNUM_FOFHALO_MVIR_COMPARATOR, MULTIPLE_ARRAY_EXCHANGER);
+    SGLIB_ARRAY_HEAP_SORT_MULTICOMP(struct halo_data, forest, nhalos, SNAPNUM_FOFHALO_MVIR_COMPARATOR, MULTIPLE_ARRAY_EXCHANGER);
 
 #undef SNAPNUM_FOFHALO_MVIR_COMPARATOR
 #undef FOFHALO_MVIR_COMPARATOR
@@ -150,7 +150,7 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
     */
 
     /* fixed mergertree indices from sorting into snapshot, FOF group, mvir order */
-    int status = fix_mergertree_index(tree, nhalos, index);
+    int status = fix_mergertree_index(forest, nhalos, index);
     if(status != EXIT_SUCCESS) {
         return status;
     }
@@ -170,43 +170,43 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
         /* Now run the tests. Progenitor/Descendant masses must agree. */
         for(int32_t i=0;i<nhalos;i++) {
             const int32_t old_index = index[i];
-            if(len[old_index] != tree[i].Len) {
-                fprintf(stderr,"Error: tree[%d].Len = %d now. Old index claims len = %d\n",
-                        i, tree[i].Len, len[old_index]);
+            if(len[old_index] != forest[i].Len) {
+                fprintf(stderr,"Error: forest[%d].Len = %d now. Old index claims len = %d\n",
+                        i, forest[i].Len, len[old_index]);
                 return EXIT_FAILURE;
             }
 
-            if(foflen[old_index] != tree[tree[i].FirstHaloInFOFgroup].Len) {
-                fprintf(stderr,"Error: tree[%d].FirstHaloInFOFgroup = %d fofLen = %d now. Old index = %d claims len = %d (nhalos=%d)\n",
-                        i, tree[i].FirstHaloInFOFgroup, tree[tree[i].FirstHaloInFOFgroup].Len,
+            if(foflen[old_index] != forest[forest[i].FirstHaloInFOFgroup].Len) {
+                fprintf(stderr,"Error: forest[%d].FirstHaloInFOFgroup = %d fofLen = %d now. Old index = %d claims len = %d (nhalos=%d)\n",
+                        i, forest[i].FirstHaloInFOFgroup, forest[forest[i].FirstHaloInFOFgroup].Len,
                         old_index,foflen[old_index], nhalos);
-                fprintf(stderr,"%d %d %d %d\n",i,tree[i].FirstHaloInFOFgroup,index[i],old_index);
+                fprintf(stderr,"%d %d %d %d\n",i,forest[i].FirstHaloInFOFgroup,index[i],old_index);
                 return EXIT_FAILURE;
             }
 
 
-            int32_t desc = tree[i].Descendant;
+            int32_t desc = forest[i].Descendant;
             if(desc == -1) {
                 if(desc_len[old_index] != -1){
-                    fprintf(stderr,"Error: tree[%d].descendant = %d (should be -1) now but old descendant contained %d particles\n",
-                            i, tree[i].Descendant, desc_len[old_index]);
+                    fprintf(stderr,"Error: forest[%d].descendant = %d (should be -1) now but old descendant contained %d particles\n",
+                            i, forest[i].Descendant, desc_len[old_index]);
                     return EXIT_FAILURE;
                 }
             } else {
                 assert(desc >= 0 && desc < nhalos);
-                if(desc_len[old_index] != tree[desc].Len) {
-                    fprintf(stderr,"Error: tree[%d].Descendant (Len) = %d (desc=%d) now but old descendant contained %d particles\n",
-                            i, tree[desc].Len, desc, desc_len[old_index]);
+                if(desc_len[old_index] != forest[desc].Len) {
+                    fprintf(stderr,"Error: forest[%d].Descendant (Len) = %d (desc=%d) now but old descendant contained %d particles\n",
+                            i, forest[desc].Len, desc, desc_len[old_index]);
                     return EXIT_FAILURE;
                 }
             }
 
 
-            int32_t prog = tree[i].FirstProgenitor;
+            int32_t prog = forest[i].FirstProgenitor;
             if(prog == -1) {
                 if(prog_len[old_index] != -1){
-                    fprintf(stderr,"Error: tree[%d].FirstProgenitor = %d (should be -1) now but old FirstProgenitor contained %d particles\n",
-                            i, tree[i].FirstProgenitor, desc_len[old_index]);
+                    fprintf(stderr,"Error: forest[%d].FirstProgenitor = %d (should be -1) now but old FirstProgenitor contained %d particles\n",
+                            i, forest[i].FirstProgenitor, desc_len[old_index]);
                     return EXIT_FAILURE;
                 }
             } else {
@@ -214,17 +214,17 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
                     fprintf(stderr,"WEIRD: prog = %d for i=%d is not within [0, %d)\n",prog, i, nhalos);
                 }
                 assert(prog >=0 && prog < nhalos);
-                if(prog_len[old_index] != tree[prog].Len) {
-                    fprintf(stderr,"Error: tree[%d].FirstProgenitor (Len) = %d (prog=%d) now but old FirstProgenitor contained %d particles\n",
-                            i, tree[prog].Len, prog, prog_len[old_index]);
+                if(prog_len[old_index] != forest[prog].Len) {
+                    fprintf(stderr,"Error: forest[%d].FirstProgenitor (Len) = %d (prog=%d) now but old FirstProgenitor contained %d particles\n",
+                            i, forest[prog].Len, prog, prog_len[old_index]);
                     return EXIT_FAILURE;
                 }
             }
         }
 
         /* Check that the first halo is a fof */
-        if(tree[0].FirstHaloInFOFgroup != 0) {
-            fprintf(stderr,"Error: The first halo should be an FOF halo and point to itself but it points to %d\n", tree[0].FirstHaloInFOFgroup);
+        if(forest[0].FirstHaloInFOFgroup != 0) {
+            fprintf(stderr,"Error: The first halo should be an FOF halo and point to itself but it points to %d\n", forest[0].FirstHaloInFOFgroup);
             return EXIT_FAILURE;
         }
 
@@ -234,12 +234,12 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
         while(start_fofindex < nhalos) {
             int32_t end_fofindex;
             for(end_fofindex=start_fofindex + 1;end_fofindex < nhalos; end_fofindex++) {
-                if(tree[end_fofindex].FirstHaloInFOFgroup == end_fofindex) break;
+                if(forest[end_fofindex].FirstHaloInFOFgroup == end_fofindex) break;
             }
 
             /* Now loop over all halos and make sure the only indices that refer to FirstHaloInFOFgroup are within [start_fofindex, end_fofindex )*/
             for(int32_t i=0;i<nhalos;i++) {
-                if(tree[i].FirstHaloInFOFgroup == start_fofindex) {
+                if(forest[i].FirstHaloInFOFgroup == start_fofindex) {
                     if(i >= start_fofindex && i < end_fofindex) {
                         continue;
                     }
@@ -247,7 +247,7 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
                     fprintf(stderr,"Error: Expected FOF to come first and then *all* subhalos associated with that FOF halo\n");
                     fprintf(stderr,"Result truth condition would be for all (FOF+sub) halos to be contained within indices [%d, %d) \n",
                             start_fofindex, end_fofindex);
-                    fprintf(stderr,"However, tree[%d].FirstHaloInFOFgroup = %d violates this truth condition\n", i, tree[i].FirstHaloInFOFgroup);
+                    fprintf(stderr,"However, forest[%d].FirstHaloInFOFgroup = %d violates this truth condition\n", i, forest[i].FirstHaloInFOFgroup);
                     return EXIT_FAILURE;
                 }
             }
@@ -260,7 +260,7 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
     }
 
     /* because the halos have been re-ordered, the current
-       halo-index does not correspond to that in the input tree.
+       halo-index does not correspond to that in the input forest.
        For any matching purposes, we return the original index for
        each halo
     */
@@ -271,8 +271,8 @@ int reorder_lhalo_to_lhvt(const int32_t nhalos, struct halo_data *tree, int32_t 
 
 
 
-/* This is a more generic function (accepts trees sorted into an arbitary order + original indices as shuffled along with the tree */
-int fix_mergertree_index(struct halo_data *tree, const int64_t nhalos, const int32_t *index)
+/* This is a more generic function (accepts forests sorted into an arbitary order + original indices as shuffled along with the forest */
+int fix_mergertree_index(struct halo_data *forest, const int64_t nhalos, const int32_t *index)
 {
     if(nhalos > INT_MAX) {
         fprintf(stderr,"Error: nhalos=%"PRId64" can not be larger than INT_MAX=%d\n", nhalos, INT_MAX);
@@ -315,7 +315,7 @@ int fix_mergertree_index(struct halo_data *tree, const int64_t nhalos, const int
     
     //Now fix *all* the mergertree indices
     for(int64_t i=0;i<nhalos;i++) {
-        struct halo_data *this_halo = &(tree[i]);
+        struct halo_data *this_halo = &(forest[i]);
         UPDATE_LHALOTREE_INDEX(FirstProgenitor);
         UPDATE_LHALOTREE_INDEX(NextProgenitor);
         UPDATE_LHALOTREE_INDEX(Descendant);

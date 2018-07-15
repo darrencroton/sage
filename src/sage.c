@@ -14,7 +14,7 @@
 
 /* main sage -> not exposed externally */
 static void sage_per_file(const int ThisTask, const int filenr);
-static void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted);
+static void sage_per_forest(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted);
 
 void init_sage(const int ThisTask, const char *param_file)
 {
@@ -89,33 +89,34 @@ void sage_per_file(const int ThisTask, const int filenr)
         fclose(fd);
     }
 
-    int Ntrees = 0;
-    int *TreeNHalos = NULL;
+    int Nforests = 0;
+    int *ForestNHalos = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS];
-    int *TreeNgals[ABSOLUTEMAXSNAPS];
+    int *ForestNgals[ABSOLUTEMAXSNAPS];
     FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
     
-    load_tree_table(ThisTask, filenr, run_params.TreeType, &Ntrees, &TreeNHalos, (int **) TreeNgals, (int *) TotGalaxies);
+    load_forest_table(ThisTask, filenr, run_params.TreeType, &Nforests, &ForestNHalos, (int **) ForestNgals, (int *) TotGalaxies);
 
     /* open all the output files corresponding to this tree file (specified by filenr) */
-    initialize_galaxy_files(filenr, Ntrees, save_fd);
+    initialize_galaxy_files(filenr, Nforests, save_fd);
     
     int interrupted=0;
     if(ThisTask == 0) {
-        init_my_progressbar(stderr, Ntrees, &interrupted);
+        init_my_progressbar(stderr, Nforests, &interrupted);
     }
     
     
-    for(int treenr = 0; treenr < Ntrees; treenr++) {
+    for(int forestnr = 0; forestnr < Nforests; forestnr++) {
         if(ThisTask == 0) {
-            my_progressbar(stderr, treenr, &interrupted);
+            my_progressbar(stderr, forestnr, &interrupted);
         }
-        
-        sage_per_tree(filenr, treenr, TreeNHalos, TotGalaxies, TreeNgals, save_fd, &interrupted);
+
+        /* the millennium tree is really a collection of trees, viz., a forest */
+        sage_per_forest(filenr, forestnr, ForestNHalos, TotGalaxies, ForestNgals, save_fd, &interrupted);
     }
     
-    finalize_galaxy_file(Ntrees, (const int *) TotGalaxies, (const int **) TreeNgals, save_fd);
-    free_tree_table(run_params.TreeType, (int **) TreeNgals, TreeNHalos);
+    finalize_galaxy_file(Nforests, (const int *) TotGalaxies, (const int **) ForestNgals, save_fd);
+    free_forest_table(run_params.TreeType, (int **) ForestNgals, ForestNHalos);
 
     if(ThisTask == 0) {
         finish_myprogressbar(stderr, &interrupted);
@@ -124,7 +125,7 @@ void sage_per_file(const int ThisTask, const int filenr)
 }
 
 
-void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted)
+void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, int *TotGalaxies, int **ForestNgals, FILE **save_fd, int *interrupted)
 {
     (void) interrupted;
     
@@ -137,8 +138,8 @@ void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *Tot
     /*  auxiliary halo data  */
     struct halo_aux_data  *HaloAux = NULL;
     
-    const int nhalos = TreeNHalos[treenr];
-    int maxgals = load_tree(treenr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+    const int nhalos = ForestNHalos[forestnr];
+    int maxgals = load_forest(forestnr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
 #if 0        
     for(int halonr = 0; halonr < nhalos; halonr++) {
         fprintf(stderr,"halonr = %d snap = %03d mvir = %14.6e firstfofhalo = %8d nexthalo = %8d\n",
@@ -148,17 +149,32 @@ void sage_per_tree(const int filenr, const int treenr, int *TreeNHalos, int *Tot
     
     int numgals = 0;
     int galaxycounter = 0;
+
+#ifdef PROCESS_LHVT_STYLE
+    /* this will be the new processing style --> one snapshot at a time */
+    uint32_t ngal = 0;
+    for(int snapshot=min_snapshot;snapshot <= max_snapshot; snapshot++) {
+        uint32_t nfofs_this_snap = get_nfofs_at_snap(forestnr, snapshot);
+        for(int ifof=0;ifof<nfofs_this_snap;ifof++) {
+            ngal = process_fof_at_snap(ifof, snapshot, ngal);
+        }
+    }
+
+#else
     
     /* First run construct_galaxies outside for loop -> takes care of the main tree */
     construct_galaxies(0, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
     
-    /* But there are sub-trees within one tree file that are not reachable via the recursive routine -> do those as well */
+    /* But there are sub-trees within one forest file that are not reachable via the recursive routine -> do those as well */
     for(int halonr = 0; halonr < nhalos; halonr++) {
         if(HaloAux[halonr].DoneFlag == 0) {
             construct_galaxies(halonr, &numgals, &galaxycounter, &maxgals, Halo, HaloAux, &Gal, &HaloGal);
         }
     }
+
+#endif /* PROCESS_LHVT_STYLE */    
+
     
-    save_galaxies(filenr, treenr, numgals, Halo, HaloAux, HaloGal, (int **) TreeNgals, (int *) TotGalaxies, save_fd);
-    free_galaxies_and_tree(Gal, HaloGal, HaloAux, Halo);
+    save_galaxies(filenr, forestnr, numgals, Halo, HaloAux, HaloGal, (int **) ForestNgals, (int *) TotGalaxies, save_fd);
+    free_galaxies_and_forest(Gal, HaloGal, HaloAux, Halo);
 }    

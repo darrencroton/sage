@@ -12,7 +12,7 @@ LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
            core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
            core_allvars.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
-           io/tree_binary.c
+           io/read_tree_binary.c
 LIBINCL := $(LIBSRC:.c=.h)
 
 SRC := main.c $(LIBSRC)
@@ -115,13 +115,13 @@ ifeq ($(DO_CHECKS), 1)
       endif
     endif
 
-    LIBSRCS += $(SRC_PREFIX)/io/tree_hdf5.c
-    LIBOBJS += $(SRC_PREFIX)/io/tree_hdf5.o
-    LIBINCL += $(SRC_PREFIX)/io/tree_hdf5.h
+    LIBSRCS += $(SRC_PREFIX)/io/read_tree_hdf5.c
+    LIBOBJS += $(SRC_PREFIX)/io/read_tree_hdf5.o
+    LIBINCL += $(SRC_PREFIX)/io/read_tree_hdf5.h
 
-    SRCS += $(SRC_PREFIX)/io/tree_hdf5.c
-    OBJS += $(SRC_PREFIX)/io/tree_hdf5.o
-    INCL += $(SRC_PREFIX)/io/tree_hdf5.h
+    SRCS += $(SRC_PREFIX)/io/read_tree_hdf5.c
+    OBJS += $(SRC_PREFIX)/io/read_tree_hdf5.o
+    INCL += $(SRC_PREFIX)/io/read_tree_hdf5.h
 
     HDF5_INCL := -I$(HDF5_DIR)/include
     HDF5_LIB := -L$(HDF5_DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5_DIR)/lib

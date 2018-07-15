@@ -10,10 +10,10 @@
 #include <limits.h>
 #include <inttypes.h>
 
-#include "../core_allvars.h"
+#include "read_tree_binary.h"
+
 #include "../core_mymalloc.h"
 #include "../core_utils.h"
-#include "tree_binary.h"
 #include "../sglib.h"
 
 

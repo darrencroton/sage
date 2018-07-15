@@ -12,9 +12,9 @@
 #include "core_mymalloc.h"
 #include "core_io_tree.h"
 
-#include "io/tree_binary.h"
+#include "io/read_tree_binary.h"
 #ifdef HDF5
-#include "io/tree_hdf5.h"
+#include "io/read_tree_hdf5.h"
 #endif
 
 void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *nforests,

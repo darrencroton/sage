@@ -10,7 +10,7 @@
 #include "core_build_model.h"
 #include "core_save.h"
 #include "progressbar.h"
-
+#include "core_tree_utils.h"
 
 /* main sage -> not exposed externally */
 static void sage_per_file(const int ThisTask, const int filenr);

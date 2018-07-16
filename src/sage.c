@@ -140,6 +140,9 @@ void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, in
     int nfofs_all_snaps[ABSOLUTEMAXSNAPS] = {0};
     const int nhalos = ForestNHalos[forestnr];
     int maxgals = load_forest(forestnr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+
+    /* getting the number of FOF halos at each snapshot */
+    get_nfofs_all_snaps(Halo, nhalos, nfofs_all_snaps, ABSOLUTEMAXSNAPS);
     
 #if 0        
     for(int halonr = 0; halonr < nhalos; halonr++) {

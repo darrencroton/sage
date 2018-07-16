@@ -47,7 +47,7 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda create -q --yes -n test python=$PYTHON_VERSION tqdm numpy nomkl
   - source activate test
-  - conda install -q --yes -c asmeurer gsl
+  - conda install -q --yes -c anaconda gsl
   - conda install -q --yes -c conda-forge hdf5
 
 before_script:

@@ -23,8 +23,7 @@ struct METADATA_NAMES
   char name_TreeNHalos[MAX_STRING_LEN];
 }; 
 
-// Local Proto-Types //
-
+/* Local Proto-Types */
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
 int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute);
 int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer);
@@ -199,8 +198,7 @@ void close_hdf5_file(void)
 
 }
 
-// Local Functions //
-
+/* Local Functions */
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
 {
 
@@ -209,9 +207,9 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
 
         case genesis_lhalo_hdf5: 
   
-            snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "Nforests"); // Total number of forests within the file.
+            snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "NTrees"); // Total number of forests within the file.
             snprintf(metadata_names->name_totNHalos, MAX_STRING_LEN - 1, "totNHalos"); // Total number of halos within the file.
-            snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "ForestNHalos"); // Number of halos per forest within the file.
+            snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "TreeNHalos"); // Number of halos per forest within the file.
             return EXIT_SUCCESS;
 
         case lhalo_binary: 

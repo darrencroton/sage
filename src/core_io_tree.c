@@ -15,6 +15,7 @@
 #include "io/read_tree_binary.h"
 #ifdef HDF5
 #include "io/read_tree_hdf5.h"
+#include "io/read_tree_genesis_standard_hdf5.h"
 #endif
 
 void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *nforests,
@@ -25,6 +26,10 @@ void load_forest_table(const int ThisTask, const int filenr, const enum Valid_Tr
 #ifdef HDF5
         case genesis_lhalo_hdf5:
             load_forest_table_hdf5(ThisTask, filenr, nforests, forestnhalos);
+            break;
+            
+        case genesis_standard_hdf5:
+            load_forest_table_genesis_hdf5(ThisTask, filenr, nforests, forestnhalos);
             break;
 #endif
 
@@ -67,13 +72,18 @@ void free_forest_table(enum Valid_TreeTypes my_TreeType, int **forestngals, int 
 
     myfree(forestnhalos);
 
-    // Don't forget to free the open file handle
+    /* Don't forget to free the open file handle */
     switch (my_TreeType)
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
             close_hdf5_file();
             break;
+
+        case genesis_standard_hdf5:
+            close_genesis_hdf5_file();
+            break;
+
 #endif
             
         case lhalo_binary:
@@ -105,6 +115,10 @@ int load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_Tr
 #ifdef HDF5
         case genesis_lhalo_hdf5:
             load_forest_hdf5(forestnr, nhalos, halos);
+            break;
+            
+        case genesis_standard_hdf5:
+            load_forest_genesis_hdf5(forestnr, nhalos, halos);
             break;
 #endif            
             

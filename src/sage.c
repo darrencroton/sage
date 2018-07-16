@@ -137,9 +137,10 @@ void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, in
     
     /*  auxiliary halo data  */
     struct halo_aux_data  *HaloAux = NULL;
-    
+    int nfofs_all_snaps[ABSOLUTEMAXSNAPS] = {0};
     const int nhalos = ForestNHalos[forestnr];
     int maxgals = load_forest(forestnr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+    
 #if 0        
     for(int halonr = 0; halonr < nhalos; halonr++) {
         fprintf(stderr,"halonr = %d snap = %03d mvir = %14.6e firstfofhalo = %8d nexthalo = %8d\n",
@@ -149,6 +150,7 @@ void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, in
     
     int numgals = 0;
     int galaxycounter = 0;
+    
 
 #ifdef PROCESS_LHVT_STYLE
     /* this will be the new processing style --> one snapshot at a time */

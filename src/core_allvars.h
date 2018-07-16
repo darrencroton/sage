@@ -155,12 +155,12 @@ struct GALAXY
 /* auxiliary halo data */
 struct halo_aux_data   
 {
-  int DoneFlag;
-  int HaloFlag;
-  int NGalaxies;
-  int FirstGalaxy;
-  int orig_index;
-  int padding;/*might as well explicitly include the padding */
+    int DoneFlag;
+    int HaloFlag;
+    int NGalaxies;
+    int FirstGalaxy;
+    int orig_index;
+    int padding;/*might as well explicitly include the padding */
 };
 
 #if 0
@@ -181,10 +181,23 @@ extern int            HDF5_n_props;
 
 enum Valid_TreeTypes
 {
-  genesis_lhalo_hdf5 = 0,
-  lhalo_binary = 1,
+  lhalo_binary = 0,
+  genesis_lhalo_hdf5 = 1,
+  genesis_standard_hdf5 = 2,
   num_tree_types
 };
+
+/* do not use '0' as an enum since that '0' usually
+   indicates 'success' on POSIX systems */
+typedef enum {
+    /* start off with a large number */
+    FILE_NOT_FOUND=1 << 12,
+    SNAPSHOT_OUT_OF_RANGE,
+    MALLOC_FAILURE,
+    INTEGER_32BIT_TOO_SMALL,
+    NULL_POINTER_FOUND,
+} sage_error_types;
+
 
 struct params
 {

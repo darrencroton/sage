@@ -193,7 +193,9 @@ typedef enum {
     /* start off with a large number */
     FILE_NOT_FOUND=1 << 12,
     SNAPSHOT_OUT_OF_RANGE,
+    OUT_OF_MEMBLOCKS,
     MALLOC_FAILURE,
+    INVALID_PTR_REALLOC_REQ,
     INTEGER_32BIT_TOO_SMALL,
     NULL_POINTER_FOUND,
 } sage_error_types;

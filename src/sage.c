@@ -91,12 +91,18 @@ void sage_per_file(const int ThisTask, const int filenr)
 
     int Nforests = 0;
     int *ForestNHalos = NULL;
-    int TotGalaxies[ABSOLUTEMAXSNAPS];
+    int TotGalaxies[ABSOLUTEMAXSNAPS] = { 0 };
     int *ForestNgals[ABSOLUTEMAXSNAPS];
-    FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
+    FILE* save_fd[ABSOLUTEMAXSNAPS] = { NULL };
     
-    load_forest_table(ThisTask, filenr, run_params.TreeType, &Nforests, &ForestNHalos, (int **) ForestNgals, (int *) TotGalaxies);
+    load_forest_table(ThisTask, filenr, run_params.TreeType, &Nforests, &ForestNHalos);
 
+    /* allocate memory for the number of galaxies at each output snapshot */
+    for(int n = 0; n < run_params.NOUT; n++) {
+        /* using calloc removes the need to zero out the memory explicitly*/
+        ForestNgals[n] = mycalloc(Nforests, sizeof(int));/* must be calloc*/
+    }
+    
     /* open all the output files corresponding to this tree file (specified by filenr) */
     initialize_galaxy_files(filenr, Nforests, save_fd);
     
@@ -116,7 +122,12 @@ void sage_per_file(const int ThisTask, const int filenr)
     }
     
     finalize_galaxy_file(Nforests, (const int *) TotGalaxies, (const int **) ForestNgals, save_fd);
-    free_forest_table(run_params.TreeType, (int **) ForestNgals, ForestNHalos);
+    free_forest_table(run_params.TreeType);
+
+    for(int n = 0; n < run_params.NOUT; n++) {
+        myfree(ForestNgals[n]);
+    }
+    myfree(ForestNHalos);
 
     if(ThisTask == 0) {
         finish_myprogressbar(stderr, &interrupted);
@@ -179,7 +190,13 @@ void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, in
 
 #endif /* PROCESS_LHVT_STYLE */    
 
-    
     save_galaxies(filenr, forestnr, numgals, Halo, HaloAux, HaloGal, (int **) ForestNgals, (int *) TotGalaxies, save_fd);
-    free_galaxies_and_forest(Gal, HaloGal, HaloAux, Halo);
+
+    /* free galaxies and the forest */
+    myfree(Gal);
+    myfree(HaloGal);
+    myfree(HaloAux);
+    myfree(Halo);
 }    
+
+

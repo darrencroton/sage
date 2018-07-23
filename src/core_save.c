@@ -19,10 +19,11 @@ void initialize_galaxy_files(const int filenr, const int ntrees, FILE **save_fd)
     char buffer[4*MAX_STRING_LEN + 1];
     /* Open all the output files */
     for(int n = 0; n < run_params.NOUT; n++) {
+
         snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies,
                  run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
         
-        save_fd[n] = fopen(buffer, "r+");
+        save_fd[n] = fopen(buffer, "w");
         if (save_fd[n] == NULL) {
             fprintf(stderr, "Error: Can't open file `%s'\n", buffer);
             ABORT(0);

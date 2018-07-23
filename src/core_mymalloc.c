@@ -28,7 +28,7 @@ void *mymalloc(size_t n)
 
     if(Nblocks >= MAXBLOCKS) {
         printf("Nblocks = %lu No blocks left in mymalloc().\n", Nblocks);
-        ABORT(0);
+        ABORT(OUT_OF_MEMBLOCKS);
     }
 
     SizeTable[Nblocks] = n;
@@ -44,7 +44,36 @@ void *mymalloc(size_t n)
     Table[Nblocks] = malloc(n);
     if(Table[Nblocks] == NULL) {
         printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
-        ABORT(0);
+        ABORT(MALLOC_FAILURE);
+    }
+
+    Nblocks += 1;
+
+    return Table[Nblocks - 1];
+}
+
+void *mycalloc(const size_t count, const size_t size)
+{
+
+    if(Nblocks >= MAXBLOCKS) {
+        printf("Nblocks = %lu No blocks left in mymalloc().\n", Nblocks);
+        ABORT(OUT_OF_MEMBLOCKS);
+    }
+
+    SizeTable[Nblocks] = count*size;
+    TotMem += count*size;
+    if(TotMem > HighMarkMem) {
+        HighMarkMem = TotMem;
+        if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0) {
+            printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+            OldPrintedHighMark = HighMarkMem;
+        }
+    }
+
+    Table[Nblocks] = calloc(count, size);
+    if(Table[Nblocks] == NULL) {
+        printf("Failed to allocate memory for %g MB\n",  count*size / (1024.0 * 1024.0) );
+        ABORT(MALLOC_FAILURE);
     }
 
     Nblocks += 1;
@@ -92,12 +121,12 @@ void *myrealloc(void *p, size_t n)
         for(int i=0;i<Nblocks;i++) {
             fprintf(stderr,"Address = %p size = %zu bytes\n", Table[i], SizeTable[i]);
         }
-        ABORT(0);
+        ABORT(INVALID_PTR_REALLOC_REQ);
     }
     void *newp = realloc(Table[iblock], n);
     if(newp == NULL) {
         printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
-        ABORT(0);
+        ABORT(MALLOC_FAILURE);
     }
     Table[iblock] = newp;
   
@@ -124,7 +153,7 @@ void myfree(void *p)
 #if 0    
     if(p != Table[Nblocks - 1]) {
         printf("Wrong call of myfree() - not the last allocated block!\n");
-        ABORT(0);
+        ABORT(INVALID_PTR_REALLOC_REQ);
     }
     free(p);
     Nblocks -= 1;
@@ -137,7 +166,7 @@ void myfree(void *p)
         for(int i=0;i<Nblocks;i++) {
             fprintf(stderr,"Address = %p size = %zu bytes\n", Table[i], SizeTable[i]);
         }
-        ABORT(0);
+        ABORT(INVALID_PTR_REALLOC_REQ);
     }
 
     free(p);

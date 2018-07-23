@@ -81,19 +81,19 @@ void load_forest_table_genesis_hdf5(const int ThisTask, int32_t filenr, int32_t 
 
 }
 
-#define READ_TREE_PROPERTY(sage_name, hdf5_name, type_int, data_type)   \
+#define READ_GENESIS_TREE_PROPERTY(nsnaps, sage_name, hdf5_name, type_int, data_type) \
     {                                                                   \
         snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", forestnr, #hdf5_name); \
         status = read_dataset(dataset_name, type_int, buffer);          \
         if (status != EXIT_SUCCESS) {                                   \
             ABORT(0);                                                   \
         }                                                               \
-        for (int halo_idx = 0; halo_idx < nhalos; ++halo_idx) { \
+        for (int halo_idx = 0; halo_idx < nhalos; ++halo_idx) {         \
             local_halos[halo_idx].sage_name = ((data_type*)buffer)[halo_idx];  \
         }                                                               \
     }                                                                   \
 
-#define READ_TREE_PROPERTY_MULTIPLEDIM(sage_name, hdf5_name, type_int, data_type) \
+#define READ_GENESIS_TREE_PROPERTY_MULTIPLEDIM(nsnaps, sage_name, hdf5_name, type_int, data_type) \
     {                                                                   \
         snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", forestnr, #hdf5_name); \
         status = read_dataset(dataset_name, type_int, buffer_multipledim); \

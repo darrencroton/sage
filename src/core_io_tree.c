@@ -18,8 +18,8 @@
 #include "io/read_tree_genesis_standard_hdf5.h"
 #endif
 
-void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType, int *nforests,
-                     int **forestnhalos, int **forestngals, int *totgalaxies)
+void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType,
+                       int *nforests, int **forestnhalos)
 {
     switch (my_TreeType)
         {
@@ -44,70 +44,45 @@ void load_forest_table(const int ThisTask, const int filenr, const enum Valid_Tr
             ABORT(EXIT_FAILURE);
         }
 
-    const int local_nforests = *nforests;
-    for(int n = 0; n < run_params.NOUT; n++) {
-        forestngals[n] = mymalloc(sizeof(int) * local_nforests);
-        for(int i = 0; i < local_nforests; i++) {
-            forestngals[n][i] = 0;
-        }
-        char buf[4*MAX_STRING_LEN + 1];
-        snprintf(buf, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies, run_params.ZZ[run_params.ListOutputSnaps[n]], filenr);
-
-        FILE *fd = fopen(buf, "w"); 
-        if(fd == NULL) {
-            printf("can't open file `%s'\n", buf);
-            ABORT(0);
-        }
-        fclose(fd);
-        totgalaxies[n] = 0;
-    }
 }
 
-void free_forest_table(enum Valid_TreeTypes my_TreeType, int **forestngals, int *forestnhalos)    
+void free_forest_table(enum Valid_TreeTypes my_TreeType)
 {
-    
-    for(int n = 0; n < run_params.NOUT; n++) {
-        myfree(forestngals[n]);
-    }
-
-    myfree(forestnhalos);
-
     /* Don't forget to free the open file handle */
-    switch (my_TreeType)
-        {
+    switch (my_TreeType) {
 #ifdef HDF5
-        case genesis_lhalo_hdf5:
-            close_hdf5_file();
-            break;
-
-        case genesis_standard_hdf5:
-            close_genesis_hdf5_file();
-            break;
-
+    case genesis_lhalo_hdf5:
+        close_hdf5_file();
+        break;
+        
+    case genesis_standard_hdf5:
+        close_genesis_hdf5_file();
+        break;
+            
 #endif
             
-        case lhalo_binary:
-            close_binary_file();
-            break;
-            
-        default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
-            fprintf(stderr, "Please add it there.\n");
-            ABORT(EXIT_FAILURE);
-            
-        }
+    case lhalo_binary:
+        close_binary_file();
+        break;
+        
+    default:
+        fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
+        fprintf(stderr, "Please add it there.\n");
+        ABORT(EXIT_FAILURE);
+        
+    }
 }
 
 
 int load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
-               struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
+                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
 {
 
 #ifndef HDF5
     (void) forestnr; /* forestnr is currently only used for the hdf5 files */
 #endif    
 
-    int32_t *orig_index=NULL;
+    int32_t *orig_index=NULL;/* the original file index order */
     
     switch (my_TreeType)
         {
@@ -156,13 +131,5 @@ int load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_Tr
     free(orig_index);
     
     return maxgals;
-}
-
-void free_galaxies_and_forest(struct GALAXY *galaxies, struct GALAXY *halogal, struct halo_aux_data *haloaux, struct halo_data *halos)
-{
-    myfree(galaxies);
-    myfree(halogal);
-    myfree(haloaux);
-    myfree(halos);
 }
 

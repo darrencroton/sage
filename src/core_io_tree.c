@@ -18,24 +18,22 @@
 #include "io/read_tree_genesis_standard_hdf5.h"
 #endif
 
-void load_forest_table(const int ThisTask, const int filenr, const enum Valid_TreeTypes my_TreeType,
-                       int *nforests, int **forestnhalos)
+void load_forest_table(const enum Valid_TreeTypes my_TreeType, struct forest_info *forests_info)
 {
     switch (my_TreeType)
         {
 #ifdef HDF5
         case genesis_lhalo_hdf5:
-            load_forest_table_hdf5(ThisTask, filenr, nforests, forestnhalos);
+            load_forest_table_hdf5(forests_info);
             break;
             
         case genesis_standard_hdf5:
-            load_forest_table_genesis_hdf5(ThisTask, filenr, nforests, forestnhalos);
+            load_forest_table_genesis_hdf5(forests_info);
             break;
 #endif
 
         case lhalo_binary:
-            (void) ThisTask;
-            load_forest_table_binary(filenr, nforests, forestnhalos);
+            load_forest_table_binary(forests_info);
             break;
 
         default:
@@ -46,23 +44,23 @@ void load_forest_table(const int ThisTask, const int filenr, const enum Valid_Tr
 
 }
 
-void free_forest_table(enum Valid_TreeTypes my_TreeType)
+void free_forest_table(enum Valid_TreeTypes my_TreeType, struct forest_info *forests_info)
 {
     /* Don't forget to free the open file handle */
     switch (my_TreeType) {
 #ifdef HDF5
     case genesis_lhalo_hdf5:
-        close_hdf5_file();
+        close_hdf5_file(forests_info);
         break;
         
     case genesis_standard_hdf5:
-        close_genesis_hdf5_file();
+        close_genesis_hdf5_file(forests_info);
         break;
             
 #endif
             
     case lhalo_binary:
-        close_binary_file();
+        close_binary_file(forests_info);
         break;
         
     default:
@@ -73,63 +71,34 @@ void free_forest_table(enum Valid_TreeTypes my_TreeType)
     }
 }
 
-
-int load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos,
-                struct halo_aux_data **haloaux, struct GALAXY **galaxies, struct GALAXY **halogal)
+void load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_TreeType, struct halo_data **halos, struct forest_info *forests_info)
 {
 
 #ifndef HDF5
     (void) forestnr; /* forestnr is currently only used for the hdf5 files */
 #endif    
 
-    int32_t *orig_index=NULL;/* the original file index order */
-    
-    switch (my_TreeType)
-        {
-            
+    switch (my_TreeType) {
+        
 #ifdef HDF5
-        case genesis_lhalo_hdf5:
-            load_forest_hdf5(forestnr, nhalos, halos);
-            break;
-            
-        case genesis_standard_hdf5:
-            load_forest_genesis_hdf5(forestnr, nhalos, halos);
-            break;
+    case genesis_lhalo_hdf5:
+        load_forest_hdf5(forestnr, nhalos, halos, forests_info);
+        break;
+        
+    case genesis_standard_hdf5:
+        load_forest_genesis_hdf5(forestnr, nhalos, halos, forests_info);
+        break;
 #endif            
-            
-        case lhalo_binary:
-            load_forest_binary(nhalos, halos, &orig_index);
-            break;
-            
-        default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in ``%s``.\n",
-                    __FUNCTION__, __FILE__);
-            fprintf(stderr, "Please add it there.\n");
-            ABORT(EXIT_FAILURE);
-            
-        }
-
-    int maxgals = (int)(MAXGALFAC * nhalos);
-    if(maxgals < 10000) maxgals = 10000;
-
-    *haloaux = mymalloc(sizeof(struct halo_aux_data) * nhalos);
-    *halogal = mymalloc(sizeof(struct GALAXY) * maxgals);
-    *galaxies = mymalloc(sizeof(struct GALAXY) * maxgals);/* used to be fof_maxgals instead of maxgals*/
-
-    struct halo_aux_data *tmp_halo_aux = *haloaux;
-    for(int i = 0; i < nhalos; i++) {
-        tmp_halo_aux->DoneFlag = 0;
-        tmp_halo_aux->HaloFlag = 0;
-        tmp_halo_aux->NGalaxies = 0;
-        tmp_halo_aux->orig_index = orig_index[i];
-        tmp_halo_aux++;
+        
+    case lhalo_binary:
+        load_forest_binary(nhalos, halos, forests_info);
+        break;
+        
+    default:
+        fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in ``%s``.\n",
+                __FUNCTION__, __FILE__);
+        fprintf(stderr, "Please add it there.\n");
+        ABORT(EXIT_FAILURE);
     }
-    /* orig_index was allocated within the corresponding
-       load_forest_* function. The values have now been copied into
-       `haloaux` -- so we can free the memory
-    */
-    free(orig_index);
-    
-    return maxgals;
 }
 

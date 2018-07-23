@@ -10,9 +10,9 @@ extern "C" {
 
     
 /* Proto-Types */
-extern void load_forest_table_binary(const int32_t filenr, int32_t *ntrees, int32_t **treenhalos);
-extern void load_forest_binary(const int32_t nhalos, struct halo_data **halos, int32_t **orig_index);
-extern void close_binary_file(void);
+extern void load_forest_table_binary(struct forest_info *forests_info);
+extern void load_forest_binary(const int32_t nhalos, struct halo_data **halos, struct forest_info *forests_info);
+extern void close_binary_file(struct forest_info *forests_info);
 
 #ifdef __cplusplus
 }

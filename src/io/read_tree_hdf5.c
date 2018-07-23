@@ -12,9 +12,6 @@
 #include "../core_mymalloc.h"
 
 
-/* Local Variables */
-static hid_t hdf5_file;
-
 /* Local Structs */
 struct METADATA_NAMES 
 {
@@ -24,24 +21,24 @@ struct METADATA_NAMES
 }; 
 
 /* Local Proto-Types */
-int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
-int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute);
-int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer);
+static int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType);
+static int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute);
+static int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer, struct forest_info *forests_info);
 
 /* Externally visible Functions */
-void load_forest_table_hdf5(const int ThisTask, int filenr, int *nforests, int **forestnhalos)
+void load_forest_table_hdf5(struct forest_info *forests_info)
 {
-    char buf[4*MAX_STRING_LEN + 1];
+    const char *filename = forests_info->filename;
     int32_t totNHalos;
+    int32_t nforests;
     int32_t status;
 
     struct METADATA_NAMES metadata_names;
 
-    snprintf(buf, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
-    hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
+    forests_info->hdf5_fp = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 
-    if (hdf5_file < 0) {
-        printf("can't open file `%s'\n", buf);
+    if (forests_info->hdf5_fp < 0) {
+        printf("can't open file `%s'\n", filename);
         ABORT(0);    
     }
 
@@ -50,47 +47,35 @@ void load_forest_table_hdf5(const int ThisTask, int filenr, int *nforests, int *
         ABORT(0);
     }
  
-    status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_NTrees, nforests);
+    status = read_attribute_int(forests_info->hdf5_fp, "/Header", metadata_names.name_NTrees, &nforests);
     if (status != EXIT_SUCCESS) {
-        fprintf(stderr, "Error while processing file %s\n", buf);
+        fprintf(stderr, "Error while processing file %s\n", filename);
         fprintf(stderr, "Error code is %d\n", status);
         ABORT(0);
     }
-    const int local_nforests = *nforests;
+    forests_info->nforests = nforests;
+
     
-    status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_totNHalos, &totNHalos);
+    status = read_attribute_int(forests_info->hdf5_fp, "/Header", metadata_names.name_totNHalos, &totNHalos);
     if (status != EXIT_SUCCESS) { 
-        fprintf(stderr, "Error while processing file %s\n", buf);
+        fprintf(stderr, "Error while processing file %s\n", filename);
         fprintf(stderr, "Error code is %d\n", status);
         ABORT(0);
     }
-    if(ThisTask == 0) {
-        printf("There are %d forests and %d total halos\n", local_nforests, totNHalos);
-    }
-
-  
-    *forestnhalos = mymalloc(sizeof(int) * local_nforests); 
-    int *local_forestnhalos = *forestnhalos;
     
-    status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_TreeNHalos, local_forestnhalos);
+    forests_info->totnhalos_per_forest = mycalloc(nforests, sizeof(int)); 
+    status = read_attribute_int(forests_info->hdf5_fp, "/Header", metadata_names.name_TreeNHalos, forests_info->totnhalos_per_forest);
     if (status != EXIT_SUCCESS) {
-        fprintf(stderr, "Error while processing file %s\n", buf);
+        fprintf(stderr, "Error while processing file %s\n", filename);
         fprintf(stderr, "Error code is %d\n", status);
         ABORT(0);
     }
-
-    if(ThisTask == 0) {
-        for (int i = 0; i < 20; ++i) {
-            printf("Forest %d: NHalos %d\n", i, local_forestnhalos[i]);
-        }
-    }
-
 }
 
 #define READ_TREE_PROPERTY(sage_name, hdf5_name, type_int, data_type)   \
     {                                                                   \
         snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", forestnr, #hdf5_name); \
-        status = read_dataset(dataset_name, type_int, buffer);          \
+        status = read_dataset(dataset_name, type_int, buffer, forests_info);         \
         if (status != EXIT_SUCCESS) {                                   \
             ABORT(0);                                                   \
         }                                                               \
@@ -102,7 +87,7 @@ void load_forest_table_hdf5(const int ThisTask, int filenr, int *nforests, int *
 #define READ_TREE_PROPERTY_MULTIPLEDIM(sage_name, hdf5_name, type_int, data_type) \
     {                                                                   \
         snprintf(dataset_name, MAX_STRING_LEN - 1, "tree_%03d/%s", forestnr, #hdf5_name); \
-        status = read_dataset(dataset_name, type_int, buffer_multipledim); \
+        status = read_dataset(dataset_name, type_int, buffer_multipledim, forests_info); \
         if (status != EXIT_SUCCESS) {                                   \
             ABORT(0);                                                   \
         }                                                               \
@@ -114,7 +99,7 @@ void load_forest_table_hdf5(const int ThisTask, int filenr, int *nforests, int *
     }                                                                   \
 
 
-void load_forest_hdf5(int32_t forestnr, const int32_t nhalos, struct halo_data **halos)
+void load_forest_hdf5(int32_t forestnr, const int32_t nhalos, struct halo_data **halos, struct forest_info *forests_info)
 {
 
     char dataset_name[MAX_STRING_LEN];
@@ -125,10 +110,10 @@ void load_forest_hdf5(int32_t forestnr, const int32_t nhalos, struct halo_data *
 
     double *buffer_multipledim; // However also need a buffer three times as large to hold data such as position/velocity.
 
-    if (hdf5_file <= 0) {
+    if (forests_info->hdf5_fp <= 0) {
         fprintf(stderr, "The HDF5 file should still be opened when reading the halos in the forest.\n");
         fprintf(stderr, "For forest %d we encountered error\n", forestnr);
-        H5Eprint(hdf5_file, stderr);
+        H5Eprint(forests_info->hdf5_fp, stderr);
         ABORT(0);
     }
 
@@ -191,43 +176,39 @@ void load_forest_hdf5(int32_t forestnr, const int32_t nhalos, struct halo_data *
 #undef READ_TREE_PROPERTY
 #undef READ_TREE_PROPERTY_MULTIPLEDIM
 
-void close_hdf5_file(void)
+void close_hdf5_file(struct forest_info *forests_info)
 {
 
-    H5Fclose(hdf5_file);
+    H5Fclose(forests_info->hdf5_fp);
 
 }
 
 /* Local Functions */
-int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
+static int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
 {
-
-    switch (my_TreeType)
-        {
-
-        case genesis_lhalo_hdf5: 
-  
-            snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "NTrees"); // Total number of forests within the file.
-            snprintf(metadata_names->name_totNHalos, MAX_STRING_LEN - 1, "totNHalos"); // Total number of halos within the file.
-            snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "TreeNHalos"); // Number of halos per forest within the file.
-            return EXIT_SUCCESS;
-
-        case lhalo_binary: 
-            fprintf(stderr, "If the file is binary then this function should never be called.  Something's gone wrong...");
-            return EXIT_FAILURE;
-
-        default:
-            fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
-            fprintf(stderr, "Please add it there.\n");
-            ABORT(EXIT_FAILURE);
-
-        }
+    switch (my_TreeType) {
+    case genesis_lhalo_hdf5: 
+        
+        snprintf(metadata_names->name_NTrees, MAX_STRING_LEN - 1, "NTrees"); // Total number of forests within the file.
+        snprintf(metadata_names->name_totNHalos, MAX_STRING_LEN - 1, "totNHalos"); // Total number of halos within the file.
+        snprintf(metadata_names->name_TreeNHalos, MAX_STRING_LEN - 1, "TreeNHalos"); // Number of halos per forest within the file.
+        return EXIT_SUCCESS;
+        
+    case lhalo_binary: 
+        fprintf(stderr, "If the file is binary then this function should never be called.  Something's gone wrong...");
+        return EXIT_FAILURE;
+        
+    default:
+        fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
+        fprintf(stderr, "Please add it there.\n");
+        ABORT(EXIT_FAILURE);
+        
+    }
 
     return EXIT_FAILURE;
-
 }
 
-int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute)
+static int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute)
 {
 
     int32_t status;
@@ -255,11 +236,11 @@ int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name,
     return EXIT_SUCCESS; 
 }
 
-int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer)
+static int32_t read_dataset(char *dataset_name, int32_t datatype, void *buffer, struct forest_info *forests_info)
 {
     hid_t dataset_id;
 
-    dataset_id = H5Dopen2(hdf5_file, dataset_name, H5P_DEFAULT);
+    dataset_id = H5Dopen2(forests_info->hdf5_fp, dataset_name, H5P_DEFAULT);
     if (dataset_id < 0) {
         fprintf(stderr, "Error encountered when trying to open up dataset %s\n", dataset_name); 
         H5Eprint(dataset_id, stderr);

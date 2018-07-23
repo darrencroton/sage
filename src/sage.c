@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 #include "sage.h"
@@ -14,7 +15,7 @@
 
 /* main sage -> not exposed externally */
 static void sage_per_file(const int ThisTask, const int filenr);
-static void sage_per_forest(const int filenr, const int treenr, int *TreeNHalos, int *TotGalaxies, int **TreeNgals, FILE **save_fd, int *interrupted);
+static void sage_per_forest(const int filenr, const int forestnr, const int nhalos, int *TotGalaxies, int **ForestNgals, FILE **save_fd, int *interrupted, struct forest_info *forests_info);
 
 void init_sage(const int ThisTask, const char *param_file)
 {
@@ -64,18 +65,26 @@ void finalize_sage(void)
 
 
 /* Main sage -> not exposed externally */ 
-void sage_per_file(const int ThisTask, const int filenr)
+static void sage_per_file(const int ThisTask, const int filenr)
 {
-    char buffer[4*MAX_STRING_LEN + 1];
-    snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
-    FILE *fd = fopen(buffer, "r");
+
+    struct forest_info forests_info = { 0 };
+
+    forests_info.nforests = 0;
+    forests_info.nsnapshots = 0;
+    forests_info.totnhalos_per_forest = NULL;
+    forests_info.nhalos_per_forest_per_snapshot = NULL;
+    snprintf(forests_info.filename, 4*MAX_STRING_LEN, "%s/%s.%d%s", run_params.SimulationDir, run_params.TreeName, filenr, run_params.TreeExtension);
+
+    FILE *fd = fopen(forests_info.filename, "r");
     if (fd == NULL) {
-        printf("-- missing tree %s ... skipping\n", buffer);
+        printf("-- missing tree %s ... skipping\n", forests_info.filename);
         return;
     } else {
         fclose(fd);
     }
-    
+
+    char buffer[4*MAX_STRING_LEN + 1];
     snprintf(buffer, 4*MAX_STRING_LEN, "%s/%s_z%1.3f_%d", run_params.OutputDir, run_params.FileNameGalaxies, run_params.ZZ[run_params.ListOutputSnaps[0]], filenr);
     struct stat filestatus;
 
@@ -89,14 +98,13 @@ void sage_per_file(const int ThisTask, const int filenr)
         fclose(fd);
     }
 
-    int Nforests = 0;
-    int *ForestNHalos = NULL;
     int TotGalaxies[ABSOLUTEMAXSNAPS] = { 0 };
-    int *ForestNgals[ABSOLUTEMAXSNAPS];
+    int *ForestNgals[ABSOLUTEMAXSNAPS] = { NULL };
     FILE* save_fd[ABSOLUTEMAXSNAPS] = { NULL };
     
-    load_forest_table(ThisTask, filenr, run_params.TreeType, &Nforests, &ForestNHalos);
-
+    load_forest_table(run_params.TreeType, &forests_info);
+    const int Nforests = forests_info.nforests;
+    
     /* allocate memory for the number of galaxies at each output snapshot */
     for(int n = 0; n < run_params.NOUT; n++) {
         /* using calloc removes the need to zero out the memory explicitly*/
@@ -116,19 +124,20 @@ void sage_per_file(const int ThisTask, const int filenr)
         if(ThisTask == 0) {
             my_progressbar(stderr, forestnr, &interrupted);
         }
-
+        const int nhalos = forests_info.totnhalos_per_forest[forestnr];
+        
         /* the millennium tree is really a collection of trees, viz., a forest */
-        sage_per_forest(filenr, forestnr, ForestNHalos, TotGalaxies, ForestNgals, save_fd, &interrupted);
+        sage_per_forest(filenr, forestnr, nhalos, TotGalaxies, ForestNgals, save_fd, &interrupted, &forests_info);
     }
     
     finalize_galaxy_file(Nforests, (const int *) TotGalaxies, (const int **) ForestNgals, save_fd);
-    free_forest_table(run_params.TreeType);
+    free_forest_table(run_params.TreeType, &forests_info);
 
     for(int n = 0; n < run_params.NOUT; n++) {
         myfree(ForestNgals[n]);
     }
-    myfree(ForestNHalos);
-
+    myfree(forests_info.totnhalos_per_forest);
+    
     if(ThisTask == 0) {
         finish_myprogressbar(stderr, &interrupted);
         fprintf(stdout, "\ndone file %d\n\n", filenr);
@@ -136,7 +145,8 @@ void sage_per_file(const int ThisTask, const int filenr)
 }
 
 
-void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, int *TotGalaxies, int **ForestNgals, FILE **save_fd, int *interrupted)
+static void sage_per_forest(const int filenr, const int forestnr, const int nhalos, int *TotGalaxies, int **ForestNgals, FILE **save_fd,
+                            int *interrupted, struct forest_info *forests_info)
 {
     (void) interrupted;
     
@@ -148,10 +158,31 @@ void sage_per_forest(const int filenr, const int forestnr, int *ForestNHalos, in
     
     /*  auxiliary halo data  */
     struct halo_aux_data  *HaloAux = NULL;
+    
     int nfofs_all_snaps[ABSOLUTEMAXSNAPS] = {0};
-    const int nhalos = ForestNHalos[forestnr];
-    int maxgals = load_forest(forestnr, nhalos, run_params.TreeType, &Halo, &HaloAux, &Gal, &HaloGal);
+    load_forest(forestnr, nhalos, run_params.TreeType, &Halo, forests_info);
 
+    /* re-arrange the halos into a locally horizontal vertical forest */
+    int32_t *file_ordering_of_halos=NULL;
+    int status = reorder_lhalo_to_lhvt(nhalos, Halo, 0, &file_ordering_of_halos);/* the 3rd parameter is for testing the reorder code */
+    if(status != EXIT_SUCCESS) {
+        ABORT(status);
+    }
+    
+    int maxgals = (int)(MAXGALFAC * nhalos);
+    if(maxgals < 10000) maxgals = 10000;
+
+    HaloAux = mycalloc(nhalos, sizeof(HaloAux[0]));
+    HaloGal = mycalloc(maxgals, sizeof(HaloGal[0]));
+    Gal = mycalloc(maxgals, sizeof(Gal[0]));/* used to be fof_maxgals instead of maxgals*/
+
+    for(int i = 0; i < nhalos; i++) {
+        HaloAux[i].orig_index = file_ordering_of_halos[i];
+    }
+    free(file_ordering_of_halos);
+    /* done with re-ordering the halos into a locally horizontal vertical tree format */
+    
+    
     /* getting the number of FOF halos at each snapshot */
     get_nfofs_all_snaps(Halo, nhalos, nfofs_all_snaps, ABSOLUTEMAXSNAPS);
     

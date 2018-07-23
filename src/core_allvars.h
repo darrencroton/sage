@@ -2,6 +2,8 @@
 #define ALLVARS_H
 
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include "macros.h"
 #include "core_simulation.h"
@@ -199,6 +201,20 @@ typedef enum {
     INTEGER_32BIT_TOO_SMALL,
     NULL_POINTER_FOUND,
 } sage_error_types;
+
+struct forest_info {
+    int32_t nforests;
+    int32_t nsnapshots;
+    int32_t *totnhalos_per_forest;
+    int32_t **nhalos_per_forest_per_snapshot;
+    union {
+        FILE *fp;
+#ifdef HDF5
+        hid_t hdf5_fp;
+#endif
+    };
+    char filename[4*MAX_STRING_LEN + 1];
+};
 
 
 struct params

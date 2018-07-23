@@ -186,6 +186,8 @@ enum Valid_TreeTypes
   lhalo_binary = 0,
   genesis_lhalo_hdf5 = 1,
   genesis_standard_hdf5 = 2,
+  consistent_trees_ascii = 3,
+  ahf_trees_ascii = 4,
   num_tree_types
 };
 

@@ -68,7 +68,8 @@ void finalize_sage(void)
 static void sage_per_file(const int ThisTask, const int filenr)
 {
 
-    struct forest_info forests_info = { 0 };
+    struct forest_info forests_info;
+    memset(&forests_info, 0, sizeof(struct forest_info));
 
     forests_info.nforests = 0;
     forests_info.nsnapshots = 0;

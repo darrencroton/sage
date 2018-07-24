@@ -13,6 +13,7 @@
 #include "core_io_tree.h"
 
 #include "io/read_tree_binary.h"
+#include "io/read_tree_consistentrees_ascii.h"
 #ifdef HDF5
 #include "io/read_tree_hdf5.h"
 #include "io/read_tree_genesis_standard_hdf5.h"
@@ -36,6 +37,10 @@ void load_forest_table(const enum Valid_TreeTypes my_TreeType, struct forest_inf
             load_forest_table_binary(forests_info);
             break;
 
+        case consistent_trees_ascii:
+            load_forest_table_ctrees(forests_info);
+            break;
+            
         default:
             fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
             fprintf(stderr, "Please add it there.\n");
@@ -63,6 +68,10 @@ void free_forest_table(enum Valid_TreeTypes my_TreeType, struct forest_info *for
         close_binary_file(forests_info);
         break;
         
+    case consistent_trees_ascii:
+        close_ctrees_file(forests_info);
+        break;
+
     default:
         fprintf(stderr, "Your tree type has not been included in the switch statement for function ``%s`` in file ``%s``.\n", __FUNCTION__, __FILE__);
         fprintf(stderr, "Please add it there.\n");
@@ -91,9 +100,13 @@ void load_forest(const int forestnr, const int nhalos, enum Valid_TreeTypes my_T
 #endif            
         
     case lhalo_binary:
-        load_forest_binary(nhalos, halos, forests_info);
+        load_forest_binary(forestnr, nhalos, halos, forests_info);
         break;
         
+    case consistent_trees_ascii:
+        load_forest_ctrees(forestnr, nhalos, halos, forests_info);
+        break;
+
     default:
         fprintf(stderr, "Your tree type has not been included in the switch statement for ``%s`` in ``%s``.\n",
                 __FUNCTION__, __FILE__);

@@ -26,6 +26,8 @@ extern "C" {
     extern size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream);
     extern size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream);
     extern int myfseek(FILE * stream, const long offset, const int whence);
+    extern ssize_t mypread(int fd, void *ptr, const size_t nbytes, off_t offset);
+    extern ssize_t mypwrite(int fd, const void *ptr, const size_t nbytes, off_t offset);
     
 #ifdef __cplusplus
 }

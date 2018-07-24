@@ -28,7 +28,12 @@
 #include <limits.h>
 #include <stdarg.h>
 
-#include "macros.h"
+/* for pread/pwrite */
+#include <sys/types.h>
+#include <unistd.h>
+
+
+#include "core_allvars.h"
 #include "core_utils.h"
 
 #ifdef __MACH__             // OS X does not have clock_gettime, use clock_get_time
@@ -130,6 +135,48 @@ size_t myfread(void *ptr, const size_t size, const size_t nmemb, FILE * stream)
 size_t myfwrite(const void *ptr, const size_t size, const size_t nmemb, FILE * stream)
 {
     return fwrite(ptr, size, nmemb, stream);
+}
+
+ssize_t mypread(int fd, void *ptr, const size_t nbytes, off_t offset)
+{
+    size_t nbytes_left = nbytes;
+    ssize_t tot_nbytes_read = 0;
+    while(nbytes_left > 0) {
+        char *buf = (char *) ptr;
+        ssize_t bytes_read = pread(fd, buf, nbytes, offset);
+        if(bytes_read > 0 ) {
+            nbytes_left -= bytes_read;
+            buf += bytes_read;
+            offset += bytes_read;
+            tot_nbytes_read += bytes_read;
+        } else {
+            perror(NULL);
+            ABORT(FILE_READ_ERROR);
+        }
+    }
+
+    return tot_nbytes_read;
+}
+
+ssize_t mypwrite(int fd, const void *ptr, const size_t nbytes, off_t offset)
+{
+    size_t nbytes_left = nbytes;
+    ssize_t tot_nbytes_written = 0;
+    while(nbytes_left > 0) {
+        char *buf = (char *) ptr;
+        ssize_t bytes_written = pwrite(fd, buf, nbytes, offset);
+        if(bytes_written > 0 ) {
+            nbytes_left -= bytes_written;
+            buf += bytes_written;
+            offset += bytes_written;
+            tot_nbytes_written += bytes_written;
+        } else {
+            perror(NULL);
+            ABORT(FILE_WRITE_ERROR);
+        }
+    }
+
+    return tot_nbytes_written;
 }
 
 int myfseek(FILE * stream, const long offset, const int whence)

@@ -1,6 +1,9 @@
 #ifndef ALLVARS_H
 #define ALLVARS_H
 
+/* define off_t as a 64-bit long integer */
+#define _FILE_OFFSET_BITS 64
+
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -202,15 +205,19 @@ typedef enum {
     INVALID_PTR_REALLOC_REQ,
     INTEGER_32BIT_TOO_SMALL,
     NULL_POINTER_FOUND,
+    FILE_READ_ERROR,
+    FILE_WRITE_ERROR,
 } sage_error_types;
 
 struct forest_info {
     int32_t nforests;
     int32_t nsnapshots;
     int32_t *totnhalos_per_forest;
+    off_t *bytes_offset_for_forest;
     int32_t **nhalos_per_forest_per_snapshot;
     union {
         FILE *fp;
+        int fd;
 #ifdef HDF5
         hid_t hdf5_fp;
 #endif

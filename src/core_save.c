@@ -30,14 +30,12 @@ void initialize_galaxy_files(const int filenr, const int ntrees, FILE **save_fd)
         }
         
         // write out placeholders for the header data.
-        size_t size = (ntrees + 2)*sizeof(int); /* Extra two inegers are for saving the total number of trees and total number of galaxies in this file */
-        int* tmp_buf = (int*)malloc( size );
+        int* tmp_buf = calloc(ntrees + 2, sizeof(int32_t));
         if (tmp_buf == NULL) {
             fprintf(stderr, "Error: Could not allocate memory for header information for file %d\n", n);
-            ABORT(10);
+            ABORT(MALLOC_FAILURE);
         }
         
-        memset( tmp_buf, 0, size );
         int nwritten = fwrite( tmp_buf, sizeof(int), ntrees + 2, save_fd[n] );
         if (nwritten != ntrees + 2) {
             fprintf(stderr, "Error: Failed to write out %d elements for header information for file %d. "
@@ -52,23 +50,25 @@ void initialize_galaxy_files(const int filenr, const int ntrees, FILE **save_fd)
 void save_galaxies(const int filenr, const int tree, const int numgals, struct halo_data *halos,
                    struct halo_aux_data *haloaux, struct GALAXY *halogal, int **treengals, int *totgalaxies, FILE **save_fd)
 {
-    struct GALAXY_OUTPUT galaxy_output;
-    memset(&galaxy_output, 0, sizeof(struct GALAXY_OUTPUT));
     int OutputGalCount[run_params.MAXSNAPS];
+    memset(OutputGalCount, 0, sizeof(int32_t)*run_params.MAXSNAPS);
     
-    int *OutputGalOrder = (int*)malloc( numgals*sizeof(*OutputGalOrder) );
+    int *OutputGalOrder = calloc(numgals, sizeof(OutputGalOrder[0]));
     if(OutputGalOrder == NULL) {
         fprintf(stderr,"Error: Could not allocate memory for %d int elements in array `OutputGalOrder`\n", numgals);
-        ABORT(10);
+        ABORT(MALLOC_FAILURE);
     }
 
     // reset the output galaxy count and order
+    int cumul_output_ngal[run_params.MAXSNAPS];
     for(int i = 0; i < run_params.MAXSNAPS; i++) {
         OutputGalCount[i] = 0;
+        cumul_output_ngal[i] = 0;
     }
 
     for(int i = 0; i < numgals; i++) {
         OutputGalOrder[i] = -1;
+        haloaux[i].output_snap_n = -1;
     }
   
     // first update mergeIntoID to point to the correct galaxy in the output
@@ -77,38 +77,54 @@ void save_galaxies(const int filenr, const int tree, const int numgals, struct h
             if(halogal[i].SnapNum == run_params.ListOutputSnaps[n]) {
                 OutputGalOrder[i] = OutputGalCount[n];
                 OutputGalCount[n]++;
+                haloaux[i].output_snap_n = n;
             }
         }
     }
-  
+
+    int num_output_gals = 0;
+    int num_gals_processed[run_params.MAXSNAPS];
+    memset(num_gals_processed, 0, sizeof(num_gals_processed[0])*run_params.MAXSNAPS);
+    for(int n = 0; n < run_params.NOUT; n++) {
+        cumul_output_ngal[n] = num_output_gals;
+        num_output_gals += OutputGalCount[n];
+    }
+    
     for(int i = 0; i < numgals; i++) {
         if(halogal[i].mergeIntoID > -1) {
             halogal[i].mergeIntoID = OutputGalOrder[halogal[i].mergeIntoID];
         }
     }
-  
-    // now prepare and write galaxies
-    for(int n = 0; n < run_params.NOUT; n++) {
-        assert(save_fd[n] && "output file ptr must be non-NULL");
-        for(int i = 0; i < numgals; i++) {
-            if(halogal[i].SnapNum == run_params.ListOutputSnaps[n]) {
-                prepare_galaxy_for_output(filenr, tree, &halogal[i], &galaxy_output, halos, haloaux, halogal);
-   
-                int nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-                if (nwritten != 1) {
-                    fprintf(stderr, "Error: Failed to write out the galaxy struct for galaxy %d within file %d. "
-                            " Meant to write 1 element but only wrote %d elements.\n", i, n, nwritten); 
-                }
-          
-                totgalaxies[n]++;
-                treengals[n][tree]++;	      
-            }
+
+    struct GALAXY_OUTPUT *all_outputgals  = calloc(num_output_gals, sizeof(struct GALAXY_OUTPUT));
+    if(all_outputgals == NULL) {
+        fprintf(stderr,"Error: Could not allocate enough memory to hold all %d output galaxies\n",num_output_gals);
+        ABORT(MALLOC_FAILURE);
+    }
+
+    for(int i = 0; i < numgals; i++) {
+        if(haloaux[i].output_snap_n < 0) continue;
+        int n = haloaux[i].output_snap_n;
+        struct GALAXY_OUTPUT *galaxy_output = all_outputgals + cumul_output_ngal[n] + num_gals_processed[n];
+        prepare_galaxy_for_output(filenr, tree, &halogal[i], galaxy_output, halos, haloaux, halogal);
+        num_gals_processed[n]++;
+        totgalaxies[n]++;
+        treengals[n][tree]++;	      
+    }    
+
+    /* now write galaxies */
+    for(int n=0;n<run_params.NOUT;n++) {
+        struct GALAXY_OUTPUT *galaxy_output = all_outputgals + cumul_output_ngal[n];
+        int nwritten = myfwrite(galaxy_output, sizeof(struct GALAXY_OUTPUT), OutputGalCount[n], save_fd[n]);
+        if (nwritten != OutputGalCount[n]) {
+            fprintf(stderr, "Error: Failed to write out the galaxy struct for galaxies within file %d. "
+                    " Meant to write %d elements but only wrote %d elements.\n", n, OutputGalCount[n], nwritten);
         }
     }
 
     // don't forget to free the workspace.
     free( OutputGalOrder );
-
+    free(all_outputgals);
 }
 
 
@@ -190,7 +206,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->SfrDiskZ = 0.0;
     o->SfrBulgeZ = 0.0;
   
-    // NOTE: in Msun/yr 
+    // NOTE: in Msun/yr
     for(int step = 0; step < STEPS; step++) {
         o->SfrDisk += g->SfrDisk[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
         o->SfrBulge += g->SfrBulge[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;

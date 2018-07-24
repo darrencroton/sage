@@ -165,7 +165,7 @@ struct halo_aux_data
     int NGalaxies;
     int FirstGalaxy;
     int orig_index;
-    int padding;/*might as well explicitly include the padding */
+    int output_snap_n;
 };
 
 #if 0

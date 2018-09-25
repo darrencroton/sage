@@ -104,6 +104,10 @@ void read_parameter_file(const int ThisTask, const char *fname)
     ParamAddr[NParam] = &(run_params.SFprescription);
     ParamID[NParam++] = INT;
 
+    strcpy(ParamTag[NParam], "H2prescription");
+    ParamAddr[NParam] = &(run_params.H2prescription);
+    ParamID[NParam++] = INT;
+
     strcpy(ParamTag[NParam], "AGNrecipeOn");
     ParamAddr[NParam] = &(run_params.AGNrecipeOn);
     ParamID[NParam++] = INT;
@@ -144,6 +148,14 @@ void read_parameter_file(const int ThisTask, const char *fname)
     ParamAddr[NParam] = &(run_params.SfrEfficiency);
     ParamID[NParam++] = DOUBLE;
     
+    strcpy(ParamTag[NParam], "H2ClumpFactor");
+    ParamAddr[NParam] = &(run_params.H2ClumpFactor);
+    ParamID[NParam++] = DOUBLE;
+
+    strcpy(ParamTag[NParam], "H2ClumpExp");
+    ParamAddr[NParam] = &(run_params.H2ClumpExp);
+    ParamID[NParam++] = DOUBLE;
+
     strcpy(ParamTag[NParam], "FeedbackReheatingEpsilon");
     ParamAddr[NParam] = &(run_params.FeedbackReheatingEpsilon);
     ParamID[NParam++] = DOUBLE;

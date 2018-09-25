@@ -187,6 +187,10 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->VelDisp = halos[g->HaloNr].VelDisp;
 
     o->ColdGas = g->ColdGas;
+    o->f_H2 = g->f_H2;
+    o->f_HI = g->f_HI;
+    o->cf = g->cf;
+    o->Zp = g->Zp;
     o->StellarMass = g->StellarMass;
     o->BulgeMass = g->BulgeMass;
     o->HotGas = g->HotGas;

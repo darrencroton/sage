@@ -48,6 +48,10 @@ struct GALAXY_OUTPUT
 
   /* baryonic reservoirs */
   float ColdGas;
+  float f_H2;
+  float f_HI;
+  float cf;
+  float Zp;
   float StellarMass;
   float BulgeMass;
   float HotGas;
@@ -114,6 +118,10 @@ struct GALAXY
 
   /* baryonic reservoirs */
   float ColdGas;
+  float f_H2;
+  float f_HI;
+  float cf;
+  float Zp;
   float StellarMass;
   float BulgeMass;
   float HotGas;
@@ -253,6 +261,7 @@ struct params
     int    DiskInstabilityOn;
     int    AGNrecipeOn;
     int    SFprescription;
+    int    H2prescription;
     
     double RecycleFraction;
     double Yield;
@@ -261,6 +270,8 @@ struct params
     double ThreshMajorMerger;
     double BaryonFrac;
     double SfrEfficiency;
+    double H2ClumpFactor;
+    double H2ClumpExp;
     double FeedbackReheatingEpsilon;
     double FeedbackEjectionEfficiency;
     double RadioModeEfficiency;

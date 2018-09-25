@@ -162,14 +162,20 @@ void add_galaxies_together(const int t, const int p, struct GALAXY *galaxies)
 
     galaxies[t].BlackHoleMass += galaxies[p].BlackHoleMass;
 
-    // add merger to bulge
-    galaxies[t].BulgeMass += galaxies[p].StellarMass;
-    galaxies[t].MetalsBulgeMass += galaxies[p].MetalsStellarMass;		
+    // DON'T add merger to bulge
+    // galaxies[t].BulgeMass += galaxies[p].StellarMass;
+    // galaxies[t].MetalsBulgeMass += galaxies[p].MetalsStellarMass;		
 
     for(int step = 0; step < STEPS; step++) {
+	// add everything to bulge
         galaxies[t].SfrBulge[step] += galaxies[p].SfrDisk[step] + galaxies[p].SfrBulge[step];
         galaxies[t].SfrBulgeColdGas[step] += galaxies[p].SfrDiskColdGas[step] + galaxies[p].SfrBulgeColdGas[step];
-        galaxies[t].SfrBulgeColdGasMetals[step] += galaxies[p].SfrDiskColdGasMetals[step] + galaxies[p].SfrBulgeColdGasMetals[step];
+        galaxies[t].SfrBulgeColdGasMetals[step] += galaxies[p].SfrDiskColdGasMetals[step] + galaxies[p].SfrBulgeColdGasMetals[step];	
+
+	// if you want to add everything to disk instead of bulge
+        // galaxies[t].SfrDisk[step] += galaxies[p].SfrDisk[step] + galaxies[p].SfrBulge[step];
+        // galaxies[t].SfrDiskColdGas[step] += galaxies[p].SfrDiskColdGas[step] + galaxies[p].SfrBulgeColdGas[step];
+        // galaxies[t].SfrDiskColdGasMetals[step] += galaxies[p].SfrDiskColdGasMetals[step] + galaxies[p].SfrBulgeColdGasMetals[step];
     }
 }
 
@@ -248,10 +254,15 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
         ejected_mass = 0.0;
     }
 
-    // starbursts add to the bulge
+    // add starbursts add to the bulge
     galaxies[merger_centralgal].SfrBulge[step] += stars / dt;
     galaxies[merger_centralgal].SfrBulgeColdGas[step] += galaxies[merger_centralgal].ColdGas;
     galaxies[merger_centralgal].SfrBulgeColdGasMetals[step] += galaxies[merger_centralgal].MetalsColdGas;
+
+    // if you want to add starburst to the disk instead
+    // galaxies[merger_centralgal].SfrDisk[step] += stars / dt;
+    // galaxies[merger_centralgal].SfrDiskColdGas[step] += galaxies[merger_centralgal].ColdGas;
+    // galaxies[merger_centralgal].SfrDiskColdGasMetals[step] += galaxies[merger_centralgal].MetalsColdGas;
 
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
     update_from_star_formation(merger_centralgal, stars, metallicity, galaxies);
@@ -259,7 +270,10 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
     galaxies[merger_centralgal].BulgeMass += (1 - run_params.RecycleFraction) * stars;
     galaxies[merger_centralgal].MetalsBulgeMass += metallicity * (1 - run_params.RecycleFraction) * stars;
 
-    // recompute the metallicity of the cold phase
+    // galaxies[merger_centralgal].StellarMass += (1 - run_params.RecycleFraction) * stars;
+    // galaxies[merger_centralgal].MetalsStellarMass += metallicity * (1 - run_params.RecycleFraction) * stars;
+   
+ // recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
 
     // update from feedback 

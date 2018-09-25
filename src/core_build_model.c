@@ -375,6 +375,12 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
             galaxies[centralgal].TotalSatelliteBaryons +=
                 (galaxies[p].StellarMass + galaxies[p].BlackHoleMass + galaxies[p].ColdGas + galaxies[p].HotGas);
         }
+	
+	if(galaxies[p].Mvir > 0 && galaxies[p].Rvir > 0)
+	{
+		if(galaxies[p].Type==0) 
+		{update_H2_HI;}
+	}
     }
 
 

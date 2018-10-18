@@ -1,0 +1,64 @@
+language: c
+sudo: required
+
+notifications:
+  email:
+    recipients:
+      - manodeep@gmail.com
+    on_success: change
+    on_failure: always
+
+matrix:
+  fast_finish: true
+
+  include:
+    - os: osx
+      osx_image: xcode8
+      compiler: gcc
+      env: COMPILER=gcc PYTHON_VERSION=2.7
+      before_install:
+        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+
+    - os: osx
+      osx_image: xcode9.3
+      compiler: clang
+      env: COMPILER=clang FAMILY=clang V='Apple LLVM 7.0.0' PYTHON_VERSION=3.6
+      before_install:
+        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+        
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+      env: COMPILER=gcc PYTHON_VERSION=2.7
+      before_install:
+        - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+        
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+      env: COMPILER=gcc PYTHON_VERSION=3.6
+      before_install:
+        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+
+install:
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - conda create -q --yes -n test python=$PYTHON_VERSION tqdm numpy nomkl
+  - source activate test
+  - conda install -q --yes -c anaconda gsl
+  - conda install -q --yes -c conda-forge hdf5
+
+before_script:
+  - cd src/auxdata/trees/mini-millennium
+  - wget https://data-portal.hpc.swin.edu.au/dataset/7bab038b-1d1f-4e79-8cfc-ea171dd1492f/resource/7ff28a50-c401-4a07-9041-13524cbac5c9/download/mini-millennium.tar
+  - tar xvf mini-millennium.tar && cd ../../../../
+
+script:
+  - make -r CC=$COMPILER
+  - make tests
+  
+
+
+  

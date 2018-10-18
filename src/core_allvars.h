@@ -52,6 +52,7 @@ struct GALAXY_OUTPUT
   float f_HI;
   float cf;
   float Zp;
+  float Pressure;
   float StellarMass;
   float BulgeMass;
   float HotGas;
@@ -122,6 +123,7 @@ struct GALAXY
   float f_HI;
   float cf;
   float Zp;
+  float Pressure;
   float StellarMass;
   float BulgeMass;
   float HotGas;
@@ -272,6 +274,7 @@ struct params
     double SfrEfficiency;
     double H2ClumpFactor;
     double H2ClumpExp;
+    double H2Exp;
     double FeedbackReheatingEpsilon;
     double FeedbackEjectionEfficiency;
     double RadioModeEfficiency;

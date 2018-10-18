@@ -159,6 +159,10 @@ void read_parameter_file(const int ThisTask, const char *fname)
     strcpy(ParamTag[NParam], "FeedbackReheatingEpsilon");
     ParamAddr[NParam] = &(run_params.FeedbackReheatingEpsilon);
     ParamID[NParam++] = DOUBLE;
+
+    strcpy(ParamTag[NParam], "H2Exp");
+    ParamAddr[NParam] = &(run_params.H2Exp);
+    ParamID[NParam++] = DOUBLE;
     
     strcpy(ParamTag[NParam], "FeedbackEjectionEfficiency");
     ParamAddr[NParam] = &(run_params.FeedbackEjectionEfficiency);

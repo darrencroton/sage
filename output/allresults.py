@@ -231,7 +231,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int(np.floor((ma - mi) / binwidth))
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -381,7 +381,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int(np.floor((ma - mi) / binwidth))
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -447,7 +447,7 @@ class Results:
         sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / self.Hubble_h)
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int(np.floor((ma - mi) / binwidth))
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -1097,7 +1097,7 @@ class Results:
         mi = -0.02
         ma = 0.5
         binwidth = 0.01
-        NB = (ma - mi) / binwidth
+        NB = int(np.floor((ma - mi) / binwidth))
 
         (counts, binedges) = np.histogram(SpinParameter, range=(mi, ma), bins=NB)
         xaxeshisto = binedges[:-1] + 0.5 * binwidth
@@ -1133,7 +1133,7 @@ class Results:
         mi = -40.0
         ma = 40.0
         binwidth = 0.5
-        NB = (ma - mi) / binwidth
+        NB = int(np.floor((ma - mi) / binwidth))
 
         # set up figure
         plt.figure()

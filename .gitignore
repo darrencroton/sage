@@ -3,3 +3,6 @@ src/auxdata/trees/*
 *.o
 *.*~
 libsage.a
+*.png
+*.ipynb*
+*.DS_Store*

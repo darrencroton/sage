@@ -13,7 +13,7 @@
 
 void starformation_and_feedback(const int p, const int centralgal, const double time, const double dt, const int halonr, const int step, struct GALAXY *galaxies)
 {
-    double reff, tdyn, strdot, stars, ejected_mass, fac, metallicity;
+    double reff, tdyn, strdot, stars, ejected_mass, fac, metallicity, DTG;
     double cold_crit;
     double area, sigma, sigma_crit, sfr_ff;
   
@@ -114,36 +114,53 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     galaxies[p].SfrDiskColdGas[step] = galaxies[p].ColdGas;
     galaxies[p].SfrDiskColdGasMetals[step] = galaxies[p].MetalsColdGas;
 
+    // update new variables
+    galaxies[p].Sfr[galaxies[p].SnapNum] += stars / dt / STEPS;
+    //galaxies[p].Sfr[galaxies[p].SnapNum] += stars ;
+    
     // update for star formation 
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    update_from_star_formation(p, stars, metallicity, galaxies);
+    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].Dust);
+    update_from_star_formation(p, stars, metallicity, DTG, galaxies);
 
     // recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
+    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].Dust);
 
     // update from SN feedback 
-    update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity, galaxies);
+    update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity, DTG, galaxies);
 
     // check for disk instability
     if(run_params.DiskInstabilityOn) {
         check_disk_instability(p, centralgal, halonr, time, dt, step, galaxies);
     }
 
+    if(run_params.MetalYieldsOn == 0)
+    {
     // formation of new metals - instantaneous recycling approximation - only SNII 
     if(galaxies[p].ColdGas > 1.0e-8) {
         const double FracZleaveDiskVal = run_params.FracZleaveDisk * exp(-1.0 * galaxies[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
         galaxies[p].MetalsColdGas += run_params.Yield * (1.0 - FracZleaveDiskVal) * stars;
         galaxies[centralgal].MetalsHotGas += run_params.Yield * FracZleaveDiskVal * stars;
         // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * FracZleaveDiskVal * stars;
+
     } else {
         galaxies[centralgal].MetalsHotGas += run_params.Yield * stars;
         // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * stars;
+      }
     }
+    else if(run_params.MetalYieldsOn == 1)
+    {
+    // formation of new metals - self consistent yields - AGB, SNII, and SNIa
+    metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
+    produce_metals_dust(metallicity, dt, p, centralgal, galaxies);
+    }
+
 }
 
 
 
-void update_from_star_formation(const int p, const double stars, const double metallicity, struct GALAXY *galaxies)
+void update_from_star_formation(const int p, const double stars, const double metallicity, const double DTG, struct GALAXY *galaxies)
 {
     const double RecycleFraction = run_params.RecycleFraction;
     // update gas and metals from star formation 
@@ -151,17 +168,19 @@ void update_from_star_formation(const int p, const double stars, const double me
     galaxies[p].MetalsColdGas -= metallicity * (1 - RecycleFraction) * stars;
     galaxies[p].StellarMass += (1 - RecycleFraction) * stars;
     galaxies[p].MetalsStellarMass += metallicity * (1 - RecycleFraction) * stars;
+    galaxies[p].Dust -= DTG * (1 - RecycleFraction) * stars;
 }
 
 
 
-void update_from_feedback(const int p, const int centralgal, const double reheated_mass, double ejected_mass, const double metallicity, struct GALAXY *galaxies)
+void update_from_feedback(const int p, const int centralgal, const double reheated_mass, double ejected_mass, const double metallicity, const double DTG,  struct GALAXY *galaxies)
 {
 	assert(!(reheated_mass > galaxies[p].ColdGas && reheated_mass > 0.0));
 
     if(run_params.SupernovaRecipeOn == 1) {
         galaxies[p].ColdGas -= reheated_mass;
         galaxies[p].MetalsColdGas -= metallicity * reheated_mass;
+	galaxies[p].Dust -= DTG * reheated_mass;
         galaxies[centralgal].HotGas += reheated_mass;
         galaxies[centralgal].MetalsHotGas += metallicity * reheated_mass;
         
@@ -217,7 +236,7 @@ void update_H2_HI(const int p, struct GALAXY *galaxies)
 			chi = 3.1 * (1 + 3.1 * pow(Zp, 0.365)) / 4.1;
 			s = log(1 + 0.6*chi + 0.01*chi*chi) / (0.6*Tau_c);
 
-			if(s<2)
+			if(s<5)
 			{
 				galaxies[p].f_H2 = 1.0 - 0.75*s/(1 + 0.25*s); //This is H2/(H2+HI)
 				f_H2_HI = 1.0 / (1.0/galaxies[p].f_H2 - 1.0);
@@ -247,7 +266,7 @@ void update_H2_HI(const int p, struct GALAXY *galaxies)
 
 		if(f_H2_HI > 0.0)
 		{
-			assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
+			//assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
 			galaxies[p].f_H2 = 0.75 * 1.0/(1.0/f_H2_HI + 1) * (1 - galaxies[p].MetalsColdGas/galaxies[p].ColdGas) / 1.3; //This is H2/ColdGas
 			galaxies[p].f_HI = galaxies[p].f_H2/f_H2_HI;
 		}

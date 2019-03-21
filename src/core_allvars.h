@@ -67,12 +67,16 @@ struct GALAXY_OUTPUT
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
+  float Dust;
 
   /* to calculate magnitudes */
   float SfrDisk;
   float SfrBulge;
   float SfrDiskZ;
   float SfrBulgeZ;
+
+  /* to calculate metal */
+  float Sfr[64];
   
   /* misc */
   float DiskScaleRadius;
@@ -138,6 +142,7 @@ struct GALAXY
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
+  float Dust;
 
   /* to calculate magnitudes */
   float SfrDisk[STEPS];
@@ -146,6 +151,9 @@ struct GALAXY
   float SfrDiskColdGasMetals[STEPS];
   float SfrBulgeColdGas[STEPS];
   float SfrBulgeColdGasMetals[STEPS];
+
+  /* to calculate metal */
+  float Sfr[64];
 
   /* misc */
   float DiskScaleRadius;
@@ -264,9 +272,14 @@ struct params
     int    AGNrecipeOn;
     int    SFprescription;
     int    H2prescription;
-    
+    int    MetalYieldsOn;
+    int    AGBYields; 
+    int    SNIIYields;
+    int    SNIaYields;
+   
     double RecycleFraction;
     double Yield;
+    double BinaryFraction;
     double FracZleaveDisk;
     double ReIncorporationFactor;
     double ThreshMajorMerger;
@@ -283,6 +296,27 @@ struct params
     double Reionization_z0;
     double Reionization_zr;
     double ThresholdSatDisruption;
+
+    double Qagb[100][7];
+    double Qsn[100][7];
+//    double Qsnia;
+    double qCagb[100][7];
+    double qNagb[100][7];
+    double qOagb[100][7];
+    double qCsn[100][7];
+    double qOsn[100][7];
+    double qMgsn[100][7];
+    double qSisn[100][7];
+    double qSsn[100][7];
+    double qCasn[100][7];
+    double qFesn[100][7];
+    double qCrsnia;
+    double qFesnia;
+    double qNisnia;
+    double magb[100];
+    double msn[100];
+    int countagb;
+    int countsn;
 
     double UnitLength_in_cm;
     double UnitVelocity_in_cm_per_s;
@@ -309,6 +343,7 @@ struct params
     double ZZ[ABSOLUTEMAXSNAPS];
     double AA[ABSOLUTEMAXSNAPS];
     double *Age;
+    double lbtime[ABSOLUTEMAXSNAPS];
 };
 extern struct params run_params;
 

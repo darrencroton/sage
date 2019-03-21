@@ -205,6 +205,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->MetalsHotGas = g->MetalsHotGas;
     o->MetalsEjectedMass = g->MetalsEjectedMass;
     o->MetalsICS = g->MetalsICS;
+    o->Dust = g->Dust;
   
     o->SfrDisk = 0.0;
     o->SfrBulge = 0.0;
@@ -224,6 +225,10 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
             o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
         }
     }
+    
+   for(int snap = 0; snap < 64; snap++) {
+	o->Sfr[snap] = g->Sfr[snap] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+   }
 
     o->DiskScaleRadius = g->DiskScaleRadius;
 

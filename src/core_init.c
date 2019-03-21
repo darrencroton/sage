@@ -15,13 +15,19 @@
 #include "core_init.h"
 #include "core_mymalloc.h"
 #include "core_cool_func.h"
-
+//#include "core_metal_yield.h"
 
 /* These functions do not need to be exposed externally */
 double integrand_time_to_present(const double a, void *param);
 void set_units(void);
 void read_snap_list(const int ThisTask);
 double time_to_present(const double z);
+struct table{
+        double tbl[1000][17];
+        int nr;
+};
+struct table read_table(char *fname, int ncols);
+void read_metal_yield();
 
 #ifdef HDF5
 #include "io/io_save_hdf5.h"
@@ -43,6 +49,7 @@ void init(const int ThisTask)
     for(int i = 0; i < run_params.Snaplistlen; i++) {
         run_params.ZZ[i] = 1 / run_params.AA[i] - 1;
         run_params.Age[i] = time_to_present(run_params.ZZ[i]);
+	run_params.lbtime[i] = (run_params.Age[0] - run_params.Age[i]) * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR;
     }
 
     run_params.a0 = 1.0 / (1.0 + run_params.Reionization_z0);
@@ -50,7 +57,12 @@ void init(const int ThisTask)
 
     read_cooling_functions();
     if(ThisTask == 0) {
-        printf("cooling functions read\n\n");
+        printf("cooling functions read\n");
+    }
+
+    read_metal_yield();
+    if(ThisTask == 0){
+	printf("metal yields read\n\n");
     }
 
 #if 0    
@@ -165,5 +177,127 @@ double integrand_time_to_present(const double a, void *param)
     return 1.0 / sqrt(run_params.Omega / a + (1.0 - run_params.Omega - run_params.OmegaLambda) + run_params.OmegaLambda * a * a);
 }
 
+void read_metal_yield(void)
+{
+        char fname[MAX_STRING_LEN];
+	int cols=0;
+	int i, j, rows;
+        double Z_std[7] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
 
+	/* READ AGB YIELD */
+	if (run_params.AGBYields == 0)
+	{
+		strcpy(fname, "src/auxdata/yields/table2d.dat");
+		cols = 13;
+	}
+
+        struct table data;
+        data = read_table(fname, cols);
+        rows = data.nr;
+	double Z[rows];
+        
+        //count how many rows necessary for each column based on Z
+        int count = 0;
+        for (i=0; i<rows; i++)
+        {       
+                Z[i] = data.tbl[i][0];
+                if (Z[i] == Z_std[0]) {
+                        count++;}
+        }
+        
+        //now assign
+	run_params.countagb = count;
+        
+        for (j=0; j<7; j++){
+                int index = 0;
+                for (i=0; i<rows; i++){
+                        if (Z[i] == Z_std[j])
+                        {       
+                                run_params.magb[index] = data.tbl[i][1];
+                                run_params.qCagb[index][j] = data.tbl[i][6] + data.tbl[i][7] + data.tbl[i][11];
+                                run_params.qNagb[index][j] = data.tbl[i][8] + data.tbl[i][12];
+                                run_params.qOagb[index][j] = data.tbl[i][9];
+                                run_params.Qagb[index][j] = run_params.qCagb[index][j] + run_params.qNagb[index][j] + run_params.qOagb[index][j];              
+                                index++;
+                        }
+                }
+        }
+
+	/* READ SN II YIELD */
+	if (run_params.SNIIYields == 0)
+        {
+                strcpy(fname, "src/auxdata/yields/table4a.dat");
+                cols = 17;
+        }
+	
+	data = read_table(fname, cols);
+	rows = data.nr;
+	count = 0; 
+        for (i=0; i<rows; i++)
+        {
+                Z[i] = data.tbl[i][0];
+                if (Z[i] == Z_std[0]) {
+                        count++;}
+        }
+
+	run_params.countsn = count;
+
+        for (j=0; j<7; j++){
+                int index = 0;
+                for (i=0; i<rows; i++){
+                        if (Z[i] == Z_std[j])
+                        {
+                                run_params.msn[index] = data.tbl[i][1];
+                                run_params.qCsn[index][j] = data.tbl[i][6] + data.tbl[i][15];
+                                run_params.qOsn[index][j] = data.tbl[i][7];
+                                run_params.qMgsn[index][j] = data.tbl[i][9];
+                                run_params.qSisn[index][j] = data.tbl[i][10];
+                                run_params.qSsn[index][j] = data.tbl[i][11];
+                                run_params.qCasn[index][j] = data.tbl[i][12];
+                                run_params.qFesn[index][j] = data.tbl[i][13];
+                                run_params.Qsn[index][j] = run_params.qCsn[index][j] + run_params.qOsn[index][j] + run_params.qMgsn[index][j] + run_params.qSisn[index][j] + run_params.qSsn[index][j] + run_params.qCasn[index][j] + run_params.qFesn[index][j];
+				index++;
+                        }
+                }
+        }
+
+        /* SNIa YIELD */
+	if (run_params.SNIaYields == 0)
+	{
+		run_params.qCrsnia = 0.0168;
+		run_params.qFesnia = 0.587;
+		run_params.qNisnia = 0.0314;
+	}
+	//run_params.Qsnia = qCrsnia + qFesnia + qNisnia;
+}
+
+struct table read_table(char *fname, int ncols)
+{
+        int i, j;
+        struct table dt;
+        FILE *file;
+
+        file = fopen(fname,"r");
+        fscanf(file, "%*[^\n]"); //skips the first line
+
+        //start reading the file
+        i=0;
+        while (!feof(file)) //while it is not at the end of the file
+    {
+        for (j=0; j<ncols; j++)
+        {
+            fscanf(file, " %lf", &dt.tbl[i][j]); //notice the space char in front of %lf to handle any number of spaces as delimiter
+        }
+
+        fscanf(file,"%*[^\n]"); //ignore the rest of the line (if ncols is less than the file's column size), and go to the next line
+        i++;
+    }
+
+        fclose(file);
+
+        //store number of rows
+        dt.nr = i-1; //i is at the line AFTER the last line, so it's must be subtracted by 1
+
+    return dt;
+}
 

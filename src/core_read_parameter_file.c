@@ -112,6 +112,22 @@ void read_parameter_file(const int ThisTask, const char *fname)
     ParamAddr[NParam] = &(run_params.AGNrecipeOn);
     ParamID[NParam++] = INT;
 
+    strcpy(ParamTag[NParam], "MetalYieldsOn");
+    ParamAddr[NParam] = &(run_params.MetalYieldsOn);
+    ParamID[NParam++] = INT;
+
+    strcpy(ParamTag[NParam], "AGBYields");
+    ParamAddr[NParam] = &(run_params.AGBYields);
+    ParamID[NParam++] = INT;
+
+    strcpy(ParamTag[NParam], "SNIIYields");
+    ParamAddr[NParam] = &(run_params.SNIIYields);
+    ParamID[NParam++] = INT;
+
+    strcpy(ParamTag[NParam], "SNIaYields");
+    ParamAddr[NParam] = &(run_params.SNIaYields);
+    ParamID[NParam++] = INT;
+
     strcpy(ParamTag[NParam], "BaryonFrac");
     ParamAddr[NParam] = &(run_params.BaryonFrac);
     ParamID[NParam++] = DOUBLE;
@@ -138,6 +154,10 @@ void read_parameter_file(const int ThisTask, const char *fname)
 
     strcpy(ParamTag[NParam], "Yield");
     ParamAddr[NParam] = &(run_params.Yield);
+    ParamID[NParam++] = DOUBLE;
+
+    strcpy(ParamTag[NParam], "BinaryFraction");
+    ParamAddr[NParam] = &(run_params.BinaryFraction);
     ParamID[NParam++] = DOUBLE;
 
     strcpy(ParamTag[NParam], "FracZleaveDisk");

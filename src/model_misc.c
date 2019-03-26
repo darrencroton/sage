@@ -306,8 +306,8 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
   if(galaxies[p].MetalsColdGas > galaxies[p].ColdGas) {
     galaxies[p].MetalsColdGas = galaxies[p].ColdGas;
   }
-  XPRINT(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas, "metallicity = %.3f, metals produced = %.3e, sfrz = %.4f \n", galaxies[p].MetalsColdGas / galaxies[p].ColdGas, yield * dt, sfrz);  
-  assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas); 
+  XPRINT(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas, "metallicity = %.3f, stellar mass = %.3e \n", galaxies[p].MetalsColdGas / galaxies[p].ColdGas, galaxies[p].ColdGas);  
+//  assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas); 
 
 //mass of each element formed in each production channel
   Cr_snia = yCr_snia * dt;
@@ -397,12 +397,7 @@ double dustdot = 0;
        dustdot -= galaxies[p].Dust / tsn;
     }
   } 
-/* 
-//dust locked up in star
-  if (galaxies[p].ColdGas > 0) {
-    dustdot -= (galaxies[p].Dust / galaxies[p].ColdGas) * sfh[galaxies[p].SnapNum];
-  }
-*/
+
   galaxies[p].Dust += dustdot * dt;  
   if (galaxies[p].Dust < 0) {
     galaxies[p].Dust = 0;

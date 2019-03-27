@@ -116,16 +116,15 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
 
     // update new variables
     galaxies[p].Sfr[galaxies[p].SnapNum] += stars / dt / STEPS;
-    //galaxies[p].Sfr[galaxies[p].SnapNum] += stars ;
     
     // update for star formation 
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].ColdDust);
+    DTG = get_DTG(galaxies[p].ColdGas, galaxies[p].ColdDust);
     update_from_star_formation(p, stars, metallicity, DTG, galaxies);
 
     // recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].ColdDust);
+    DTG = get_DTG(galaxies[p].ColdGas, galaxies[p].ColdDust);
 
     // update from SN feedback 
     update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity, DTG, galaxies);
@@ -135,9 +134,9 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
         check_disk_instability(p, centralgal, halonr, time, dt, step, galaxies);
     }
 
+    //formation of new metals and dust
     if(run_params.MetalYieldsOn == 0)
-    {
-    // formation of new metals - instantaneous recycling approximation - only SNII 
+    { // instantaneous recycling approximation - only SNII 
     if(galaxies[p].ColdGas > 1.0e-8) {
         const double FracZleaveDiskVal = run_params.FracZleaveDisk * exp(-1.0 * galaxies[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
         galaxies[p].MetalsColdGas += run_params.Yield * (1.0 - FracZleaveDiskVal) * stars;
@@ -150,11 +149,24 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
       }
     }
     else if(run_params.MetalYieldsOn == 1)
-    {
-    // formation of new metals - self consistent yields - AGB, SNII, and SNIa
+    { // self consistent yields - AGB, SNII, and SNIa
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
     produce_metals_dust(metallicity, dt, p, centralgal, galaxies);
     }
+    else
+    {
+        printf("No metals formation prescription selected!\n");
+        ABORT(0);
+    }
+
+    //update for dust accretion
+    metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
+    accrete_dust(metallicity, dt, p, galaxies);
+   
+    //update for dust destruction
+    metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
+    destruct_dust(metallicity, dt, p, galaxies);
+   
 
 }
 
@@ -166,9 +178,10 @@ void update_from_star_formation(const int p, const double stars, const double me
     // update gas and metals from star formation 
     galaxies[p].ColdGas -= (1 - RecycleFraction) * stars;
     galaxies[p].MetalsColdGas -= metallicity * (1 - RecycleFraction) * stars;
+    galaxies[p].ColdDust -= DTG * (1 - RecycleFraction) * stars;
     galaxies[p].StellarMass += (1 - RecycleFraction) * stars;
     galaxies[p].MetalsStellarMass += metallicity * (1 - RecycleFraction) * stars;
-    galaxies[p].ColdDust -= DTG * (1 - RecycleFraction) * stars;
+    galaxies[p].MetalsStellarMass += DTG * (1 - RecycleFraction) * stars;
 }
 
 
@@ -181,18 +194,24 @@ void update_from_feedback(const int p, const int centralgal, const double reheat
         galaxies[p].ColdGas -= reheated_mass;
         galaxies[p].MetalsColdGas -= metallicity * reheated_mass;
 	galaxies[p].ColdDust -= DTG * reheated_mass;
+ 
         galaxies[centralgal].HotGas += reheated_mass;
         galaxies[centralgal].MetalsHotGas += metallicity * reheated_mass;
-        
+        galaxies[centralgal].HotDust += DTG * reheated_mass;
+
         if(ejected_mass > galaxies[centralgal].HotGas) {
             ejected_mass = galaxies[centralgal].HotGas;
         }
         const double metallicityHot = get_metallicity(galaxies[centralgal].HotGas, galaxies[centralgal].MetalsHotGas);
+	const double DTGHot = get_DTG(galaxies[centralgal].HotGas, galaxies[centralgal].HotDust);
 
         galaxies[centralgal].HotGas -= ejected_mass;
         galaxies[centralgal].MetalsHotGas -= metallicityHot * ejected_mass;
+	galaxies[centralgal].HotDust -= DTGHot * ejected_mass;
+
         galaxies[centralgal].EjectedMass += ejected_mass;
         galaxies[centralgal].MetalsEjectedMass += metallicityHot * ejected_mass;
+	galaxies[centralgal].EjectedDust += DTGHot * ejected_mass;
         
         galaxies[p].OutflowRate += reheated_mass;    
     }

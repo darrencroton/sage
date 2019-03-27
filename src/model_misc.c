@@ -69,7 +69,10 @@ void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_
     galaxies[p].MetalsHotGas = 0.0;
     galaxies[p].MetalsEjectedMass = 0.0;
     galaxies[p].MetalsICS = 0.0;
+
     galaxies[p].ColdDust = 0.0;
+    galaxies[p].HotDust = 0.0;
+    galaxies[p].EjectedDust = 0.0;
     
     for(int step = 0; step < STEPS; step++) {
         galaxies[p].SfrDisk[step] = 0.0;
@@ -131,6 +134,19 @@ double get_metallicity(const double gas, const double metals)
   }
 
   return metallicity;
+}
+
+
+double get_DTG(const double gas, const double dust) //DTG = dust to gas ratio
+{
+  double DTG = 0.0;
+
+  if(gas > 0.0 && dust > 0.0) {
+      DTG = dust / gas;
+      DTG = DTG >= 1.0 ? 1.0:DTG;
+  }
+
+  return DTG;
 }
 
 

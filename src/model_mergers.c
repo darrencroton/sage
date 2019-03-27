@@ -103,11 +103,11 @@ void grow_black_hole(const int merger_centralgal, const double mass_ratio, struc
         }
         
         metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-	DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].Dust);
+	DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
         galaxies[merger_centralgal].BlackHoleMass += BHaccrete;
         galaxies[merger_centralgal].ColdGas -= BHaccrete;
         galaxies[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
-	galaxies[merger_centralgal].Dust -= DTG * BHaccrete;
+	galaxies[merger_centralgal].ColdDust -= DTG * BHaccrete;
         
         galaxies[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
         
@@ -149,7 +149,7 @@ void add_galaxies_together(const int t, const int p, struct GALAXY *galaxies)
 {
     galaxies[t].ColdGas += galaxies[p].ColdGas;
     galaxies[t].MetalsColdGas += galaxies[p].MetalsColdGas;
-    galaxies[t].Dust += galaxies[p].Dust;
+    galaxies[t].ColdDust += galaxies[p].ColdDust;
  
     galaxies[t].StellarMass += galaxies[p].StellarMass;
     galaxies[t].MetalsStellarMass += galaxies[p].MetalsStellarMass;
@@ -258,7 +258,7 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
 
     //update for star formation
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].Dust);
+    DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
     update_from_star_formation(merger_centralgal, stars, metallicity, DTG, galaxies);
 
     galaxies[merger_centralgal].BulgeMass += (1 - run_params.RecycleFraction) * stars;
@@ -266,7 +266,7 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
    
  // recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].Dust); 
+    DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust); 
 
     // update from feedback 
     update_from_feedback(merger_centralgal, centralgal, reheated_mass, ejected_mass, metallicity, DTG, galaxies);

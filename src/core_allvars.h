@@ -67,7 +67,11 @@ struct GALAXY_OUTPUT
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
-  float Dust;
+
+  /* dust */
+  float ColdDust;
+  float HotDust;
+  float EjectedDust;
 
   /* to calculate magnitudes */
   float SfrDisk;
@@ -75,8 +79,8 @@ struct GALAXY_OUTPUT
   float SfrDiskZ;
   float SfrBulgeZ;
 
-  /* to calculate metal */
-  float Sfr[64];
+  /* star formation rate in each snapshot */
+  float Sfr[SNAPLEN];
   
   /* misc */
   float DiskScaleRadius;
@@ -142,7 +146,11 @@ struct GALAXY
   float MetalsHotGas;
   float MetalsEjectedMass;
   float MetalsICS;
-  float Dust;
+  
+  /* dust */
+  float ColdDust;
+  float HotDust;
+  float EjectedDust;
 
   /* to calculate magnitudes */
   float SfrDisk[STEPS];
@@ -153,7 +161,7 @@ struct GALAXY
   float SfrBulgeColdGasMetals[STEPS];
 
   /* to calculate metal */
-  float Sfr[64];
+  float Sfr[SNAPLEN];
 
   /* misc */
   float DiskScaleRadius;
@@ -297,24 +305,24 @@ struct params
     double Reionization_zr;
     double ThresholdSatDisruption;
 
-    double Qagb[100][7];
-    double Qsn[100][7];
-//    double Qsnia;
-    double qCagb[100][7];
-    double qNagb[100][7];
-    double qOagb[100][7];
-    double qCsn[100][7];
-    double qOsn[100][7];
-    double qMgsn[100][7];
-    double qSisn[100][7];
-    double qSsn[100][7];
-    double qCasn[100][7];
-    double qFesn[100][7];
+    /* stellar yields */
+    double Qagb[MAXYIELDS][METALGRID];
+    double Qsn[MAXYIELDS][METALGRID];
+    double qCagb[MAXYIELDS][METALGRID];
+    double qNagb[MAXYIELDS][METALGRID];
+    double qOagb[MAXYIELDS][METALGRID];
+    double qCsn[MAXYIELDS][METALGRID];
+    double qOsn[MAXYIELDS][METALGRID];
+    double qMgsn[MAXYIELDS][METALGRID];
+    double qSisn[MAXYIELDS][METALGRID];
+    double qSsn[MAXYIELDS][METALGRID];
+    double qCasn[MAXYIELDS][METALGRID];
+    double qFesn[MAXYIELDS][METALGRID];
     double qCrsnia;
     double qFesnia;
     double qNisnia;
-    double magb[100];
-    double msn[100];
+    double magb[MAXYIELDS];
+    double msn[MAXYIELDS];
     int countagb;
     int countsn;
 

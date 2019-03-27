@@ -120,12 +120,12 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     
     // update for star formation 
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].Dust);
+    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].ColdDust);
     update_from_star_formation(p, stars, metallicity, DTG, galaxies);
 
     // recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].Dust);
+    DTG = get_metallicity(galaxies[p].ColdGas, galaxies[p].ColdDust);
 
     // update from SN feedback 
     update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity, DTG, galaxies);
@@ -168,7 +168,7 @@ void update_from_star_formation(const int p, const double stars, const double me
     galaxies[p].MetalsColdGas -= metallicity * (1 - RecycleFraction) * stars;
     galaxies[p].StellarMass += (1 - RecycleFraction) * stars;
     galaxies[p].MetalsStellarMass += metallicity * (1 - RecycleFraction) * stars;
-    galaxies[p].Dust -= DTG * (1 - RecycleFraction) * stars;
+    galaxies[p].ColdDust -= DTG * (1 - RecycleFraction) * stars;
 }
 
 
@@ -180,7 +180,7 @@ void update_from_feedback(const int p, const int centralgal, const double reheat
     if(run_params.SupernovaRecipeOn == 1) {
         galaxies[p].ColdGas -= reheated_mass;
         galaxies[p].MetalsColdGas -= metallicity * reheated_mass;
-	galaxies[p].Dust -= DTG * reheated_mass;
+	galaxies[p].ColdDust -= DTG * reheated_mass;
         galaxies[centralgal].HotGas += reheated_mass;
         galaxies[centralgal].MetalsHotGas += metallicity * reheated_mass;
         

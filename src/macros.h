@@ -29,7 +29,9 @@
 #define  MAX_NODE_NAME_LEN 50
 #define  ABSOLUTEMAXSNAPS 1000  /* The largest number of snapshots for any simulation */
 #define  MAXTAGS          300  /* Max number of parameters */
-
+#define  MAXYIELDS	  100  /* max number of stellar yields */
+#define  METALGRID	  7    /* number of metal grids in stellar yield table */
+#define  SNAPLEN	  64   /* number of snapshot in millennium */
 
 #define  GRAVITY     6.672e-8
 #define  SOLAR_MASS  1.989e33

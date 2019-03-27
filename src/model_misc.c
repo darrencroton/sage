@@ -69,7 +69,7 @@ void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_
     galaxies[p].MetalsHotGas = 0.0;
     galaxies[p].MetalsEjectedMass = 0.0;
     galaxies[p].MetalsICS = 0.0;
-    galaxies[p].Dust = 0.0;
+    galaxies[p].ColdDust = 0.0;
     
     for(int step = 0; step < STEPS; step++) {
         galaxies[p].SfrDisk[step] = 0.0;
@@ -360,7 +360,7 @@ double dustdot = 0;
   
   assert(tacc > 0 && "accretion time must be greater than 0");
   if (galaxies[p].ColdGas > 0 && metallicity > 0) {
-    dustdot += (1 - galaxies[p].Dust/galaxies[p].MetalsColdGas) * (galaxies[p].f_H2 * galaxies[p].Dust / tacc);
+    dustdot += (1 - galaxies[p].ColdDust/galaxies[p].MetalsColdGas) * (galaxies[p].f_H2 * galaxies[p].ColdDust / tacc);
   }
 
 //dust destruction : eq 13 in Asano13
@@ -394,13 +394,13 @@ double dustdot = 0;
     if (Rsn > 0 && galaxies[p].ColdGas > 0) {
        double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn);
        assert(tsn > 0 && "tsn must be greater than 0");
-       dustdot -= galaxies[p].Dust / tsn;
+       dustdot -= galaxies[p].ColdDust / tsn;
     }
   } 
 
-  galaxies[p].Dust += dustdot * dt;  
-  if (galaxies[p].Dust < 0) {
-    galaxies[p].Dust = 0;
+  galaxies[p].ColdDust += dustdot * dt;  
+  if (galaxies[p].ColdDust < 0) {
+    galaxies[p].ColdDust = 0;
   }    
 }
 

@@ -103,7 +103,7 @@ void grow_black_hole(const int merger_centralgal, const double mass_ratio, struc
         }
         
         metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-	DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
+	DTG = get_DTG(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
         galaxies[merger_centralgal].BlackHoleMass += BHaccrete;
         galaxies[merger_centralgal].ColdGas -= BHaccrete;
         galaxies[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
@@ -128,18 +128,22 @@ void quasar_mode_wind(const int gal, const double BHaccrete, struct GALAXY *gala
     if(quasar_energy > cold_gas_energy) {
         galaxies[gal].EjectedMass += galaxies[gal].ColdGas;
         galaxies[gal].MetalsEjectedMass += galaxies[gal].MetalsColdGas;
-        
+ 	galaxies[gal].EjectedDust += galaxies[gal].ColdDust;
+       
         galaxies[gal].ColdGas = 0.0;
         galaxies[gal].MetalsColdGas = 0.0;
+	galaxies[gal].ColdDust = 0.0;
     }
   
     // compare quasar wind and cold+hot gas energies and eject hot
     if(quasar_energy > cold_gas_energy + hot_gas_energy) {
         galaxies[gal].EjectedMass += galaxies[gal].HotGas;
         galaxies[gal].MetalsEjectedMass += galaxies[gal].MetalsHotGas;
-        
+        galaxies[gal].EjectedDust += galaxies[gal].HotDust;
+
         galaxies[gal].HotGas = 0.0;
         galaxies[gal].MetalsHotGas = 0.0;
+	galaxies[gal].HotDust = 0.0;
     }
 }
 
@@ -156,9 +160,11 @@ void add_galaxies_together(const int t, const int p, struct GALAXY *galaxies)
 
     galaxies[t].HotGas += galaxies[p].HotGas;
     galaxies[t].MetalsHotGas += galaxies[p].MetalsHotGas;
-  
+    galaxies[t].HotDust += galaxies[p].HotDust;
+ 
     galaxies[t].EjectedMass += galaxies[p].EjectedMass;
     galaxies[t].MetalsEjectedMass += galaxies[p].MetalsEjectedMass;
+    galaxies[t].EjectedDust += galaxies[p].EjectedDust;
   
     galaxies[t].ICS += galaxies[p].ICS;
     galaxies[t].MetalsICS += galaxies[p].MetalsICS;
@@ -258,13 +264,13 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
 
     //update for star formation
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
+    DTG = get_DTG(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust);
     update_from_star_formation(merger_centralgal, stars, metallicity, DTG, galaxies);
 
     galaxies[merger_centralgal].BulgeMass += (1 - run_params.RecycleFraction) * stars;
     galaxies[merger_centralgal].MetalsBulgeMass += metallicity * (1 - run_params.RecycleFraction) * stars;
    
- // recompute the metallicity of the cold phase
+    //recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
     DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust); 
 
@@ -278,8 +284,9 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
         }
     }
 
-    if(run_params.MetalYieldsOn == 0) {
-      // formation of new metals - instantaneous recycling approximation - only SNII 
+    //formation of new metals
+    if(run_params.MetalYieldsOn == 0) { 
+    //instantaneous recycling approximation - only SNII 
       if(galaxies[merger_centralgal].ColdGas > 1e-8 && mass_ratio < run_params.ThreshMajorMerger) {
 	  const double FracZleaveDiskVal = run_params.FracZleaveDisk * exp(-1.0 * galaxies[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
           galaxies[merger_centralgal].MetalsColdGas += run_params.Yield * (1.0 - FracZleaveDiskVal) * stars;
@@ -290,10 +297,22 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
           // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * stars;
       }
     } else if(run_params.MetalYieldsOn == 1) {
-      // formation of new metals - self consistent yields - AGB, SNII, and SNIa
+      //self consistent yields - AGB, SNII, and SNIa
         metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
         produce_metals_dust(metallicity, dt, merger_centralgal, centralgal, galaxies);
+    } else {
+        printf("No metals formation prescription selected!\n");
+        ABORT(0);
     }
+
+    //update for dust accretion
+    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
+    accrete_dust(metallicity, dt, merger_centralgal, galaxies);
+
+    //update for dust destruction
+    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
+    destruct_dust(metallicity, dt, merger_centralgal, galaxies);
+
 }
 
 
@@ -302,10 +321,12 @@ void disrupt_satellite_to_ICS(const int centralgal, const int gal, struct GALAXY
 {  
     galaxies[centralgal].HotGas += galaxies[gal].ColdGas + galaxies[gal].HotGas;
     galaxies[centralgal].MetalsHotGas += galaxies[gal].MetalsColdGas + galaxies[gal].MetalsHotGas;
+    galaxies[centralgal].HotDust += galaxies[gal].ColdDust + galaxies[gal].HotDust;
   
     galaxies[centralgal].EjectedMass += galaxies[gal].EjectedMass;
     galaxies[centralgal].MetalsEjectedMass += galaxies[gal].MetalsEjectedMass;
-  
+    galaxies[centralgal].EjectedDust += galaxies[gal].EjectedDust;  
+
     galaxies[centralgal].ICS += galaxies[gal].ICS;
     galaxies[centralgal].MetalsICS += galaxies[gal].MetalsICS;
 

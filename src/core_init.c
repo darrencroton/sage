@@ -48,8 +48,8 @@ void init(const int ThisTask)
   
     for(int i = 0; i < run_params.Snaplistlen; i++) {
         run_params.ZZ[i] = 1 / run_params.AA[i] - 1;
-        run_params.Age[i] = time_to_present(run_params.ZZ[i]);
-	run_params.lbtime[i] = (run_params.Age[0] - run_params.Age[i]) * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR;
+        run_params.Age[i] = time_to_present(run_params.ZZ[i]);  //this is actually a lookback time
+	run_params.lbtime[i] = (run_params.Age[0] - run_params.Age[i]) * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR; //age of universe since bigbang
     }
 
     run_params.a0 = 1.0 / (1.0 + run_params.Reionization_z0);
@@ -182,13 +182,13 @@ void read_metal_yield(void)
         char fname[MAX_STRING_LEN];
 	int cols=0;
 	int i, j, rows;
-        double Z_std[7] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
+        double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05}; //metal grid from Karakas 10 and Woosley & Weaver 1995
 
 	/* READ AGB YIELD */
 	if (run_params.AGBYields == 0)
 	{
 		strcpy(fname, "src/auxdata/yields/table2d.dat");
-		cols = 13;
+		cols = 13; //number of columns in the file
 	}
 
         struct table data;
@@ -208,12 +208,12 @@ void read_metal_yield(void)
         //now assign
 	run_params.countagb = count;
         
-        for (j=0; j<7; j++){
+        for (j=0; j<METALGRID; j++){
                 int index = 0;
                 for (i=0; i<rows; i++){
                         if (Z[i] == Z_std[j])
                         {       
-                                run_params.magb[index] = data.tbl[i][1];
+                                run_params.magb[index] = data.tbl[i][1]; //1 is the column number
                                 run_params.qCagb[index][j] = data.tbl[i][6] + data.tbl[i][7] + data.tbl[i][11];
                                 run_params.qNagb[index][j] = data.tbl[i][8] + data.tbl[i][12];
                                 run_params.qOagb[index][j] = data.tbl[i][9];
@@ -227,7 +227,7 @@ void read_metal_yield(void)
 	if (run_params.SNIIYields == 0)
         {
                 strcpy(fname, "src/auxdata/yields/table4a.dat");
-                cols = 17;
+                cols = 17; //number of columns in the file
         }
 	
 	data = read_table(fname, cols);
@@ -242,7 +242,7 @@ void read_metal_yield(void)
 
 	run_params.countsn = count;
 
-        for (j=0; j<7; j++){
+        for (j=0; j<METALGRID; j++){
                 int index = 0;
                 for (i=0; i<rows; i++){
                         if (Z[i] == Z_std[j])
@@ -264,11 +264,10 @@ void read_metal_yield(void)
         /* SNIa YIELD */
 	if (run_params.SNIaYields == 0)
 	{
-		run_params.qCrsnia = 0.0168;
+		run_params.qCrsnia = 0.0168; //yields from Iwamoto 1999
 		run_params.qFesnia = 0.587;
 		run_params.qNisnia = 0.0314;
 	}
-	//run_params.Qsnia = qCrsnia + qFesnia + qNisnia;
 }
 
 struct table read_table(char *fname, int ncols)

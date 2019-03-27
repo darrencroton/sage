@@ -14,12 +14,13 @@ double infall_recipe(const int centralgal, const int ngal, const double Zcurr, s
 {
     double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
     double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
+    double tot_hotDust, tot_ejectedDust;
     double tot_satBaryons;
     /* double newSatBaryons; */
     double infallingMass, reionization_modifier;
 
     // need to add up all the baryonic mass asociated with the full halo 
-    tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_satBaryons = 0.0;
+    tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_hotDust = tot_ejectedDust = tot_satBaryons = 0.0;
 
 	// loop over all galaxies in the FoF-halo 
     for(int i = 0; i < ngal; i++) {
@@ -28,8 +29,10 @@ double infall_recipe(const int centralgal, const int ngal, const double Zcurr, s
         tot_coldMass += galaxies[i].ColdGas;
         tot_hotMass += galaxies[i].HotGas;
         tot_hotMetals += galaxies[i].MetalsHotGas;
+	tot_hotDust += galaxies[i].HotDust;
         tot_ejected += galaxies[i].EjectedMass;
         tot_ejectedMetals += galaxies[i].MetalsEjectedMass;
+	tot_ejectedDust += galaxies[i].EjectedDust;
         tot_ICS += galaxies[i].ICS;
         tot_ICSMetals += galaxies[i].MetalsICS;
         
@@ -63,6 +66,7 @@ double infall_recipe(const int centralgal, const int ngal, const double Zcurr, s
     // the central galaxy keeps all the ejected mass
     galaxies[centralgal].EjectedMass = tot_ejected;
     galaxies[centralgal].MetalsEjectedMass = tot_ejectedMetals;
+    galaxies[centralgal].EjectedDust = tot_ejectedDust;
 
     if(galaxies[centralgal].MetalsEjectedMass > galaxies[centralgal].EjectedMass) {
         galaxies[centralgal].MetalsEjectedMass = galaxies[centralgal].EjectedMass;
@@ -76,6 +80,9 @@ double infall_recipe(const int centralgal, const int ngal, const double Zcurr, s
         galaxies[centralgal].MetalsEjectedMass = 0.0;
     }
 
+    if(galaxies[centralgal].EjectedDust < 0.0) {
+        galaxies[centralgal].EjectedDust = 0.0;
+    }
     // the central galaxy keeps all the ICS (mostly for numerical convenience)
     galaxies[centralgal].ICS = tot_ICS;
     galaxies[centralgal].MetalsICS = tot_ICSMetals;
@@ -115,16 +122,21 @@ void strip_from_satellite(const int centralgal, const int gal, const double Zcur
     if(strippedGas > 0.0) {
         const double metallicity = get_metallicity(galaxies[gal].HotGas, galaxies[gal].MetalsHotGas);
         double strippedGasMetals = strippedGas * metallicity;
-  
+        const double DTG = get_DTG(galaxies[gal].HotGas, galaxies[gal].HotDust);
+        double strippedGasDust = strippedGas * DTG;
+
         if(strippedGas > galaxies[gal].HotGas) strippedGas = galaxies[gal].HotGas;
         if(strippedGasMetals > galaxies[gal].MetalsHotGas) strippedGasMetals = galaxies[gal].MetalsHotGas;
-        
+        if(strippedGasDust > galaxies[gal].HotDust) strippedGasDust = galaxies[gal].HotDust;
+ 
         galaxies[gal].HotGas -= strippedGas;
         galaxies[gal].MetalsHotGas -= strippedGasMetals;
-        
+        galaxies[gal].HotDust -= strippedGasDust;
+
         galaxies[centralgal].HotGas += strippedGas;
         galaxies[centralgal].MetalsHotGas += strippedGas * metallicity;
-    }
+ 	galaxies[centralgal].HotDust += strippedGas * DTG;
+   }
   
 }
 
@@ -186,33 +198,39 @@ double do_reionization(const int gal, const double Zcurr, struct GALAXY *galaxie
 
 void add_infall_to_hot(const int gal, double infallingGas, struct GALAXY *galaxies)
 {
-    float metallicity;
+    float metallicity, DTG;
 
     // if the halo has lost mass, subtract baryons from the ejected mass first, then the hot gas
     if(infallingGas < 0.0 && galaxies[gal].EjectedMass > 0.0) {
         metallicity = get_metallicity(galaxies[gal].EjectedMass, galaxies[gal].MetalsEjectedMass);
+	DTG = get_DTG(galaxies[gal].EjectedMass, galaxies[gal].EjectedDust);
         galaxies[gal].MetalsEjectedMass += infallingGas*metallicity;
-        if(galaxies[gal].MetalsEjectedMass < 0.0) galaxies[gal].MetalsEjectedMass = 0.0;
-        
+        galaxies[gal].EjectedDust += infallingGas*DTG;
+	if(galaxies[gal].MetalsEjectedMass < 0.0) galaxies[gal].MetalsEjectedMass = 0.0;
+        if(galaxies[gal].EjectedDust < 0.0) galaxies[gal].EjectedDust = 0.0;
+
         galaxies[gal].EjectedMass += infallingGas;
         if(galaxies[gal].EjectedMass < 0.0) {
             infallingGas = galaxies[gal].EjectedMass;
-            galaxies[gal].EjectedMass = galaxies[gal].MetalsEjectedMass = 0.0;
+            galaxies[gal].EjectedMass = galaxies[gal].MetalsEjectedMass = galaxies[gal].EjectedDust = 0.0;
         } else {
             infallingGas = 0.0;
         }
     }
         
     // if the halo has lost mass, subtract hot metals mass next, then the hot gas
-    if(infallingGas < 0.0 && galaxies[gal].MetalsHotGas > 0.0) {
+    if(infallingGas < 0.0 && galaxies[gal].MetalsHotGas > 0.0 && galaxies[gal].HotDust > 0.0) {
         metallicity = get_metallicity(galaxies[gal].HotGas, galaxies[gal].MetalsHotGas);
         galaxies[gal].MetalsHotGas += infallingGas*metallicity;
+	DTG = get_DTG(galaxies[gal].HotGas, galaxies[gal].HotDust);
+	galaxies[gal].HotDust += infallingGas*DTG;
         if(galaxies[gal].MetalsHotGas < 0.0) galaxies[gal].MetalsHotGas = 0.0;
+    	if(galaxies[gal].HotDust < 0.0) galaxies[gal].HotDust = 0.0;
     }
     
     // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
     galaxies[gal].HotGas += infallingGas;
-    if(galaxies[gal].HotGas < 0.0) galaxies[gal].HotGas = galaxies[gal].MetalsHotGas = 0.0;
+    if(galaxies[gal].HotGas < 0.0) galaxies[gal].HotGas = galaxies[gal].MetalsHotGas = galaxies[gal].HotDust = 0.0;
 
 }
 

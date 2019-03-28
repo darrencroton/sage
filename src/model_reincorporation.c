@@ -24,10 +24,13 @@ void reincorporate_gas(const int centralgal, const double dt, struct GALAXY *gal
             reincorporated = galaxies[centralgal].EjectedMass;
 
         const double metallicity = get_metallicity(galaxies[centralgal].EjectedMass, galaxies[centralgal].MetalsEjectedMass);
+	const double DTG = get_DTG(galaxies[centralgal].EjectedMass, galaxies[centralgal].EjectedDust);
         galaxies[centralgal].EjectedMass -= reincorporated;
         galaxies[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
+	galaxies[centralgal].EjectedDust -= DTG * reincorporated;
         galaxies[centralgal].HotGas += reincorporated;
         galaxies[centralgal].MetalsHotGas += metallicity * reincorporated;
+	galaxies[centralgal].HotDust += DTG * reincorporated;
     }
 
 }

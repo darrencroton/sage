@@ -390,21 +390,20 @@ void accrete_dust(const double metallicity, const double dt, const int p, struct
   XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
 }
 
-
 void destruct_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies) {
-//dust destruction : Dwek & Cherchneff 2011
+//dust destruction : Asano et al. 13
+  double sfr, phi, taum, time;
   int i;
   double age[SNAPLEN], sfh[SNAPLEN]; 
   double dustdot = 0;
-  double m_low = 1; //lower limit of stellar mass in IMF; Msun
-  double m_w = 8; //lower limit of stellar mass that end up as SN; Msun
-  double m_up = 100; //upper limit of stellar mass that end up as SN; Msun
-  double t_low = compute_taum(m_up);
+  double m_low = 8; //lower limit of stellar mass that end up as SN
+  double m_up = 40; //upper limit of stellar mass that end up as SN
+  double t_low = compute_taum(m_up); //the shortest stellar lifetime that end up as SN
   int count = 20;
-  double mass[count], phi[count], mphi[count];
+  double rsn_arr[count];
+  double mass[count];
   double eta = 0.1; //should be free parameter, we used value adopted by Asano et al. 13
   double m_swept = 1535 * pow((metallicity/0.02 + 0.039), -0.289) * run_params.Hubble_h / 1.e10; //eq. 14 Asano et al. 13
-  double tsn; 
 
   for (i=0; i<SNAPLEN; i++)
   {
@@ -416,25 +415,31 @@ void destruct_dust(const double metallicity, const double dt, const int p, struc
     for(i=0; i<count; i++) {
         double m = m_low + ((m_up - m_low) / (count-i));
 	mass[i] = m;
-	phi[i] = compute_imf(m);
-	mphi[i] = mass[i] * phi[i];
+	phi = compute_imf(m);
+        taum = compute_taum(m);
+        time = age[galaxies[p].SnapNum] - taum;
+        if(time < run_params.lbtime[0]){
+                sfr=0;
+        }
+        else {
+                sfr = interpolate_arr(age, sfh, SNAPLEN, time);
+        }
+	rsn_arr[i] = sfr * phi;
     }
 
-    double mstar = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_w, m_up); //eq 3 Dwek & Cherchneff 2011 
-    double Rsn = sfh[galaxies[p].SnapNum] / mstar; //eq 4 Dwek & Cherchneff 2011
+    double Rsn = integrate_arr(mass, rsn_arr, count, mass[0], m_up); //eq. 13 Asano et al 13
     assert(m_swept > 0 && "mass of ISM swept by SN must be greater than 0");
     if (Rsn > 0 && galaxies[p].ColdGas > 0) {
-       tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13
+       double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13
        assert(tsn > 0 && "tsn must be greater than 0");
        dustdot += galaxies[p].ColdDust / tsn; 
     }
   } 
 
   galaxies[p].ColdDust -= dustdot * dt;  
-  XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, tsn = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, tsn * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR, galaxies[p].GalaxyNr);
-//  if (galaxies[p].ColdDust < 0) {
-//    galaxies[p].ColdDust = 0;
-//  }    
+  if (galaxies[p].ColdDust < 0) {
+    galaxies[p].ColdDust = 0;
+  }    
 }
 
 double integrate_arr(const double arr1[MAX_STRING_LEN], const double arr2[MAX_STRING_LEN], const int npts, const double lower_limit, const double upper_limit)

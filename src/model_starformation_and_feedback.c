@@ -285,7 +285,7 @@ void update_H2_HI(const int p, struct GALAXY *galaxies)
 
 		if(f_H2_HI > 0.0)
 		{
-			//assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
+			assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
 			galaxies[p].f_H2 = 0.75 * 1.0/(1.0/f_H2_HI + 1) * (1 - galaxies[p].MetalsColdGas/galaxies[p].ColdGas) / 1.3; //This is H2/ColdGas
 			galaxies[p].f_HI = galaxies[p].f_H2/f_H2_HI;
 		}

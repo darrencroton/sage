@@ -187,4 +187,3 @@ void cool_gas_onto_galaxy(const int centralgal, const double coolingGas, struct 
     }
 }
 
-

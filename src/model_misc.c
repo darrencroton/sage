@@ -314,98 +314,97 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
     yield = (yield_agb + yield_snia + yield_sn);
 
 //overall metallicity
-  if(galaxies[p].ColdGas > 1.0e-8) {
-      galaxies[p].MetalsColdGas += yield * dt;
+  if(galaxies[p].ColdGas > 1.0e-2) {
+ 	galaxies[p].MetalsColdGas += yield * dt;
   } 
   else {
         galaxies[centralgal].MetalsHotGas += yield * dt;
   }
 
-/*
-  if(galaxies[p].MetalsColdGas > galaxies[p].ColdGas) {
-    galaxies[p].MetalsColdGas = galaxies[p].ColdGas;
-  }
-*/
-  XPRINT(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas, "metallicity = %.3f, stellar mass = %.3e \n", galaxies[p].MetalsColdGas / galaxies[p].ColdGas, galaxies[p].ColdGas);  
-//  assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas); 
-
-//mass of each element formed in each production channel
-  Cr_snia = yCr_snia * dt;
-  Fe_snia = yFe_snia * dt;
-  Ni_snia = yNi_snia * dt;
-  C_agb = yC_agb * dt;
-  N_agb = yN_agb * dt;
-  O_agb = yO_agb * dt;
-  C_sn = yC_sn * dt;
-  O_sn = yO_sn * dt;
-  Mg_sn = yMg_sn * dt;
-  Si_sn = ySi_sn * dt;
-  S_sn = yS_sn * dt;
-  Ca_sn = yCa_sn * dt;
-  Fe_sn = yFe_sn * dt;
+  XPRINT(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas, "metallicity = %.3f, cold gas mass = %.3e, galaxy ID = %i \n", galaxies[p].MetalsColdGas / galaxies[p].ColdGas, galaxies[p].ColdGas, galaxies[p].GalaxyNr);  
 
 
-double dustdot = 0; 
+//mass of each element formed in each production channel, should satisfy same condition with overall metallicity
+  if(galaxies[p].ColdGas > 1.0e-2) {
+  	Cr_snia = yCr_snia * dt;
+  	Fe_snia = yFe_snia * dt;
+  	Ni_snia = yNi_snia * dt;
+  	C_agb = yC_agb * dt;
+  	N_agb = yN_agb * dt;
+  	O_agb = yO_agb * dt;
+  	C_sn = yC_sn * dt;
+  	O_sn = yO_sn * dt;
+  	Mg_sn = yMg_sn * dt;
+  	Si_sn = ySi_sn * dt;
+  	S_sn = yS_sn * dt;
+  	Ca_sn = yCa_sn * dt;
+  	Fe_sn = yFe_sn * dt;
+
+
+	double dustdot = 0; 
   
-//produce dust
-//  double dust_agb, dust_sn, dust_snia;
-  double delta_agb = 0.2;  //should be free parameter!! (value based on Popping et al. 2017)
-  double delta_sn = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
-  double delta_snia = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
+	//produce dust
+	//double dust_agb, dust_sn, dust_snia;
+  	double delta_agb = 0.2;  //should be free parameter!! (value based on Popping et al. 2017)
+  	double delta_sn = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
+  	double delta_snia = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
   
-  assert(dt > 0 && "dt must be greater than 0");
+  	assert(dt > 0 && "dt must be greater than 0");
 
-/* eq 4 and eq 5 Popping et al. 2017 */
-  //from AGB
-  if (C_agb/O_agb > 1) {
-    dustdot += delta_agb * (C_agb - 0.75*O_agb) / dt;
-  }
-  else {
-    dustdot += delta_agb * (C_agb + N_agb + O_agb) / dt;
-  }
+	/* eq 4 and eq 5 Popping et al. 2017 */
+	//from AGB
+	if (C_agb/O_agb > 1) {
+    	   dustdot += delta_agb * (C_agb - 0.75*O_agb) / dt;
+  	}
+  	else {
+    	   dustdot += delta_agb * (C_agb + N_agb + O_agb) / dt;
+  	}
 
-/* eq 6 Popping et al. 2017 */
-  //from SN
-  dustdot += delta_sn * C_sn / dt;
-  dustdot += delta_sn * O_sn / dt;
-  dustdot += 16 * delta_sn * (Mg_sn/24 + Si_sn/28 + S_sn/32 + Ca_sn/40 + Fe_sn/56) / dt;
+	/* eq 6 Popping et al. 2017 */
+  	//from SN
+  	dustdot += delta_sn * C_sn / dt;
+  	dustdot += delta_sn * O_sn / dt;
+  	dustdot += 16 * delta_sn * (Mg_sn/24 + Si_sn/28 + S_sn/32 + Ca_sn/40 + Fe_sn/56) / dt;
  
-/* eq 6 Popping et al. 2017 */
-  //from SNIa
-  dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
-  dustdot += delta_snia * (Cr_snia + Ni_snia) / dt; 
+	/* eq 6 Popping et al. 2017 */
+  	//from SNIa
+  	dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
+  	dustdot += delta_snia * (Cr_snia + Ni_snia) / dt; 
 
-  galaxies[p].ColdDust += dustdot * dt;
+  	galaxies[p].ColdDust += dustdot * dt;
+ 	XPRINT(dustdot * dt >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
+   }
 }
 
 void accrete_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies) {
 //dust accretion in ISM : eq 20 Asano13
   double dustdot = 0;
   double tacc_zero = 20 * SEC_PER_MEGAYEAR / run_params.UnitTime_in_s; //should be free parameter! yr
-  double tacc = tacc_zero * 0.02 / metallicity;
-  
-  assert(tacc > 0 && "accretion time must be greater than 0");
-  if (galaxies[p].ColdGas > 0 && metallicity > 0) {
+
+  if (galaxies[p].MetalsColdGas > galaxies[p].ColdDust && metallicity > 0  ) {
+    double tacc = tacc_zero * 0.02 / metallicity;
     dustdot += (1 - galaxies[p].ColdDust/galaxies[p].MetalsColdGas) * (galaxies[p].f_H2 * galaxies[p].ColdDust / tacc);
   }
  
   galaxies[p].ColdDust += dustdot * dt;
+  XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
 }
 
+
 void destruct_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies) {
-//dust destruction : Asano et al. 13
-  double sfr, phi, taum, time;
+//dust destruction : Dwek & Cherchneff 2011
   int i;
   double age[SNAPLEN], sfh[SNAPLEN]; 
   double dustdot = 0;
-  double m_low = 8; //lower limit of stellar mass that end up as SN
-  double m_up = 40; //upper limit of stellar mass that end up as SN
-  double t_low = compute_taum(m_up); //the shortest stellar lifetime that end up as SN
+  double m_low = 1; //lower limit of stellar mass in IMF; Msun
+  double m_w = 8; //lower limit of stellar mass that end up as SN; Msun
+  double m_up = 100; //upper limit of stellar mass that end up as SN; Msun
+  double t_low = compute_taum(m_up);
   int count = 20;
-  double rsn_arr[count];
-  double mass[count];
+  double mass[count], phi[count], mphi[count];
   double eta = 0.1; //should be free parameter, we used value adopted by Asano et al. 13
   double m_swept = 1535 * pow((metallicity/0.02 + 0.039), -0.289) * run_params.Hubble_h / 1.e10; //eq. 14 Asano et al. 13
+  double tsn; 
 
   for (i=0; i<SNAPLEN; i++)
   {
@@ -417,31 +416,25 @@ void destruct_dust(const double metallicity, const double dt, const int p, struc
     for(i=0; i<count; i++) {
         double m = m_low + ((m_up - m_low) / (count-i));
 	mass[i] = m;
-	phi = compute_imf(m);
-        taum = compute_taum(m);
-        time = age[galaxies[p].SnapNum] - taum;
-        if(time < run_params.lbtime[0]){
-                sfr=0;
-        }
-        else {
-                sfr = interpolate_arr(age, sfh, SNAPLEN, time);
-        }
-	rsn_arr[i] = sfr * phi;
+	phi[i] = compute_imf(m);
+	mphi[i] = mass[i] * phi[i];
     }
 
-    double Rsn = integrate_arr(mass, rsn_arr, count, mass[0], m_up); //eq. 13 Asano et al 13
+    double mstar = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_w, m_up); //eq 3 Dwek & Cherchneff 2011 
+    double Rsn = sfh[galaxies[p].SnapNum] / mstar; //eq 4 Dwek & Cherchneff 2011
     assert(m_swept > 0 && "mass of ISM swept by SN must be greater than 0");
     if (Rsn > 0 && galaxies[p].ColdGas > 0) {
-       double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13
+       tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13
        assert(tsn > 0 && "tsn must be greater than 0");
        dustdot += galaxies[p].ColdDust / tsn; 
     }
   } 
 
   galaxies[p].ColdDust -= dustdot * dt;  
-  if (galaxies[p].ColdDust < 0) {
-    galaxies[p].ColdDust = 0;
-  }    
+  XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, tsn = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, tsn * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR, galaxies[p].GalaxyNr);
+//  if (galaxies[p].ColdDust < 0) {
+//    galaxies[p].ColdDust = 0;
+//  }    
 }
 
 double integrate_arr(const double arr1[MAX_STRING_LEN], const double arr2[MAX_STRING_LEN], const int npts, const double lower_limit, const double upper_limit)

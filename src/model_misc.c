@@ -315,7 +315,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
     yield = (yield_agb + yield_snia + yield_sn);
 
 //overall metallicity
-  if(galaxies[p].ColdGas > 1.0e-2) {
+  if(galaxies[p].ColdGas > 5.0e-2) {
  	galaxies[p].MetalsColdGas += yield * dt;
   } 
   else {

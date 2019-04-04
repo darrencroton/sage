@@ -11,7 +11,7 @@ extern "C" {
     extern void strip_from_satellite(const int centralgal, const int gal, const double Zcurr, struct GALAXY *galaxies);
     extern double do_reionization(const int gal, const double Zcurr, struct GALAXY *galaxies);
     extern void add_infall_to_hot(const int gal, double infallingGas, struct GALAXY *galaxies);
-    
+    extern void dust_thermal_sputtering(const int gal, const double dt, struct GALAXY *galaxies);    
 
 #ifdef __cplusplus
 }

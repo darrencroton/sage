@@ -10,9 +10,9 @@ extern "C" {
     extern void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_data *halos, struct GALAXY *galaxies);
     extern double get_metallicity(const double gas, const double metals);
     extern double get_DTG(const double gas, const double dust);
-    extern void produce_metals_dust(const double metallicity, const double dt, const int p, const int centralgal, struct GALAXY *galaxies);
-    extern void accrete_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies);
-    extern void destruct_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies);
+    extern void produce_metals_dust(const double metallicity, const double dt, const int p, const int centralgal, const int step, struct GALAXY *galaxies);
+    extern void accrete_dust(const double metallicity, const double dt, const int p, const int step, struct GALAXY *galaxies);
+    extern void destruct_dust(const double metallicity, const double dt, const int p, const int step, struct GALAXY *galaxies);
     extern double get_virial_velocity(const int halonr, struct halo_data *halos);
     extern double get_virial_radius(const int halonr, struct halo_data *halos);
     extern double get_virial_mass(const int halonr, struct halo_data *halos);

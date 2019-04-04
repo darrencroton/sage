@@ -81,9 +81,12 @@ void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_
         galaxies[p].SfrDiskColdGasMetals[step] = 0.0;
         galaxies[p].SfrBulgeColdGas[step] = 0.0;
         galaxies[p].SfrBulgeColdGasMetals[step] = 0.0;
+	galaxies[p].dustdotform[step]=0.0;
+	galaxies[p].dustdotgrowth[step]=0.0;
+	galaxies[p].dustdotdestruct[step]=0.0;
     }
 
-    for(int snapnum = 0; snapnum < 64; snapnum++){
+    for(int snapnum = 0; snapnum < SNAPLEN; snapnum++){
 	galaxies[p].Sfr[snapnum] = 0.0;
     }
 
@@ -150,7 +153,7 @@ double get_DTG(const double gas, const double dust) //DTG = dust to gas ratio
 }
 
 
-void produce_metals_dust(const double metallicity, const double dt, const int p, const int centralgal, struct GALAXY *galaxies)
+void produce_metals_dust(const double metallicity, const double dt, const int p, const int centralgal, const int step, struct GALAXY *galaxies)
 {
   double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
   double A = run_params.BinaryFraction;
@@ -373,11 +376,12 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
   	dustdot += delta_snia * (Cr_snia + Ni_snia) / dt; 
 
   	galaxies[p].ColdDust += dustdot * dt;
+	galaxies[p].dustdotform[step] += dustdot;
  	XPRINT(dustdot * dt >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
    }
 }
 
-void accrete_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies) {
+void accrete_dust(const double metallicity, const double dt, const int p, const int step, struct GALAXY *galaxies) {
 //dust accretion in ISM : eq 20 Asano13
   double dustdot = 0;
   double tacc_zero = 20 * SEC_PER_MEGAYEAR / run_params.UnitTime_in_s; //should be free parameter! yr
@@ -386,12 +390,13 @@ void accrete_dust(const double metallicity, const double dt, const int p, struct
     double tacc = tacc_zero * 0.02 / metallicity;
     dustdot += (1 - galaxies[p].ColdDust/galaxies[p].MetalsColdGas) * (galaxies[p].f_H2 * galaxies[p].ColdDust / tacc);
   }
- 
+
+  galaxies[p].dustdotgrowth[step] += dustdot;
   galaxies[p].ColdDust += dustdot * dt;
   XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
 }
 
-void destruct_dust(const double metallicity, const double dt, const int p, struct GALAXY *galaxies) {
+void destruct_dust(const double metallicity, const double dt, const int p, const int step,  struct GALAXY *galaxies) {
 //dust destruction : Asano et al. 13
   double sfr, phi, taum, time;
   int i;
@@ -436,7 +441,8 @@ void destruct_dust(const double metallicity, const double dt, const int p, struc
        dustdot += galaxies[p].ColdDust / tsn; 
     }
   } 
-
+  
+  galaxies[p].dustdotdestruct[step] += dustdot;
   galaxies[p].ColdDust -= dustdot * dt;  
   if (galaxies[p].ColdDust < 0) {
     galaxies[p].ColdDust = 0;

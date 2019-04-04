@@ -173,6 +173,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
   double up_binary = 16; //upper limit for binary stars, Msun
   double up_sn = 100; //upper limit for stars that ends up as SN II, Msun
   double age[SNAPLEN], sfh[SNAPLEN];
+  i = j = 0;
 
   for (i=0; i<SNAPLEN; i++)
   {
@@ -314,7 +315,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
     yield = (yield_agb + yield_snia + yield_sn);
 
 //overall metallicity
-  if(galaxies[p].ColdGas > 1.0e-2) {
+  if(galaxies[p].ColdGas > 5.0e-2) {
  	galaxies[p].MetalsColdGas += yield * dt;
   } 
   else {

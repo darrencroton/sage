@@ -530,7 +530,6 @@ class Results:
         z = np.array(self.redshift)
         nonzero = np.where(smd > 0.0)[0]
         plt.plot(z[nonzero], np.log10(smd[nonzero]), 'k-', lw=3.0)
-
         plt.ylabel(r'$\log_{10}\ \phi\ (M_{\odot}\ \mathrm{Mpc}^{-3})$')  # Set the y...
         plt.xlabel(r'$\mathrm{redshift}$')  # and the x-axis labels
 

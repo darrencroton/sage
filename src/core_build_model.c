@@ -16,6 +16,7 @@
 
 #include "model_misc.h"
 #include "model_mergers.h"
+#include "model_dust.h"
 #include "model_infall.h"
 #include "model_reincorporation.h"
 #include "model_starformation_and_feedback.h"

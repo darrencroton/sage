@@ -9,6 +9,7 @@
 
 #include "model_mergers.h"
 #include "model_misc.h"
+#include "model_dust.h"
 #include "model_starformation_and_feedback.h"
 #include "model_disk_instability.h"
 
@@ -311,7 +312,7 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
 
     //update for dust destruction
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    destruct_dust(metallicity, dt, merger_centralgal, step, galaxies);
+    destruct_dust(metallicity, stars, dt, merger_centralgal, step, galaxies);
 
 }
 

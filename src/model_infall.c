@@ -235,30 +235,3 @@ void add_infall_to_hot(const int gal, double infallingGas, struct GALAXY *galaxi
 
 }
 
-void dust_thermal_sputtering(const int gal, const double dt, struct GALAXY *galaxies) //section 3.5 Popping 2017
-{
-   double adot;
-   double a = 1e-5 / run_params.UnitLength_in_cm; //a = 0.1 micrometer
-   double mdot = 0.0;
-   if(galaxies[gal].HotDust > 0.0 && galaxies[gal].Vvir > 0.0) {
-	const double temp0 = 2e6; //in Kelvin
-	const double temp = 35.9 * galaxies[gal].Vvir * galaxies[gal].Vvir; //in Kelvin	
-	const double gamma = 2.5;
-	
-	double x = -3.2e-18 / PROTONMASS / (pow(temp0/temp, gamma) + 1); //in cm^4 / g /s
-	x /= run_params.UnitLength_in_cm / run_params.UnitDensity_in_cgs / run_params.UnitTime_in_s; //in internal unit
-	double rho = galaxies[gal].HotGas / (4 / 3 * M_PI * galaxies[gal].Rvir * galaxies[gal].Rvir * galaxies[gal].Rvir);
-	adot = rho / x;
-	a -= adot * dt;	
-   
-	assert(a > 0);
-	a /= 1e-5 / run_params.UnitLength_in_cm; //in 0.1 micrometer unit
-	rho *= run_params.UnitDensity_in_cgs;
-	const double tau0 = 170 * SEC_PER_MEGAYEAR / run_params.UnitTime_in_s; // 0.17Gyr to internal unit
-	const double tau = tau0 * (a/rho) * (pow(temp0/temp, gamma) + 1);
-	mdot = galaxies[gal].HotDust / tau / 3;
-
-	galaxies[gal].HotDust -= mdot * dt;
-	galaxies[gal].MetalsHotGas += mdot * dt;
-   }
-}

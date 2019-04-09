@@ -9,6 +9,7 @@
 
 #include "model_starformation_and_feedback.h"
 #include "model_misc.h"
+#include "model_dust.h"
 #include "model_disk_instability.h"
 
 void starformation_and_feedback(const int p, const int centralgal, const double time, const double dt, const int halonr, const int step, struct GALAXY *galaxies)
@@ -151,7 +152,7 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     else if(run_params.MetalYieldsOn == 1)
     { // self consistent yields - AGB, SNII, and SNIa
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    produce_metals_dust(metallicity, dt, p, centralgal, galaxies);
+    produce_metals_dust(metallicity, dt, p, centralgal, step, galaxies);
     }
     else
     {
@@ -161,11 +162,11 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
 
     //update for dust accretion
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    accrete_dust(metallicity, dt, p, galaxies);
+    accrete_dust(metallicity, dt, p, step, galaxies);
    
     //update for dust destruction
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    destruct_dust(metallicity, dt, p, galaxies);
+    destruct_dust(metallicity, stars, dt, p, step, galaxies);
    
 
 }

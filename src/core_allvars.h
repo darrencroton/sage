@@ -79,6 +79,11 @@ struct GALAXY_OUTPUT
   float SfrDiskZ;
   float SfrBulgeZ;
 
+  /* dust dot */
+  float dustdotform;
+  float dustdotgrowth;
+  float dustdotdestruct;
+
   /* star formation rate in each snapshot */
   float Sfr[SNAPLEN];
   
@@ -160,7 +165,12 @@ struct GALAXY
   float SfrBulgeColdGas[STEPS];
   float SfrBulgeColdGasMetals[STEPS];
 
-  /* to calculate metal */
+  /* dust dot */
+  float dustdotform[STEPS];
+  float dustdotgrowth[STEPS];
+  float dustdotdestruct[STEPS];
+ 
+ /* to calculate metal */
   float Sfr[SNAPLEN];
 
   /* misc */

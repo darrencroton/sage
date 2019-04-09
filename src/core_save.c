@@ -214,12 +214,19 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->SfrBulge = 0.0;
     o->SfrDiskZ = 0.0;
     o->SfrBulgeZ = 0.0;
-  
+    o->dustdotform = 0.0;
+    o->dustdotgrowth = 0.0;
+    o->dustdotdestruct = 0.0;
+ 
     // NOTE: in Msun/yr
     for(int step = 0; step < STEPS; step++) {
         o->SfrDisk += g->SfrDisk[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
         o->SfrBulge += g->SfrBulge[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
-        
+     
+	o->dustdotform += g->dustdotform[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+	o->dustdotgrowth += g->dustdotgrowth[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+	o->dustdotdestruct += g->dustdotdestruct[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+
         if(g->SfrDiskColdGas[step] > 0.0) {
             o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
         }

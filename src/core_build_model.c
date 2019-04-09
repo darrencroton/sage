@@ -297,6 +297,7 @@ void evolve_galaxies(const int halonr, const int ngal, int *numgals, int *maxgal
             // For the central galaxy only
             if(p == centralgal) {
                 add_infall_to_hot(centralgal, infallingGas / STEPS, galaxies);
+		dust_thermal_sputtering(centralgal, deltaT / STEPS, galaxies);
 
                 if(run_params.ReIncorporationFactor > 0.0) {
                     reincorporate_gas(centralgal, deltaT / STEPS, galaxies);

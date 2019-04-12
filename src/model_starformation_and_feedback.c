@@ -153,13 +153,19 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     { // self consistent yields - AGB, SNII, and SNIa
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
     produce_metals_dust(metallicity, dt, p, centralgal, step, galaxies);
+
+    //update for dust accretion
+    accrete_dust(metallicity, dt, p, step, galaxies);
+
+    //update for dust destruction
+    //destruct_dust(metallicity, stars, dt, p, step, galaxies);
     }
     else
     {
         printf("No metals formation prescription selected!\n");
         ABORT(0);
     }
-
+/*
     //update for dust accretion
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
     accrete_dust(metallicity, dt, p, step, galaxies);
@@ -168,7 +174,7 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
     destruct_dust(metallicity, stars, dt, p, step, galaxies);
    
-
+*/
 }
 
 

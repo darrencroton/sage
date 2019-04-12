@@ -137,7 +137,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
           }
           else {
                 sfr = interpolate_arr(age, sfh, SNAPLEN, time);
-          }
+	  }
           yCsn[i] = run_params.qCsn[i][j] * phi * sfr;
           yOsn[i] = run_params.qOsn[i][j] * phi * sfr;
           yMgsn[i] = run_params.qMgsn[i][j] * phi * sfr;

@@ -85,7 +85,7 @@ struct GALAXY_OUTPUT
   float dustdotdestruct;
 
   /* star formation rate in each snapshot */
-  float Sfr[SNAPLEN];
+//  float Sfr[SNAPLEN];
   
   /* misc */
   float DiskScaleRadius;

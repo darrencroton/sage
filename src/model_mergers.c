@@ -92,7 +92,8 @@ void deal_with_galaxy_merger(const int p, const int merger_centralgal, const int
 
 void grow_black_hole(const int merger_centralgal, const double mass_ratio, struct GALAXY *galaxies)
 {
-    double BHaccrete, metallicity, DTG;
+    double BHaccrete, metallicity;
+    double DTG;
 
     if(galaxies[merger_centralgal].ColdGas > 0.0) {
         BHaccrete = run_params.BlackHoleGrowthRate * mass_ratio / 
@@ -296,17 +297,18 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
       } else {
           galaxies[centralgal].MetalsHotGas += run_params.Yield * stars;
           // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * stars;
-      }
-    } else if(run_params.MetalYieldsOn == 1) {
+        }
+    } 
+    else if(run_params.MetalYieldsOn == 1) {
       //self consistent yields - AGB, SNII, and SNIa
         metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
         produce_metals_dust(metallicity, dt, merger_centralgal, centralgal, step, galaxies);
 	accrete_dust(metallicity, dt, merger_centralgal, step, galaxies);
-	//destruct_dust(metallicity, stars, dt, merger_centralgal, step, galaxies);
+	destruct_dust(metallicity, stars, dt, merger_centralgal, step, galaxies);
     } else {
         printf("No metals formation prescription selected!\n");
         ABORT(0);
-    }
+    } 
 
 /*
     //update for dust accretion

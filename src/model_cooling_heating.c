@@ -24,7 +24,12 @@ double cooling_recipe(const int gal, const double dt, struct GALAXY *galaxies)
         if((galaxies[gal].MetalsHotGas + galaxies[gal].HotDust) > 0) {
             logZ = log10((galaxies[gal].MetalsHotGas + galaxies[gal].HotDust) / galaxies[gal].HotGas);
         }
-
+/*
+        double logZ = -10.0;
+        if(galaxies[gal].MetalsHotGas > 0) {
+            logZ = log10(galaxies[gal].MetalsHotGas / galaxies[gal].HotGas);
+        }
+*/
         double lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
         double x = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
         x /= (run_params.UnitDensity_in_cgs * run_params.UnitTime_in_s);         // now in internal units 

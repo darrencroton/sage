@@ -11,7 +11,7 @@ LIBNAME := sage
 LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c \
            core_cool_func.c core_build_model.c core_save.c core_mymalloc.c core_utils.c progressbar.c \
            core_allvars.c core_tree_utils.c model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
-           model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c model_dust.c\
+           model_dust.c model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/read_tree_binary.c io/read_tree_consistentrees_ascii.c
 LIBINCL := $(LIBSRC:.c=.h)
 

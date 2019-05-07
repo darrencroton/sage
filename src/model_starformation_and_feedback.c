@@ -12,21 +12,17 @@
 #include "model_dust.h"
 #include "model_disk_instability.h"
 
+void update_H2_HI(const int p, struct GALAXY *galaxies);
 void starformation_and_feedback(const int p, const int centralgal, const double time, const double dt, const int halonr, const int step, struct GALAXY *galaxies)
 {
-    double reff, tdyn, strdot, stars, ejected_mass, fac, metallicity, DTG;
+    double reff, tdyn, strdot, stars, ejected_mass, fac, metallicity, DTG, area;
     double cold_crit;
-    double area, sigma, sigma_crit, sfr_ff;
   
     // Initialise variables
     strdot = 0.0;
 
-    // update H2 and HI gas
-    update_H2_HI(p, galaxies);
-
     // star formation recipes 
-     if(run_params.SFprescription == 0)
-	 {
+     if(run_params.SFprescription == 0) {
 	        // we take the typical star forming region as 3.0*r_s using the Milky Way as a guide
 	        reff = 3.0 * galaxies[p].DiskScaleRadius;
         	tdyn = reff / galaxies[p].Vvir;
@@ -36,20 +32,26 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
         	if(galaxies[p].ColdGas > cold_crit && tdyn > 0.0) 
 		{
         	  strdot = run_params.SfrEfficiency * (galaxies[p].ColdGas - cold_crit) / tdyn;
-        	} 
-     		else 
-		{
+        	} else {
             	  strdot = 0.0;
         	}
-	}
+    }
+
     else if(run_params.SFprescription == 1) 
     {
-        // make stars only from H2
+	 // update H2 and HI gas
+    	update_H2_HI(p, galaxies);
+       
+	 // make stars only from H2
 	area = M_PI * 9.0 * galaxies[p].DiskScaleRadius * galaxies[p].DiskScaleRadius;
         strdot = run_params.UnitTime_in_s / SEC_PER_MEGAYEAR * run_params.SfrEfficiency * galaxies[p].f_H2 * galaxies[p].ColdGas;
-    } 
+    }
+/* 
     else if(run_params.SFprescription == 2) 
     {
+	 // update H2 and HI gas
+	 update_H2_HI(p, galaxies);
+
 	//Krumholz & McKee 2009
 	area = M_PI * 9.0 * galaxies[p].DiskScaleRadius * galaxies[p].DiskScaleRadius;  
 	sigma = galaxies[p].ColdGas / area;
@@ -71,6 +73,7 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
 		strdot = galaxies[p].f_H2 * galaxies[p].ColdGas * (sfr_ff / tff) * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR;
 	}
     }
+*/ 
     else 
     {
         printf("No star formation prescription selected!\n");
@@ -136,19 +139,19 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     }
 
     //formation of new metals and dust
-    if(run_params.MetalYieldsOn == 0)
-    { // instantaneous recycling approximation - only SNII 
-    if(galaxies[p].ColdGas > 1.0e-8) {
+    if(run_params.MetalYieldsOn == 0)  { // instantaneous recycling approximation - only SNII 
+      if(galaxies[p].ColdGas > 1.0e-8) {
         const double FracZleaveDiskVal = run_params.FracZleaveDisk * exp(-1.0 * galaxies[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
         galaxies[p].MetalsColdGas += run_params.Yield * (1.0 - FracZleaveDiskVal) * stars;
         galaxies[centralgal].MetalsHotGas += run_params.Yield * FracZleaveDiskVal * stars;
         // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * FracZleaveDiskVal * stars;
 
-    } else {
+      } else {
         galaxies[centralgal].MetalsHotGas += run_params.Yield * stars;
         // galaxies[centralgal].MetalsEjectedMass += run_params.Yield * stars;
       }
     }
+
     else if(run_params.MetalYieldsOn == 1)
     { // self consistent yields - AGB, SNII, and SNIa
     metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
@@ -158,23 +161,14 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     accrete_dust(metallicity, dt, p, step, galaxies);
 
     //update for dust destruction
-    //destruct_dust(metallicity, stars, dt, p, step, galaxies);
+    destruct_dust(metallicity, stars, dt, p, step, galaxies);
     }
+
     else
     {
         printf("No metals formation prescription selected!\n");
         ABORT(0);
     }
-/*
-    //update for dust accretion
-    metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    accrete_dust(metallicity, dt, p, step, galaxies);
-   
-    //update for dust destruction
-    metallicity = get_metallicity(galaxies[p].ColdGas, galaxies[p].MetalsColdGas);
-    destruct_dust(metallicity, stars, dt, p, step, galaxies);
-   
-*/
 }
 
 
@@ -292,7 +286,7 @@ void update_H2_HI(const int p, struct GALAXY *galaxies)
 
 		if(f_H2_HI > 0.0)
 		{
-			assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
+			//assert(galaxies[p].MetalsColdGas <= galaxies[p].ColdGas);
 			galaxies[p].f_H2 = 0.75 * 1.0/(1.0/f_H2_HI + 1) * (1 - galaxies[p].MetalsColdGas/galaxies[p].ColdGas) / 1.3; //This is H2/ColdGas
 			galaxies[p].f_HI = galaxies[p].f_H2/f_H2_HI;
 		}
@@ -304,3 +298,4 @@ void update_H2_HI(const int p, struct GALAXY *galaxies)
 		
 	}	
 }
+

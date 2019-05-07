@@ -187,11 +187,13 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->VelDisp = halos[g->HaloNr].VelDisp;
 
     o->ColdGas = g->ColdGas;
+
     o->f_H2 = g->f_H2;
     o->f_HI = g->f_HI;
     o->cf = g->cf;
     o->Zp = g->Zp;
     o->Pressure = g->Pressure;
+
     o->StellarMass = g->StellarMass;
     o->BulgeMass = g->BulgeMass;
     o->HotGas = g->HotGas;
@@ -214,6 +216,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->SfrBulge = 0.0;
     o->SfrDiskZ = 0.0;
     o->SfrBulgeZ = 0.0;
+
     o->dustdotform = 0.0;
     o->dustdotgrowth = 0.0;
     o->dustdotdestruct = 0.0;
@@ -235,11 +238,11 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
             o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
         }
     }
-    
-   for(int snap = 0; snap < 64; snap++) {
+/*    
+   for(int snap = 0; snap < SNAPLEN; snap++) {
 	o->Sfr[snap] = g->Sfr[snap] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
    }
-
+*/
     o->DiskScaleRadius = g->DiskScaleRadius;
 
     if (g->Cooling > 0.0) {

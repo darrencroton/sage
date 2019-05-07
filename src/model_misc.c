@@ -47,11 +47,13 @@ void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_
     galaxies[p].deltaMvir = 0.0;
     
     galaxies[p].ColdGas = 0.0;
+
     galaxies[p].f_H2 = 0.0;
     galaxies[p].f_HI = 0.0;
     galaxies[p].cf = 0.0;
     galaxies[p].Zp = 0.0;
     galaxies[p].Pressure = 0.0;
+
     galaxies[p].StellarMass = 0.0;
     galaxies[p].BulgeMass = 0.0;
     galaxies[p].HotGas = 0.0;

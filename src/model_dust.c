@@ -300,7 +300,6 @@ void destruct_dust(const double metallicity, const double stars, const double dt
   
     double mstar = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_low, m_up);
     double Rsn = stars / dt / mstar;
-//    double Rsn = integrate_arr(mass, mphi, count, mass[0], m_up);
     assert(m_swept > 0 && "mass of ISM swept by SN must be greater than 0");
 
 //    if (Rsn > 0 && galaxies[p].ColdGas > 0 && galaxies[p].f_HI >0) {

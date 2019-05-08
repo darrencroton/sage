@@ -263,10 +263,10 @@ void destruct_dust(const double metallicity, const double stars, const double dt
   double m_low = 8; //lower limit of stellar mass that end up as SN
   double m_up = 40; //upper limit of stellar mass that end up as SN
   double t_low = compute_taum(m_up); //the shortest stellar lifetime that end up as SN
-  int count = 50;
-  double mass[count], phi[count], mphi[count];
   double eta = 0.1; //should be free parameter, we used value adopted by Asano et al. 13
   double m_swept = 1535 * pow((metallicity/0.02 + 0.039), -0.289) * run_params.Hubble_h / 1.e10; //eq. 14 Asano et al. 13
+  int count = 20;
+  double mass[count], phi[count], mphi[count];
 //  double m_swept = 600 * run_params.Hubble_h / 1.e10;
 
   for (i=0; i<SNAPLEN; i++)
@@ -277,7 +277,6 @@ void destruct_dust(const double metallicity, const double stars, const double dt
 
 //Dwek & Cherchneff 2011
   if (age[galaxies[p].SnapNum] > t_low) {
-
     for(i=0; i<count; i++) {
         mass[i] = 1 + ((m_up - 1) / (count-i));
         phi[i] = compute_imf(mass[i]);
@@ -298,7 +297,7 @@ void destruct_dust(const double metallicity, const double stars, const double dt
 	mphi[i] = sfr*phi[i];
     }
 */
-  }
+  
     double mstar = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_low, m_up);
     double Rsn = stars / dt / mstar;
 //    double Rsn = integrate_arr(mass, mphi, count, mass[0], m_up);
@@ -311,14 +310,15 @@ void destruct_dust(const double metallicity, const double stars, const double dt
        double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13 [yr]
        tsn /= run_params.UnitTime_in_s / SEC_PER_YEAR; //back to internal unit
 //       printf("coldgas = %.3e, dust = %.3e, m_swept = %.3e, Rsn = %.3e,  tsn = %.3e, dt = %.3e Myr \n", galaxies[p].ColdGas, galaxies[p].ColdDust,  m_swept, Rsn, tsn * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR, dt * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR);
-       assert(tsn > 0 && "tsn must be greater than 0");
+//       assert(tsn > 0 && "tsn must be greater than 0");
        dustdot += galaxies[p].ColdDust / tsn;
     }
 
-  galaxies[p].dustdotdestruct[step] += dustdot;
-  galaxies[p].ColdDust -= dustdot * dt;
-  if (galaxies[p].ColdDust < 0) {
-    galaxies[p].ColdDust = 0;
+    galaxies[p].dustdotdestruct[step] += dustdot;
+    galaxies[p].ColdDust -= dustdot * dt;
+    if (galaxies[p].ColdDust < 0) {
+      galaxies[p].ColdDust = 0;
+    }
   }
 }
 

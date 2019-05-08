@@ -310,15 +310,6 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
         ABORT(0);
     } 
 
-/*
-    //update for dust accretion
-    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    accrete_dust(metallicity, dt, merger_centralgal, step, galaxies);
-
-    //update for dust destruction
-    metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
-    destruct_dust(metallicity, stars, dt, merger_centralgal, step, galaxies);
-*/
 }
 
 

@@ -31,7 +31,7 @@
 #define  MAXTAGS          300  /* Max number of parameters */
 #define  MAXYIELDS	  100  /* max number of stellar yields */
 #define  METALGRID	  7    /* number of metal grids in stellar yield table */
-#define  SNAPLEN	  181   /* number of snapshot in bolshoi */
+#define  SNAPLEN	  132   /* number of snapshot in bolshoi */
 
 #define  GRAVITY     6.672e-8
 #define  SOLAR_MASS  1.989e33

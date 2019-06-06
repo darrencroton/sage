@@ -233,9 +233,18 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
         dustdot += delta_snia * (Cr_snia + Ni_snia) / dt;
 
-        galaxies[p].ColdDust += dustdot * dt;
-        galaxies[p].dustdotform[step] += dustdot;
-        XPRINT(dustdot * dt >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
+	if(galaxies[p].MetalsColdGas > dustdot * dt) {
+      		galaxies[p].ColdDust += dustdot * dt;
+		galaxies[p].MetalsColdGas -= dustdot * dt;
+        	galaxies[p].dustdotform[step] += dustdot;
+        	XPRINT(dustdot * dt >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
+	}
+
+	else {
+		galaxies[p].ColdDust += galaxies[p].MetalsColdGas;
+		galaxies[p].MetalsColdGas = 0;
+		galaxies[p].dustdotform[step] +=  galaxies[p].MetalsColdGas / dt;		
+	}
    }
 }
 
@@ -248,10 +257,19 @@ void accrete_dust(const double metallicity, const double dt, const int p, const 
     double tacc = tacc_zero * 0.02 / metallicity;
     dustdot += (1 - galaxies[p].ColdDust/galaxies[p].MetalsColdGas) * (galaxies[p].f_H2 * galaxies[p].ColdDust / tacc);
   }
-
-  galaxies[p].dustdotgrowth[step] += dustdot;
-  galaxies[p].ColdDust += dustdot * dt;
-  XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
+  
+  if(galaxies[p].MetalsColdGas > dustdot * dt) { 
+  	galaxies[p].dustdotgrowth[step] += dustdot;
+  	galaxies[p].ColdDust += dustdot * dt;
+  	galaxies[p].MetalsColdGas -= dustdot * dt;
+  	XPRINT(galaxies[p].ColdDust >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
+  }
+ 
+  else {
+        galaxies[p].ColdDust += galaxies[p].MetalsColdGas;
+        galaxies[p].MetalsColdGas = 0;             
+	galaxies[p].dustdotgrowth[step] += galaxies[p].MetalsColdGas / dt;
+  }
 }
 
 void destruct_dust(const double metallicity, const double stars, const double dt, const int p, const int step,  struct GALAXY *galaxies) {
@@ -302,22 +320,28 @@ void destruct_dust(const double metallicity, const double stars, const double dt
     double Rsn = stars / dt / mstar;
     assert(m_swept > 0 && "mass of ISM swept by SN must be greater than 0");
 
-//    if (Rsn > 0 && galaxies[p].ColdGas > 0 && galaxies[p].f_HI >0) {
-    if (Rsn > 0 && galaxies[p].ColdGas > 0) {
+    if (Rsn > 0 && galaxies[p].ColdGas > 0 && galaxies[p].f_HI >0) {
+//    if (Rsn > 0 && galaxies[p].ColdGas > 0) {
        Rsn *=  run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS; //convert to Msun/yr 
-//       double tsn = galaxies[p].ColdGas * galaxies[p].f_HI/ (eta * m_swept * Rsn); //eq.12 Asano et al 13 [yr]
-       double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13 [yr]
+       double tsn = galaxies[p].ColdGas * galaxies[p].f_HI/ (eta * m_swept * Rsn); //eq.12 Asano et al 13 [yr]
+//       double tsn = galaxies[p].ColdGas / (eta * m_swept * Rsn); //eq.12 Asano et al 13 [yr]
        tsn /= run_params.UnitTime_in_s / SEC_PER_YEAR; //back to internal unit
 //       printf("coldgas = %.3e, dust = %.3e, m_swept = %.3e, Rsn = %.3e,  tsn = %.3e, dt = %.3e Myr \n", galaxies[p].ColdGas, galaxies[p].ColdDust,  m_swept, Rsn, tsn * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR, dt * run_params.UnitTime_in_s / SEC_PER_MEGAYEAR);
 //       assert(tsn > 0 && "tsn must be greater than 0");
        dustdot += galaxies[p].ColdDust / tsn;
     }
 
-    galaxies[p].dustdotdestruct[step] += dustdot;
-    galaxies[p].ColdDust -= dustdot * dt;
-    if (galaxies[p].ColdDust < 0) {
-      galaxies[p].ColdDust = 0;
+    if(galaxies[p].ColdDust > dustdot * dt) {
+	galaxies[p].dustdotdestruct[step] += dustdot;
+	galaxies[p].ColdDust -= dustdot * dt;
+	galaxies[p].MetalsColdGas += dustdot * dt;
     }
+    else {
+	galaxies[p].dustdotdestruct[step] += galaxies[p].ColdDust / dt;
+	galaxies[p].MetalsColdGas += galaxies[p].ColdDust;
+        galaxies[p].ColdDust = 0;
+    }
+
   }
 }
 

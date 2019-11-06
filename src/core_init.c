@@ -183,84 +183,134 @@ void read_metal_yield(void)
         char fname[MAX_STRING_LEN];
 	int cols=0;
 	int i, j, rows;
-        double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05}; //metal grid from Karakas 10 and Woosley & Weaver 1995
 
 	/* READ AGB YIELD */
 	if (run_params.AGBYields == 0)
 	{
+		double Z_std[7] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05}; //metal grid from Karakas 10
 		strcpy(fname, "src/auxdata/yields/table2d.dat");
 		cols = 13; //number of columns in the file
-	}
+	
 
-        struct table data;
-        data = read_table(fname, cols);
-        rows = data.nr;
-	double Z[rows];
+        	struct table data;
+        	data = read_table(fname, cols);
+        	rows = data.nr;
+		double Z[rows];
+        	
+        	//count how many rows necessary for each column based on Z
+        	int count = 0;
+        	for (i=0; i<rows; i++)
+        	{       
+                	Z[i] = data.tbl[i][0];
+                	if (Z[i] == Z_std[0]) {
+                        	count++;
+			}
+        	}
         
-        //count how many rows necessary for each column based on Z
-        int count = 0;
-        for (i=0; i<rows; i++)
-        {       
-                Z[i] = data.tbl[i][0];
-                if (Z[i] == Z_std[0]) {
-                        count++;}
-        }
+        	//now assign
+		run_params.countagb = count;
         
-        //now assign
-	run_params.countagb = count;
-        
-        for (j=0; j<METALGRID; j++){
-                int index = 0;
-                for (i=0; i<rows; i++){
-                        if (Z[i] == Z_std[j])
-                        {       
-                                run_params.magb[index] = data.tbl[i][1]; //1 is the column number
-                                run_params.qCagb[index][j] = data.tbl[i][6] + data.tbl[i][7] + data.tbl[i][11];
-                                run_params.qNagb[index][j] = data.tbl[i][8] + data.tbl[i][12];
-                                run_params.qOagb[index][j] = data.tbl[i][9];
-                                run_params.Qagb[index][j] = run_params.qCagb[index][j] + run_params.qNagb[index][j] + run_params.qOagb[index][j];              
-                                index++;
-                        }
-                }
-        }
+        	for (j=0; j<7; j++){
+                	int index = 0;
+                	for (i=0; i<rows; i++){
+                        	if (Z[i] == Z_std[j])
+                        	{       
+                                	run_params.magb[index] = data.tbl[i][1]; //1 is the column number
+                                	run_params.qCagb[index][j] = data.tbl[i][6] + data.tbl[i][7] + data.tbl[i][11];
+                                	run_params.qNagb[index][j] = data.tbl[i][8] + data.tbl[i][12];
+                                	run_params.qOagb[index][j] = data.tbl[i][9];
+                                	run_params.Qagb[index][j] = run_params.qCagb[index][j] + run_params.qNagb[index][j] + run_params.qOagb[index][j];              
+                                	index++;
+                        	}
+                	}
+        	}
+	}
 
 	/* READ SN II YIELD */
 	if (run_params.SNIIYields == 0)
         {
-                strcpy(fname, "src/auxdata/yields/table4a.dat");
+		double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05}; //metal grid Woosley & Weaver 1995
+		strcpy(fname, "src/auxdata/yields/table4a.dat");
                 cols = 17; //number of columns in the file
-        }
-	
-	data = read_table(fname, cols);
-	rows = data.nr;
-	count = 0; 
-        for (i=0; i<rows; i++)
-        {
-                Z[i] = data.tbl[i][0];
-                if (Z[i] == Z_std[0]) {
-                        count++;}
-        }
+		
+		struct table data;	
+		data = read_table(fname, cols);
+		rows = data.nr;
+		double Z[rows];
 
-	run_params.countsn = count;
+		//count how many rows necessary for each column based on Z
+		int count = 0; 
+        	for (i=0; i<rows; i++)
+        	{
+                	Z[i] = data.tbl[i][0];
+                	if (Z[i] == Z_std[0]) {
+                        	count++;}
+        	}
 
-        for (j=0; j<METALGRID; j++){
-                int index = 0;
-                for (i=0; i<rows; i++){
-                        if (Z[i] == Z_std[j])
-                        {
-                                run_params.msn[index] = data.tbl[i][1];
-                                run_params.qCsn[index][j] = data.tbl[i][6] + data.tbl[i][15];
-                                run_params.qOsn[index][j] = data.tbl[i][7];
-                                run_params.qMgsn[index][j] = data.tbl[i][9];
-                                run_params.qSisn[index][j] = data.tbl[i][10];
-                                run_params.qSsn[index][j] = data.tbl[i][11];
-                                run_params.qCasn[index][j] = data.tbl[i][12];
-                                run_params.qFesn[index][j] = data.tbl[i][13];
-                                run_params.Qsn[index][j] = run_params.qCsn[index][j] + run_params.qOsn[index][j] + run_params.qMgsn[index][j] + run_params.qSisn[index][j] + run_params.qSsn[index][j] + run_params.qCasn[index][j] + run_params.qFesn[index][j];
-				index++;
-                        }
-                }
-        }
+		run_params.countsn = count;
+
+        	for (j=0; j<7; j++){
+                	int index = 0;
+                	for (i=0; i<rows; i++){
+                	        if (Z[i] == Z_std[j])
+                        	{
+                                	run_params.msn[index] = data.tbl[i][1];
+                                	run_params.qCsn[index][j] = data.tbl[i][6] + data.tbl[i][15];
+                                	run_params.qOsn[index][j] = data.tbl[i][7];
+                                	run_params.qMgsn[index][j] = data.tbl[i][9];
+                                	run_params.qSisn[index][j] = data.tbl[i][10];
+                                	run_params.qSsn[index][j] = data.tbl[i][11];
+                                	run_params.qCasn[index][j] = data.tbl[i][12];
+                                	run_params.qFesn[index][j] = data.tbl[i][13];
+                                	run_params.Qsn[index][j] = run_params.qCsn[index][j] + run_params.qOsn[index][j] + run_params.qMgsn[index][j] + run_params.qSisn[index][j] + run_params.qSsn[index][j] + run_params.qCasn[index][j] + run_params.qFesn[index][j];
+					index++;
+                        	}
+                	}
+        	}
+	}
+
+	else if (run_params.SNIIYields == 1) //from Nomoto et al. 2006
+	{
+		double Z_std[METALGRID] = {0.0, 0.001, 0.004, 0.02};
+		strcpy(fname, "src/auxdata/yields/Nomoto.dat");
+		cols = 13; //number of columns in the file
+
+		struct table data;
+		data = read_table(fname, cols);
+		rows = data.nr;
+		double Z[rows];
+
+		//count how many rows necessary for each column based on Z
+		int count = 0;
+		for (i=0; i<rows; i++)
+		{
+			Z[i] = data.tbl[i][0];
+			if (Z[i] == Z_std[0]) {
+				count++;}
+		}	
+		
+		run_params.countsn = count;
+
+		for (j=0; j<4; j++){
+			int index = 0;
+			for (i=0; i<rows; i++){
+				if (Z[i] == Z_std[j])
+				{
+					run_params.msn[index] = data.tbl[i][1];
+					run_params.qCsn[index][j] = data.tbl[i][2] + data.tbl[i][11];
+					run_params.qOsn[index][j] = data.tbl[i][3];
+					run_params.qMgsn[index][j] = data.tbl[i][5];
+					run_params.qSisn[index][j] = data.tbl[i][6];
+					run_params.qSsn[index][j] = data.tbl[i][7];
+					run_params.qCasn[index][j] = data.tbl[i][8];
+					run_params.qFesn[index][j] = data.tbl[i][9];
+					run_params.Qsn[index][j] = run_params.qCsn[index][j] + run_params.qOsn[index][j] + run_params.qMgsn[index][j] + run_params.qSisn[index][j] + run_params.qSsn[index][j] + run_params.qCasn[index][j] + run_params.qFesn[index][j];
+					index++;
+				}
+			}
+		}
+	}	
+
 
         /* SNIa YIELD */
 	if (run_params.SNIaYields == 0)
@@ -269,6 +319,14 @@ void read_metal_yield(void)
 		run_params.qFesnia = 0.587;
 		run_params.qNisnia = 0.0314;
 	}
+
+	else if (run_params.SNIaYields == 1) //yields from Seitenzahl et al. 2013
+	{
+		run_params.qCrsnia = 8.57E-03;
+		run_params.qFesnia = 6.22E-01;
+		run_params.qNisnia = 6.90E-02;
+	}
+	printf("ends reading yieldi \n");
 }
 
 struct table read_table(char *fname, int ncols)
@@ -278,7 +336,7 @@ struct table read_table(char *fname, int ncols)
         FILE *file;
 
         file = fopen(fname,"r");
-        fscanf(file, "%*[^\n]"); //skips the first line
+	fscanf(file, "%*[^\n]"); //skips the first line
 
         //start reading the file
         i=0;

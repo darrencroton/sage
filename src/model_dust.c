@@ -18,7 +18,6 @@ double compute_taum (const double m);
 
 void produce_metals_dust(const double metallicity, const double dt, const int p, const int centralgal, const int step, struct GALAXY *galaxies)
 {
-  double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
   double A = run_params.BinaryFraction;
 
   double yield;
@@ -28,6 +27,10 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
   double Cr_snia, Fe_snia, Ni_snia;
   double C_agb, N_agb, O_agb;
   double C_sn, O_sn, Mg_sn, Si_sn, S_sn, Ca_sn, Fe_sn;
+  double yCagb[run_params.countagb], yNagb[run_params.countagb], yOagb[run_params.countagb];
+  double m_agb[run_params.countagb];
+  double yCsn[run_params.countsn], yOsn[run_params.countsn], yMgsn[run_params.countsn], ySisn[run_params.countsn], ySsn[run_params.countsn], yCasn[run_params.countsn], yFesn[run_params.countsn];
+  double m_sn[run_params.countsn];
 
   int i, j;
   double phi, taum, time, sfr;
@@ -35,11 +38,10 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
   double low_agb = 1; //lower limit for stars that ends up as AGB, Msun
   double low_binary = 3; //lower limit for binary star, Msun
   double up_agb = 6; //upper limit for stars that ends up as AGB, Msun
-  double low_sn = 11; //lower limit for stars that ends up as SN II, Msun
+  double low_sn = run_params.msn[0]; //lower limit for stars that ends up as SN II, Msun
   double up_binary = 16; //upper limit for binary stars, Msun
-  double up_sn = 100; //upper limit for stars that ends up as SN II, Msun
+  double up_sn = 40; //upper limit for stars that ends up as SN II, Msun
   double age[SNAPLEN], sfh[SNAPLEN];
-  i = j = 0;
 
   for (i=0; i<SNAPLEN; i++)
   {
@@ -47,17 +49,6 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         sfh[i] = galaxies[p].Sfr[i];
   }
 
-  double sfrz = metallicity;
-  if (sfrz < Z_std[0]){
-  sfrz = Z_std[0];}
-  else if (sfrz > Z_std[METALGRID-1]){
-  sfrz = Z_std[METALGRID-1];}
-
-  for(i=0; i<METALGRID; i++) {
-    if(Z_std[i] <= sfrz && Z_std[i] > sfrz) {
-      j = i;
-    }
-  }
 
 /* the following computation is from eq. 9 Arrigoni et al. 2010 */
 
@@ -93,70 +84,154 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         yCrphi[i] = yCr * compute_imf(mbin[i]);
         yFephi[i] = yFe * compute_imf(mbin[i]);
         yNiphi[i] = yNi * compute_imf(mbin[i]);
- }
+  //printf("SNIa done \n");
+  }
 
-  // AGB // 
-    double yCagb[run_params.countagb], yNagb[run_params.countagb], yOagb[run_params.countagb];
-    double m_agb[run_params.countagb];
 
-    for(i=0; i<run_params.countagb; i++){
-      if(run_params.magb[i] != 0) {
-        m_agb[i] = run_params.magb[i];
-        phi = compute_imf(run_params.magb[i]);
-        taum = compute_taum(run_params.magb[i]);
-        time = age[galaxies[p].SnapNum] - taum;
-        if(time < run_params.lbtime[0]){
-                sfr=0;
-         }
-         else {
-                sfr = interpolate_arr(age, sfh, SNAPLEN, time);
-         }
+  // AGB //
+    if(run_params.AGBYields == 0)
+    {	
+	i = j = 0;
+	double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
+	double sfrz = metallicity;
+	if (sfrz < Z_std[0]){
+		sfrz = Z_std[0];}
+	else if (sfrz > Z_std[6]){
+		sfrz = Z_std[6];}
 
-        yCagb[i] = run_params.qCagb[i][j] * phi * sfr;
-        yNagb[i] = run_params.qNagb[i][j] * phi * sfr;
-        yOagb[i] = run_params.qOagb[i][j] * phi * sfr;
-        }
-        else {
-        yCagb[i] = 0;
-        yNagb[i] = 0;
-        yOagb[i] = 0; }
-    }
+	for (i=0; i<METALGRID; i++) {
+		if(Z_std[i] <= sfrz && Z_std[i] > sfrz) {
+			j = i;
+		}
+	}
+
+	//double yCagb[run_params.countagb], yNagb[run_params.countagb], yOagb[run_params.countagb];
+	//double m_agb[run_params.countagb];
+	for(i=0; i<run_params.countagb; i++){
+		if(run_params.magb[i] != 0) {
+			m_agb[i] = run_params.magb[i];
+			phi = compute_imf(run_params.magb[i]);
+			taum = compute_taum(run_params.magb[i]);
+			time = age[galaxies[p].SnapNum] - taum;
+			if(time < run_params.lbtime[0]){
+				sfr=0;
+			}
+			else {
+				 sfr = interpolate_arr(age, sfh, SNAPLEN, time);
+			}
+			yCagb[i] = run_params.qCagb[i][j] * phi * sfr;
+        		yNagb[i] = run_params.qNagb[i][j] * phi * sfr;
+        		yOagb[i] = run_params.qOagb[i][j] * phi * sfr;	
+		}
+		else {
+        		yCagb[i] = 0;
+        		yNagb[i] = 0;
+        		yOagb[i] = 0;			
+		}
+	}
+    //printf("AGB done \n");
+    } 
 
   // SN II // 
-    double yCsn[run_params.countsn], yOsn[run_params.countsn], yMgsn[run_params.countsn], ySisn[run_params.countsn], ySsn[run_params.countsn], yCasn[run_params.countsn], yFesn[run_params.countsn];
-    double m_sn[run_params.countsn];
+    if(run_params.SNIIYields == 0) //Woosley & Weaver 1995
+    {
+	i = j = 0;
+	double Z_std[METALGRID] = {0.0, 1e-4, 4e-4, 4e-3, 8e-3, 0.02, 0.05};
+	double sfrz = metallicity;
+        if (sfrz < Z_std[0]){
+                sfrz = Z_std[0];}
+        else if (sfrz > Z_std[6]){
+                sfrz = Z_std[6];}
 
-      for(i=0; i<run_params.countsn; i++){
-        if(run_params.msn[i] != 0) {
-          m_sn[i] = run_params.msn[i];
-          phi = compute_imf(run_params.msn[i]);
-          taum = compute_taum(run_params.msn[i]);
-          time = age[galaxies[p].SnapNum] - taum;
-          if(time < run_params.lbtime[0]){
-                sfr=0;
-          }
-          else {
-                sfr = interpolate_arr(age, sfh, SNAPLEN, time);
-	  }
-          yCsn[i] = run_params.qCsn[i][j] * phi * sfr;
-          yOsn[i] = run_params.qOsn[i][j] * phi * sfr;
-          yMgsn[i] = run_params.qMgsn[i][j] * phi * sfr;
-          ySisn[i] = run_params.qSisn[i][j] * phi * sfr;
-          ySsn[i] = run_params.qSsn[i][j] * phi * sfr;
-          yCasn[i] = run_params.qCasn[i][j] * phi * sfr;
-          yFesn[i] = run_params.qFesn[i][j] * phi * sfr;
+        for (i=0; i<METALGRID; i++) {
+                if(Z_std[i] <= sfrz && Z_std[i] > sfrz) {
+                        j = i;
+                }
         }
-        else {
-        yCsn[i] = 0;
-        yOsn[i] = 0;
-        yMgsn[i] = 0;
-        ySisn[i] = 0;
-        ySsn[i] = 0;
-        yCasn[i] = 0;
-        yFesn[i] = 0;
-        }
-    }
 
+      	for(i=0; i<run_params.countsn; i++){
+        	if(run_params.msn[i] != 0) {
+         		m_sn[i] = run_params.msn[i];
+         		phi = compute_imf(run_params.msn[i]);
+          		taum = compute_taum(run_params.msn[i]);
+          		time = age[galaxies[p].SnapNum] - taum;
+          		if(time < run_params.lbtime[0]){
+                		sfr=0;
+          		}
+         		 else {
+                	sfr = interpolate_arr(age, sfh, SNAPLEN, time);
+	  		}
+          		yCsn[i] = run_params.qCsn[i][j] * phi * sfr;
+          		yOsn[i] = run_params.qOsn[i][j] * phi * sfr;
+          		yMgsn[i] = run_params.qMgsn[i][j] * phi * sfr;
+          		ySisn[i] = run_params.qSisn[i][j] * phi * sfr;
+          		ySsn[i] = run_params.qSsn[i][j] * phi * sfr;
+          		yCasn[i] = run_params.qCasn[i][j] * phi * sfr;
+          		yFesn[i] = run_params.qFesn[i][j] * phi * sfr;
+        	}
+        	else {
+        	yCsn[i] = 0;
+        	yOsn[i] = 0;
+        	yMgsn[i] = 0;
+        	ySisn[i] = 0;
+        	ySsn[i] = 0;
+        	yCasn[i] = 0;
+        	yFesn[i] = 0;
+        	}
+    	}
+     //printf("SNII done \n");
+     }
+
+    else if(run_params.SNIIYields == 1) //Nomoto et al. 2006
+    {
+        i = j = 0;
+        double Z_std[METALGRID] = {0.0, 0.001, 0004, 0.02};
+        double sfrz = metallicity;
+        if (sfrz < Z_std[0]){
+                sfrz = Z_std[0];}
+        else if (sfrz > Z_std[3]){
+                sfrz = Z_std[3];}
+	
+        for (i=0; i<METALGRID; i++) {
+                if(Z_std[i] <= sfrz && Z_std[i] > sfrz) {
+                        j = i;
+                }
+        }
+
+        for(i=0; i<run_params.countsn; i++){
+                if(run_params.msn[i] != 0) {
+                        m_sn[i] = run_params.msn[i];
+                        phi = compute_imf(run_params.msn[i]);
+                        taum = compute_taum(run_params.msn[i]);
+                        time = age[galaxies[p].SnapNum] - taum;
+                        if(time < run_params.lbtime[0]){
+                                sfr=0;
+                        }
+                         else {
+                        sfr = interpolate_arr(age, sfh, SNAPLEN, time);
+                        }
+                        yCsn[i] = run_params.qCsn[i][j] * phi * sfr;
+                        yOsn[i] = run_params.qOsn[i][j] * phi * sfr;
+                        yMgsn[i] = run_params.qMgsn[i][j] * phi * sfr;
+                        ySisn[i] = run_params.qSisn[i][j] * phi * sfr;
+                        ySsn[i] = run_params.qSsn[i][j] * phi * sfr;
+                        yCasn[i] = run_params.qCasn[i][j] * phi * sfr;
+                        yFesn[i] = run_params.qFesn[i][j] * phi * sfr;
+                }
+                else {
+                yCsn[i] = 0;
+                yOsn[i] = 0;
+                yMgsn[i] = 0;
+                ySisn[i] = 0;
+                ySsn[i] = 0;
+                yCasn[i] = 0;
+                yFesn[i] = 0;
+                }
+        }
+     //printf("SNII done \n");
+     }
+
+    //printf("start integration");
     yCr_snia = A * integrate_arr(mbin, yCrphi, count, mbin[0], up_binary);
     yNi_snia = A * integrate_arr(mbin, yNiphi, count, mbin[0], up_binary);
     yFe_snia = A * integrate_arr(mbin, yFephi, count, mbin[0], up_binary);
@@ -170,6 +245,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
     yS_sn =  (1-A) * integrate_arr(m_sn, ySsn, run_params.countsn, low_sn, up_binary) + integrate_arr(m_sn, ySsn, run_params.countsn, up_binary, up_sn);
     yCa_sn =  (1-A) * integrate_arr(m_sn, yCasn, run_params.countsn, low_sn, up_binary) + integrate_arr(m_sn, yCasn, run_params.countsn, up_binary, up_sn);
     yFe_sn =  (1-A) * integrate_arr(m_sn, yFesn, run_params.countsn, low_sn, up_binary) + integrate_arr(m_sn, yFesn, run_params.countsn, up_binary, up_sn);
+    //printf("end integration");
 
     double yield_agb = yC_agb + yN_agb + yO_agb;
     double yield_snia = yCr_snia + yNi_snia + yFe_snia;
@@ -230,8 +306,8 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
 
         /* eq 6 Popping et al. 2017 */
         //from SNIa
-        dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
-        dustdot += delta_snia * (Cr_snia + Ni_snia) / dt;
+        //dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
+        //dustdot += delta_snia * (Cr_snia + Ni_snia) / dt;
 
       	galaxies[p].ColdDust += dustdot * dt;
 	galaxies[p].MetalsColdGas -= dustdot * dt;
@@ -265,12 +341,14 @@ void destruct_dust(const double metallicity, const double stars, const double dt
   double dustdot = 0;
   double age[SNAPLEN], sfh[SNAPLEN];
   double m_low = 8; //lower limit of stellar mass that end up as SN
+  double up_binary = 16; //upper limit for binary stars, Msun
   double m_up = 40; //upper limit of stellar mass that end up as SN
   double t_low = compute_taum(m_up); //the shortest stellar lifetime that end up as SN
   double eta = 0.1; //should be free parameter, we used value adopted by Asano et al. 13
   double m_swept = 1535 * pow((metallicity/0.02 + 0.039), -0.289) * run_params.Hubble_h / 1.e10; //eq. 14 Asano et al. 13
   int count = 20;
   double mass[count], phi[count], mphi[count];
+  double A = run_params.BinaryFraction;
 //  double m_swept = 600 * run_params.Hubble_h / 1.e10;
 
   for (i=0; i<SNAPLEN; i++)
@@ -303,6 +381,11 @@ void destruct_dust(const double metallicity, const double stars, const double dt
 */
   
     double mstar = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_low, m_up);
+    double mstar_ia = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, m_low, up_binary);
+    double mstar_ii = integrate_arr(mass, mphi, count, mass[0], m_up) / integrate_arr(mass, phi, count, up_binary, m_up);
+    double Rsn_ia = A*stars / dt / mstar_ia;
+    double Rsn_ii = (1-A) * stars / dt / mstar_ia + stars/dt/mstar_ii;
+    //printf("%f \n", Rsn_ii/Rsn_ia); 
     double Rsn = stars / dt / mstar;
     assert(m_swept > 0 && "mass of ISM swept by SN must be greater than 0");
 

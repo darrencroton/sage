@@ -284,7 +284,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         //produce dust
         //double dust_agb, dust_sn, dust_snia;
         double delta_agb = 0.2;  //should be free parameter!! (value based on Popping et al. 2017)
-        double delta_sn = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
+        double delta_sn = 0.2;  //should be free parameter!! (value based on Popping et al. 2017)
         double delta_snia = 0.15;  //should be free parameter!! (value based on Popping et al. 2017)
 
         assert(dt > 0 && "dt must be greater than 0");

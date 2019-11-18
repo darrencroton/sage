@@ -322,9 +322,9 @@ void read_metal_yield(void)
 
 	else if (run_params.SNIaYields == 1) //yields from Seitenzahl et al. 2013
 	{
-		run_params.qCrsnia = 8.57E-03;
-		run_params.qFesnia = 6.22E-01;
-		run_params.qNisnia = 6.90E-02;
+		run_params.qCrsnia = 0.00857;
+		run_params.qFesnia = 0.622;
+		run_params.qNisnia = 0.069;
 	}
 	printf("ends reading yieldi \n");
 }

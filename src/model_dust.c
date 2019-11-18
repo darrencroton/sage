@@ -277,7 +277,7 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         S_sn = yS_sn * dt;
         Ca_sn = yCa_sn * dt;
         Fe_sn = yFe_sn * dt;
-
+	
 
         double dustdot = 0;
 
@@ -292,26 +292,28 @@ void produce_metals_dust(const double metallicity, const double dt, const int p,
         /* eq 4 and eq 5 Popping et al. 2017 */
         //from AGB
         if (C_agb/O_agb > 1) {
-           dustdot += delta_agb * (C_agb - 0.75*O_agb) / dt;
+           //dustdot += delta_agb * (C_agb - 0.75*O_agb) / dt;
         }
         else {
-           dustdot += delta_agb * (C_agb + N_agb + O_agb) / dt;
+           //dustdot += delta_agb * (C_agb + N_agb + O_agb) / dt;
         }
 
         /* eq 6 Popping et al. 2017 */
         //from SN
-        dustdot += delta_sn * C_sn / dt;
-        dustdot += delta_sn * O_sn / dt;
-        dustdot += 16 * delta_sn * (Mg_sn/24 + Si_sn/28 + S_sn/32 + Ca_sn/40 + Fe_sn/56) / dt;
+        //dustdot += delta_sn * C_sn / dt;
+        //dustdot += delta_sn * O_sn / dt;
+        //dustdot += 16 * delta_sn * (Mg_sn/24 + Si_sn/28 + S_sn/32 + Ca_sn/40 + Fe_sn/56) / dt;
 
         /* eq 6 Popping et al. 2017 */
         //from SNIa
-        //dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
+        //printf("dustdot before = %f \n", dustdot);
+	//dustdot += 16 * delta_snia * (Fe_snia/56) / dt;
         //dustdot += delta_snia * (Cr_snia + Ni_snia) / dt;
 
+	//printf("dustdot after = %f \n", dustdot);
       	galaxies[p].ColdDust += dustdot * dt;
 	galaxies[p].MetalsColdGas -= dustdot * dt;
-        galaxies[p].dustdotform[step] += dustdot;
+        //galaxies[p].dustdotform[step] += dustdot;
         XPRINT(dustdot * dt >= 0, "dust mass = %.3e, delta dust = %.3e, galaxy id = %i \n", galaxies[p].ColdDust, dustdot*dt, galaxies[p].GalaxyNr);
 
    }

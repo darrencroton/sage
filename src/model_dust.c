@@ -408,7 +408,7 @@ void destruct_dust(const double metallicity, const double stars, const double dt
   	  galaxies[p].MetalsColdGas += dustdot * dt;
     }
     else {
-	galaxies[p].dustdotdestruct[step] += galaxies[p].ColdDust / dt;
+	galaxies[p].dustdotdestruct[step] += dustdot;
 	galaxies[p].MetalsColdGas += galaxies[p].ColdDust;
 	galaxies[p].ColdDust = 0;
     }

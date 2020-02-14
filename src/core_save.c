@@ -208,9 +208,16 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->MetalsEjectedMass = g->MetalsEjectedMass;
     o->MetalsICS = g->MetalsICS;
 
-    o->ColdDust = g->ColdDust;
-    o->HotDust = g->HotDust;
-    o->EjectedDust = g->EjectedDust;
+    o->ColdDust = 0.0;
+    o->HotDust = 0.0;
+    o->EjectedDust = 0.0;
+
+    if(g->ColdDust > 0.0) {
+    o->ColdDust = g->ColdDust; }
+    if(g->HotDust > 0.0) {
+    o->HotDust = g->HotDust; }
+    if(g->EjectedDust > 0.0) {
+    o->EjectedDust = g->EjectedDust; }
     
     o->SfrDisk = 0.0;
     o->SfrBulge = 0.0;

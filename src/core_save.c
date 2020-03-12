@@ -196,6 +196,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
     o->StellarMass = g->StellarMass;
     o->BulgeMass = g->BulgeMass;
+    o->BulgeInstability = g->BulgeInstability;
     o->HotGas = g->HotGas;
     o->EjectedMass = g->EjectedMass;
     o->BlackHoleMass = g->BlackHoleMass;

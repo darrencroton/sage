@@ -56,6 +56,7 @@ void init_galaxy(const int p, const int halonr, int *galaxycounter, struct halo_
 
     galaxies[p].StellarMass = 0.0;
     galaxies[p].BulgeMass = 0.0;
+    galaxies[p].BulgeInstability = 0.0;
     galaxies[p].HotGas = 0.0;
     galaxies[p].EjectedMass = 0.0;
     galaxies[p].BlackHoleMass = 0.0;

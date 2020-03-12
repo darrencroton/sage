@@ -55,6 +55,7 @@ struct GALAXY_OUTPUT
   float Pressure;
   float StellarMass;
   float BulgeMass;
+  float BulgeInstability;
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;
@@ -139,6 +140,7 @@ struct GALAXY
   float Pressure;
   float StellarMass;
   float BulgeMass;
+  float BulgeInstability;
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;

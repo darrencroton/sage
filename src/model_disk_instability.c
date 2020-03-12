@@ -36,6 +36,7 @@ void check_disk_instability(const int p, const int centralgal, const int halonr,
             const double metallicity = get_metallicity(galaxies[p].StellarMass - galaxies[p].BulgeMass, galaxies[p].MetalsStellarMass - galaxies[p].MetalsBulgeMass);
           
             galaxies[p].BulgeMass += unstable_stars;
+	    galaxies[p].BulgeInstability += unstable_stars;
             galaxies[p].MetalsBulgeMass += metallicity * unstable_stars;
           
             // Need to fix this. Excluded for now.

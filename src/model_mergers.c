@@ -215,7 +215,8 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
     if(mode == 1) {
         eburst = mass_ratio;
     } else {
-        eburst = 0.56 * pow(mass_ratio, 0.7);
+      // eburst = 0.56 * pow(mass_ratio, 0.7);
+	eburst = 0.75 * pow(mass_ratio, 0.18);
     }
 
     stars = eburst * galaxies[merger_centralgal].ColdGas;
@@ -271,7 +272,11 @@ void collisional_starburst_recipe(const double mass_ratio, const int merger_cent
 
     galaxies[merger_centralgal].BulgeMass += (1 - run_params.RecycleFraction) * stars;
     galaxies[merger_centralgal].MetalsBulgeMass += metallicity * (1 - run_params.RecycleFraction) * stars;
-   
+ 
+    if(mode == 1) {
+	galaxies[merger_centralgal].BulgeInstability += (1 - run_params.RecycleFraction) * stars;
+    }
+  
     //recompute the metallicity of the cold phase
     metallicity = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].MetalsColdGas);
     DTG = get_metallicity(galaxies[merger_centralgal].ColdGas, galaxies[merger_centralgal].ColdDust); 

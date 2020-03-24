@@ -24,7 +24,7 @@ $ ./sage <path to .par file>
 ## Citation
 If you use Dusty SAGE in a publication, please cite the following items:
 
-Triani et al. (2019), submitted to MNRAS
+[Triani et al. (2020)](https://arxiv.org/abs/2002.05343)
 
 If you use SAGE in a publication, please cite the following items:
 

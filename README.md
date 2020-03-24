@@ -1,6 +1,6 @@
 # Dusty SAGE
 
-Dusty SAGE is a semi-analytic model for galaxy formation that include a detailed prescription for dust evolution. This model is a modification of Semi-Analytic Galaxy Evolution [(SAGE)](https://github.com/darrencroton/sage) described [Croton et al. (2016)](http://arxiv.org/abs/1601.04709). The description of Dusty SAGE is given in Triani et al. in prep.
+Dusty SAGE is a semi-analytic model for galaxy formation that include a detailed prescription for dust evolution. This model is a modification of Semi-Analytic Galaxy Evolution [(SAGE)](https://github.com/darrencroton/sage) described [Croton et al. (2016)](http://arxiv.org/abs/1601.04709). The description of Dusty SAGE is given in [Triani et al. (2020)](https://arxiv.org/abs/2002.05343).
 
 Dusty SAGE runs on any N-body simulation whose trees are organised in a supported format and contain a minimum set of basic halo properties. For testing purposes, treefiles for the [mini-Millennium Simulation](http://arxiv.org/abs/astro-ph/0504097) are available [here](https://data-portal.hpc.swin.edu.au/dataset/mini-millennium-simulation). 
 

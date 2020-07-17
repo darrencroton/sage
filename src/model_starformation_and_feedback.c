@@ -117,6 +117,7 @@ void starformation_and_feedback(const int p, const int centralgal, const double 
     galaxies[p].SfrDisk[step] += stars / dt;
     galaxies[p].SfrDiskColdGas[step] = galaxies[p].ColdGas;
     galaxies[p].SfrDiskColdGasMetals[step] = galaxies[p].MetalsColdGas;
+    galaxies[p].SfrDiskColdGasDust[step] = galaxies[p].ColdDust;
 
     // update new variables
     galaxies[p].Sfr[galaxies[p].SnapNum] += stars / dt / STEPS;

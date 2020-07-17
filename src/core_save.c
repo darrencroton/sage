@@ -223,7 +223,9 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
     o->SfrDisk = 0.0;
     o->SfrBulge = 0.0;
     o->SfrDiskZ = 0.0;
+    o->SfrDiskDTG = 0.0;
     o->SfrBulgeZ = 0.0;
+    o->SfrBulgeDTG = 0.0;
 
     o->dustdotform = 0.0;
     o->dustdotgrowth = 0.0;
@@ -239,13 +241,24 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 	o->dustdotdestruct += g->dustdotdestruct[step] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
 
         if(g->SfrDiskColdGas[step] > 0.0) {
+	  if(g->SfrDiskColdGasMetals[step] > 0) {
             o->SfrDiskZ += g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
-        }
+	  }
+	  if(g->SfrDiskColdGasDust[step] > 0.0) {
+	    o->SfrDiskDTG += g->SfrDiskColdGasDust[step] / g->SfrDiskColdGas[step] / STEPS;
+          }
+	}
         
         if(g->SfrBulgeColdGas[step] > 0.0) {
+	  if(g->SfrBulgeColdGasMetals[step] > 0.0) {
             o->SfrBulgeZ += g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
-        }
+	  }
+	  if(g->SfrBulgeColdGasDust[step] > 0.0) {
+	    o->SfrBulgeDTG += g->SfrBulgeColdGasDust[step] / g->SfrBulgeColdGas[step] / STEPS;
+          }
+	}
     }
+    
 /*    
    for(int snap = 0; snap < SNAPLEN; snap++) {
 	o->Sfr[snap] = g->Sfr[snap] * run_params.UnitMass_in_g / run_params.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;

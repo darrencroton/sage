@@ -79,6 +79,8 @@ struct GALAXY_OUTPUT
   float SfrBulge;
   float SfrDiskZ;
   float SfrBulgeZ;
+  float SfrDiskDTG;
+  float SfrBulgeDTG;
 
   /* dust dot */
   float dustdotform;
@@ -164,8 +166,10 @@ struct GALAXY
   float SfrBulge[STEPS];
   float SfrDiskColdGas[STEPS];
   float SfrDiskColdGasMetals[STEPS];
+  float SfrDiskColdGasDust[STEPS];
   float SfrBulgeColdGas[STEPS];
   float SfrBulgeColdGasMetals[STEPS];
+  float SfrBulgeColdGasDust[STEPS];
 
   /* dust dot */
   float dustdotform[STEPS];

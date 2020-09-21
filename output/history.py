@@ -20,14 +20,14 @@ whichimf = 1        # 0=Slapeter; 1=Chabrier
 
 
 matplotlib.rcdefaults()
-plt.rc('axes', color_cycle=[
-    'k',
-    'b',
-    'r',
-    'g',
-    'm',
-    '0.5',
-    ], labelsize='x-large')
+# plt.rc('axes', color_cycle=[
+#     'k',
+#     'b',
+#     'r',
+#     'g',
+#     'm',
+#     '0.5',
+#     ], labelsize='x-large')
 plt.rc('xtick', labelsize='x-large')
 plt.rc('ytick', labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
@@ -283,7 +283,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int((ma - mi) / binwidth)
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -300,7 +300,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int((ma - mi) / binwidth)
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -317,7 +317,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int((ma - mi) / binwidth)
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 
@@ -334,7 +334,7 @@ class Results:
 
         mi = np.floor(min(mass)) - 2
         ma = np.floor(max(mass)) + 2
-        NB = (ma - mi) / binwidth
+        NB = int((ma - mi) / binwidth)
 
         (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
 

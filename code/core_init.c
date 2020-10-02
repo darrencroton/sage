@@ -76,9 +76,9 @@ void set_units(void)
 void read_snap_list(void)
 {
   FILE *fd;
-  char fname[1000];
+  char fname[MAX_STRING_LEN];
 
-  sprintf(fname, "%s", FileWithSnapList);
+  snprintf(fname, MAX_STRING_LEN, "%s", FileWithSnapList);
 
   if(!(fd = fopen(fname, "r")))
   {
@@ -133,6 +133,3 @@ double integrand_time_to_present(double a, void *param)
 {
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
-
-
-

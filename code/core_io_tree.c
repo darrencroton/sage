@@ -16,11 +16,13 @@
 #include "io/tree_hdf5.h"
 #endif
 
+#define MAX_BUF_SIZE (3*MAX_STRING_LEN+20)
+
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
 {
   int i, n;
   FILE *fd;
-  char buf[MAX_STRING_LEN];
+  char buf[MAX_BUF_SIZE];
 
   switch (my_TreeType)
   {
@@ -46,7 +48,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
     for(i = 0; i < Ntrees; i++)
       TreeNgals[n][i] = 0;
 
-    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if(!(fd = fopen(buf, "w")))
     {

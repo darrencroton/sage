@@ -10,7 +10,8 @@
 void read_parameter_file(char *fname)
 {
   FILE *fd;
-  char buf[MAX_STRING_LEN], buf1[MAX_STRING_LEN];
+#define MAX_BUF_SIZE_FILE_LIST (3*MAX_STRING_LEN)
+  char buf[MAX_BUF_SIZE_FILE_LIST], buf1[MAX_STRING_LEN];
   char buf2[MAX_STRING_LEN], buf3[MAX_STRING_LEN];
   int i, j, done;
   int errorFlag = 0;
@@ -194,7 +195,7 @@ void read_parameter_file(char *fname)
     while(!feof(fd))
       {
 	*buf = 0;
-	fgets(buf, 200, fd);
+	fgets(buf, MAX_BUF_SIZE_FILE_LIST, fd);
 	if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
 	  continue;
 	

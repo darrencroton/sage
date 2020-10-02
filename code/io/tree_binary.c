@@ -20,13 +20,15 @@ FILE *load_fd;
 
 // External Functions //
 
+#define MAX_BUF_SIZE (3*MAX_STRING_LEN+40)
+
 void load_tree_table_binary(int32_t filenr) 
 {
   int i, totNHalos;
-  char buf[MAX_STRING_LEN];
+  char buf[MAX_BUF_SIZE];
 
 	// open the file each time this function is called
-  snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  snprintf(buf, MAX_BUF_SIZE, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
@@ -68,4 +70,3 @@ void close_binary_file(void)
   }
 }
 // Local Functions //
-

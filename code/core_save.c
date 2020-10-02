@@ -14,12 +14,16 @@
 // keep a static file handle to remove the need to do constant seeking.
 FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 
+#define MAX_BUF_SIZE (2*MAX_STRING_LEN+40)
+#define MAX_OUTFILE_SIZE (MAX_STRING_LEN+40)
 
 void save_galaxies(int filenr, int tree)
 {
   char buf[MAX_STRING_LEN];
   int i, n;
-  struct GALAXY_OUTPUT galaxy_output = {0};
+  static const struct GALAXY_OUTPUT galaxy_output_null = {0};
+  struct GALAXY_OUTPUT galaxy_output = galaxy_output_null;
+
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
@@ -57,7 +61,8 @@ void save_galaxies(int filenr, int tree)
       // only open the file if it is not already open.
       if( !save_fd[n] )
 	    {
-        snprintf(buf, MAX_STRING_LEN - 1, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+        snprintf(buf, MAX_BUF_SIZE - 1, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+        
        
         save_fd[n] = fopen(buf, "r+");
         if (save_fd[n] == NULL) 
@@ -273,4 +278,3 @@ void finalize_galaxy_file(int filenr)
 
 #undef TREE_MUL_FAC
 #undef FILENR_MUL_FAC
-

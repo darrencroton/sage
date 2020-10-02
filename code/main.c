@@ -16,7 +16,8 @@
 
 #include "io/io_save_hdf5.h"
 
-char bufz0[1000];
+#define MAX_BUFZ0_SIZE (3*MAX_STRING_LEN+20)
+char bufz0[MAX_BUFZ0_SIZE]; /* 3 strings + max 19 bytes for a number */
 int exitfail = 1;
 
 struct sigaction saveaction_XCPU;
@@ -111,7 +112,7 @@ int main(int argc, char **argv)
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-    sprintf(bufz0, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);
@@ -120,7 +121,7 @@ int main(int argc, char **argv)
     else
       fclose(fd);
 
-    sprintf(bufz0, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)
     {
       printf("-- output for tree %s already exists ... skipping\n", bufz0);
@@ -195,5 +196,3 @@ int main(int argc, char **argv)
   exitfail = 0;
   return 0;
 }
-
-

@@ -16,13 +16,15 @@
 #include "io/tree_hdf5.h"
 #endif
 
-#define MAX_BUF_SIZE (3*MAX_STRING_LEN+20)
+#ifndef MAX_BUF_SIZE
+#define MAX_BUF_SIZE (3*MAX_STRING_LEN+40)
+#endif
 
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
 {
   int i, n;
   FILE *fd;
-  char buf[MAX_BUF_SIZE];
+  char buf[MAX_BUF_SIZE+1];
 
   switch (my_TreeType)
   {
@@ -31,7 +33,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
       load_tree_table_hdf5(filenr);
       break;
 #endif
-      
+
     case lhalo_binary:
       load_tree_table_binary(filenr);
       break;
@@ -70,7 +72,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
 
   myfree(TreeFirstHalo);
   myfree(TreeNHalos);
-	
+
   // Don't forget to free the open file handle
 
   switch (my_TreeType)
@@ -80,7 +82,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
       close_hdf5_file();
       break;
 #endif
-      
+
     case lhalo_binary:
       close_binary_file();
       break;

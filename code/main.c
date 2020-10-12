@@ -16,8 +16,8 @@
 
 #include "io/io_save_hdf5.h"
 
-#define MAX_BUFZ0_SIZE (3*MAX_STRING_LEN+20)
-char bufz0[MAX_BUFZ0_SIZE]; /* 3 strings + max 19 bytes for a number */
+#define MAX_BUFZ0_SIZE (3*MAX_STRING_LEN+25)
+char bufz0[MAX_BUFZ0_SIZE+1]; /* 3 strings + max 19 bytes for a number */
 int exitfail = 1;
 
 struct sigaction saveaction_XCPU;
@@ -42,7 +42,7 @@ void myexit(int signum)
 #else
   printf("We're exiting\n\n\n");
 #endif
-	  exit(signum);
+          exit(signum);
 }
 
 
@@ -62,7 +62,7 @@ void bye()
     if(ThisTask == 0 && gotXCPU == 1)
       printf("Received XCPU, exiting. But we'll be back.\n");
 #endif
-	  }
+          }
 }
 
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
   ThisNode = malloc(MPI_MAX_PROCESSOR_NAME * sizeof(char));
 
   MPI_Get_processor_name(ThisNode, &nodeNameLen);
-  if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME) 
+  if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME)
   {
     printf("Node name string not long enough!...\n");
     ABORT(0);
@@ -136,17 +136,17 @@ int main(int argc, char **argv)
 
     for(treenr = 0; treenr < Ntrees; treenr++)
     {
-      
-			assert(!gotXCPU);
+
+                        assert(!gotXCPU);
 
       if(treenr % 10000 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, treenr, Ntrees);
 #else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
+                                printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
 #endif
-				fflush(stdout);
+                                fflush(stdout);
       }
 
       TreeID = treenr;
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
     if (ThisTask == 0)
 #endif
       //write_master_file();
-  
+
   }
 */
 
@@ -189,9 +189,9 @@ int main(int argc, char **argv)
   //free Ages. But first
   //reset Age to the actual allocated address
   Age--;
-  myfree(Age);                              
+  myfree(Age);
 
-  gsl_rng_free(random_generator); 
+  gsl_rng_free(random_generator);
 
   exitfail = 0;
   return 0;

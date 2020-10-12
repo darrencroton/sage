@@ -20,9 +20,9 @@ void init(void)
   int i;
 
   Age = mymalloc(ABSOLUTEMAXSNAPS*sizeof(*Age));
-  
+
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-  gsl_rng_set(random_generator, 42);	 // start-up seed 
+  gsl_rng_set(random_generator, 42);     // start-up seed
 
   set_units();
   srand((unsigned) time(NULL));
@@ -33,7 +33,7 @@ void init(void)
   //This way, galsnapnum = -1 will not segfault.
   Age[0] = time_to_present(1000.0);//lookback time from z=1000
   Age++;
-  
+
   for(i = 0; i < Snaplistlen; i++)
   {
     ZZ[i] = 1 / AA[i] - 1;
@@ -63,10 +63,10 @@ void set_units(void)
   EnergySNcode = EnergySN / UnitEnergy_in_cgs * Hubble_h;
   EtaSNcode = EtaSN * (UnitMass_in_g / SOLAR_MASS) / Hubble_h;
 
-  // convert some physical input parameters to internal units 
+  // convert some physical input parameters to internal units
   Hubble = HUBBLE * UnitTime_in_s;
 
-  // compute a few quantitites 
+  // compute a few quantitites
   RhoCrit = 3 * Hubble * Hubble / (8 * M_PI * G);
 
 }
@@ -76,9 +76,9 @@ void set_units(void)
 void read_snap_list(void)
 {
   FILE *fd;
-  char fname[1000];
+  char fname[MAX_STRING_LEN+1];
 
-  sprintf(fname, "%s", FileWithSnapList);
+  snprintf(fname, MAX_STRING_LEN, "%s", FileWithSnapList);
 
   if(!(fd = fopen(fname, "r")))
   {
@@ -123,7 +123,7 @@ double time_to_present(double z)
 
   gsl_integration_workspace_free(workspace);
 
-  // return time to present as a function of redshift 
+  // return time to present as a function of redshift
   return time;
 }
 
@@ -133,6 +133,3 @@ double integrand_time_to_present(double a, void *param)
 {
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
-
-
-

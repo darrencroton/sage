@@ -7,7 +7,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-
+#define UNUSED(foo) (void)(foo)
 
 double infall_recipe(int centralgal, int ngal, double Zcurr)
 {
@@ -58,6 +58,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
   infallingMass =
     reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
     // reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
+  UNUSED(newSatBaryons); /* for the moment this is not used */
 
   // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;
@@ -207,4 +208,3 @@ void add_infall_to_hot(int gal, double infallingGas)
   if(Gal[gal].HotGas < 0.0) Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;
 
 }
-

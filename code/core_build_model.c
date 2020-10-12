@@ -74,7 +74,8 @@ void construct_galaxies(int halonr, int tree)
 
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
-  int ngal, prog, mother_halo=-1, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  /* int mother_halo=-1 */
   double previousMvir, previousVvir, previousVmax;
   int step;
 
@@ -95,7 +96,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
     if(Halo[prog].Len > lenmax)
     {
       lenmax = Halo[prog].Len;
-      mother_halo = prog;
+      /* mother_halo = prog; */
     }
     if(lenoccmax != -1 && Halo[prog].Len > lenoccmax && HaloAux[prog].NGalaxies > 0)
     {
@@ -436,4 +437,3 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 
 
 }
-

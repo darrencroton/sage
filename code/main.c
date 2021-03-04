@@ -168,8 +168,6 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
   }
 
-  printf("Output 0 had %d galaxies\n", TotGalaxies[0]);
-
 /*
   if(HDF5Output){
     free_hdf5_ids();

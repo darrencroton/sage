@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Agg')
 
-import h5py as h5
+# import h5py as h5
 import numpy as np
 import pylab as plt
 from random import sample, seed

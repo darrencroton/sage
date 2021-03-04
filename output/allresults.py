@@ -1223,7 +1223,7 @@ class Results:
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
 
-        plt.text(13.5, 8.0, r'$\mathrm{All}')
+        plt.text(13.5, 8.0, r'$\mathrm{All}$')
             
         outputFile = OutputDir + '14.MassReservoirScatter' + OutputFormat
         plt.savefig(outputFile)  # Save the figure

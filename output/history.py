@@ -63,7 +63,7 @@ class Results:
           self.MaxTreeFiles = 512   # FilesPerSnapshot
 
         else:
-          print "Please pick a valid simulation!"
+          print("Please pick a valid simulation!")
           exit(1)
 
 
@@ -129,8 +129,8 @@ class Results:
             ('infallVvir'                   , np.float32),
             ('infallVmax'                   , np.float32)
             ]
-        names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-        formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
+        names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]
+        formats = [Galdesc_full[i][1] for i in range(len(Galdesc_full))]
         Galdesc = np.dtype({'names':names, 'formats':formats}, align=True)
 
 
@@ -143,18 +143,18 @@ class Results:
         if thissnap in self.SMFsnaps:
 
             print
-            print "Determining array storage requirements."
+            print ("Determining array storage requirements.")
         
             # Read each file and determine the total number of galaxies to be read in
-            for fnr in xrange(first_file,last_file+1):
+            for fnr in range(first_file,last_file+1):
                 fname = model_name+'_'+str(fnr)  # Complete filename
                 
                 if not os.path.isfile(fname):
-                    # print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
+                    # print ("File\t%s  \tdoes not exist!  Skipping..." % (fname))
                     continue
                 
                 if getFileSize(fname) == 0:
-                    print "File\t%s  \tis empty!  Skipping..." % (fname)
+                    print ("File\t%s  \tis empty!  Skipping..." % (fname))
                     continue
                 
                 fin = open(fname, 'rb')  # Open the file
@@ -165,7 +165,7 @@ class Results:
                 goodfiles = goodfiles + 1  # Update number of files read for volume calculation
                 fin.close()
 
-            print "Input files contain:\t%d trees ;\t%d galaxies ." % (TotNTrees, TotNGals)
+            print ("Input files contain:\t%d trees ;\t%d galaxies ." % (TotNTrees, TotNGals))
 
         # Initialize the storage array
         G = np.empty(TotNGals, dtype=Galdesc)
@@ -175,8 +175,8 @@ class Results:
             offset = 0  # Offset index for storage array
 
             # Open each file in turn and read in the preamble variables and structure.
-            print "Reading in files."
-            for fnr in xrange(first_file,last_file+1):
+            print ("Reading in files.")
+            for fnr in range(first_file,last_file+1):
                 fname = model_name+'_'+str(fnr)  # Complete filename
     
                 if not os.path.isfile(fname):
@@ -189,7 +189,7 @@ class Results:
                 Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
                 NtotGals = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
                 GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
-                print ":   Reading N=", NtotGals, "   \tgalaxies from file: ", fname
+                print (":   Reading N=", NtotGals, "   \tgalaxies from file: ", fname)
                 GG = np.fromfile(fin, Galdesc, NtotGals)  # Read in the galaxy structures
         
                 FileIndexRanges.append((offset,offset+NtotGals))
@@ -206,7 +206,7 @@ class Results:
                 fin.close()  # Close the file
 
 
-            print "Total galaxies considered:", TotNGals
+            print ("Total galaxies considered:", TotNGals)
             print
 
         # Convert the Galaxy array into a recarray
@@ -222,7 +222,7 @@ class Results:
 
     def StellarMassFunction(self, G_history):
 
-        print 'Plotting the stellar mass function'
+        print ('Plotting the stellar mass function')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -346,7 +346,7 @@ class Results:
 
         ######        
 
-        plt.yscale('log', nonposy='clip')
+        plt.yscale('log')
 
         plt.axis([8.0, 12.5, 1.0e-6, 1.0e-1])
 
@@ -364,7 +364,7 @@ class Results:
 
         outputFile = OutputDir + 'A.StellarMassFunction_z' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -376,7 +376,7 @@ class Results:
 
     def PlotHistory_SFRdensity(self, G_history):
     
-        print 'Plotting SFR density evolution for all galaxies'
+        print ('Plotting SFR density evolution for all galaxies')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -427,7 +427,7 @@ class Results:
         plt.errorbar(ObsRedshift, ObsSFR, yerr=[yErrLo, yErrHi], xerr=[xErrLo, xErrHi], color='g', lw=1.0, alpha=0.3, marker='o', ls='none', label='Observations')
 
         SFR_density = np.zeros((LastSnap+1-FirstSnap))       
-        for snap in xrange(FirstSnap,LastSnap+1):
+        for snap in range(FirstSnap,LastSnap+1):
           SFR_density[snap-FirstSnap] = sum(G_history[snap].SfrDisk+G_history[snap].SfrBulge) / self.volume * self.Hubble_h*self.Hubble_h*self.Hubble_h
     
         z = np.array(self.redshift)
@@ -445,7 +445,7 @@ class Results:
     
         outputFile = OutputDir + 'B.History-SFR-density' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
     
         # Add this plot to our output list
@@ -456,7 +456,7 @@ class Results:
 
     def StellarMassDensityEvolution(self, G_history):
 
-        print 'Plotting stellar mass density evolution'
+        print ('Plotting stellar mass density evolution')
 
         plt.figure()  # New figure
         ax = plt.subplot(111)  # 1 plot on the figure
@@ -521,7 +521,7 @@ class Results:
 
         smd = np.zeros((LastSnap+1-FirstSnap))       
 
-        for snap in xrange(FirstSnap,LastSnap+1):
+        for snap in range(FirstSnap,LastSnap+1):
           w = np.where((G_history[snap].StellarMass/self.Hubble_h > 0.01) & (G_history[snap].StellarMass/self.Hubble_h < 1000.0))[0]
           if(len(w) > 0):
             smd[snap-FirstSnap] = sum(G_history[snap].StellarMass[w]) *1.0e10/self.Hubble_h / (self.volume /self.Hubble_h/self.Hubble_h/self.Hubble_h)
@@ -541,7 +541,7 @@ class Results:
 
         outputFile = OutputDir + 'C.History-stellar-mass-density' + OutputFormat
         plt.savefig(outputFile)  # Save the figure
-        print 'Saved file to', outputFile
+        print ('Saved file to', outputFile)
         plt.close()
 
         # Add this plot to our output list
@@ -610,7 +610,7 @@ if __name__ == '__main__':
 
     res = Results()
 
-    print 'Running history...'
+    print ('Running history...')
 
     FirstFile = opt.FileRange[0]
     LastFile = opt.FileRange[1]
@@ -619,10 +619,10 @@ if __name__ == '__main__':
 
     # read in all files and put in G_history
     G_history = [0]*(LastSnap-FirstSnap+1)
-    for snap in xrange(FirstSnap,LastSnap+1):
+    for snap in range(FirstSnap,LastSnap+1):
 
       print
-      print 'SNAPSHOT NUMBER:  ', snap
+      print ('SNAPSHOT NUMBER:  ', snap)
       
       fin_base = opt.DirName + opt.FileName + res.redshift_file[snap]
       G_history[snap] = res.read_gals(fin_base, FirstFile, LastFile, snap)

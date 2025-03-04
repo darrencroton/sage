@@ -416,12 +416,12 @@ class Results:
             ], dtype=np.float32)
  
         ObsRedshift = ObsSFRdensity[:, 0]
-        xErrLo = ObsSFRdensity[:, 0]-ObsSFRdensity[:, 2]
-        xErrHi = ObsSFRdensity[:, 3]-ObsSFRdensity[:, 0]
-
+        xErrLo = np.abs(ObsSFRdensity[:, 0]-ObsSFRdensity[:, 2])
+        xErrHi = np.abs(ObsSFRdensity[:, 3]-ObsSFRdensity[:, 0])
+        
         ObsSFR = np.log10(ObsSFRdensity[:, 1])
-        yErrLo = np.log10(ObsSFRdensity[:, 1])-np.log10(ObsSFRdensity[:, 4])
-        yErrHi = np.log10(ObsSFRdensity[:, 5])-np.log10(ObsSFRdensity[:, 1])
+        yErrLo = np.abs(np.log10(ObsSFRdensity[:, 1])-np.log10(ObsSFRdensity[:, 4]))
+        yErrHi = np.abs(np.log10(ObsSFRdensity[:, 5])-np.log10(ObsSFRdensity[:, 1]))
 
         # plot observational data (compilation used in Croton et al. 2006)
         plt.errorbar(ObsRedshift, ObsSFR, yerr=[yErrLo, yErrHi], xerr=[xErrLo, xErrHi], color='g', lw=1.0, alpha=0.3, marker='o', ls='none', label='Observations')

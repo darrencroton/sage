@@ -10,7 +10,9 @@
 void read_parameter_file(char *fname)
 {
   FILE *fd;
-  char buf[MAX_STRING_LEN], buf1[MAX_STRING_LEN];
+#define MAX_BUF_SIZE_FILE_LIST (3*MAX_STRING_LEN)
+  char buf[MAX_BUF_SIZE_FILE_LIST];
+  char buf1[MAX_STRING_LEN];
   char buf2[MAX_STRING_LEN], buf3[MAX_STRING_LEN];
   int i, j, done;
   int errorFlag = 0;
@@ -188,93 +190,93 @@ void read_parameter_file(char *fname)
     printf("Parameter file %s not found.\n", fname);
     errorFlag = 1;
   }
-  
-  if(fd != NULL) 
+
+  if(fd != NULL)
   {
     while(!feof(fd))
       {
-	*buf = 0;
-	fgets(buf, 200, fd);
-	if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
-	  continue;
-	
-	if(buf1[0] == '%' || buf1[0] == '-')
-	  continue;
-	
-	for(i = 0, j = -1; i < NParam; i++)
-	  if(strcmp(buf1, ParamTag[i]) == 0)
-	    {
-	      j = i;
-	      ParamTag[i][0] = 0;
-	      used_tag[i] = 0;
-	      break;
-	    }
-	
-	if(j >= 0)
-	  {
+        *buf = 0;
+        fgets(buf, MAX_BUF_SIZE_FILE_LIST, fd);
+        if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
+          continue;
+
+        if(buf1[0] == '%' || buf1[0] == '-')
+          continue;
+
+        for(i = 0, j = -1; i < NParam; i++)
+          if(strcmp(buf1, ParamTag[i]) == 0)
+            {
+              j = i;
+              ParamTag[i][0] = 0;
+              used_tag[i] = 0;
+              break;
+            }
+
+        if(j >= 0)
+          {
 #ifdef MPI
-	    if(ThisTask == 0)
+            if(ThisTask == 0)
 #endif
-	      printf("%35s\t%10s\n", buf1, buf2);
-	    
-	    switch (ParamID[j])
-	      {
-	      case DOUBLE:
-		*((double *) ParamAddr[j]) = atof(buf2);
-		break;
-	      case STRING:
-		strcpy(ParamAddr[j], buf2);
-		break;
-	      case INT:
-		*((int *) ParamAddr[j]) = atoi(buf2);
-		break;
-	      }
-	  }
-	else
-	{
-	  printf("Error in file %s:   Tag '%s' not allowed or multiply defined.\n", fname, buf1);
-	  errorFlag = 1;
-	}
+              printf("%35s\t%10s\n", buf1, buf2);
+
+            switch (ParamID[j])
+              {
+              case DOUBLE:
+                *((double *) ParamAddr[j]) = atof(buf2);
+                break;
+              case STRING:
+                strcpy(ParamAddr[j], buf2);
+                break;
+              case INT:
+                *((int *) ParamAddr[j]) = atoi(buf2);
+                break;
+              }
+          }
+        else
+        {
+          printf("Error in file %s:   Tag '%s' not allowed or multiply defined.\n", fname, buf1);
+          errorFlag = 1;
+        }
       }
     fclose(fd);
 
     i = strlen(OutputDir);
     if(i > 0)
       if(OutputDir[i - 1] != '/')
-	strcat(OutputDir, "/");
+        strcat(OutputDir, "/");
   }
-  
+
   for(i = 0; i < NParam; i++)
     {
       if(used_tag[i])
-	{
-	  printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", ParamTag[i], fname);
-	  errorFlag = 1;
-	}
+        {
+          printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", ParamTag[i], fname);
+          errorFlag = 1;
+        }
     }
-  
+
   if(errorFlag) {
     ABORT(1);
   }
   printf("\n");
-  
+
   if( ! (LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
     fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", LastSnapShotNr, ABSOLUTEMAXSNAPS);
     ABORT(1);
   }
   MAXSNAPS = LastSnapShotNr + 1;
-  
+
   if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS))) {
     fprintf(stderr,"NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
     ABORT(1);
   }
-  
+
   // read in the output snapshot list
   if(NOUT == -1)
     {
       NOUT = MAXSNAPS;
       for (i=NOUT-1; i>=0; i--)
-	ListOutputSnaps[i] = i;
+        ListOutputSnaps[i] = i;
       printf("all %i snapshots selected for output\n", NOUT);
     }
   else
@@ -282,34 +284,34 @@ void read_parameter_file(char *fname)
       printf("%i snapshots selected for output: ", NOUT);
       // reopen the parameter file
       fd = fopen(fname, "r");
-      
+
       done = 0;
       while(!feof(fd) && !done)
-	{
-	  // scan down to find the line with the snapshots
-	  fscanf(fd, "%s", buf);
-	  if(strcmp(buf, "->") == 0)
-	    {
-	      // read the snapshots into ListOutputSnaps
-	      for (i=0; i<NOUT; i++)
-		{
-		  fscanf(fd, "%d", &ListOutputSnaps[i]);
-		  printf("%i ", ListOutputSnaps[i]);
-		}
-	      done = 1;
-	    }
-	}
-      
+        {
+          // scan down to find the line with the snapshots
+          fscanf(fd, "%s", buf);
+          if(strcmp(buf, "->") == 0)
+            {
+              // read the snapshots into ListOutputSnaps
+              for (i=0; i<NOUT; i++)
+                {
+                  fscanf(fd, "%d", &ListOutputSnaps[i]);
+                  printf("%i ", ListOutputSnaps[i]);
+                }
+              done = 1;
+            }
+        }
+
       fclose(fd);
       if(! done ) {
-	fprintf(stderr,"Error: Could not properly parse output snapshots\n");
-	ABORT(2);
+        fprintf(stderr,"Error: Could not properly parse output snapshots\n");
+        ABORT(2);
       }
       printf("\n");
     }
-  
-  // Check file type is valid. 
-  if (strncmp(my_treetype, "lhalo_binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files. 
+
+  // Check file type is valid.
+  if (strncmp(my_treetype, "lhalo_binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files.
   {
     snprintf(TreeExtension, 511, ".hdf5");
 #ifndef HDF5
@@ -336,6 +338,5 @@ void read_parameter_file(char *fname)
   }
 
   myfree(used_tag);
-  
-}
 
+}

@@ -15,11 +15,9 @@
 
 void construct_galaxies(int halonr, int tree)
 {
-  static int halosdone = 0;
   int prog, fofhalo, ngal;
 
   HaloAux[halonr].DoneFlag = 1;
-  halosdone++;
 
   prog = Halo[halonr].FirstProgenitor;
   while(prog >= 0)

@@ -1,4 +1,9 @@
-#include "core_allvars.h"
+#ifndef CORE_PROTO_H
+#define CORE_PROTO_H
+
+#include "types.h"
+#include "globals.h"
+#include "config.h"
 
 
 size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
@@ -71,3 +76,5 @@ double integrand_time_to_present(double a, void *param);
 double metallicity_dependent_star_formation(int p);
 double Z_dependent_SF(float lower_limit, float upper_limit, float Sigma_c0, float Xi, float gamma);
 double integrand_Z_dependent_SF(double q, void *p);
+
+#endif /* #ifndef CORE_PROTO_H */

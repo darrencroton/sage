@@ -8,7 +8,9 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "../core_allvars.h"
+#include "../globals.h"
+#include "../types.h"
+#include "../config.h"
 #include "../core_proto.h"
 #include "tree_binary.h"
 

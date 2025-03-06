@@ -4,7 +4,10 @@
 #include <math.h>
 #include <assert.h>
 
-#include "core_allvars.h"
+#include "globals.h"
+#include "types.h"
+#include "config.h"
+#include "constants.h"
 #include "core_proto.h"
 
 void read_parameter_file(char *fname)

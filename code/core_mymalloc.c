@@ -4,7 +4,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "core_allvars.h"
+#include "config.h"
 #include "core_proto.h"
 
 #define MAXBLOCKS 256

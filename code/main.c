@@ -11,7 +11,8 @@
 #include <mpi.h>
 #endif
 
-#include "core_allvars.h"
+#include "globals.h"
+#include "config.h"
 #include "core_proto.h"
 
 #include "io/io_save_hdf5.h"

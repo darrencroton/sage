@@ -1,4 +1,6 @@
-#include "core_allvars.h"
+#include "globals.h"
+#include "types.h"
+#include "config.h"
 
 
 /*  galaxy data  */
@@ -119,3 +121,5 @@ gsl_rng *random_generator;
 
 int TreeID;
 int FileNum;
+
+enum Valid_TreeTypes TreeType;

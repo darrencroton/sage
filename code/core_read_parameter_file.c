@@ -29,11 +29,11 @@ void read_parameter_file(char *fname)
     printf("\nreading parameter file:\n\n");
 
   strcpy(ParamTag[NParam], "FileNameGalaxies");
-  ParamAddr[NParam] = FileNameGalaxies;
+  ParamAddr[NParam] = SageConfig.FileNameGalaxies;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "OutputDir");
-  ParamAddr[NParam] = OutputDir;
+  ParamAddr[NParam] = SageConfig.OutputDir;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "TreeType");
@@ -41,39 +41,39 @@ void read_parameter_file(char *fname)
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "TreeName");
-  ParamAddr[NParam] = TreeName;
+  ParamAddr[NParam] = SageConfig.TreeName;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "SimulationDir");
-  ParamAddr[NParam] = SimulationDir;
+  ParamAddr[NParam] = SageConfig.SimulationDir;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "FileWithSnapList");
-  ParamAddr[NParam] = FileWithSnapList;
+  ParamAddr[NParam] = SageConfig.FileWithSnapList;
   ParamID[NParam++] = STRING;
 
   strcpy(ParamTag[NParam], "LastSnapShotNr");
-  ParamAddr[NParam] = &LastSnapShotNr;
+  ParamAddr[NParam] = &SageConfig.LastSnapShotNr;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "FirstFile");
-  ParamAddr[NParam] = &FirstFile;
+  ParamAddr[NParam] = &SageConfig.FirstFile;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "LastFile");
-  ParamAddr[NParam] = &LastFile;
+  ParamAddr[NParam] = &SageConfig.LastFile;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "ThreshMajorMerger");
-  ParamAddr[NParam] = &ThreshMajorMerger;
+  ParamAddr[NParam] = &SageConfig.ThreshMajorMerger;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "RecycleFraction");
-  ParamAddr[NParam] = &RecycleFraction;
+  ParamAddr[NParam] = &SageConfig.RecycleFraction;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "ReIncorporationFactor");
-  ParamAddr[NParam] = &ReIncorporationFactor;
+  ParamAddr[NParam] = &SageConfig.ReIncorporationFactor;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "UnitVelocity_in_cm_per_s");
@@ -89,99 +89,99 @@ void read_parameter_file(char *fname)
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "Hubble_h");
-  ParamAddr[NParam] = &Hubble_h;
+  ParamAddr[NParam] = &SageConfig.Hubble_h;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "ReionizationOn");
-  ParamAddr[NParam] = &ReionizationOn;
+  ParamAddr[NParam] = &SageConfig.ReionizationOn;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "SupernovaRecipeOn");
-  ParamAddr[NParam] = &SupernovaRecipeOn;
+  ParamAddr[NParam] = &SageConfig.SupernovaRecipeOn;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "DiskInstabilityOn");
-  ParamAddr[NParam] = &DiskInstabilityOn;
+  ParamAddr[NParam] = &SageConfig.DiskInstabilityOn;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "SFprescription");
-  ParamAddr[NParam] = &SFprescription;
+  ParamAddr[NParam] = &SageConfig.SFprescription;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "AGNrecipeOn");
-  ParamAddr[NParam] = &AGNrecipeOn;
+  ParamAddr[NParam] = &SageConfig.AGNrecipeOn;
   ParamID[NParam++] = INT;
 
   strcpy(ParamTag[NParam], "BaryonFrac");
-  ParamAddr[NParam] = &BaryonFrac;
+  ParamAddr[NParam] = &SageConfig.BaryonFrac;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "Omega");
-  ParamAddr[NParam] = &Omega;
+  ParamAddr[NParam] = &SageConfig.Omega;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "OmegaLambda");
-  ParamAddr[NParam] = &OmegaLambda;
+  ParamAddr[NParam] = &SageConfig.OmegaLambda;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "PartMass");
-  ParamAddr[NParam] = &PartMass;
+  ParamAddr[NParam] = &SageConfig.PartMass;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "EnergySN");
-  ParamAddr[NParam] = &EnergySN;
+  ParamAddr[NParam] = &SageConfig.EnergySN;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "EtaSN");
-  ParamAddr[NParam] = &EtaSN;
+  ParamAddr[NParam] = &SageConfig.EtaSN;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "Yield");
-  ParamAddr[NParam] = &Yield;
+  ParamAddr[NParam] = &SageConfig.Yield;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "FracZleaveDisk");
-  ParamAddr[NParam] = &FracZleaveDisk;
+  ParamAddr[NParam] = &SageConfig.FracZleaveDisk;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "SfrEfficiency");
-  ParamAddr[NParam] = &SfrEfficiency;
+  ParamAddr[NParam] = &SageConfig.SfrEfficiency;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "FeedbackReheatingEpsilon");
-  ParamAddr[NParam] = &FeedbackReheatingEpsilon;
+  ParamAddr[NParam] = &SageConfig.FeedbackReheatingEpsilon;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "FeedbackEjectionEfficiency");
-  ParamAddr[NParam] = &FeedbackEjectionEfficiency;
+  ParamAddr[NParam] = &SageConfig.FeedbackEjectionEfficiency;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "BlackHoleGrowthRate");
-  ParamAddr[NParam] = &BlackHoleGrowthRate;
+  ParamAddr[NParam] = &SageConfig.BlackHoleGrowthRate;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "RadioModeEfficiency");
-  ParamAddr[NParam] = &RadioModeEfficiency;
+  ParamAddr[NParam] = &SageConfig.RadioModeEfficiency;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "QuasarModeEfficiency");
-  ParamAddr[NParam] = &QuasarModeEfficiency;
+  ParamAddr[NParam] = &SageConfig.QuasarModeEfficiency;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "Reionization_z0");
-  ParamAddr[NParam] = &Reionization_z0;
+  ParamAddr[NParam] = &SageConfig.Reionization_z0;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "Reionization_zr");
-  ParamAddr[NParam] = &Reionization_zr;
+  ParamAddr[NParam] = &SageConfig.Reionization_zr;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "ThresholdSatDisruption");
-  ParamAddr[NParam] = &ThresholdSatDisruption;
+  ParamAddr[NParam] = &SageConfig.ThresholdSatDisruption;
   ParamID[NParam++] = DOUBLE;
 
   strcpy(ParamTag[NParam], "NumOutputs");
-  ParamAddr[NParam] = &NOUT;
+  ParamAddr[NParam] = &SageConfig.NOUT;
   ParamID[NParam++] = INT;
 
   used_tag = mymalloc(sizeof(int) * NParam);
@@ -243,10 +243,10 @@ void read_parameter_file(char *fname)
       }
     fclose(fd);
 
-    i = strlen(OutputDir);
+    i = strlen(SageConfig.OutputDir);
     if(i > 0)
-      if(OutputDir[i - 1] != '/')
-        strcat(OutputDir, "/");
+      if(SageConfig.OutputDir[i - 1] != '/')
+        strcat(SageConfig.OutputDir, "/");
   }
 
   for(i = 0; i < NParam; i++)
@@ -263,28 +263,28 @@ void read_parameter_file(char *fname)
   }
   printf("\n");
 
-  if( ! (LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
-    fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", LastSnapShotNr, ABSOLUTEMAXSNAPS);
+  if( ! (SageConfig.LastSnapShotNr+1 > 0 && SageConfig.LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
+    fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", SageConfig.LastSnapShotNr, ABSOLUTEMAXSNAPS);
     ABORT(1);
   }
-  MAXSNAPS = LastSnapShotNr + 1;
+  MAXSNAPS = SageConfig.LastSnapShotNr + 1;
 
-  if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS))) {
+  if(!(SageConfig.NOUT == -1 || (SageConfig.NOUT > 0 && SageConfig.NOUT <= ABSOLUTEMAXSNAPS))) {
     fprintf(stderr,"NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
     ABORT(1);
   }
 
   // read in the output snapshot list
-  if(NOUT == -1)
+  if(SageConfig.NOUT == -1)
     {
-      NOUT = MAXSNAPS;
-      for (i=NOUT-1; i>=0; i--)
+      SageConfig.NOUT = MAXSNAPS;
+      for (i=SageConfig.NOUT-1; i>=0; i--)
         ListOutputSnaps[i] = i;
-      printf("all %i snapshots selected for output\n", NOUT);
+      printf("all %i snapshots selected for output\n", SageConfig.NOUT);
     }
   else
     {
-      printf("%i snapshots selected for output: ", NOUT);
+      printf("%i snapshots selected for output: ", SageConfig.NOUT);
       // reopen the parameter file
       fd = fopen(fname, "r");
 
@@ -296,7 +296,7 @@ void read_parameter_file(char *fname)
           if(strcmp(buf, "->") == 0)
             {
               // read the snapshots into ListOutputSnaps
-              for (i=0; i<NOUT; i++)
+              for (i=0; i<SageConfig.NOUT; i++)
                 {
                   fscanf(fd, "%d", &ListOutputSnaps[i]);
                   printf("%i ", ListOutputSnaps[i]);
@@ -312,11 +312,15 @@ void read_parameter_file(char *fname)
       }
       printf("\n");
     }
+    
+  // Sync the global variable with the config structure
+  NOUT = SageConfig.NOUT;
+  printf("Debug: core_read_parameter_file.c - Set NOUT=%d from SageConfig.NOUT=%d\n", NOUT, SageConfig.NOUT);
 
   // Check file type is valid.
   if (strncmp(my_treetype, "lhalo_binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files.
   {
-    snprintf(TreeExtension, 511, ".hdf5");
+    snprintf(SageConfig.TreeExtension, 511, ".hdf5");
 #ifndef HDF5
     fprintf(stderr, "You have specified to use a HDF5 file but have no compiled with the HDF5 option enabled.\n");
     fprintf(stderr, "Please check your file type and compiler options.\n");
@@ -328,11 +332,11 @@ void read_parameter_file(char *fname)
 
   if (strcasecmp(my_treetype, "genesis_lhalo_hdf5") == 0)
   {
-    TreeType = genesis_lhalo_hdf5;
+    SageConfig.TreeType = genesis_lhalo_hdf5;
   }
   else if (strcasecmp(my_treetype, "lhalo_binary") == 0)
   {
-    TreeType = lhalo_binary;
+    SageConfig.TreeType = lhalo_binary;
   }
   else
   {

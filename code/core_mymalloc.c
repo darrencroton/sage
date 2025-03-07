@@ -16,7 +16,7 @@ static size_t TotMem = 0, HighMarkMem = 0, OldPrintedHighMark = 0;
 
 
 
-void *mymalloc(size_t n)
+  void *mymalloc(size_t n)
 {
   if((n % 8) > 0)
     n = (n / 8 + 1) * 8;
@@ -26,8 +26,7 @@ void *mymalloc(size_t n)
 
   if(Nblocks >= MAXBLOCKS)
   {
-    printf("No blocks left in mymalloc().\n");
-    ABORT(0);
+    FATAL_ERROR("Memory allocation limit reached: No blocks left in mymalloc(). Increase MAXBLOCKS (%d).", MAXBLOCKS);
   }
 
   SizeTable[Nblocks] = n;
@@ -37,15 +36,14 @@ void *mymalloc(size_t n)
     HighMarkMem = TotMem;
     if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
     {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+      INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
       OldPrintedHighMark = HighMarkMem;
     }
   }
 
   if(!(Table[Nblocks] = malloc(n)))
   {
-    printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
-    ABORT(0);
+    FATAL_ERROR("Memory allocation failed: Unable to allocate %.2f MB", n / (1024.0 * 1024.0));
   }
 
   Nblocks += 1;
@@ -64,14 +62,14 @@ void *myrealloc(void *p, size_t n)
 
    if(p != Table[Nblocks - 1])
    {
-      printf("Wrong call of myrealloc() p = %p is not the last allocated block = %p!\n", p, Table[Nblocks-1]);
-      ABORT(0);
+      FATAL_ERROR("Memory management violation: Wrong call of myrealloc() - pointer %p is not the last allocated block (%p)", 
+                  p, Table[Nblocks-1]);
   }
   
   void *newp = realloc(Table[Nblocks-1], n);
   if(newp == NULL) {
-      printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
-      ABORT(0);
+      FATAL_ERROR("Memory reallocation failed: Unable to reallocate %.2f MB (old size = %.2f MB)",
+                  n / (1024.0 * 1024.0), SizeTable[Nblocks-1] / (1024.0 * 1024.0));
    }
   Table[Nblocks-1] = newp;
   
@@ -84,7 +82,7 @@ void *myrealloc(void *p, size_t n)
     HighMarkMem = TotMem;
     if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
     {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
+      INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
       OldPrintedHighMark = HighMarkMem;
     }
   }
@@ -99,8 +97,8 @@ void myfree(void *p)
 
   if(p != Table[Nblocks - 1])
   {
-    printf("Wrong call of myfree() - not the last allocated block!\n");
-    ABORT(0);
+    FATAL_ERROR("Memory management violation: Wrong call of myfree() - pointer %p is not the last allocated block (%p)",
+                p, Table[Nblocks-1]);
   }
 
   free(p);
@@ -114,6 +112,6 @@ void myfree(void *p)
 
 void print_allocated(void)
 {
-  printf("allocated = %g MB\n", TotMem / (1024.0 * 1024.0));
+  INFO_LOG("Memory currently allocated: %.2f MB", TotMem / (1024.0 * 1024.0));
 }
 

@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include "types.h"
+#include "error_handling.h"
 
 /* HDF5 configuration */
 #ifdef HDF5
@@ -9,12 +10,8 @@
 #define MODELNAME "SAGE"
 #endif
 
-/* Abort macro for error handling */
-#define ABORT(sigterm)                                                  \
-do {                                                                \
-  printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
-  myexit(sigterm);                                                \
-} while(0)
+/* Legacy ABORT macro - redirects to new FATAL_ERROR macro for backward compatibility */
+#define ABORT(sigterm) FATAL_ERROR("Program aborted with exit code %d", sigterm)
 
 /* Global configuration structure - replaces individual globals */
 extern struct SageConfig SageConfig;

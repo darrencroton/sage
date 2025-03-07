@@ -91,10 +91,50 @@ int main(int argc, char **argv)
   }
 #endif
 
+  // Default log level
+  LogLevel log_level = LOG_LEVEL_INFO;
+  
+  // Check for special flags
+  int i;
+  for (i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+      // Initialize error handling early for proper message formatting
+      initialize_error_handling(log_level, NULL);
+      
+      // Display help and exit
+      INFO_LOG("SAGE Help");
+      printf("\nSAGE Semi-Analytic Galaxy Evolution Model\n");
+      printf("Usage: sage [options] <parameterfile>\n\n");
+      printf("Options:\n");
+      printf("  -h, --help       Display this help message and exit\n");
+      printf("  -v, --verbose    Show debug messages (most verbose)\n");
+      printf("  -q, --quiet      Show only warnings and errors (least verbose)\n\n");
+      exit(0);
+    } else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
+      log_level = LOG_LEVEL_DEBUG;
+      // Remove the argument
+      int k;
+      for (k = i; k < argc - 1; k++) {
+        argv[k] = argv[k + 1];
+      }
+      argc--;
+      i--;
+    } else if (strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--quiet") == 0) {
+      log_level = LOG_LEVEL_WARNING;
+      // Remove the argument
+      int k;
+      for (k = i; k < argc - 1; k++) {
+        argv[k] = argv[k + 1];
+      }
+      argc--;
+      i--;
+    }
+  }
+  
   if(argc != 2)
   {
-    printf("\n  usage: sage <parameterfile>\n\n");
-    ABORT(0);
+    FATAL_ERROR("Incorrect usage! Please use: sage [options] <parameterfile>\n"
+                "For help, use: sage --help");
   }
 
   atexit(bye);
@@ -104,6 +144,21 @@ int main(int argc, char **argv)
   current_XCPU.sa_handler = termination_handler;
   sigaction(SIGXCPU, &current_XCPU, NULL);
 
+  // Initialize error handling system with the log level determined from command line
+  // This should be done before any other initialization that might produce errors
+  initialize_error_handling(log_level, NULL);
+  
+  // Log the start of the program with different verbosity levels
+  DEBUG_LOG("Starting SAGE with verbosity level: %s", get_log_level_name(log_level));
+  INFO_LOG("SAGE Semi-Analytic Galaxy Evolution model starting up");
+  
+  // These will only show if the verbosity is high enough
+  DEBUG_LOG("Command line argument count: %d", argc);
+  int j;
+  for (j = 0; j < argc; j++) {
+    DEBUG_LOG("Argument %d: %s", j, argv[j]);
+  }
+  
   read_parameter_file(argv[1]);
   init();
 
@@ -116,7 +171,7 @@ int main(int argc, char **argv)
     snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr, SageConfig.TreeExtension);
     if(!(fd = fopen(bufz0, "r")))
     {
-      printf("-- missing tree %s ... skipping\n", bufz0);
+      INFO_LOG("Missing tree %s ... skipping", bufz0);
       continue;  // tree file does not exist, move along
     }
     else
@@ -125,7 +180,7 @@ int main(int argc, char **argv)
     snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)
     {
-      printf("-- output for tree %s already exists ... skipping\n", bufz0);
+      INFO_LOG("Output for tree %s already exists ... skipping", bufz0);
       continue;  // output seems to already exist, dont overwrite, move along
     }
 
@@ -143,11 +198,10 @@ int main(int argc, char **argv)
       if(treenr % 10000 == 0)
       {
 #ifdef MPI
-        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, treenr, Ntrees);
+        INFO_LOG("Processing task: %d node: %s file: %i tree: %i of %i", ThisTask, ThisNode, filenr, treenr, Ntrees);
 #else
-                                printf("\tfile: %i\ttree: %i of %i\n", filenr, treenr, Ntrees);
+        INFO_LOG("Processing file: %i tree: %i of %i", filenr, treenr, Ntrees);
 #endif
-                                fflush(stdout);
       }
 
       TreeID = treenr;
@@ -167,7 +221,7 @@ int main(int argc, char **argv)
     finalize_galaxy_file(filenr);
     free_tree_table(SageConfig.TreeType);
 
-    printf("\ndone file %d\n\n", filenr);
+    INFO_LOG("Completed processing file %d", filenr);
   }
 
 /*

@@ -8,6 +8,7 @@ OPT :=
 EXEC := sage 
 OBJS := ./code/main.o \
 	./code/parameter_table.o \
+	./code/error_handling.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
 	./code/core_io_tree.o \
@@ -29,6 +30,7 @@ INCL := ./code/core_allvars.h  \
 	./code/core_proto.h  \
 	./code/core_simulation.h  \
 	./code/parameter_table.h \
+	./code/error_handling.h \
 	./code/config.h \
 	./code/constants.h \
 	./code/globals.h \

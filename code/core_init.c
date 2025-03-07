@@ -74,6 +74,9 @@ void set_units(void)
   SageConfig.RhoCrit = 3 * SageConfig.Hubble * SageConfig.Hubble / (8 * M_PI * SageConfig.G);
   
   // Synchronize with global variables (for backward compatibility)
+  UnitLength_in_cm = SageConfig.UnitLength_in_cm;
+  UnitMass_in_g = SageConfig.UnitMass_in_g;
+  UnitVelocity_in_cm_per_s = SageConfig.UnitVelocity_in_cm_per_s;
   UnitTime_in_s = SageConfig.UnitTime_in_s;
   UnitTime_in_Megayears = SageConfig.UnitTime_in_Megayears;
   G = SageConfig.G;

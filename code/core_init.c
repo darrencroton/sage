@@ -34,41 +34,57 @@ void init(void)
   Age[0] = time_to_present(1000.0);//lookback time from z=1000
   Age++;
 
-  for(i = 0; i < Snaplistlen; i++)
+  for(i = 0; i < SageConfig.Snaplistlen; i++)
   {
-    ZZ[i] = 1 / AA[i] - 1;
-    Age[i] = time_to_present(ZZ[i]);
+    SageConfig.ZZ[i] = 1 / SageConfig.AA[i] - 1;
+    Age[i] = time_to_present(SageConfig.ZZ[i]);
+    ZZ[i] = SageConfig.ZZ[i]; // Sync with global for backward compatibility
   }
 
-  a0 = 1.0 / (1.0 + SageConfig.Reionization_z0);
-  ar = 1.0 / (1.0 + SageConfig.Reionization_zr);
+  SageConfig.a0 = 1.0 / (1.0 + SageConfig.Reionization_z0);
+  SageConfig.ar = 1.0 / (1.0 + SageConfig.Reionization_zr);
+  
+  // Sync with globals for backward compatibility
+  a0 = SageConfig.a0;
+  ar = SageConfig.ar;
 
   read_cooling_functions();
-
 }
 
 
 
 void set_units(void)
 {
+  // Calculate derived units and store in SageConfig
+  SageConfig.UnitTime_in_s = SageConfig.UnitLength_in_cm / SageConfig.UnitVelocity_in_cm_per_s;
+  SageConfig.UnitTime_in_Megayears = SageConfig.UnitTime_in_s / SEC_PER_MEGAYEAR;
+  SageConfig.G = GRAVITY / pow(SageConfig.UnitLength_in_cm, 3) * SageConfig.UnitMass_in_g * pow(SageConfig.UnitTime_in_s, 2);
+  SageConfig.UnitDensity_in_cgs = SageConfig.UnitMass_in_g / pow(SageConfig.UnitLength_in_cm, 3);
+  SageConfig.UnitPressure_in_cgs = SageConfig.UnitMass_in_g / SageConfig.UnitLength_in_cm / pow(SageConfig.UnitTime_in_s, 2);
+  SageConfig.UnitCoolingRate_in_cgs = SageConfig.UnitPressure_in_cgs / SageConfig.UnitTime_in_s;
+  SageConfig.UnitEnergy_in_cgs = SageConfig.UnitMass_in_g * pow(SageConfig.UnitLength_in_cm, 2) / pow(SageConfig.UnitTime_in_s, 2);
 
-  UnitTime_in_s = UnitLength_in_cm / UnitVelocity_in_cm_per_s;
-  UnitTime_in_Megayears = UnitTime_in_s / SEC_PER_MEGAYEAR;
-  G = GRAVITY / pow(UnitLength_in_cm, 3) * UnitMass_in_g * pow(UnitTime_in_s, 2);
-  UnitDensity_in_cgs = UnitMass_in_g / pow(UnitLength_in_cm, 3);
-  UnitPressure_in_cgs = UnitMass_in_g / UnitLength_in_cm / pow(UnitTime_in_s, 2);
-  UnitCoolingRate_in_cgs = UnitPressure_in_cgs / UnitTime_in_s;
-  UnitEnergy_in_cgs = UnitMass_in_g * pow(UnitLength_in_cm, 2) / pow(UnitTime_in_s, 2);
+  SageConfig.EnergySNcode = SageConfig.EnergySN / SageConfig.UnitEnergy_in_cgs * SageConfig.Hubble_h;
+  SageConfig.EtaSNcode = SageConfig.EtaSN * (SageConfig.UnitMass_in_g / SOLAR_MASS) / SageConfig.Hubble_h;
 
-  EnergySNcode = SageConfig.EnergySN / UnitEnergy_in_cgs * SageConfig.Hubble_h;
-  EtaSNcode = SageConfig.EtaSN * (UnitMass_in_g / SOLAR_MASS) / SageConfig.Hubble_h;
+  // Convert some physical input parameters to internal units
+  SageConfig.Hubble = HUBBLE * SageConfig.UnitTime_in_s;
 
-  // convert some physical input parameters to internal units
-  Hubble = HUBBLE * UnitTime_in_s;
-
-  // compute a few quantitites
-  RhoCrit = 3 * Hubble * Hubble / (8 * M_PI * G);
-
+  // Compute a few quantities
+  SageConfig.RhoCrit = 3 * SageConfig.Hubble * SageConfig.Hubble / (8 * M_PI * SageConfig.G);
+  
+  // Synchronize with global variables (for backward compatibility)
+  UnitTime_in_s = SageConfig.UnitTime_in_s;
+  UnitTime_in_Megayears = SageConfig.UnitTime_in_Megayears;
+  G = SageConfig.G;
+  UnitDensity_in_cgs = SageConfig.UnitDensity_in_cgs;
+  UnitPressure_in_cgs = SageConfig.UnitPressure_in_cgs;
+  UnitCoolingRate_in_cgs = SageConfig.UnitCoolingRate_in_cgs;
+  UnitEnergy_in_cgs = SageConfig.UnitEnergy_in_cgs;
+  EnergySNcode = SageConfig.EnergySNcode;
+  EtaSNcode = SageConfig.EtaSNcode;
+  Hubble = SageConfig.Hubble;
+  RhoCrit = SageConfig.RhoCrit;
 }
 
 
@@ -82,26 +98,27 @@ void read_snap_list(void)
 
   if(!(fd = fopen(fname, "r")))
   {
-    printf("can't read output list in file '%s'\n", fname);
-    ABORT(0);
+    FATAL_ERROR("Can't read output list in file '%s'", fname);
   }
 
-  Snaplistlen = 0;
-  do
-  {
-    if(fscanf(fd, " %lg ", &AA[Snaplistlen]) == 1)
-      Snaplistlen++;
+  SageConfig.Snaplistlen = 0;
+  do {
+    if(fscanf(fd, " %lg ", &SageConfig.AA[SageConfig.Snaplistlen]) == 1)
+      SageConfig.Snaplistlen++;
     else
       break;
-  }
-  while(Snaplistlen < MAXSNAPS);
+  } while(SageConfig.Snaplistlen < SageConfig.MAXSNAPS);
 
   fclose(fd);
+
+  // Synchronize with globals for backward compatibility
+  Snaplistlen = SageConfig.Snaplistlen;
+  memcpy(AA, SageConfig.AA, sizeof(double) * ABSOLUTEMAXSNAPS);
 
 #ifdef MPI
   if(ThisTask == 0)
 #endif
-    printf("found %d defined times in snaplist\n", Snaplistlen);
+    INFO_LOG("Found %d defined times in snaplist", SageConfig.Snaplistlen);
 }
 
 
@@ -116,10 +133,10 @@ double time_to_present(double z)
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_time_to_present;
 
-  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / Hubble,
+  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / SageConfig.Hubble,
     1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
 
-  time = 1 / Hubble * result;
+  time = 1 / SageConfig.Hubble * result;
 
   gsl_integration_workspace_free(workspace);
 

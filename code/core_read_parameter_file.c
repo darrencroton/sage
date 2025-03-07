@@ -12,6 +12,7 @@
 #include "constants.h"
 #include "core_proto.h"
 #include "parameter_table.h"
+#include "error_handling.h"
 
 void read_parameter_file(char *fname)
 {
@@ -49,7 +50,7 @@ void read_parameter_file(char *fname)
 
   fd = fopen(fname, "r");
   if (fd == NULL) {
-    ERROR_LOG("Parameter file '%s' not found or cannot be opened.", fname);
+    printf("ERROR: Parameter file '%s' not found or cannot be opened.\n", fname);
     errorFlag = 1;
     goto error_exit;
   }
@@ -86,7 +87,7 @@ void read_parameter_file(char *fname)
             double val = atof(buf2);
             // Validate value
             if (!is_parameter_valid(&param_table[i], &val)) {
-              ERROR_LOG("Parameter '%s' value %g is outside valid range [%g, %g]", 
+              printf("ERROR: Parameter '%s' value %g is outside valid range [%g, %g]\n", 
                      param_table[i].name, val, 
                      param_table[i].min_value, 
                      param_table[i].max_value > 0 ? param_table[i].max_value : HUGE_VAL);
@@ -102,7 +103,7 @@ void read_parameter_file(char *fname)
             int val = atoi(buf2);
             // Validate value
             if (!is_parameter_valid(&param_table[i], &val)) {
-              ERROR_LOG("Parameter '%s' value %d is outside valid range [%g, %g]", 
+              printf("ERROR: Parameter '%s' value %d is outside valid range [%g, %g]\n", 
                      param_table[i].name, val, 
                      param_table[i].min_value, 
                      param_table[i].max_value > 0 ? param_table[i].max_value : INT_MAX);
@@ -112,7 +113,7 @@ void read_parameter_file(char *fname)
             break;
           }
           default:
-            ERROR_LOG("Unknown parameter type for parameter '%s'", param_table[i].name);
+            printf("ERROR: Unknown parameter type for parameter '%s'\n", param_table[i].name);
             errorFlag = 1;
         }
         break;
@@ -120,7 +121,7 @@ void read_parameter_file(char *fname)
     }
     
     if (!param_found) {
-      ERROR_LOG("Parameter '%s' in file '%s' is not recognized", buf1, fname);
+      printf("ERROR: Parameter '%s' in file '%s' is not recognized\n", buf1, fname);
       errorFlag = 1;
     }
   }
@@ -130,7 +131,7 @@ void read_parameter_file(char *fname)
   // Check for missing required parameters
   for (i = 0; i < num_params; i++) {
     if (param_read[i] == 0 && param_table[i].required) {
-      ERROR_LOG("Required parameter '%s' (%s) missing in parameter file '%s'", 
+      printf("ERROR: Required parameter '%s' (%s) missing in parameter file '%s'\n", 
              param_table[i].name, 
              param_table[i].description,
              fname);
@@ -145,27 +146,32 @@ void read_parameter_file(char *fname)
   
   // Special handling for MAXSNAPS
   if (!(SageConfig.LastSnapShotNr+1 > 0 && SageConfig.LastSnapShotNr+1 < ABSOLUTEMAXSNAPS)) {
-    ERROR_LOG("LastSnapshotNr = %d should be in range [0, %d)", 
+    printf("ERROR: LastSnapshotNr = %d should be in range [0, %d)\n", 
             SageConfig.LastSnapShotNr, ABSOLUTEMAXSNAPS);
     errorFlag = 1;
   }
-  MAXSNAPS = SageConfig.LastSnapShotNr + 1;
+  
+  // Set MAXSNAPS in both SageConfig and global variable
+  SageConfig.MAXSNAPS = SageConfig.LastSnapShotNr + 1;
+  MAXSNAPS = SageConfig.MAXSNAPS; // Synchronize with global for backward compatibility
   
   // Special handling for NumOutputs parameter
   if (!(SageConfig.NOUT == -1 || (SageConfig.NOUT > 0 && SageConfig.NOUT <= ABSOLUTEMAXSNAPS))) {
-    ERROR_LOG("NumOutputs must be -1 (all snapshots) or between 1 and %i", ABSOLUTEMAXSNAPS);
+    printf("ERROR: NumOutputs must be -1 (all snapshots) or between 1 and %i\n", ABSOLUTEMAXSNAPS);
     errorFlag = 1;
   }
   
   // Handle output snapshot list
   if (!errorFlag) {
     if (SageConfig.NOUT == -1) {
-      SageConfig.NOUT = MAXSNAPS;
-      for (i = SageConfig.NOUT - 1; i >= 0; i--)
-        ListOutputSnaps[i] = i;
-      printf("All %i snapshots selected for output\n", SageConfig.NOUT);
+      SageConfig.NOUT = SageConfig.MAXSNAPS;
+      for (i = SageConfig.NOUT - 1; i >= 0; i--) {
+        SageConfig.ListOutputSnaps[i] = i;
+        ListOutputSnaps[i] = i; // Sync with global for backward compatibility
+      }
+      printf("INFO: All %i snapshots selected for output\n", SageConfig.NOUT);
     } else {
-      printf("%i snapshots selected for output: ", SageConfig.NOUT);
+      printf("INFO: %i snapshots selected for output: ", SageConfig.NOUT);
       // reopen the parameter file
       fd = fopen(fname, "r");
       
@@ -174,15 +180,16 @@ void read_parameter_file(char *fname)
         // scan down to find the line with the snapshots
         fscanf(fd, "%s", buf1);
         if (strcmp(buf1, "->") == 0) {
-          // read the snapshots into ListOutputSnaps
+          // read the snapshots into both the SageConfig structure and global array
           for (i = 0; i < SageConfig.NOUT; i++) {
-            if (fscanf(fd, "%d", &ListOutputSnaps[i]) != 1) {
-              ERROR_LOG("Could not read output snapshot list. Expected %d values after '->' but couldn't read value %d",
+            if (fscanf(fd, "%d", &SageConfig.ListOutputSnaps[i]) != 1) {
+              printf("ERROR: Could not read output snapshot list. Expected %d values after '->' but couldn't read value %d\n",
                     SageConfig.NOUT, i+1);
               errorFlag = 1;
               break;
             }
-            printf("%i ", ListOutputSnaps[i]);
+            ListOutputSnaps[i] = SageConfig.ListOutputSnaps[i]; // Sync with global
+            printf("%i ", SageConfig.ListOutputSnaps[i]);
           }
           done = 1;
         }
@@ -190,7 +197,7 @@ void read_parameter_file(char *fname)
       
       fclose(fd);
       if (!done && !errorFlag) {
-        ERROR_LOG("Could not find output snapshot list (expected line starting with '->') in parameter file");
+        printf("ERROR: Could not find output snapshot list (expected line starting with '->') in parameter file\n");
         errorFlag = 1;
       }
       printf("\n");
@@ -206,8 +213,8 @@ void read_parameter_file(char *fname)
     if (strcasecmp(my_treetype, "lhalo_binary") != 0) {
       snprintf(SageConfig.TreeExtension, 511, ".hdf5");
 #ifndef HDF5
-      ERROR_LOG("TreeType '%s' requires HDF5 support, but SAGE was not compiled with HDF5 option enabled", my_treetype);
-      ERROR_LOG("Please check your file type and compiler options");
+      printf("ERROR: TreeType '%s' requires HDF5 support, but SAGE was not compiled with HDF5 option enabled\n", my_treetype);
+      printf("ERROR: Please check your file type and compiler options\n");
       errorFlag = 1;
 #endif
     }
@@ -218,7 +225,7 @@ void read_parameter_file(char *fname)
     } else if (strcasecmp(my_treetype, "lhalo_binary") == 0) {
       SageConfig.TreeType = lhalo_binary;
     } else {
-      ERROR_LOG("TreeType '%s' is not supported. Valid options are 'genesis_lhalo_hdf5' or 'lhalo_binary'", 
+      printf("ERROR: TreeType '%s' is not supported. Valid options are 'genesis_lhalo_hdf5' or 'lhalo_binary'\n", 
               my_treetype);
       errorFlag = 1;
     }
@@ -233,5 +240,5 @@ error_exit:
   }
   
   // Print success message
-  INFO_LOG("Parameter file '%s' read successfully", fname);
+  printf("INFO: Parameter file '%s' read successfully\n", fname);
 }

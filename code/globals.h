@@ -58,7 +58,7 @@ extern double UnitLength_in_cm,
   Hubble,
   a0, ar;
 
-/* output snapshots */
+/* output snapshots - kept for backward compatibility */
 extern int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 extern double ZZ[ABSOLUTEMAXSNAPS];
 extern double AA[ABSOLUTEMAXSNAPS];

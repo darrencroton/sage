@@ -63,6 +63,30 @@ struct SageConfig
 
   /* output parameters */
   int NOUT;
+  int ListOutputSnaps[ABSOLUTEMAXSNAPS];
+  double ZZ[ABSOLUTEMAXSNAPS];
+  double AA[ABSOLUTEMAXSNAPS];
+  int MAXSNAPS;
+  int Snaplistlen;
+
+  /* units */
+  double UnitLength_in_cm;
+  double UnitTime_in_s;
+  double UnitVelocity_in_cm_per_s;
+  double UnitMass_in_g;
+  double UnitTime_in_Megayears;
+  double UnitPressure_in_cgs;
+  double UnitDensity_in_cgs;
+  double UnitCoolingRate_in_cgs;
+  double UnitEnergy_in_cgs;
+  
+  /* derived parameters */
+  double RhoCrit;
+  double G;
+  double Hubble;
+  double a0, ar;
+  double EnergySNcode;
+  double EtaSNcode;
 
   /* Tree type */
   enum Valid_TreeTypes TreeType;

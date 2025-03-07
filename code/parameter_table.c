@@ -37,9 +37,9 @@ static ParameterDefinition ParameterTable[] = {
   {"PartMass", "Particle mass in simulation", DOUBLE, &SageConfig.PartMass, 1, 0.0, 0.0},
   
   // Unit parameters
-  {"UnitVelocity_in_cm_per_s", "Velocity unit in cm/s", DOUBLE, &UnitVelocity_in_cm_per_s, 1, 0.0, 0.0},
-  {"UnitLength_in_cm", "Length unit in cm", DOUBLE, &UnitLength_in_cm, 1, 0.0, 0.0},
-  {"UnitMass_in_g", "Mass unit in g", DOUBLE, &UnitMass_in_g, 1, 0.0, 0.0},
+  {"UnitVelocity_in_cm_per_s", "Velocity unit in cm/s", DOUBLE, &SageConfig.UnitVelocity_in_cm_per_s, 1, 0.0, 0.0},
+  {"UnitLength_in_cm", "Length unit in cm", DOUBLE, &SageConfig.UnitLength_in_cm, 1, 0.0, 0.0},
+  {"UnitMass_in_g", "Mass unit in g", DOUBLE, &SageConfig.UnitMass_in_g, 1, 0.0, 0.0},
   
   // Flags (switches)
   {"ReionizationOn", "Reionization modeling switch (0=off, 1=on)", INT, &SageConfig.ReionizationOn, 1, 0.0, 1.0},

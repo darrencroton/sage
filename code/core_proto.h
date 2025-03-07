@@ -12,7 +12,13 @@ int myfseek(FILE *stream, long offset, int whence);
 
 void construct_galaxies(int halonr, int tree);
 void evolve_galaxies(int halonr, int ngal, int tree);
+void apply_physical_processes(int ngal, int centralgal, int halonr, double infallingGas, int step);
+void handle_mergers(int ngal, int centralgal, int halonr, int step);
+void update_galaxy_properties(int ngal, int centralgal, double deltaT);
 int  join_galaxies_of_progenitors(int halonr, int nstart);
+int  find_most_massive_progenitor(int halonr);
+int  copy_galaxies_from_progenitors(int halonr, int nstart, int first_occupied);
+void set_galaxy_centrals(int ngalstart, int ngal);
 void init(void);
 void set_units(void);
 

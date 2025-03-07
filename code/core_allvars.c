@@ -3,6 +3,9 @@
 #include "config.h"
 
 
+/*  Global configuration structure */
+struct SageConfig SageConfig;
+
 /*  galaxy data  */
 struct GALAXY			
   *Gal, *HaloGal;
@@ -27,21 +30,12 @@ hid_t         *HDF5_field_types;
 int            HDF5_n_props;
 #endif
 
-int FirstFile;
-int LastFile;
 int MaxGals;
 int FoF_MaxGals;
 int Ntrees;			   /*  number of trees in current file  */
 int NumGals;			 /*  Total number of galaxies stored for current tree  */
 
 int GalaxyCounter; /*  unique galaxy ID for main progenitor line in tree */
-
-char OutputDir[MAX_STRING_LEN];
-char FileNameGalaxies[MAX_STRING_LEN];
-char TreeName[MAX_STRING_LEN];
-char TreeExtension[MAX_STRING_LEN] = {"\0"}; /* If the FileType is HDF5 they will have .hdf5 extension, otherwise nothing. */
-char SimulationDir[MAX_STRING_LEN];
-char FileWithSnapList[MAX_STRING_LEN];
 
 int TotHalos;
 int TotGalaxies[ABSOLUTEMAXSNAPS];
@@ -59,43 +53,15 @@ int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
 #endif
 
-double Omega;
-double OmegaLambda;
-double Hubble_h;
-double PartMass;
-double EnergySNcode, EnergySN;
-double EtaSNcode, EtaSN;
-
-
-/*  recipe flags  */
-int ReionizationOn;
-int SupernovaRecipeOn;
-int DiskInstabilityOn;
-int AGNrecipeOn;
-int SFprescription;
-
-
 /*  recipe parameters  */
 int    NParam;
 char   ParamTag[MAXTAGS][50];
 int    ParamID[MAXTAGS];
 void   *ParamAddr[MAXTAGS];
 
-double RecycleFraction;
-double Yield;
-double FracZleaveDisk;
-double ReIncorporationFactor;
-double ThreshMajorMerger;
-double BaryonFrac;
-double SfrEfficiency;
-double FeedbackReheatingEpsilon;
-double FeedbackEjectionEfficiency;
-double RadioModeEfficiency;
-double QuasarModeEfficiency;
-double BlackHoleGrowthRate;
-double Reionization_z0;
-double Reionization_zr;
-double ThresholdSatDisruption;
+/*  derived values from parameters */
+double EnergySNcode;
+double EtaSNcode;
 
 
 /*  more misc  */

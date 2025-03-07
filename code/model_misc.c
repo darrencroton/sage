@@ -144,7 +144,7 @@ double get_virial_mass(int halonr)
   if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
     return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
   else
-    return Halo[halonr].Len * PartMass;
+    return Halo[halonr].Len * SageConfig.PartMass;
 }
 
 
@@ -171,8 +171,8 @@ double get_virial_radius(int halonr)
   
   zplus1 = 1 + ZZ[Halo[halonr].SnapNum];
   hubble_of_z_sq =
-    Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
-    OmegaLambda);
+    Hubble * Hubble *(SageConfig.Omega * zplus1 * zplus1 * zplus1 + (1 - SageConfig.Omega - SageConfig.OmegaLambda) * zplus1 * zplus1 +
+    SageConfig.OmegaLambda);
   
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * G);
   fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);

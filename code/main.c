@@ -108,12 +108,12 @@ int main(int argc, char **argv)
   init();
 
 #ifdef MPI
-  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
+  for(filenr = SageConfig.FirstFile+ThisTask; filenr <= SageConfig.LastFile; filenr += NTask)
 #else
-  for(filenr = FirstFile; filenr <= LastFile; filenr++)
+  for(filenr = SageConfig.FirstFile; filenr <= SageConfig.LastFile; filenr++)
 #endif
   {
-    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr, SageConfig.TreeExtension);
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     else
       fclose(fd);
 
-    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+    snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)
     {
       printf("-- output for tree %s already exists ... skipping\n", bufz0);
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
       fclose(fd);
 
     FileNum = filenr;
-    load_tree_table(filenr, TreeType);
+    load_tree_table(filenr, SageConfig.TreeType);
 
     for(treenr = 0; treenr < Ntrees; treenr++)
     {
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
       }
 
       TreeID = treenr;
-      load_tree(filenr, treenr, TreeType);
+      load_tree(filenr, treenr, SageConfig.TreeType);
 
       gsl_rng_set(random_generator, filenr * 100000 + treenr);
       NumGals = 0;
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     }
 
     finalize_galaxy_file(filenr);
-    free_tree_table(TreeType);
+    free_tree_table(SageConfig.TreeType);
 
     printf("\ndone file %d\n\n", filenr);
   }

@@ -300,7 +300,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       {
         add_infall_to_hot(centralgal, infallingGas / STEPS);
 
-        if(ReIncorporationFactor > 0.0)
+        if(SageConfig.ReIncorporationFactor > 0.0)
           reincorporate_gas(centralgal, deltaT / STEPS);
       }
 			else 
@@ -330,7 +330,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
         currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
+        if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= SageConfig.ThresholdSatDisruption)))        
         {
           if(Gal[p].Type==1) 
             merger_centralgal = centralgal;

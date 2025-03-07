@@ -12,6 +12,62 @@ enum Valid_TreeTypes
   num_tree_types
 };
 
+/* Configuration structure to hold global parameters */
+struct SageConfig
+{
+  /* file information */
+  int FirstFile;    /* first and last file for processing */
+  int LastFile;
+  int LastSnapShotNr;
+  double BoxSize;
+
+  /* paths */
+  char OutputDir[MAX_STRING_LEN];
+  char FileNameGalaxies[MAX_STRING_LEN];
+  char TreeName[MAX_STRING_LEN];
+  char TreeExtension[MAX_STRING_LEN]; 
+  char SimulationDir[MAX_STRING_LEN];
+  char FileWithSnapList[MAX_STRING_LEN];
+
+  /* cosmological parameters */
+  double Omega;
+  double OmegaLambda;
+  double PartMass;
+  double Hubble_h;
+  double EnergySN;
+  double EtaSN;
+
+  /* recipe parameters */
+  double RecycleFraction;
+  double Yield;
+  double FracZleaveDisk;
+  double ReIncorporationFactor;
+  double ThreshMajorMerger;
+  double BaryonFrac;
+  double SfrEfficiency;
+  double FeedbackReheatingEpsilon;
+  double FeedbackEjectionEfficiency;
+  double RadioModeEfficiency;
+  double QuasarModeEfficiency;
+  double BlackHoleGrowthRate;
+  double Reionization_z0;
+  double Reionization_zr;
+  double ThresholdSatDisruption;
+
+  /* flags */
+  int ReionizationOn;
+  int SupernovaRecipeOn;
+  int DiskInstabilityOn;
+  int AGNrecipeOn;
+  int SFprescription;
+
+  /* output parameters */
+  int NOUT;
+
+  /* Tree type */
+  enum Valid_TreeTypes TreeType;
+};
+
 /* This structure contains the properties that are output */
 struct GALAXY_OUTPUT  
 {

@@ -62,7 +62,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       }
 
       unstable_gas_fraction = unstable_gas / Gal[p].ColdGas;
-      if(AGNrecipeOn > 0)
+      if(SageConfig.AGNrecipeOn > 0)
         grow_black_hole(p, unstable_gas_fraction);
     
       collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, time, dt, halonr, 1, step);

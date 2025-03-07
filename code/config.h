@@ -16,14 +16,7 @@ do {                                                                \
   myexit(sigterm);                                                \
 } while(0)
 
-/* Recipe flags */
-extern int ReionizationOn;
-extern int SupernovaRecipeOn;
-extern int DiskInstabilityOn;
-extern int AGNrecipeOn;
-extern int SFprescription;
-
-/* Tree type configuration */
-extern enum Valid_TreeTypes TreeType;
+/* Global configuration structure - replaces individual globals */
+extern struct SageConfig SageConfig;
 
 #endif /* #ifndef CONFIG_H */

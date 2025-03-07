@@ -50,13 +50,13 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
 	newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons;
 
   // include reionization if necessary 
-  if(ReionizationOn)
+  if(SageConfig.ReionizationOn)
     reionization_modifier = do_reionization(centralgal, Zcurr);
   else
     reionization_modifier = 1.0;
 
   infallingMass =
-    reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
+    reionization_modifier * SageConfig.BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
     // reionization_modifier * BaryonFrac * Gal[centralgal].deltaMvir - newSatBaryons;
   UNUSED(newSatBaryons); /* for the moment this is not used */
 
@@ -91,13 +91,13 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
 {
   double reionization_modifier, strippedGas, strippedGasMetals, metallicity;
   
-  if(ReionizationOn)
+  if(SageConfig.ReionizationOn)
     reionization_modifier = do_reionization(gal, ZZ[Halo[halonr].SnapNum]);
   else
     reionization_modifier = 1.0;
   
   strippedGas = -1.0 *
-    (reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
+    (reionization_modifier * SageConfig.BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
     // ( reionization_modifier * BaryonFrac * Gal[gal].deltaMvir ) / STEPS;
 
   if(strippedGas > 0.0)
@@ -152,15 +152,15 @@ double do_reionization(int gal, double Zcurr)
     a * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 * pow(a_on_ar, -0.5)));
 
   // this is in units of 10^10Msun/h, note mu=0.59 and mu^-1.5 = 2.21 
-  Mjeans = 25.0 * pow(Omega, -0.5) * 2.21;
+  Mjeans = 25.0 * pow(SageConfig.Omega, -0.5) * 2.21;
   Mfiltering = Mjeans * pow(f_of_a, 1.5);
 
   // calculate the characteristic mass coresponding to a halo temperature of 10^4K 
   Vchar = sqrt(Tvir / 36.0);
-  omegaZ = Omega * (pow(1.0 + Zcurr, 3.0) / (Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda));
+  omegaZ = SageConfig.Omega * (pow(1.0 + Zcurr, 3.0) / (SageConfig.Omega * pow(1.0 + Zcurr, 3.0) + SageConfig.OmegaLambda));
   xZ = omegaZ - 1.0;
   deltacritZ = 18.0 * M_PI * M_PI + 82.0 * xZ - 39.0 * xZ * xZ;
-  HubbleZ = Hubble * sqrt(Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda);
+  HubbleZ = Hubble * sqrt(SageConfig.Omega * pow(1.0 + Zcurr, 3.0) + SageConfig.OmegaLambda);
 
   Mchar = Vchar * Vchar * Vchar / (G * HubbleZ * sqrt(0.5 * deltacritZ));
 

@@ -63,7 +63,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   add_galaxies_together(merger_centralgal, p);
 
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
-  if(AGNrecipeOn)
+  if(SageConfig.AGNrecipeOn)
     grow_black_hole(merger_centralgal, mass_ratio);
   
   // starburst recipe similar to Somerville et al. 2001
@@ -72,7 +72,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   if(mass_ratio > 0.1)
 		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
 
-  if(mass_ratio > ThreshMajorMerger)
+  if(mass_ratio > SageConfig.ThreshMajorMerger)
   {
     make_bulge_from_burst(merger_centralgal);
     Gal[merger_centralgal].TimeOfLastMajorMerger = time;
@@ -93,7 +93,7 @@ void grow_black_hole(int merger_centralgal, double mass_ratio)
 
   if(Gal[merger_centralgal].ColdGas > 0.0)
   {
-    BHaccrete = BlackHoleGrowthRate * mass_ratio / 
+    BHaccrete = SageConfig.BlackHoleGrowthRate * mass_ratio / 
       (1.0 + pow(280.0 / Gal[merger_centralgal].Vvir, 2.0)) * Gal[merger_centralgal].ColdGas;
 
     // cannot accrete more gas than is available! 
@@ -118,7 +118,7 @@ void quasar_mode_wind(int gal, float BHaccrete)
   float quasar_energy, cold_gas_energy, hot_gas_energy;
   
   // work out total energies in quasar wind (eta*m*c^2), cold and hot gas (1/2*m*Vvir^2)
-  quasar_energy = QuasarModeEfficiency * 0.1 * BHaccrete * (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
+  quasar_energy = SageConfig.QuasarModeEfficiency * 0.1 * BHaccrete * (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
   cold_gas_energy = 0.5 * Gal[gal].ColdGas * Gal[gal].Vvir * Gal[gal].Vvir;
   hot_gas_energy = 0.5 * Gal[gal].HotGas * Gal[gal].Vvir * Gal[gal].Vvir;
    
@@ -221,8 +221,8 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars = 0.0;
 
   // this bursting results in SN feedback on the cold/hot gas 
-  if(SupernovaRecipeOn == 1)
-    reheated_mass = FeedbackReheatingEpsilon * stars;
+  if(SageConfig.SupernovaRecipeOn == 1)
+    reheated_mass = SageConfig.FeedbackReheatingEpsilon * stars;
   else
     reheated_mass = 0.0;
 
@@ -237,12 +237,12 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   }
 
   // determine ejection
-  if(SupernovaRecipeOn == 1)
+  if(SageConfig.SupernovaRecipeOn == 1)
   {
     if(Gal[centralgal].Vvir > 0.0)
 			ejected_mass = 
-				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - 
-					FeedbackReheatingEpsilon) * stars;
+				(SageConfig.FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - 
+					SageConfig.FeedbackReheatingEpsilon) * stars;
 		else
 			ejected_mass = 0.0;
 		
@@ -260,8 +260,8 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
   update_from_star_formation(merger_centralgal, stars, metallicity);
 
-  Gal[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
-  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
+  Gal[merger_centralgal].BulgeMass += (1 - SageConfig.RecycleFraction) * stars;
+  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - SageConfig.RecycleFraction) * stars;
 
   // recompute the metallicity of the cold phase
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
@@ -270,20 +270,20 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   update_from_feedback(merger_centralgal, centralgal, reheated_mass, ejected_mass, metallicity);
 
   // check for disk instability
-  if(DiskInstabilityOn && mode == 0)
-    if(mass_ratio < ThreshMajorMerger)
+  if(SageConfig.DiskInstabilityOn && mode == 0)
+    if(mass_ratio < SageConfig.ThreshMajorMerger)
     check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step);
 
   // formation of new metals - instantaneous recycling approximation - only SNII 
-  if(Gal[merger_centralgal].ColdGas > 1e-8 && mass_ratio < ThreshMajorMerger)
+  if(Gal[merger_centralgal].ColdGas > 1e-8 && mass_ratio < SageConfig.ThreshMajorMerger)
   {
-    FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
-    Gal[merger_centralgal].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
-    Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
+    FracZleaveDiskVal = SageConfig.FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
+    Gal[merger_centralgal].MetalsColdGas += SageConfig.Yield * (1.0 - FracZleaveDiskVal) * stars;
+    Gal[centralgal].MetalsHotGas += SageConfig.Yield * FracZleaveDiskVal * stars;
+    // Gal[centralgal].MetalsEjectedMass += SageConfig.Yield * FracZleaveDiskVal * stars;
   }
   else
-    Gal[centralgal].MetalsHotGas += Yield * stars;
+    Gal[centralgal].MetalsHotGas += SageConfig.Yield * stars;
     // Gal[centralgal].MetalsEjectedMass += Yield * stars;
 }
 

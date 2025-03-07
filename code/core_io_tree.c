@@ -50,7 +50,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
     for(i = 0; i < Ntrees; i++)
       TreeNgals[n][i] = 0;
 
-    snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if(!(fd = fopen(buf, "w")))
     {

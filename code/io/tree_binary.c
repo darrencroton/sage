@@ -32,7 +32,7 @@ void load_tree_table_binary(int32_t filenr)
   char buf[MAX_BUF_SIZE+1];
 
         // open the file each time this function is called
-  snprintf(buf, MAX_BUF_SIZE, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  snprintf(buf, MAX_BUF_SIZE, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr, SageConfig.TreeExtension);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);

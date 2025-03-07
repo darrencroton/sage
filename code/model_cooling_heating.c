@@ -49,7 +49,7 @@ double cooling_recipe(int gal, double dt)
 		// at this point we have calculated the maximal cooling rate
 		// if AGNrecipeOn we now reduce it in line with past heating before proceeding
 
-		if(AGNrecipeOn > 0 && coolingGas > 0.0)
+		if(SageConfig.AGNrecipeOn > 0 && coolingGas > 0.0)
 			coolingGas = do_AGN_heating(coolingGas, gal, dt, x, rcool);
 	
 		if (coolingGas > 0.0)
@@ -81,12 +81,12 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
   if(Gal[centralgal].HotGas > 0.0)
   {
 
-    if(AGNrecipeOn == 2)
+    if(SageConfig.AGNrecipeOn == 2)
     {
       // Bondi-Hoyle accretion recipe
-      AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * RadioModeEfficiency;
+      AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * SageConfig.RadioModeEfficiency;
     }
-    else if(AGNrecipeOn == 3)
+    else if(SageConfig.AGNrecipeOn == 3)
     {
       // Cold cloud accretion: trigger: rBH > 1.0e-4 Rsonic, and accretion rate = 0.01% cooling rate 
       if(Gal[centralgal].BlackHoleMass > 0.0001 * Gal[centralgal].Mvir * pow(rcool/Gal[centralgal].Rvir, 3.0))
@@ -98,16 +98,16 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     {
       // empirical (standard) accretion recipe 
       if(Gal[centralgal].Mvir > 0.0)
-        AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+        AGNrate = SageConfig.RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
           * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0)
             * ((Gal[centralgal].HotGas / Gal[centralgal].Mvir) / 0.1);
       else
-        AGNrate = RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
+        AGNrate = SageConfig.RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
           * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0);
     }
     
     // Eddington rate 
-    EDDrate = (1.3e38 * Gal[centralgal].BlackHoleMass * 1e10 / Hubble_h) / (UnitEnergy_in_cgs / UnitTime_in_s) / (0.1 * 9e10);
+    EDDrate = (1.3e38 * Gal[centralgal].BlackHoleMass * 1e10 / SageConfig.Hubble_h) / (UnitEnergy_in_cgs / UnitTime_in_s) / (0.1 * 9e10);
 
     // accretion onto BH is always limited by the Eddington rate 
     if(AGNrate > EDDrate)

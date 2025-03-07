@@ -40,8 +40,8 @@ void init(void)
     Age[i] = time_to_present(ZZ[i]);
   }
 
-  a0 = 1.0 / (1.0 + Reionization_z0);
-  ar = 1.0 / (1.0 + Reionization_zr);
+  a0 = 1.0 / (1.0 + SageConfig.Reionization_z0);
+  ar = 1.0 / (1.0 + SageConfig.Reionization_zr);
 
   read_cooling_functions();
 
@@ -60,8 +60,8 @@ void set_units(void)
   UnitCoolingRate_in_cgs = UnitPressure_in_cgs / UnitTime_in_s;
   UnitEnergy_in_cgs = UnitMass_in_g * pow(UnitLength_in_cm, 2) / pow(UnitTime_in_s, 2);
 
-  EnergySNcode = EnergySN / UnitEnergy_in_cgs * Hubble_h;
-  EtaSNcode = EtaSN * (UnitMass_in_g / SOLAR_MASS) / Hubble_h;
+  EnergySNcode = SageConfig.EnergySN / UnitEnergy_in_cgs * SageConfig.Hubble_h;
+  EtaSNcode = SageConfig.EtaSN * (UnitMass_in_g / SOLAR_MASS) / SageConfig.Hubble_h;
 
   // convert some physical input parameters to internal units
   Hubble = HUBBLE * UnitTime_in_s;
@@ -78,7 +78,7 @@ void read_snap_list(void)
   FILE *fd;
   char fname[MAX_STRING_LEN+1];
 
-  snprintf(fname, MAX_STRING_LEN, "%s", FileWithSnapList);
+  snprintf(fname, MAX_STRING_LEN, "%s", SageConfig.FileWithSnapList);
 
   if(!(fd = fopen(fname, "r")))
   {
@@ -131,5 +131,5 @@ double time_to_present(double z)
 
 double integrand_time_to_present(double a, void *param)
 {
-  return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
+  return 1 / sqrt(SageConfig.Omega / a + (1 - SageConfig.Omega - SageConfig.OmegaLambda) + SageConfig.OmegaLambda * a * a);
 }

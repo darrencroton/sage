@@ -22,7 +22,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   strdot = 0.0;
 
   // star formation recipes 
-  if(SFprescription == 0)
+  if(SageConfig.SFprescription == 0)
   {
     // we take the typical star forming region as 3.0*r_s using the Milky Way as a guide
     reff = 3.0 * Gal[p].DiskScaleRadius;
@@ -31,7 +31,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
     cold_crit = 0.19 * Gal[p].Vvir * reff;
 		if(Gal[p].ColdGas > cold_crit && tdyn > 0.0)
-			strdot = SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
+			strdot = SageConfig.SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
 		else
 			strdot = 0.0;
   }
@@ -45,8 +45,8 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   if(stars < 0.0)
     stars = 0.0;
 
-  if(SupernovaRecipeOn == 1)
-    reheated_mass = FeedbackReheatingEpsilon * stars;
+  if(SageConfig.SupernovaRecipeOn == 1)
+    reheated_mass = SageConfig.FeedbackReheatingEpsilon * stars;
   else
     reheated_mass = 0.0;
 
@@ -61,12 +61,12 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   }
 
   // determine ejection
-  if(SupernovaRecipeOn == 1)
+  if(SageConfig.SupernovaRecipeOn == 1)
   {
     if(Gal[centralgal].Vvir > 0.0)
 			ejected_mass = 
-				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -
-					FeedbackReheatingEpsilon) * stars;
+				(SageConfig.FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) -
+					SageConfig.FeedbackReheatingEpsilon) * stars;
 		else
 			ejected_mass = 0.0;
 		
@@ -92,19 +92,19 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity);
 
   // check for disk instability
-  if(DiskInstabilityOn)
+  if(SageConfig.DiskInstabilityOn)
     check_disk_instability(p, centralgal, halonr, time, dt, step);
 
   // formation of new metals - instantaneous recycling approximation - only SNII 
   if(Gal[p].ColdGas > 1.0e-8)
   {
-    FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
-    Gal[p].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
-    Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
+    FracZleaveDiskVal = SageConfig.FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
+    Gal[p].MetalsColdGas += SageConfig.Yield * (1.0 - FracZleaveDiskVal) * stars;
+    Gal[centralgal].MetalsHotGas += SageConfig.Yield * FracZleaveDiskVal * stars;
+    // Gal[centralgal].MetalsEjectedMass += SageConfig.Yield * FracZleaveDiskVal * stars;
   }
   else
-    Gal[centralgal].MetalsHotGas += Yield * stars;
+    Gal[centralgal].MetalsHotGas += SageConfig.Yield * stars;
     // Gal[centralgal].MetalsEjectedMass += Yield * stars;
 }
 
@@ -113,10 +113,10 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 void update_from_star_formation(int p, double stars, double metallicity)
 {
   // update gas and metals from star formation 
-  Gal[p].ColdGas -= (1 - RecycleFraction) * stars;
-  Gal[p].MetalsColdGas -= metallicity * (1 - RecycleFraction) * stars;
-  Gal[p].StellarMass += (1 - RecycleFraction) * stars;
-  Gal[p].MetalsStellarMass += metallicity * (1 - RecycleFraction) * stars;
+  Gal[p].ColdGas -= (1 - SageConfig.RecycleFraction) * stars;
+  Gal[p].MetalsColdGas -= metallicity * (1 - SageConfig.RecycleFraction) * stars;
+  Gal[p].StellarMass += (1 - SageConfig.RecycleFraction) * stars;
+  Gal[p].MetalsStellarMass += metallicity * (1 - SageConfig.RecycleFraction) * stars;
 }
 
 
@@ -127,7 +127,7 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
 
 	assert(!(reheated_mass > Gal[p].ColdGas && reheated_mass > 0.0));
 
-  if(SupernovaRecipeOn == 1)
+  if(SageConfig.SupernovaRecipeOn == 1)
   {
     Gal[p].ColdGas -= reheated_mass;
     Gal[p].MetalsColdGas -= metallicity * reheated_mass;

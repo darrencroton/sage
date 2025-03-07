@@ -27,8 +27,6 @@ void save_galaxies(int filenr, int tree)
   struct GALAXY_OUTPUT galaxy_output = galaxy_output_null;
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
-  
-  printf("Debug: save_galaxies called for filenr=%d, tree=%d, NumGals=%d\n", filenr, tree, NumGals);
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
   if(OutputGalOrder == NULL) {
@@ -42,8 +40,6 @@ void save_galaxies(int filenr, int tree)
   for(i = 0; i < NumGals; i++)
     OutputGalOrder[i] = -1;
 
-  printf("Debug: NOUT value is %d, SageConfig.NOUT is %d\n", NOUT, SageConfig.NOUT);
-  
   // first update mergeIntoID to point to the correct galaxy in the output
   for(n = 0; n < SageConfig.NOUT; n++)
     {
@@ -68,7 +64,6 @@ void save_galaxies(int filenr, int tree)
       if( !save_fd[n] )
             {
         snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
-        printf("Debug: Opening output file: %s\n", buf);
 
         save_fd[n] = fopen(buf, "r+");
         if (save_fd[n] == NULL)
@@ -105,10 +100,6 @@ void save_galaxies(int filenr, int tree)
           if (nwritten != 1)
           {
             fprintf(stderr, "Error: Failed to write out the galaxy struct for galaxy %d within file %d.  Meant to write 1 element but only wrote %d elements.\n", i, n, nwritten);
-          }
-          else
-          {
-            printf("Debug: Successfully wrote galaxy %d for snapshot %d\n", i, ListOutputSnaps[n]);
           }
 
           TotGalaxies[n]++;
@@ -251,14 +242,11 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 void finalize_galaxy_file(int filenr)
 {
   int n, nwritten;
-  
-  printf("Debug: finalize_galaxy_file called for filenr=%d\n", filenr);
 
   for(n = 0; n < SageConfig.NOUT; n++)
   {
     // file must already be open.
     assert( save_fd[n] );
-    printf("Debug: Finalizing file for snapshot %d, TotGalaxies=%d\n", n, TotGalaxies[n]);
 
     // seek to the beginning.
     fseek( save_fd[n], 0, SEEK_SET );
@@ -267,10 +255,6 @@ void finalize_galaxy_file(int filenr)
     if (nwritten != 1)
     {
       fprintf(stderr, "Error: Failed to write out 1 element for the number of trees for the header of file %d.  Only wrote %d elements.\n", n, nwritten);
-    }
-    else
-    {
-      printf("Debug: Successfully wrote Ntrees=%d to header\n", Ntrees);
     }
 
     nwritten = myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);

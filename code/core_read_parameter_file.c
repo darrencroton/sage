@@ -3,347 +3,235 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <ctype.h>
+#include <limits.h>
 
 #include "globals.h"
 #include "types.h"
 #include "config.h"
 #include "constants.h"
 #include "core_proto.h"
+#include "parameter_table.h"
 
 void read_parameter_file(char *fname)
 {
   FILE *fd;
-#define MAX_BUF_SIZE_FILE_LIST (3*MAX_STRING_LEN)
-  char buf[MAX_BUF_SIZE_FILE_LIST];
-  char buf1[MAX_STRING_LEN];
-  char buf2[MAX_STRING_LEN], buf3[MAX_STRING_LEN];
-  int i, j, done;
+  char buf[MAX_STRING_LEN * 3];  // Buffer for reading lines
+  char buf1[MAX_STRING_LEN];     // Parameter name
+  char buf2[MAX_STRING_LEN];     // Parameter value
+  char buf3[MAX_STRING_LEN];     // Extra (for comments)
+  int i, done;
   int errorFlag = 0;
-  int *used_tag = 0;
-  char my_treetype[MAX_STRING_LEN];
-  NParam = 0;
+  char my_treetype[MAX_STRING_LEN]; // Special handling for tree type
+  
+  // Get parameter table
+  ParameterDefinition *param_table = get_parameter_table();
+  int num_params = get_parameter_table_size();
+  
+  // Array to track which parameters have been read
+  int *param_read = mymalloc(sizeof(int) * num_params);
+  for (i = 0; i < num_params; i++) {
+    param_read[i] = 0;
+  }
+  
+  // Special handling for TreeType parameter
+  for (i = 0; i < num_params; i++) {
+    if (strcmp(param_table[i].name, "TreeType") == 0) {
+      param_table[i].address = my_treetype;
+      break;
+    }
+  }
 
 #ifdef MPI
   if(ThisTask == 0)
 #endif
-    printf("\nreading parameter file:\n\n");
-
-  strcpy(ParamTag[NParam], "FileNameGalaxies");
-  ParamAddr[NParam] = SageConfig.FileNameGalaxies;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "OutputDir");
-  ParamAddr[NParam] = SageConfig.OutputDir;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "TreeType");
-  ParamAddr[NParam] = my_treetype;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "TreeName");
-  ParamAddr[NParam] = SageConfig.TreeName;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "SimulationDir");
-  ParamAddr[NParam] = SageConfig.SimulationDir;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "FileWithSnapList");
-  ParamAddr[NParam] = SageConfig.FileWithSnapList;
-  ParamID[NParam++] = STRING;
-
-  strcpy(ParamTag[NParam], "LastSnapShotNr");
-  ParamAddr[NParam] = &SageConfig.LastSnapShotNr;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "FirstFile");
-  ParamAddr[NParam] = &SageConfig.FirstFile;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "LastFile");
-  ParamAddr[NParam] = &SageConfig.LastFile;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "ThreshMajorMerger");
-  ParamAddr[NParam] = &SageConfig.ThreshMajorMerger;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "RecycleFraction");
-  ParamAddr[NParam] = &SageConfig.RecycleFraction;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "ReIncorporationFactor");
-  ParamAddr[NParam] = &SageConfig.ReIncorporationFactor;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "UnitVelocity_in_cm_per_s");
-  ParamAddr[NParam] = &UnitVelocity_in_cm_per_s;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "UnitLength_in_cm");
-  ParamAddr[NParam] = &UnitLength_in_cm;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "UnitMass_in_g");
-  ParamAddr[NParam] = &UnitMass_in_g;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "Hubble_h");
-  ParamAddr[NParam] = &SageConfig.Hubble_h;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "ReionizationOn");
-  ParamAddr[NParam] = &SageConfig.ReionizationOn;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "SupernovaRecipeOn");
-  ParamAddr[NParam] = &SageConfig.SupernovaRecipeOn;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "DiskInstabilityOn");
-  ParamAddr[NParam] = &SageConfig.DiskInstabilityOn;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "SFprescription");
-  ParamAddr[NParam] = &SageConfig.SFprescription;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "AGNrecipeOn");
-  ParamAddr[NParam] = &SageConfig.AGNrecipeOn;
-  ParamID[NParam++] = INT;
-
-  strcpy(ParamTag[NParam], "BaryonFrac");
-  ParamAddr[NParam] = &SageConfig.BaryonFrac;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "Omega");
-  ParamAddr[NParam] = &SageConfig.Omega;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "OmegaLambda");
-  ParamAddr[NParam] = &SageConfig.OmegaLambda;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "PartMass");
-  ParamAddr[NParam] = &SageConfig.PartMass;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "EnergySN");
-  ParamAddr[NParam] = &SageConfig.EnergySN;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "EtaSN");
-  ParamAddr[NParam] = &SageConfig.EtaSN;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "Yield");
-  ParamAddr[NParam] = &SageConfig.Yield;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "FracZleaveDisk");
-  ParamAddr[NParam] = &SageConfig.FracZleaveDisk;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "SfrEfficiency");
-  ParamAddr[NParam] = &SageConfig.SfrEfficiency;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "FeedbackReheatingEpsilon");
-  ParamAddr[NParam] = &SageConfig.FeedbackReheatingEpsilon;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "FeedbackEjectionEfficiency");
-  ParamAddr[NParam] = &SageConfig.FeedbackEjectionEfficiency;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "BlackHoleGrowthRate");
-  ParamAddr[NParam] = &SageConfig.BlackHoleGrowthRate;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "RadioModeEfficiency");
-  ParamAddr[NParam] = &SageConfig.RadioModeEfficiency;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "QuasarModeEfficiency");
-  ParamAddr[NParam] = &SageConfig.QuasarModeEfficiency;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "Reionization_z0");
-  ParamAddr[NParam] = &SageConfig.Reionization_z0;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "Reionization_zr");
-  ParamAddr[NParam] = &SageConfig.Reionization_zr;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "ThresholdSatDisruption");
-  ParamAddr[NParam] = &SageConfig.ThresholdSatDisruption;
-  ParamID[NParam++] = DOUBLE;
-
-  strcpy(ParamTag[NParam], "NumOutputs");
-  ParamAddr[NParam] = &SageConfig.NOUT;
-  ParamID[NParam++] = INT;
-
-  used_tag = mymalloc(sizeof(int) * NParam);
-  for(i=0; i<NParam; i++)
-    used_tag[i]=1;
+    printf("\nReading parameter file: %s\n\n", fname);
 
   fd = fopen(fname, "r");
   if (fd == NULL) {
-    printf("Parameter file %s not found.\n", fname);
+    printf("ERROR: Parameter file %s not found.\n", fname);
+    errorFlag = 1;
+    goto error_exit;
+  }
+
+  // Read parameter file
+  while(!feof(fd))
+  {
+    buf[0] = 0;
+    fgets(buf, sizeof(buf), fd);
+    
+    // Skip if line is too short or starts with comment character
+    if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
+      continue;
+      
+    if(buf1[0] == '%' || buf1[0] == '-' || buf1[0] == '#')
+      continue;
+      
+    // Look up parameter in the table
+    int param_found = 0;
+    for (i = 0; i < num_params; i++) {
+      if (strcmp(buf1, param_table[i].name) == 0) {
+        param_found = 1;
+        param_read[i] = 1;
+        
+        // Print parameter value being read
+#ifdef MPI
+        if(ThisTask == 0)
+#endif
+          printf("%-35s = %-20s\n", buf1, buf2);
+        
+        // Store parameter value based on type
+        switch (param_table[i].type) {
+          case DOUBLE: {
+            double val = atof(buf2);
+            // Validate value
+            if (!is_parameter_valid(&param_table[i], &val)) {
+              printf("ERROR: Parameter %s value %g is outside valid range [%g, %g]\n", 
+                     param_table[i].name, val, 
+                     param_table[i].min_value, 
+                     param_table[i].max_value > 0 ? param_table[i].max_value : HUGE_VAL);
+              errorFlag = 1;
+            }
+            *((double *) param_table[i].address) = val;
+            break;
+          }
+          case STRING:
+            strcpy((char *) param_table[i].address, buf2);
+            break;
+          case INT: {
+            int val = atoi(buf2);
+            // Validate value
+            if (!is_parameter_valid(&param_table[i], &val)) {
+              printf("ERROR: Parameter %s value %d is outside valid range [%g, %g]\n", 
+                     param_table[i].name, val, 
+                     param_table[i].min_value, 
+                     param_table[i].max_value > 0 ? param_table[i].max_value : INT_MAX);
+              errorFlag = 1;
+            }
+            *((int *) param_table[i].address) = val;
+            break;
+          }
+          default:
+            printf("ERROR: Unknown parameter type for %s\n", param_table[i].name);
+            errorFlag = 1;
+        }
+        break;
+      }
+    }
+    
+    if (!param_found) {
+      printf("ERROR: Parameter '%s' in file %s is not recognized.\n", buf1, fname);
+      errorFlag = 1;
+    }
+  }
+  
+  fclose(fd);
+  
+  // Check for missing required parameters
+  for (i = 0; i < num_params; i++) {
+    if (param_read[i] == 0 && param_table[i].required) {
+      printf("ERROR: Required parameter '%s' (%s) missing in parameter file '%s'.\n", 
+             param_table[i].name, 
+             param_table[i].description,
+             fname);
+      errorFlag = 1;
+    }
+  }
+  
+  // Add trailing slash to OutputDir if needed
+  i = strlen(SageConfig.OutputDir);
+  if (i > 0 && SageConfig.OutputDir[i - 1] != '/')
+    strcat(SageConfig.OutputDir, "/");
+  
+  // Special handling for MAXSNAPS
+  if (!(SageConfig.LastSnapShotNr+1 > 0 && SageConfig.LastSnapShotNr+1 < ABSOLUTEMAXSNAPS)) {
+    fprintf(stderr, "ERROR: LastSnapshotNr = %d should be in [0, %d)\n", 
+            SageConfig.LastSnapShotNr, ABSOLUTEMAXSNAPS);
     errorFlag = 1;
   }
-
-  if(fd != NULL)
-  {
-    while(!feof(fd))
-      {
-        *buf = 0;
-        fgets(buf, MAX_BUF_SIZE_FILE_LIST, fd);
-        if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
-          continue;
-
-        if(buf1[0] == '%' || buf1[0] == '-')
-          continue;
-
-        for(i = 0, j = -1; i < NParam; i++)
-          if(strcmp(buf1, ParamTag[i]) == 0)
-            {
-              j = i;
-              ParamTag[i][0] = 0;
-              used_tag[i] = 0;
-              break;
-            }
-
-        if(j >= 0)
-          {
-#ifdef MPI
-            if(ThisTask == 0)
-#endif
-              printf("%35s\t%10s\n", buf1, buf2);
-
-            switch (ParamID[j])
-              {
-              case DOUBLE:
-                *((double *) ParamAddr[j]) = atof(buf2);
-                break;
-              case STRING:
-                strcpy(ParamAddr[j], buf2);
-                break;
-              case INT:
-                *((int *) ParamAddr[j]) = atoi(buf2);
-                break;
-              }
-          }
-        else
-        {
-          printf("Error in file %s:   Tag '%s' not allowed or multiply defined.\n", fname, buf1);
-          errorFlag = 1;
-        }
-      }
-    fclose(fd);
-
-    i = strlen(SageConfig.OutputDir);
-    if(i > 0)
-      if(SageConfig.OutputDir[i - 1] != '/')
-        strcat(SageConfig.OutputDir, "/");
-  }
-
-  for(i = 0; i < NParam; i++)
-    {
-      if(used_tag[i])
-        {
-          printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", ParamTag[i], fname);
-          errorFlag = 1;
-        }
-    }
-
-  if(errorFlag) {
-    ABORT(1);
-  }
-  printf("\n");
-
-  if( ! (SageConfig.LastSnapShotNr+1 > 0 && SageConfig.LastSnapShotNr+1 < ABSOLUTEMAXSNAPS) ) {
-    fprintf(stderr,"LastSnapshotNr = %d should be in [0, %d) \n", SageConfig.LastSnapShotNr, ABSOLUTEMAXSNAPS);
-    ABORT(1);
-  }
   MAXSNAPS = SageConfig.LastSnapShotNr + 1;
-
-  if(!(SageConfig.NOUT == -1 || (SageConfig.NOUT > 0 && SageConfig.NOUT <= ABSOLUTEMAXSNAPS))) {
-    fprintf(stderr,"NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
-    ABORT(1);
+  
+  // Special handling for NumOutputs parameter
+  if (!(SageConfig.NOUT == -1 || (SageConfig.NOUT > 0 && SageConfig.NOUT <= ABSOLUTEMAXSNAPS))) {
+    fprintf(stderr, "ERROR: NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
+    errorFlag = 1;
   }
-
-  // read in the output snapshot list
-  if(SageConfig.NOUT == -1)
-    {
+  
+  // Handle output snapshot list
+  if (!errorFlag) {
+    if (SageConfig.NOUT == -1) {
       SageConfig.NOUT = MAXSNAPS;
-      for (i=SageConfig.NOUT-1; i>=0; i--)
+      for (i = SageConfig.NOUT - 1; i >= 0; i--)
         ListOutputSnaps[i] = i;
-      printf("all %i snapshots selected for output\n", SageConfig.NOUT);
-    }
-  else
-    {
+      printf("All %i snapshots selected for output\n", SageConfig.NOUT);
+    } else {
       printf("%i snapshots selected for output: ", SageConfig.NOUT);
       // reopen the parameter file
       fd = fopen(fname, "r");
-
+      
       done = 0;
-      while(!feof(fd) && !done)
-        {
-          // scan down to find the line with the snapshots
-          fscanf(fd, "%s", buf);
-          if(strcmp(buf, "->") == 0)
-            {
-              // read the snapshots into ListOutputSnaps
-              for (i=0; i<SageConfig.NOUT; i++)
-                {
-                  fscanf(fd, "%d", &ListOutputSnaps[i]);
-                  printf("%i ", ListOutputSnaps[i]);
-                }
-              done = 1;
+      while (!feof(fd) && !done) {
+        // scan down to find the line with the snapshots
+        fscanf(fd, "%s", buf1);
+        if (strcmp(buf1, "->") == 0) {
+          // read the snapshots into ListOutputSnaps
+          for (i = 0; i < SageConfig.NOUT; i++) {
+            if (fscanf(fd, "%d", &ListOutputSnaps[i]) != 1) {
+              printf("\nERROR: Could not read output snapshot list. Expected %d values after '->' but couldn't read value %d.\n",
+                    SageConfig.NOUT, i+1);
+              errorFlag = 1;
+              break;
             }
+            printf("%i ", ListOutputSnaps[i]);
+          }
+          done = 1;
         }
-
+      }
+      
       fclose(fd);
-      if(! done ) {
-        fprintf(stderr,"Error: Could not properly parse output snapshots\n");
-        ABORT(2);
+      if (!done && !errorFlag) {
+        fprintf(stderr, "ERROR: Could not find output snapshot list (expected line starting with '->') in parameter file\n");
+        errorFlag = 1;
       }
       printf("\n");
     }
-    
+  }
+  
   // Sync the global variable with the config structure
   NOUT = SageConfig.NOUT;
-  printf("Debug: core_read_parameter_file.c - Set NOUT=%d from SageConfig.NOUT=%d\n", NOUT, SageConfig.NOUT);
-
-  // Check file type is valid.
-  if (strncmp(my_treetype, "lhalo_binary", 511) != 0) // strncmp returns 0 if the two strings are equal. Only available options are HDF5 or binary files.
-  {
-    snprintf(SageConfig.TreeExtension, 511, ".hdf5");
+  
+  // Handle TreeType
+  if (!errorFlag) {
+    // Check file type is valid.
+    if (strcasecmp(my_treetype, "lhalo_binary") != 0) {
+      snprintf(SageConfig.TreeExtension, 511, ".hdf5");
 #ifndef HDF5
-    fprintf(stderr, "You have specified to use a HDF5 file but have no compiled with the HDF5 option enabled.\n");
-    fprintf(stderr, "Please check your file type and compiler options.\n");
-    ABORT(0);
+      fprintf(stderr, "ERROR: You have specified to use a HDF5 file but have not compiled with the HDF5 option enabled.\n");
+      fprintf(stderr, "Please check your file type and compiler options.\n");
+      errorFlag = 1;
 #endif
+    }
+    
+    // Recast the local treetype string to a global TreeType enum.
+    if (strcasecmp(my_treetype, "genesis_lhalo_hdf5") == 0) {
+      SageConfig.TreeType = genesis_lhalo_hdf5;
+    } else if (strcasecmp(my_treetype, "lhalo_binary") == 0) {
+      SageConfig.TreeType = lhalo_binary;
+    } else {
+      fprintf(stderr, "ERROR: TreeType %s is not supported. Valid options are 'genesis_lhalo_hdf5' or 'lhalo_binary'.\n", 
+              my_treetype);
+      errorFlag = 1;
+    }
   }
 
-  // Recast the local treetype string to a global TreeType enum.
-
-  if (strcasecmp(my_treetype, "genesis_lhalo_hdf5") == 0)
-  {
-    SageConfig.TreeType = genesis_lhalo_hdf5;
+error_exit:
+  // Free memory and exit if errors
+  myfree(param_read);
+  
+  if (errorFlag) {
+    ABORT(1);
   }
-  else if (strcasecmp(my_treetype, "lhalo_binary") == 0)
-  {
-    SageConfig.TreeType = lhalo_binary;
-  }
-  else
-  {
-    fprintf(stderr, "TreeType %s is not supported\n", my_treetype);
-    ABORT(0);
-  }
-
-  myfree(used_tag);
-
+  
+  // Print success message
+  printf("\nParameter file read successfully.\n\n");
 }

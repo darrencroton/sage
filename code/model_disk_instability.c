@@ -1,3 +1,22 @@
+/**
+ * @file    model_disk_instability.c
+ * @brief   Implementation of disk instability detection and response
+ *
+ * This file implements the model for disk instability in galaxies, which occurs
+ * when the self-gravity of a galactic disk dominates over the gravitational
+ * support from the dark matter halo. When instability is detected, mass is
+ * transferred from the disk to the bulge to restore stability.
+ *
+ * The stability criterion follows Mo, Mao & White (1998), comparing the disk
+ * mass to a critical mass dependent on the maximum circular velocity and disk
+ * scale radius. When the disk mass exceeds this critical value, the excess
+ * mass (both stars and gas) is transferred to the bulge, with the gas
+ * component triggering a starburst and potential black hole growth.
+ *
+ * Reference:
+ * - Mo, Mao & White (1998) for disk stability criterion
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,65 +28,106 @@
 
 
 
+/**
+ * @brief   Checks for disk instability and transfers mass to restore stability
+ *
+ * @param   p             Index of the galaxy in the Gal array
+ * @param   centralgal    Index of the central galaxy
+ * @param   halonr        Index of the current halo
+ * @param   time          Current time in the simulation
+ * @param   dt            Time step size
+ * @param   step          Current substep in the time integration
+ *
+ * This function evaluates the stability of galactic disks using the criterion
+ * from Mo, Mao & White (1998). If a disk is found to be unstable, the excess
+ * mass is transferred to the bulge component:
+ * 
+ * 1. Stellar disk mass goes directly to the stellar bulge
+ * 2. Cold gas triggers a starburst (forming stars that go to the bulge)
+ * 3. If AGN is enabled, some gas can fuel black hole growth
+ *
+ * The stability criterion compares the disk mass to a critical mass:
+ * Mcrit = Vmax^2 * (3 * DiskScaleRadius) / G
+ * 
+ * The function maintains appropriate tracking of metals during all transfers.
+ */
 void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step)
 {
   double Mcrit, gas_fraction, unstable_gas, unstable_gas_fraction, unstable_stars, diskmass, metallicity;
   double star_fraction;
 
-  // Here we calculate the stability of the stellar and gaseous disk as discussed in Mo, Mao & White (1998).
-  // For unstable stars and gas, we transfer the required ammount to the bulge to make the disk stable again
+  /* Calculate the stability of the stellar and gaseous disk following Mo, Mao & White (1998).
+   * For unstable stars and gas, we transfer the required amount to the bulge to restore stability */
 
-  // Disk mass has to be > 0.0
+  /* Calculate total disk mass (cold gas + stellar disk) */
   diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].BulgeMass);
+  
+  /* Only proceed if disk mass is positive */
   if(diskmass > 0.0)
   {
-    // calculate critical disk mass
+    /* Calculate critical disk mass for stability:
+     * Mcrit = Vmax^2 * (3 * DiskScaleRadius) / G
+     * This is derived from requiring that the disk's self-gravity doesn't dominate */
     Mcrit = Gal[p].Vmax * Gal[p].Vmax * (3.0 * Gal[p].DiskScaleRadius) / G;
+    
+    /* Limit critical mass to actual disk mass (can't have negative unstable mass) */
     if(Mcrit > diskmass)
       Mcrit = diskmass;
     
-    // use disk mass here
+    /* Calculate the fractions of gas and stars in the disk */
     gas_fraction   = Gal[p].ColdGas / diskmass;
-    unstable_gas   = gas_fraction * (diskmass - Mcrit);
     star_fraction  = 1.0 - gas_fraction;
+    
+    /* Calculate unstable gas and stellar masses that need to be transferred */
+    unstable_gas   = gas_fraction * (diskmass - Mcrit);
     unstable_stars = star_fraction * (diskmass - Mcrit);
 
-    // add excess stars to the bulge
+    /* Handle unstable stars - transfer directly to the bulge */
     if(unstable_stars > 0.0)
     {
-      // Use disk metallicity here
-      metallicity = get_metallicity(Gal[p].StellarMass - Gal[p].BulgeMass, Gal[p].MetalsStellarMass - Gal[p].MetalsBulgeMass);
+      /* Calculate disk stellar metallicity (excluding existing bulge) */
+      metallicity = get_metallicity(Gal[p].StellarMass - Gal[p].BulgeMass, 
+                                    Gal[p].MetalsStellarMass - Gal[p].MetalsBulgeMass);
 
+      /* Add unstable stars to the bulge, preserving metallicity */
       Gal[p].BulgeMass += unstable_stars;
       Gal[p].MetalsBulgeMass += metallicity * unstable_stars;
       
-      // Need to fix this. Excluded for now.
+      /* Merge tracking code commented out in original
+       * Need to fix this. Excluded for now. */
       // Gal[p].mergeType = 3;  // mark as disk instability partial mass transfer
       // Gal[p].mergeIntoID = NumGals + p - 1;      
       
-      if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
-	    {
+      /* Sanity check to ensure bulge mass doesn't exceed total stellar mass */
+      if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || 
+          Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
+      {
         printf("Instability: Mbulge > Mtot (stars or metals)\n");
-        // ABORT(0);
+        // ABORT(0);  /* Error checking disabled in original */
       }
     }
 
-    // burst excess gas and feed black hole (really need a dedicated model for bursts and BH growth here)
+    /* Handle unstable gas - trigger starburst and black hole growth */
     if(unstable_gas > 0.0)
     {
+      /* Sanity check to ensure unstable gas doesn't exceed available cold gas */
       if(unstable_gas/Gal[p].ColdGas > 1.0001)
       {
         printf("unstable_gas > Gal[p].ColdGas\t%e\t%e\n", unstable_gas, Gal[p].ColdGas);
-        // ABORT(0);
+        // ABORT(0);  /* Error checking disabled in original */
       }
 
+      /* Calculate fraction of cold gas that is unstable */
       unstable_gas_fraction = unstable_gas / Gal[p].ColdGas;
+      
+      /* Feed black hole if AGN recipe is enabled */
       if(SageConfig.AGNrecipeOn > 0)
         grow_black_hole(p, unstable_gas_fraction);
     
-      collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, time, dt, halonr, 1, step);
+      /* Trigger a starburst with the unstable gas
+       * Mode 1 indicates the burst is due to disk instability */
+      collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, 
+                                  time, dt, halonr, 1, step);
     }
-
   }
-
 }

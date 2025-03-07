@@ -255,39 +255,65 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
   return ngal;
 }
 
-// Set the central galaxy for all galaxies in this halo
+/**
+ * @brief   Sets the central galaxy reference for all galaxies in a halo
+ *
+ * @param   ngalstart    Starting index of galaxies for this halo
+ * @param   ngal         Ending index (exclusive) of galaxies for this halo
+ *
+ * This function identifies the central galaxy (Type 0 or 1) for a halo
+ * and sets all galaxies in the halo to reference this central galaxy.
+ * Each halo can have only one Type 0 or Type 1 galaxy, with all others
+ * being Type 2 (orphan) galaxies.
+ */
 void set_galaxy_centrals(int ngalstart, int ngal)
 {
   int i, centralgal;
 
-  // Per Halo there can be only one Type 0 or 1 galaxy, all others are Type 2 (orphan)
-  // Find the central galaxy for this halo
+  /* Per Halo there can be only one Type 0 or 1 galaxy, all others are Type 2 (orphan)
+   * Find the central galaxy for this halo */
   for(i = ngalstart, centralgal = -1; i < ngal; i++)
   {
     if(Gal[i].Type == 0 || Gal[i].Type == 1)
     {
-      assert(centralgal == -1);
+      assert(centralgal == -1);  /* Ensure only one central galaxy per halo */
       centralgal = i;
     }
   }
 
-  // Set all galaxies to point to the central galaxy
+  /* Set all galaxies to point to the central galaxy */
   for(i = ngalstart; i < ngal; i++)
     Gal[i].CentralGal = centralgal;
 }
 
-// Main function to join galaxies from progenitors
+/**
+ * @brief   Main function to join galaxies from progenitor halos
+ *
+ * @param   halonr       Index of the current halo in the Halo array
+ * @param   ngalstart    Starting index for galaxies in the Gal array
+ * @return  Updated number of galaxies after joining
+ *
+ * This function coordinates the process of integrating galaxies from
+ * progenitor halos into the current halo. It performs three main steps:
+ * 
+ * 1. Identifies the most massive progenitor with galaxies
+ * 2. Copies and updates galaxies from all progenitors
+ * 3. Establishes relationships between galaxies (central/satellite)
+ * 
+ * The function ensures proper inheritance of galaxy properties while
+ * maintaining the hierarchy of central and satellite galaxies.
+ */
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
   int ngal, first_occupied;
 
-  // Find the most massive progenitor with galaxies
+  /* Find the most massive progenitor with galaxies */
   first_occupied = find_most_massive_progenitor(halonr);
   
-  // Copy galaxies from progenitors to the current snapshot
+  /* Copy galaxies from progenitors to the current snapshot */
   ngal = copy_galaxies_from_progenitors(halonr, ngalstart, first_occupied);
   
-  // Set up central galaxy relationships
+  /* Set up central galaxy relationships */
   set_galaxy_centrals(ngalstart, ngal);
 
   return ngal;
@@ -295,152 +321,223 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 
 
 
-// Apply physical processes to all galaxies for a single timestep
+/**
+ * @brief   Applies physical processes to all galaxies for a single timestep
+ *
+ * @param   ngal          Total number of galaxies in this halo
+ * @param   centralgal    Index of the central galaxy
+ * @param   halonr        Index of the current halo
+ * @param   infallingGas  Amount of infalling gas for this timestep
+ * @param   step          Current substep in the time integration
+ *
+ * This function implements the core physical processes that drive galaxy
+ * evolution during a single timestep. For each galaxy, it:
+ * 
+ * 1. Calculates the appropriate time step
+ * 2. For central galaxies:
+ *    - Adds gas from cosmological infall
+ *    - Reincorporates previously ejected gas (if enabled)
+ * 3. For satellites with subhalos:
+ *    - Strips hot gas through environmental effects
+ * 4. For all galaxies:
+ *    - Calculates gas cooling
+ *    - Applies star formation and feedback
+ * 
+ * The implementation follows the standard semi-analytic prescription where
+ * physical processes occur in a specific order during each timestep.
+ */
 void apply_physical_processes(int ngal, int centralgal, int halonr, double infallingGas, int step)
 {
   int p;
   double coolingGas, deltaT, time;
 
-  // Loop over all galaxies in the halo 
+  /* Loop over all galaxies in the halo */
   for(p = 0; p < ngal; p++)
   {
-    // Don't treat galaxies that have already merged 
+    /* Skip galaxies that have already merged */
     if(Gal[p].mergeType > 0)
       continue;
     
-    // Calculate deltaT and time specific to this galaxy
+    /* Calculate deltaT (time interval) and time (current cosmic time) for this galaxy */
     deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
     time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
       
+    /* Set time step for galaxies that don't have it yet */
     if(Gal[p].dT < 0.0)
       Gal[p].dT = deltaT;
 
-    // For the central galaxy only 
+    /* Special processes for the central galaxy */
     if(p == centralgal)
     {
-      // Add infall for this step
+      /* Add cosmological gas infall for this step */
       add_infall_to_hot(centralgal, infallingGas / STEPS);
 
+      /* Reincorporate previously ejected gas if enabled */
       if(SageConfig.ReIncorporationFactor > 0.0)
         reincorporate_gas(centralgal, deltaT / STEPS);
     }
     else 
+      /* For satellite galaxies with subhalos and hot gas, apply environmental stripping */
       if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
         strip_from_satellite(halonr, centralgal, p);
 
-    // Determine the cooling gas given the halo properties 
+    /* Calculate cooling gas based on halo properties */
     coolingGas = cooling_recipe(p, deltaT / STEPS);
     cool_gas_onto_galaxy(p, coolingGas);
 
-    // stars form and then explode! 
+    /* Apply star formation and feedback processes */
     starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
   }
 }
 
-// Handle merger and disruption events for satellite galaxies
+/**
+ * @brief   Handles merger and disruption events for satellite galaxies
+ *
+ * @param   ngal          Total number of galaxies in this halo
+ * @param   centralgal    Index of the central galaxy
+ * @param   halonr        Index of the current halo
+ * @param   step          Current substep in the time integration
+ *
+ * This function processes potential merger and disruption events for satellite
+ * galaxies. For each satellite galaxy, it:
+ * 
+ * 1. Updates the remaining time until merging
+ * 2. Checks if the satellite meets the criteria for disruption or merging:
+ *    - Satellites with no baryonic mass
+ *    - Satellites with low dark matter to baryonic mass ratios
+ * 3. Handles galaxy disruption (stars added to intracluster stars)
+ * 4. Processes galaxy mergers with the appropriate central galaxy
+ * 
+ * The function implements the dynamical friction timescale approach to galaxy
+ * mergers and includes environmental effects that can lead to satellite disruption.
+ */
 void handle_mergers(int ngal, int centralgal, int halonr, int step)
 {
   int p, merger_centralgal;
   double time, galaxyBaryons, currentMvir, deltaT;
 
-  // Check for satellite disruption and merger events 
+  /* Check for satellite disruption and merger events */
   for(p = 0; p < ngal; p++)
   {
-    if((Gal[p].Type == 1 || Gal[p].Type == 2) && Gal[p].mergeType == 0)  // satellite galaxy!
+    /* Only process satellite galaxies that haven't already been marked for merging */
+    if((Gal[p].Type == 1 || Gal[p].Type == 2) && Gal[p].mergeType == 0)
     {
+      /* All satellites should have a valid merger time */
       assert(Gal[p].MergTime < 999.0);
 
-      // Calculate deltaT specific to this galaxy exactly as in original code
+      /* Update remaining time until merging */
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       Gal[p].MergTime -= deltaT / STEPS;
       
-      // Only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
-      // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
+      /* Calculate current halo mass accounting for linear mass loss during the step */
       currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
       galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
       
+      /* Check if satellite meets disruption/merger criteria:
+       * 1. Has no baryonic mass (will never grow)
+       * 2. Has a dark matter to baryonic mass ratio below threshold */
       if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= SageConfig.ThresholdSatDisruption)))        
       {
+        /* Determine which galaxy this satellite will merge into */
         if(Gal[p].Type==1) 
-          merger_centralgal = centralgal;
+          merger_centralgal = centralgal;  /* Type 1 satellites merge with halo central */
         else
-          merger_centralgal = Gal[p].CentralGal;
+          merger_centralgal = Gal[p].CentralGal;  /* Type 2 orphans merge with their designated central */
 
+        /* If target has also merged, redirect to its merger target */
         if(Gal[merger_centralgal].mergeType > 0) 
           merger_centralgal = Gal[merger_centralgal].CentralGal;
 
-        Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
-
-        if(Gal[p].MergTime > 0.0)  // disruption has occurred!
+        /* Set the ID that this galaxy will merge into (in the output array) */
+        Gal[p].mergeIntoID = NumGals + merger_centralgal;
+        
+        /* Handle satellite disruption if merger time hasn't expired */
+        if(Gal[p].MergTime > 0.0)
         {
           disrupt_satellite_to_ICS(merger_centralgal, p);
         }
-        else
+        else if(Gal[p].MergTime <= 0.0)  /* Handle galaxy merger */
         {
-          if(Gal[p].MergTime <= 0.0)  // a merger has occurred! 
-          {
-            // Calculate time exactly as in original code
-            time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
-            deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
-          }
-        } 
+          /* Calculate the cosmic time for this merger event */
+          time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
+          deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
+        }
       }
     }
   }
 }
 
-// Update final galaxy properties and attach to halos
+/**
+ * @brief   Updates final galaxy properties and attaches galaxies to halos
+ *
+ * @param   ngal          Total number of galaxies in this halo
+ * @param   centralgal    Index of the central galaxy
+ * @param   deltaT        Time interval for the entire timestep
+ *
+ * This function finalizes galaxy properties after all physical processes and
+ * merger events have been applied. It:
+ * 
+ * 1. Converts accumulated values to rates (e.g., cooling, heating, outflow)
+ * 2. Calculates the total baryon mass in satellite galaxies
+ * 3. Updates merger information for galaxies that have merged
+ * 4. Copies surviving galaxies to the permanent galaxy array (HaloGal)
+ * 
+ * This function is called at the end of the time integration to prepare
+ * galaxies for output and further processing in subsequent snapshots.
+ */
 void update_galaxy_properties(int ngal, int centralgal, double deltaT)
 {
   int p, i, currenthalo, offset;
   
-  // Reset total satellite baryons
+  /* Reset total satellite baryons counter for the central galaxy */
   Gal[centralgal].TotalSatelliteBaryons = 0.0;
   
-  // Calculate rates and update satellite baryons
+  /* Calculate rates and update satellite baryons */
   for(p = 0; p < ngal; p++)
   {
-    // Don't bother with galaxies that have already merged 
+    /* Skip galaxies that have already merged */
     if(Gal[p].mergeType > 0)
       continue;
     
-    // Convert accumulated values to rates
+    /* Convert accumulated values to rates by dividing by the time interval */
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
     Gal[p].OutflowRate /= deltaT;    
     
-    // Add up total satellite baryons for central galaxy
+    /* For satellite galaxies, add their baryon mass to the central's counter */
     if(p != centralgal)
       Gal[centralgal].TotalSatelliteBaryons += 
         (Gal[p].StellarMass + Gal[p].BlackHoleMass + Gal[p].ColdGas + Gal[p].HotGas);
   }
 
-  // Attach final galaxy list to halo 
+  /* Attach final galaxy list to halos */
   offset = 0;
   for(p = 0, currenthalo = -1; p < ngal; p++)
   {
+    /* When processing a new halo, update its galaxy pointers */
     if(Gal[p].HaloNr != currenthalo)
     {
       currenthalo = Gal[p].HaloNr;
-      HaloAux[currenthalo].FirstGalaxy = NumGals;
-      HaloAux[currenthalo].NGalaxies = 0;
+      HaloAux[currenthalo].FirstGalaxy = NumGals;  /* Index of first galaxy in this halo */
+      HaloAux[currenthalo].NGalaxies = 0;  /* Reset galaxy counter */
     }
 
-    // Merged galaxies won't be output. So go back through its history and find it
-    // in the previous timestep. Then copy the current merger info there.
+    /* Calculate offset for merger target IDs due to galaxies that won't be output */
     offset = 0;
     i = p-1;
     while(i >= 0)
     {
       if(Gal[i].mergeType > 0) 
         if(Gal[p].mergeIntoID > Gal[i].mergeIntoID)
-          offset++;  // these galaxies won't be kept so offset mergeIntoID below
+          offset++;  /* These galaxies won't be kept, so offset mergeIntoID */
       i--;
     }
     
+    /* Handle merged galaxies - update their merger info in the previous snapshot */
     i = -1;
     if(Gal[p].mergeType > 0)
     {
+      /* Find this galaxy in the previous snapshot's array */
       i = HaloAux[currenthalo].FirstGalaxy - 1;
       while(i >= 0)
       {
@@ -450,48 +547,71 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT)
           i--;
       }
       
-      assert(i >= 0);
+      assert(i >= 0);  /* Galaxy should always be found */
       
+      /* Update merger information in the previous snapshot's entry */
       HaloGal[i].mergeType = Gal[p].mergeType;
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
       HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
     
+    /* Copy non-merged galaxies to the permanent array */
     if(Gal[p].mergeType == 0)
     {
-      assert(NumGals < MaxGals);
+      assert(NumGals < MaxGals);  /* Ensure we don't exceed array bounds */
 
-      Gal[p].SnapNum = Halo[currenthalo].SnapNum;
-      HaloGal[NumGals++] = Gal[p];
-      HaloAux[currenthalo].NGalaxies++;
+      Gal[p].SnapNum = Halo[currenthalo].SnapNum;  /* Update snapshot number */
+      HaloGal[NumGals++] = Gal[p];  /* Copy to permanent array and increment counter */
+      HaloAux[currenthalo].NGalaxies++;  /* Increment galaxy count for this halo */
     }
   }
 }
 
-void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the FOF-background subhalo (i.e. main halo) 
+/**
+ * @brief   Main function to evolve galaxies through time
+ *
+ * @param   halonr    Index of the FOF-background subhalo (main halo)
+ * @param   ngal      Total number of galaxies to evolve
+ * @param   tree      Index of the current merger tree
+ *
+ * This function implements the time integration of galaxy properties between
+ * two consecutive snapshots. It:
+ * 
+ * 1. Calculates the total infalling gas for the central galaxy
+ * 2. Integrates forward in time using a series of substeps (STEPS)
+ * 3. For each substep:
+ *    a. Applies physical processes (infall, cooling, star formation)
+ *    b. Handles merger and disruption events
+ * 4. Updates final galaxy properties and attaches them to halos
+ * 
+ * This is the core evolution function that coordinates all the physical
+ * processes in the semi-analytic model.
+ */
+void evolve_galaxies(int halonr, int ngal, int tree)	/* Note: halonr is here the FOF-background subhalo (i.e. main halo) */
 {
   int step;
   double deltaT;
   int centralgal;
   double infallingGas;
 
+  /* Identify the central galaxy for this halo */
   centralgal = Gal[0].CentralGal;
   assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
 
-  // Calculate infall once, outside the time step loop - exactly as in the original code
+  /* Calculate infalling gas once, outside the time step loop */
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum]);
 
-  // We integrate things forward by using a number of intervals equal to STEPS 
+  /* Integrate forward in time using STEPS intervals */
   for(step = 0; step < STEPS; step++)
   {
-    // Apply physical processes (infall, cooling, star formation)
+    /* Apply physical processes (infall, cooling, star formation) */
     apply_physical_processes(ngal, centralgal, halonr, infallingGas, step);
     
-    // Handle mergers and disruption events (deltaT calculated per galaxy inside this function)
+    /* Handle mergers and disruption events */
     handle_mergers(ngal, centralgal, halonr, step);
   }
 
-  // Update final galaxy properties and attach to halos
+  /* Update final galaxy properties and attach them to halos */
   deltaT = Age[Gal[0].SnapNum] - Age[Halo[halonr].SnapNum];
   update_galaxy_properties(ngal, centralgal, deltaT);
 }

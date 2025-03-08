@@ -38,11 +38,11 @@
 #include "io/io_save_hdf5.h"
 
 #define MAX_BUFZ0_SIZE (3*MAX_STRING_LEN+25)
-char bufz0[MAX_BUFZ0_SIZE+1]; /* 3 strings + max 19 bytes for a number */
-int exitfail = 1;  /* Flag indicating whether program exit was due to failure */
+static char bufz0[MAX_BUFZ0_SIZE+1]; /* 3 strings + max 19 bytes for a number */
+static int exitfail = 1;  /* Flag indicating whether program exit was due to failure */
 
-struct sigaction saveaction_XCPU;  /* Saved signal action for SIGXCPU */
-volatile sig_atomic_t gotXCPU = 0; /* Flag indicating whether SIGXCPU was received */
+static struct sigaction saveaction_XCPU;  /* Saved signal action for SIGXCPU */
+static volatile sig_atomic_t gotXCPU = 0; /* Flag indicating whether SIGXCPU was received */
 
 
 /**

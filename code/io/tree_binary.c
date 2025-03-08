@@ -16,7 +16,7 @@
 
 // Local Variables //
 
-FILE *load_fd;
+static FILE *load_fd;
 
 // Local Proto-Types //
 

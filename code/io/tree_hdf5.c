@@ -1,3 +1,26 @@
+/**
+ * @file    io/tree_hdf5.c
+ * @brief   Functions for reading HDF5 format merger tree files
+ *
+ * This file implements functionality for loading merger trees from
+ * HDF5 format files. It handles the reading of tree metadata and
+ * halo data for individual trees, providing an interface to the core
+ * SAGE code that is independent of the specific file format.
+ *
+ * HDF5 format trees are a newer, more flexible format compared to
+ * the traditional binary format. The HDF5 format allows for:
+ * - Self-describing data with attributes and metadata
+ * - Better portability across different systems
+ * - Easier extensibility for future enhancements
+ *
+ * Key functions:
+ * - load_tree_table_hdf5(): Reads tree metadata from an HDF5 file
+ * - load_tree_hdf5(): Loads a specific tree's halo data
+ * - close_hdf5_file(): Closes the HDF5 file
+ * - read_attribute_int(): Helper for reading integer attributes
+ * - read_dataset(): Helper for reading datasets of various types
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +57,24 @@ int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, v
 
 // External Functions //
 
+/**
+ * @brief   Loads merger tree metadata from an HDF5 file
+ *
+ * @param   filenr    File number to load
+ *
+ * This function opens and reads the metadata from an HDF5 merger tree file.
+ * It extracts:
+ * 1. The number of trees in the file
+ * 2. The total number of halos across all trees
+ * 3. The number of halos in each individual tree
+ * 
+ * It allocates memory for tree metadata arrays and calculates the 
+ * starting index of each tree in the file. This information is used
+ * later when loading individual trees.
+ * 
+ * The function supports different HDF5 schemas through the fill_metadata_names
+ * helper function, which determines the attribute names based on the tree type.
+ */
 void load_tree_table_hdf5(int filenr)
 {
 
@@ -130,6 +171,25 @@ void load_tree_table_hdf5(int filenr)
 } \
 
 
+/**
+ * @brief   Loads a specific merger tree from an HDF5 file
+ *
+ * @param   filenr    File number containing the tree
+ * @param   treenr    Index of the tree to load
+ *
+ * This function reads the halo data for a specific merger tree from
+ * an already-opened HDF5 file. It:
+ * 1. Allocates memory for the halos in this tree
+ * 2. Allocates buffers for reading HDF5 datasets
+ * 3. Reads and processes each halo property
+ * 
+ * The function uses macros to simplify the repetitive task of reading
+ * various properties from the HDF5 file. It handles both scalar properties
+ * and multi-dimensional properties (like positions and velocities).
+ * 
+ * The halos are stored in the global Halo array for processing by the
+ * SAGE model.
+ */
 void load_tree_hdf5(int32_t filenr, int32_t treenr)
 {
 
@@ -222,6 +282,16 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
 #undef READ_TREE_PROPERTY
 #undef READ_TREE_PROPERTY_MULTIPLEDIM
 
+/**
+ * @brief   Closes the HDF5 merger tree file
+ *
+ * This function closes the HDF5 file handle for the currently open
+ * merger tree file. It's called when all trees have been processed
+ * or when switching to a different file.
+ * 
+ * Proper file closure is important to ensure all data is flushed to
+ * disk and to free associated HDF5 resources.
+ */
 void close_hdf5_file(void)
 {
 
@@ -231,6 +301,22 @@ void close_hdf5_file(void)
 
 // Local Functions //
 
+/**
+ * @brief   Fills in the metadata attribute names based on tree type
+ *
+ * @param   metadata_names    Pointer to metadata names structure to fill
+ * @param   my_TreeType       Type of merger tree format
+ * @return  EXIT_SUCCESS on success, EXIT_FAILURE on error
+ *
+ * This function determines the correct HDF5 attribute names to use
+ * for reading tree metadata based on the tree type. Different tree
+ * formats may use different naming conventions for the same data.
+ * 
+ * Currently supports:
+ * - genesis_lhalo_hdf5: The standard Genesis L-Galaxies HDF5 format
+ * 
+ * The function returns an error if an unsupported tree type is specified.
+ */
 int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_TreeTypes my_TreeType)
 {
 
@@ -259,6 +345,22 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
 
 }
 
+/**
+ * @brief   Reads an integer attribute from an HDF5 file
+ *
+ * @param   my_hdf5_file    HDF5 file handle
+ * @param   groupname       Path to the group containing the attribute
+ * @param   attr_name       Name of the attribute to read
+ * @param   attribute       Pointer to store the read attribute value(s)
+ * @return  EXIT_SUCCESS on success, error code on failure
+ *
+ * This function reads an integer attribute from an HDF5 file. It handles
+ * the HDF5 API calls to open, read, and close the attribute, providing
+ * error handling and appropriate error messages.
+ * 
+ * The function can read both scalar attributes and array attributes,
+ * depending on the provided attribute pointer.
+ */
 int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name, int *attribute)
 {
 
@@ -289,6 +391,24 @@ int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name,
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief   Reads a dataset from an HDF5 file
+ *
+ * @param   my_hdf5_file    HDF5 file handle
+ * @param   dataset_name    Path and name of the dataset to read
+ * @param   datatype        Type of data (0=int, 1=float, 2=long long)
+ * @param   buffer          Buffer to store the read data
+ * @return  EXIT_SUCCESS on success, error code on failure
+ *
+ * This function reads a dataset from an HDF5 file into the provided buffer.
+ * It handles different data types specified by the datatype parameter:
+ * - 0: Integer data
+ * - 1: Float data
+ * - 2: Long long (64-bit integer) data
+ * 
+ * The function provides error checking and appropriate error messages for
+ * debugging purposes.
+ */
 int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, void *buffer)
 {
   hid_t dataset_id;

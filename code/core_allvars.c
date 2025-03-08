@@ -1,3 +1,26 @@
+/**
+ * @file    core_allvars.c
+ * @brief   Defines global variables used throughout the SAGE model
+ *
+ * This file contains the definitions of all global variables used by the
+ * SAGE model. These variables fall into several categories:
+ * 
+ * 1. Core data structures (galaxies, halos, and auxiliary data)
+ * 2. Configuration parameters and derived values
+ * 3. Simulation state variables (counts, indices, etc.)
+ * 4. Physical constants and units
+ * 5. File and output control variables
+ * 
+ * Many of these global variables are being gradually migrated to the
+ * SageConfig and SimState structures to improve encapsulation and make
+ * the code more maintainable, but they are kept for backward compatibility
+ * with existing code. New code should preferentially use the structured
+ * approach rather than accessing these globals directly.
+ *
+ * Note: This file contains only variable definitions - the declarations
+ * are in globals.h and other header files.
+ */
+
 #include "globals.h"
 #include "types.h"
 #include "config.h"

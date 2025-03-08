@@ -1,3 +1,27 @@
+/**
+ * @file    core_build_model.c
+ * @brief   Core functions for building and evolving the galaxy formation model
+ *
+ * This file contains the core algorithms for constructing galaxies from merger trees
+ * and evolving them through time. It implements the main semi-analytic modeling
+ * framework including the construction of galaxies from their progenitors,
+ * the application of physical processes (cooling, star formation, feedback),
+ * handling of mergers, and the time integration scheme.
+ *
+ * Key functions:
+ * - construct_galaxies(): Recursive function to build galaxies through merger trees
+ * - join_galaxies_of_progenitors(): Integrates galaxies from progenitor halos
+ * - evolve_galaxies(): Main time integration function for galaxy evolution
+ * - apply_physical_processes(): Applies all physical processes to galaxies
+ * - handle_mergers(): Processes galaxy mergers and disruption events
+ *
+ * References:
+ * - Croton et al. (2006) - Main semi-analytic model framework
+ * - White & Frenk (1991) - Cooling model
+ * - Kauffmann et al. (1999) - Star formation implementation
+ * - Somerville et al. (2001) - Merger model
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +39,24 @@
 
 
 
+/**
+ * @brief   Recursively constructs galaxies by traversing the merger tree
+ *
+ * @param   halonr    Index of the current halo in the Halo array
+ * @param   tree      Index of the current merger tree
+ *
+ * This function traverses the merger tree in a depth-first manner to ensure
+ * that galaxies are constructed from their progenitors before being evolved.
+ * It follows these steps:
+ * 
+ * 1. First processes all progenitors of the current halo
+ * 2. Then processes all halos in the same FOF group
+ * 3. Finally, joins progenitor galaxies and evolves them forward in time
+ * 
+ * The recursive approach ensures that galaxies are built in the correct
+ * chronological order, preserving the flow of mass and properties from
+ * high redshift to low redshift.
+ */
 void construct_galaxies(int halonr, int tree)
 {
   int prog, fofhalo, ngal;
@@ -72,7 +114,25 @@ void construct_galaxies(int halonr, int tree)
 
 
 
-// Find the most massive progenitor that contains an actual galaxy
+/**
+ * @brief   Finds the most massive progenitor halo that contains a galaxy
+ *
+ * @param   halonr    Index of the current halo in the Halo array
+ * @return  Index of the most massive progenitor with a galaxy
+ *
+ * This function scans all progenitors of a halo to find the most massive one
+ * that actually contains a galaxy. This is important because not all dark matter
+ * halos necessarily host galaxies, and we need to identify the main branch
+ * for inheriting galaxy properties.
+ * 
+ * Two criteria are tracked:
+ * 1. The most massive progenitor overall (by particle count)
+ * 2. The most massive progenitor that contains a galaxy
+ * 
+ * The function returns the index of the most massive progenitor containing a galaxy,
+ * which is used to determine which galaxy should become the central galaxy of the
+ * descendant halo.
+ */
 int find_most_massive_progenitor(int halonr)
 {
   int prog, first_occupied, lenmax, lenoccmax;
@@ -106,7 +166,27 @@ int find_most_massive_progenitor(int halonr)
   return first_occupied;
 }
 
-// Copy galaxies from progenitors to the current snapshot
+/**
+ * @brief   Copies and updates galaxies from progenitor halos to the current snapshot
+ *
+ * @param   halonr          Index of the current halo in the Halo array
+ * @param   ngalstart       Starting index for galaxies in the Gal array
+ * @param   first_occupied  Index of the most massive progenitor with galaxies
+ * @return  Updated number of galaxies after copying
+ *
+ * This function transfers galaxies from progenitor halos to the current snapshot,
+ * updating their properties based on the new halo structure. It handles:
+ * 
+ * 1. Copying galaxies from all progenitors to the temporary Gal array
+ * 2. Updating galaxy properties based on their new host halo
+ * 3. Handling type transitions (central → satellite → orphan)
+ * 4. Setting appropriate merger times for satellites
+ * 5. Creating new galaxies when a halo has no progenitor galaxies
+ * 
+ * The function maintains the continuity of galaxy evolution by preserving
+ * their properties while updating their status based on the evolving
+ * dark matter structures.
+ */
 int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied)
 {
   int ngal, prog, i, j, step;

@@ -1,3 +1,24 @@
+/**
+ * @file    model_cooling_heating.c
+ * @brief   Gas cooling and AGN heating processes for galaxy evolution
+ *
+ * This file implements the physical processes governing gas cooling from the hot halo
+ * onto the cold disk, and the counteracting heating from AGN feedback. The cooling model
+ * is based on an isothermal density profile with metallicity-dependent cooling functions,
+ * while the AGN heating model simulates the effects of energy injection from the central
+ * supermassive black hole.
+ *
+ * Key functions:
+ * - cooling_recipe(): Calculates gas cooling rate based on halo properties
+ * - do_AGN_heating(): Implements AGN feedback and black hole accretion
+ * - cool_gas_onto_galaxy(): Transfers cooled gas from hot halo to cold disk
+ *
+ * References:
+ * - White & Frenk (1991) - Cooling model framework
+ * - Croton et al. (2006) - AGN feedback implementation
+ * - Kauffmann et al. (1999) - Cooling implementation
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

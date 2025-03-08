@@ -1,3 +1,23 @@
+/**
+ * @file    model_misc.c
+ * @brief   Miscellaneous utility functions for galaxy evolution modeling
+ *
+ * This file contains various utility functions used throughout the SAGE code
+ * for galaxy initialization, property calculation, and basic operations.
+ * It includes functions for calculating halo properties (mass, velocity, radius),
+ * galaxy disk properties, metallicities, and various helper functions.
+ *
+ * Key functions:
+ * - init_galaxy(): Initializes a new galaxy with default properties
+ * - get_disk_radius(): Calculates disk scale radius based on halo properties
+ * - get_virial_mass/velocity/radius(): Calculate halo virial properties
+ * - get_metallicity(): Calculates metallicity from gas mass and metal content
+ *
+ * References:
+ * - Mo, Mao & White (1998) - Disk radius calculation
+ * - Bullock et al. (2001) - Spin parameter definition
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +31,22 @@
 
 
 
+/**
+ * @brief   Initializes a new galaxy with default properties
+ *
+ * @param   p       Index of the galaxy in the Gal array
+ * @param   halonr  Index of the halo in the Halo array
+ *
+ * This function initializes a new galaxy with default values for all properties.
+ * It sets up the galaxy's position, velocity, and physical properties based on
+ * its host halo. The galaxy is initialized with zero mass in all components
+ * (cold gas, stellar mass, bulge, hot gas, etc.) and will accumulate mass
+ * through subsequent evolution.
+ *
+ * The function also initializes tracking variables for mergers, star formation
+ * history, and other galaxy properties. Each new galaxy is assigned a unique
+ * galaxy number for identification.
+ */
 void init_galaxy(int p, int halonr)
 {
   int j, step;
@@ -90,6 +126,22 @@ void init_galaxy(int p, int halonr)
 
 
 
+/**
+ * @brief   Calculates the disk scale radius for a galaxy
+ *
+ * @param   halonr  Index of the halo in the Halo array
+ * @param   p       Index of the galaxy in the Gal array
+ * @return  Disk scale radius in Mpc/h
+ *
+ * This function calculates the disk scale radius based on the Mo, Mao & White (1998)
+ * model, which relates disk size to halo properties. It uses the halo's spin
+ * parameter (Bullock definition) and virial radius to determine the disk radius.
+ * 
+ * The disk radius is proportional to the spin parameter and the virial radius:
+ * Rd = (λ / √2) * Rvir
+ * 
+ * If virial properties are not available, it defaults to 0.1*Rvir.
+ */
 double get_disk_radius(int halonr, int p)
 {
   double SpinMagnitude, SpinParameter;
@@ -110,6 +162,21 @@ double get_disk_radius(int halonr, int p)
 
 
 
+/**
+ * @brief   Calculates the metallicity of a gas or stellar component
+ *
+ * @param   gas     Total mass of the gas or stellar component
+ * @param   metals  Total mass of metals in the component
+ * @return  Metallicity as a mass fraction (0.0 to 1.0)
+ *
+ * This function calculates the metallicity as the ratio of metal mass
+ * to total mass. It ensures the result is between 0 and 1, handling
+ * edge cases where gas or metal mass might be zero or very small.
+ * 
+ * Metallicity is expressed as a mass fraction rather than relative to
+ * solar (Z/Z_sun), so a value of 0.02 would correspond to approximately
+ * solar metallicity.
+ */
 double get_metallicity(double gas, double metals)
 {
   double metallicity;
@@ -129,6 +196,17 @@ double get_metallicity(double gas, double metals)
 
 
 
+/**
+ * @brief   Returns the maximum of two double values
+ *
+ * @param   x   First value
+ * @param   y   Second value
+ * @return  The larger of x and y
+ *
+ * A simple utility function that returns the maximum of two double values.
+ * Used in various calculations throughout the code where the maximum of
+ * two quantities is needed.
+ */
 double dmax(double x, double y)
 {
   if(x > y)
@@ -139,6 +217,20 @@ double dmax(double x, double y)
 
 
 
+/**
+ * @brief   Returns the virial mass of a halo
+ *
+ * @param   halonr  Index of the halo in the Halo array
+ * @return  Virial mass in 10^10 Msun/h
+ *
+ * This function returns the virial mass of a halo, using the spherical
+ * overdensity mass if available for central halos. For satellite subhalos
+ * or when spherical overdensity mass is not available, it returns the mass
+ * estimated from particle counts.
+ * 
+ * For central halos (FirstHaloInFOFgroup), it uses the Mvir property if available.
+ * Otherwise, it calculates mass as number of particles × particle mass.
+ */
 double get_virial_mass(int halonr)
 {
   if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
@@ -149,6 +241,21 @@ double get_virial_mass(int halonr)
 
 
 
+/**
+ * @brief   Calculates the virial velocity of a halo
+ *
+ * @param   halonr  Index of the halo in the Halo array
+ * @return  Virial velocity in km/s
+ *
+ * This function calculates the virial velocity of a halo based on its
+ * virial mass and radius using the formula:
+ * Vvir = sqrt(G * Mvir / Rvir)
+ * 
+ * The virial velocity represents the circular velocity at the virial radius
+ * and is an important parameter for many galaxy formation processes.
+ * 
+ * Returns 0.0 if the virial radius is zero or negative.
+ */
 double get_virial_velocity(int halonr)
 {
 	double Rvir;
@@ -163,6 +270,26 @@ double get_virial_velocity(int halonr)
 
 
 
+/**
+ * @brief   Calculates the virial radius of a halo
+ *
+ * @param   halonr  Index of the halo in the Halo array
+ * @return  Virial radius in Mpc/h
+ *
+ * This function calculates the virial radius of a halo based on its
+ * virial mass and the critical density of the universe at the halo's redshift.
+ * The virial radius is defined as the radius within which the mean density
+ * is 200 times the critical density.
+ * 
+ * The calculation uses the formula:
+ * Rvir = [3 * Mvir / (4 * π * 200 * ρcrit)]^(1/3)
+ * 
+ * Where ρcrit is the critical density at the halo's redshift, calculated
+ * using the cosmological parameters.
+ * 
+ * Note: For certain simulations like Bolshoi, the Rvir property from the
+ * halo catalog could be used directly instead of this calculation.
+ */
 double get_virial_radius(int halonr)
 {
   // return Halo[halonr].Rvir;  // Used for Bolshoi

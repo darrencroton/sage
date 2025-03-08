@@ -1,3 +1,27 @@
+/**
+ * @file    model_mergers.c
+ * @brief   Galaxy merger processes and transformations
+ *
+ * This file implements the physical processes related to galaxy mergers,
+ * including orbital decay of satellites, galaxy-galaxy mergers, starbursts,
+ * morphological transformations, and black hole growth during mergers.
+ * It handles both major mergers (resulting in spheroid formation) and
+ * minor mergers (disk preservation with bulge growth).
+ *
+ * Key functions:
+ * - estimate_merging_time(): Calculates dynamical friction timescale for satellite galaxies
+ * - deal_with_galaxy_merger(): Main function processing mergers when they occur
+ * - grow_black_hole(): Implements black hole growth during mergers
+ * - collisional_starburst_recipe(): Triggers starbursts during galaxy interactions
+ * - add_galaxies_together(): Combines properties of merging galaxies
+ *
+ * References:
+ * - Binney & Tremaine (1987) - Dynamical friction formulation
+ * - Somerville et al. (2001) - Merger-induced starburst model
+ * - Kauffmann & Haehnelt (2000) - Black hole growth during mergers
+ * - Cox (PhD thesis) - Updated starburst efficiency parameterization
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +34,27 @@
 
 
 
+/**
+ * @brief   Estimates the dynamical friction timescale for satellite galaxies
+ *
+ * @param   sat_halo     Index of the satellite subhalo
+ * @param   mother_halo  Index of the parent/host halo
+ * @param   ngal         Index of the satellite galaxy in the Gal array
+ * @return  Merging time in Gyr, or -1.0 if calculation fails
+ *
+ * This function calculates the time required for a satellite galaxy to
+ * merge with the central galaxy due to dynamical friction. It uses the
+ * approximation from Binney & Tremaine (1987):
+ * 
+ * T_merge = 2.0 * 1.17 * R_sat^2 * V_vir / (ln(M_host/M_sat) * G * M_sat)
+ * 
+ * Where:
+ * - R_sat is the virial radius of the host halo
+ * - V_vir is the virial velocity of the host halo
+ * - M_host/M_sat is the mass ratio (used in Coulomb logarithm)
+ * - G is the gravitational constant
+ * - M_sat is the total satellite mass (DM + stars + cold gas)
+ */
 double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 {
   double coulomb, mergtime, SatelliteMass, SatelliteRadius;

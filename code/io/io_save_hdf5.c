@@ -1,3 +1,25 @@
+/**
+ * @file    io/io_save_hdf5.c
+ * @brief   Functions for saving galaxy data to HDF5 output files
+ *
+ * This file implements functionality for writing galaxy data to HDF5 format
+ * output files. It handles the creation of HDF5 file structures, the definition
+ * of galaxy property tables, and the writing of galaxy data and metadata.
+ *
+ * The HDF5 format provides several advantages over plain binary files:
+ * - Self-describing data with attributes and metadata
+ * - Better portability across different systems
+ * - Built-in compression and chunking for efficient storage and access
+ * - Support for direct access to specific data elements
+ *
+ * Key functions:
+ * - calc_hdf5_props(): Defines the HDF5 table structure for galaxy properties
+ * - prep_hdf5_file(): Creates and initializes an HDF5 output file
+ * - write_hdf5_galaxy(): Writes a single galaxy to an HDF5 file
+ * - write_hdf5_attrs(): Writes metadata attributes to an HDF5 file
+ * - write_master_file(): Creates a master file with links to all output files
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +34,20 @@
 #define TRUE  1
 #define FALSE 0
 
+/**
+ * @brief   Defines the HDF5 table structure for galaxy properties
+ *
+ * This function sets up the HDF5 table structure for storing galaxy properties
+ * in the output files. It:
+ * 1. Defines the total number of galaxy properties to be saved
+ * 2. Allocates memory for property metadata arrays
+ * 3. Calculates memory offsets for each property in the GALAXY_OUTPUT struct
+ * 4. Defines field names and data types for each property
+ *
+ * The function handles all galaxy properties, including scalars (masses, rates)
+ * and arrays (positions, velocities, spins). It configures the HDF5 table
+ * to match the layout of the GALAXY_OUTPUT struct for efficient I/O.
+ */
 void calc_hdf5_props(void)
 {
 
@@ -237,6 +273,21 @@ void calc_hdf5_props(void)
 
 
 
+/**
+ * @brief   Creates and initializes an HDF5 output file
+ *
+ * @param   fname   Path to the output file
+ *
+ * This function creates and initializes a new HDF5 file for galaxy output.
+ * It:
+ * 1. Creates the file with default HDF5 properties
+ * 2. Creates a group for each output snapshot
+ * 3. Creates a table within each group to store galaxy data
+ * 4. Configures table properties like chunking for optimal performance
+ *
+ * The created file structure allows easy organization of galaxies by snapshot,
+ * and efficient appending of new galaxy records as they are processed.
+ */
 void prep_hdf5_file(char *fname)
 {
 
@@ -269,6 +320,24 @@ void prep_hdf5_file(char *fname)
 }
 
 
+/**
+ * @brief   Writes a single galaxy to an HDF5 file
+ *
+ * @param   galaxy_output   Pointer to galaxy data to write
+ * @param   n               Snapshot index in ListOutputSnaps
+ * @param   filenr          File number to write to
+ *
+ * This function writes a single galaxy to the appropriate HDF5 file.
+ * It:
+ * 1. Opens the target HDF5 file
+ * 2. Navigates to the correct snapshot group
+ * 3. Appends the galaxy record to the galaxy table
+ * 4. Properly closes all HDF5 objects
+ *
+ * The function is designed to be called for each individual galaxy
+ * as it is processed, enabling incremental output without requiring
+ * all galaxies to be held in memory.
+ */
 void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr)
 {
 
@@ -344,6 +413,22 @@ void write_hdf5_galsnap_data(int n, int filenr)
 #endif  //  MINIMIZE_IO
 
 
+/**
+ * @brief   Writes metadata attributes to an HDF5 file
+ *
+ * @param   n          Snapshot index in ListOutputSnaps
+ * @param   filenr     File number to write to
+ *
+ * This function writes metadata attributes to an HDF5 file after all
+ * galaxies have been written. It:
+ * 1. Opens the target HDF5 file
+ * 2. Navigates to the correct snapshot group
+ * 3. Adds attributes such as number of trees and number of galaxies
+ * 4. Creates and writes the TreeNgals dataset (galaxies per tree)
+ * 
+ * These attributes are essential for readers to understand the file structure
+ * and for tools to navigate and process the galaxy data efficiently.
+ */
 void write_hdf5_attrs(int n, int filenr)
 {
 

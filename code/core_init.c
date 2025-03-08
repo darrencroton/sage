@@ -1,3 +1,22 @@
+/**
+ * @file    core_init.c
+ * @brief   Initialization functions for the SAGE model
+ *
+ * This file contains functions responsible for initializing the SAGE model.
+ * It handles setting up the random number generator, defining physical units,
+ * reading snapshot lists, calculating lookback times, and initializing other
+ * components like cooling functions.
+ *
+ * Key functions:
+ * - init(): Main initialization function that coordinates all setup tasks
+ * - set_units(): Defines and converts physical units for the simulation
+ * - read_snap_list(): Loads the list of snapshots from disk
+ * - time_to_present(): Calculates lookback time for a given redshift
+ *
+ * The cosmological calculations use GSL integration routines to compute
+ * lookback times in a ΛCDM universe.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +34,23 @@
 
 
 
+/**
+ * @brief   Main initialization function for the SAGE model
+ *
+ * This function coordinates the initialization of all components required
+ * by the SAGE model. It performs the following tasks:
+ * 
+ * 1. Allocates memory for the Age array
+ * 2. Initializes the random number generator
+ * 3. Sets up physical units and constants
+ * 4. Reads the snapshot list and calculates redshifts
+ * 5. Computes lookback times for each snapshot
+ * 6. Initializes reionization parameters
+ * 7. Reads cooling function tables
+ * 
+ * After this function completes, the model is ready to begin processing
+ * merger trees and evolving galaxies.
+ */
 void init(void)
 {
   int i;
@@ -53,6 +89,23 @@ void init(void)
 
 
 
+/**
+ * @brief   Sets up physical units and derived constants
+ *
+ * This function defines the unit system used throughout the SAGE model
+ * and calculates derived constants. It:
+ * 
+ * 1. Computes derived units (time, density, pressure, energy)
+ * 2. Converts physical constants to code units (G, Hubble constant)
+ * 3. Calculates supernova energy and feedback parameters in code units
+ * 4. Computes the critical density of the universe
+ * 
+ * The function also synchronizes the unit values with global variables
+ * for backward compatibility with older code.
+ * 
+ * Units are defined in terms of length (cm), mass (g), and velocity (cm/s),
+ * with other units derived from these base units.
+ */
 void set_units(void)
 {
   // Calculate derived units and store in SageConfig
@@ -92,6 +145,36 @@ void set_units(void)
 
 
 
+/**
+ * @brief   Reads the list of snapshot scale factors from a file
+ *
+ * This function loads the list of snapshot scale factors (a) from the
+ * file specified in the configuration. For each snapshot, it:
+ * 
+ * 1. Reads the scale factor value (a = 1/(1+z))
+ * 2. Stores it in the SageConfig.AA array
+ * 3. Counts the total number of snapshots
+ * 
+ * The function also synchronizes the snapshot data with global variables
+ * for backward compatibility with older code.
+ * 
+ * If the file cannot be read, the function terminates with a fatal error.
+ */
+/**
+ * @brief   Reads the list of snapshot scale factors from a file
+ *
+ * This function loads the list of snapshot scale factors (a) from the
+ * file specified in the configuration. For each snapshot, it:
+ * 
+ * 1. Reads the scale factor value (a = 1/(1+z))
+ * 2. Stores it in the SageConfig.AA array
+ * 3. Counts the total number of snapshots
+ * 
+ * The function also synchronizes the snapshot data with global variables
+ * for backward compatibility with older code.
+ * 
+ * If the file cannot be read, the function terminates with a fatal error.
+ */
 void read_snap_list(void)
 {
   FILE *fd;
@@ -126,6 +209,22 @@ void read_snap_list(void)
 
 
 
+/**
+ * @brief   Calculates the lookback time to a given redshift
+ *
+ * @param   z   Redshift to calculate lookback time for
+ * @return  Lookback time in internal time units
+ *
+ * This function computes the lookback time from the present to a given
+ * redshift in a ΛCDM universe. It uses numerical integration with the
+ * GSL library to calculate:
+ *
+ * t(z) = 1/H₀ ∫ da / (a² √(Ω_m/a + (1-Ω_m-Ω_Λ) + Ω_Λ a²))
+ *
+ * where the integration is performed from a=1/(1+z) to a=1.
+ *
+ * The result is returned in the internal time units of the simulation.
+ */
 double time_to_present(double z)
 {
 #define WORKSIZE 1000
@@ -149,6 +248,21 @@ double time_to_present(double z)
 
 
 
+/**
+ * @brief   Integrand function for lookback time calculation
+ *
+ * @param   a      Scale factor (a = 1/(1+z))
+ * @param   param  Unused parameter (required by GSL integration interface)
+ * @return  Value of the integrand at scale factor a
+ *
+ * This function provides the integrand for the lookback time calculation:
+ * 
+ * 1/[a² √(Ω_m/a + (1-Ω_m-Ω_Λ) + Ω_Λ a²)]
+ * 
+ * It represents the differential time element in the Friedmann equation
+ * for a ΛCDM universe. The function is passed to the GSL integration
+ * routine to compute lookback times.
+ */
 double integrand_time_to_present(double a, void *param)
 {
   return 1 / sqrt(SageConfig.Omega / a + (1 - SageConfig.Omega - SageConfig.OmegaLambda) + SageConfig.OmegaLambda * a * a);

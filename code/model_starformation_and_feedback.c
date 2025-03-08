@@ -1,3 +1,25 @@
+/**
+ * @file    model_starformation_and_feedback.c
+ * @brief   Star formation and supernova feedback processes
+ *
+ * This file implements the physical processes governing star formation in galaxy
+ * disks and the subsequent supernova feedback that regulates this star formation.
+ * The star formation follows the Kennicutt-Schmidt law with a critical gas surface
+ * density threshold, while feedback is modeled using an energy-driven outflow
+ * approach with both gas reheating (within the halo) and gas ejection (from the halo).
+ *
+ * Key functions:
+ * - starformation_and_feedback(): Main function calculating star formation and feedback
+ * - update_from_star_formation(): Updates galaxy properties after stars form
+ * - update_from_feedback(): Updates galaxy properties after supernova feedback
+ *
+ * References:
+ * - Kennicutt (1998) - Star formation law
+ * - Kauffmann (1996) - Critical gas density threshold
+ * - Croton et al. (2006) - Feedback implementation
+ * - Krumholz & Dekel (2011) - Metal distribution model
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

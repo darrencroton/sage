@@ -1,3 +1,25 @@
+/**
+ * @file    core_read_parameter_file.c
+ * @brief   Functions for reading and validating model parameter files
+ *
+ * This file contains the functionality for reading model parameters from
+ * a configuration file. It parses the parameter file, validates parameter
+ * values against allowed ranges, handles special cases for certain parameters,
+ * and initializes both the SageConfig structure and global variables.
+ *
+ * The parameter system uses a table-driven approach where parameters are
+ * defined in a central parameter table with their types, default values,
+ * valid ranges, and descriptions. This allows for consistent parameter
+ * handling and validation throughout the code.
+ *
+ * Key functions:
+ * - read_parameter_file(): Main function that reads and processes the parameter file
+ *
+ * The code includes special handling for parameters like output directories,
+ * snapshot selections, file types, and handles error cases with appropriate
+ * error messages.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +36,29 @@
 #include "parameter_table.h"
 #include "error_handling.h"
 
+/**
+ * @brief   Reads and validates parameters from a configuration file
+ *
+ * @param   fname   Path to the parameter file
+ *
+ * This function reads model parameters from a configuration file, validates
+ * them against allowed ranges, and initializes both the SageConfig structure
+ * and global variables. It performs the following tasks:
+ * 
+ * 1. Opens and reads the parameter file line by line
+ * 2. For each parameter, finds its definition in the parameter table
+ * 3. Validates the parameter value against its allowed range
+ * 4. Stores the value in the appropriate location (SageConfig and globals)
+ * 5. Handles special cases for parameters like output directories and snapshot lists
+ * 6. Performs post-processing for certain parameter combinations
+ * 
+ * The function uses a table-driven approach where parameters are defined
+ * centrally with their types, defaults, and valid ranges. This ensures
+ * consistent parameter handling throughout the code.
+ * 
+ * If any errors are encountered (missing required parameters, invalid values),
+ * the function will terminate the program with an appropriate error message.
+ */
 void read_parameter_file(char *fname)
 {
   FILE *fd;

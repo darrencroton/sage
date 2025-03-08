@@ -1,3 +1,22 @@
+/**
+ * @file    core_save.c
+ * @brief   Functions for saving galaxy data to output files
+ *
+ * This file contains the functionality for writing simulated galaxies to output
+ * files. It handles the conversion of internal galaxy data structures to the
+ * output format, manages file I/O operations, and ensures consistent galaxy
+ * indexing across files. The code supports writing galaxy data for multiple
+ * snapshots and maintains proper cross-references between galaxies.
+ *
+ * Key functions:
+ * - save_galaxies(): Writes galaxies to output files for all requested snapshots
+ * - prepare_galaxy_for_output(): Converts internal galaxy format to output format
+ * - finalize_galaxy_file(): Completes file writing by updating headers
+ *
+ * The output files include headers with tree counts and galaxy counts per tree,
+ * followed by the galaxy data for the corresponding snapshot.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +38,26 @@ FILE* save_fd[ABSOLUTEMAXSNAPS] = { 0 };
 #endif
 #define MAX_OUTFILE_SIZE (MAX_STRING_LEN+40)
 
+/**
+ * @brief   Saves galaxies to output files for all requested snapshots
+ *
+ * @param   filenr    Current file number being processed
+ * @param   tree      Current tree number being processed
+ *
+ * This function writes all galaxies for the current tree to their respective
+ * output files. For each output snapshot, it:
+ * 
+ * 1. Opens the output file if not already open
+ * 2. Writes placeholder headers to be filled later
+ * 3. Processes galaxies belonging to that snapshot
+ * 4. Converts internal galaxy structures to output format
+ * 5. Writes galaxies to the file
+ * 6. Updates galaxy counts for the file and tree
+ * 
+ * The function also handles the indexing system that allows cross-referencing
+ * between galaxies (e.g., for tracking merger destinations) across different
+ * trees and files.
+ */
 void save_galaxies(int filenr, int tree)
 {
   char buf[MAX_BUF_SIZE+1];
@@ -125,6 +164,27 @@ void save_galaxies(int filenr, int tree)
 
 
 
+/**
+ * @brief   Converts internal galaxy structure to output format
+ *
+ * @param   filenr    Current file number being processed
+ * @param   tree      Current tree number being processed
+ * @param   g         Pointer to the internal galaxy structure
+ * @param   o         Pointer to the output galaxy structure to be filled
+ *
+ * This function transforms the internal galaxy representation (GALAXY struct)
+ * to the output format (GALAXY_OUTPUT struct). It:
+ * 
+ * 1. Copies basic galaxy properties (type, position, velocities, masses)
+ * 2. Calculates derived properties (star formation rates, metallicities)
+ * 3. Creates a unique galaxy index that encodes file, tree, and galaxy number
+ * 4. Converts units from internal simulation units to physical units
+ * 5. Processes special properties like cooling/heating rates
+ * 
+ * The unique indexing system allows galaxies to be cross-referenced across
+ * different trees and files, which is essential for tracking mergers and
+ * other inter-galaxy relationships.
+ */
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o)
 {
   int j, step;
@@ -248,6 +308,23 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
 
 
+/**
+ * @brief   Finalizes galaxy output files by writing header information
+ *
+ * @param   filenr    Current file number being processed
+ *
+ * This function completes the galaxy output files after all galaxies have
+ * been written. For each output snapshot, it:
+ * 
+ * 1. Seeks to the beginning of the file
+ * 2. Writes the total number of trees
+ * 3. Writes the total number of galaxies in the file
+ * 4. Writes the number of galaxies for each tree
+ * 5. Closes the file
+ * 
+ * This header information is essential for readers to navigate the file
+ * structure and access specific trees or galaxies efficiently.
+ */
 void finalize_galaxy_file(int filenr)
 {
   int n, nwritten;

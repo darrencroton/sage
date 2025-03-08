@@ -1,3 +1,23 @@
+/**
+ * @file    parameter_table.c
+ * @brief   Defines the parameter table for the SAGE model
+ *
+ * This file contains the definition of the parameter table, which centralizes
+ * all model parameters in a structured format. Each parameter has a name,
+ * description, type, storage address, required flag, and valid range values.
+ * 
+ * The parameter system provides a table-driven approach to parameter handling,
+ * which allows for consistent parameter reading, validation, and documentation.
+ * The core_read_parameter_file.c module uses this table to read parameters
+ * from configuration files.
+ *
+ * Key functions:
+ * - get_parameter_table(): Returns the parameter table
+ * - get_parameter_table_size(): Returns the number of parameters
+ * - is_parameter_valid(): Validates parameter values against their allowed ranges
+ * - get_parameter_type_string(): Converts parameter type enum to string
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include "parameter_table.h"
@@ -67,19 +87,53 @@ static ParameterDefinition ParameterTable[] = {
 
 static int NParameters = sizeof(ParameterTable) / sizeof(ParameterDefinition);
 
-// Return the parameter table
+/**
+ * @brief   Returns the parameter table
+ *
+ * @return  Pointer to the parameter definition table
+ *
+ * This function returns a pointer to the parameter definition table,
+ * which contains information about all model parameters. The table
+ * includes parameter names, descriptions, types, storage addresses,
+ * required flags, and valid range values.
+ * 
+ * The parameter table is used by the parameter reading code to validate
+ * and store parameters from configuration files.
+ */
 ParameterDefinition* get_parameter_table(void)
 {
   return ParameterTable;
 }
 
-// Return the number of parameters in the table
+/**
+ * @brief   Returns the number of parameters in the table
+ *
+ * @return  Number of parameters in the parameter table
+ *
+ * This function returns the count of parameters defined in the
+ * parameter table. It's used by the parameter reading code to
+ * iterate through all parameters.
+ */
 int get_parameter_table_size(void)
 {
   return NParameters;
 }
 
-// Validate a parameter value
+/**
+ * @brief   Validates a parameter value against its allowed range
+ *
+ * @param   param   Pointer to parameter definition
+ * @param   value   Pointer to parameter value to validate
+ * @return  1 if valid, 0 if invalid
+ *
+ * This function checks if a parameter value is within the allowed range
+ * defined in the parameter table. For numeric types (INT, DOUBLE), it
+ * checks min and max values if specified. For STRING type, all values
+ * are considered valid.
+ * 
+ * The function is used during parameter reading to ensure that parameter
+ * values are within acceptable ranges.
+ */
 int is_parameter_valid(ParameterDefinition *param, void *value)
 {
   if (param->type == INT) {
@@ -107,7 +161,18 @@ int is_parameter_valid(ParameterDefinition *param, void *value)
   return 1;
 }
 
-// Get string representation of parameter type
+/**
+ * @brief   Returns string representation of a parameter type
+ *
+ * @param   type   Parameter type enum value
+ * @return  String representation of the parameter type
+ *
+ * This function converts a parameter type enum value (INT, DOUBLE, STRING)
+ * to its string representation. It's used for error messages and debugging
+ * to provide human-readable type information.
+ * 
+ * The returned string is statically allocated and should not be freed.
+ */
 const char* get_parameter_type_string(int type)
 {
   switch (type) {

@@ -272,9 +272,11 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
   int32_t i;
   for (i = 0; i < 20; ++i)
   {
-    printf("halo %d: Descendant %d FirstProg %d x %.4f y %.4f z %.4f\n", i, Halo[i].Descendant, Halo[i].FirstProgenitor, Halo[i].Pos[0], Halo[i].Pos[1], Halo[i].Pos[2]);
+    DEBUG_LOG("halo %d: Descendant %d FirstProg %d x %.4f y %.4f z %.4f", 
+              i, Halo[i].Descendant, Halo[i].FirstProgenitor, Halo[i].Pos[0], Halo[i].Pos[1], Halo[i].Pos[2]);
   }
-  ABORT(0);
+  // Debug exit point
+  FATAL_ERROR("Debug exit after showing first 20 halos");
 #endif
 
 }
@@ -331,13 +333,11 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
       return EXIT_SUCCESS;
 
     case lhalo_binary:
-      fprintf(stderr, "If the file is binary then this function should never be called.  Something's gone wrong...");
+      ERROR_LOG("If the file is binary then this function should never be called. Something's gone wrong...");
       return EXIT_FAILURE;
 
     default:
-      fprintf(stderr, "Your tree type %d has not been included in the switch statement for ``fill_metadata_names`` in ``io/tree_hdf5.c``.\n", my_TreeType);
-      fprintf(stderr, "Please add it there.\n");
-      ABORT(EXIT_FAILURE);
+      FATAL_ERROR("Tree type %d has not been included in the switch statement for fill_metadata_names in io/tree_hdf5.c. Please add it there.", my_TreeType);
 
   }
 
@@ -370,21 +370,21 @@ int32_t read_attribute_int(hid_t my_hdf5_file, char *groupname, char *attr_name,
   attr_id = H5Aopen_by_name(my_hdf5_file, groupname, attr_name, H5P_DEFAULT, H5P_DEFAULT);
   if (attr_id < 0)
   {
-    fprintf(stderr, "Could not open the attribute %s in group %s\n", attr_name, groupname);
+    ERROR_LOG("Could not open the attribute %s in group %s", attr_name, groupname);
     return attr_id;
   }
 
   status = H5Aread(attr_id, H5T_NATIVE_INT, attribute);
   if (status < 0)
   {
-    fprintf(stderr, "Could not read the attribute %s in group %s\n", attr_name, groupname);
+    ERROR_LOG("Could not read the attribute %s in group %s", attr_name, groupname);
     return status;
   }
 
   status = H5Aclose(attr_id);
   if (status < 0)
   {
-    fprintf(stderr, "Error when closing the file.\n");
+    ERROR_LOG("Error when closing the HDF5 attribute");
     return status;
   }
 
@@ -416,7 +416,7 @@ int32_t read_dataset(hid_t my_hdf5_file, char *dataset_name, int32_t datatype, v
   dataset_id = H5Dopen2(hdf5_file, dataset_name, H5P_DEFAULT);
   if (dataset_id < 0)
   {
-    fprintf(stderr, "Error %d when trying to open up dataset %s\n", dataset_id, dataset_name);
+    ERROR_LOG("Error %d when trying to open dataset %s", dataset_id, dataset_name);
     return dataset_id;
   }
 

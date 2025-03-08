@@ -26,6 +26,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "error_handling.h"
 
 #define TREE_MUL_FAC        (1000000000LL)
 #define FILENR_MUL_FAC      (1000000000000000LL)
@@ -69,9 +70,8 @@ void save_galaxies(int filenr, int tree)
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
   if(OutputGalOrder == NULL) {
-    fprintf(stderr,"Error: Memory allocation failed for OutputGalOrder array (%d elements, %zu bytes)\n", 
-            NumGals, NumGals*sizeof(int));
-    ABORT(10);
+    FATAL_ERROR("Memory allocation failed for OutputGalOrder array (%d elements, %zu bytes)", 
+               NumGals, NumGals*sizeof(int));
   }
 
   // reset the output galaxy count and order
@@ -108,9 +108,8 @@ void save_galaxies(int filenr, int tree)
         save_fd[n] = fopen(buf, "r+");
         if (save_fd[n] == NULL)
         {
-          fprintf(stderr, "Error: Failed to open output galaxy file '%s' for snapshot %d (filenr %d)\n", 
-                  buf, ListOutputSnaps[n], filenr);
-          ABORT(0);
+          FATAL_ERROR("Failed to open output galaxy file '%s' for snapshot %d (filenr %d)", 
+                    buf, ListOutputSnaps[n], filenr);
         }
 
         // write out placeholders for the header data.
@@ -118,9 +117,8 @@ void save_galaxies(int filenr, int tree)
         int* tmp_buf = (int*)malloc( size );
         if (tmp_buf == NULL)
         {
-          fprintf(stderr, "Error: Memory allocation failed for header buffer (%zu bytes) for snapshot %d (filenr %d)\n", 
-                  size, ListOutputSnaps[n], filenr);
-          ABORT(10);
+          FATAL_ERROR("Memory allocation failed for header buffer (%zu bytes) for snapshot %d (filenr %d)", 
+                     size, ListOutputSnaps[n], filenr);
         }
 
         memset( tmp_buf, 0, size );
@@ -144,9 +142,8 @@ void save_galaxies(int filenr, int tree)
           nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
           if (nwritten != 1)
           {
-            fprintf(stderr, "Error: Failed to write galaxy data for galaxy %d (tree %d, filenr %d, snapshot %d). Expected 1 element, wrote %d elements\n", 
-                    i, tree, filenr, ListOutputSnaps[n], nwritten);
-            ABORT(0);
+            FATAL_ERROR("Failed to write galaxy data for galaxy %d (tree %d, filenr %d, snapshot %d). Expected 1 element, wrote %d elements", 
+                       i, tree, filenr, ListOutputSnaps[n], nwritten);
           }
 
           TotGalaxies[n]++;
@@ -340,25 +337,22 @@ void finalize_galaxy_file(int filenr)
     nwritten = myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
     if (nwritten != 1)
     {
-      fprintf(stderr, "Error: Failed to write number of trees to header of file %d (filenr %d). Expected 1 element, wrote %d elements\n", 
-              n, filenr, nwritten);
-      ABORT(0);
+      FATAL_ERROR("Failed to write number of trees to header of file %d (filenr %d). Expected 1 element, wrote %d elements", 
+                 n, filenr, nwritten);
     }
 
     nwritten = myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     if (nwritten != 1)
     {
-      fprintf(stderr, "Error: Failed to write total galaxy count to header of file %d (filenr %d). Expected 1 element, wrote %d elements\n", 
-              n, filenr, nwritten);
-      ABORT(0);
+      FATAL_ERROR("Failed to write total galaxy count to header of file %d (filenr %d). Expected 1 element, wrote %d elements", 
+                 n, filenr, nwritten);
     }
 
     nwritten = myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
     if (nwritten != Ntrees)
     {
-      fprintf(stderr, "Error: Failed to write galaxy counts per tree to header of file %d (filenr %d). Expected %d elements, wrote %d elements\n", 
-              n, filenr, Ntrees, nwritten);
-      ABORT(0);
+      FATAL_ERROR("Failed to write galaxy counts per tree to header of file %d (filenr %d). Expected %d elements, wrote %d elements", 
+                 n, filenr, Ntrees, nwritten);
     }
 
 

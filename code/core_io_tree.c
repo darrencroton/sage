@@ -76,8 +76,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
       break;
 
     default:
-      fprintf(stderr, "Unsupported tree type %d in load_tree_table(). Please add support in core_io_tree.c\n", my_TreeType);
-      ABORT(EXIT_FAILURE);
+      FATAL_ERROR("Unsupported tree type %d in load_tree_table(). Please add support in core_io_tree.c", my_TreeType);
   }
 
   for(n = 0; n < NOUT; n++)
@@ -85,9 +84,8 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
     TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
     if(TreeNgals[n] == NULL)
     {
-      fprintf(stderr, "Error: Memory allocation failed for TreeNgals[%d] array (%d trees, %zu bytes)\n", 
+      FATAL_ERROR("Memory allocation failed for TreeNgals[%d] array (%d trees, %zu bytes)", 
               n, Ntrees, Ntrees * sizeof(int));
-      ABORT(0);
     }
     SimState.TreeNgals[n] = TreeNgals[n]; /* Update SimState pointer directly */
     
@@ -98,9 +96,8 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
 
     if(!(fd = fopen(buf, "w")))
     {
-      fprintf(stderr, "Error: Failed to create output galaxy file '%s' for snapshot %d (filenr %d)\n", 
+      FATAL_ERROR("Failed to create output galaxy file '%s' for snapshot %d (filenr %d)", 
               buf, ListOutputSnaps[n], filenr);
-      ABORT(0);
     }
     fclose(fd);
     TotGalaxies[n] = 0;
@@ -159,8 +156,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
       break;
 
     default:
-      fprintf(stderr, "Unsupported tree type %d in free_tree_table(). Please add support in core_io_tree.c\n", my_TreeType);
-      ABORT(EXIT_FAILURE);
+      FATAL_ERROR("Unsupported tree type %d in free_tree_table(). Please add support in core_io_tree.c", my_TreeType);
 
   }
 
@@ -203,8 +199,7 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
       break;
 
     default:
-      fprintf(stderr, "Unsupported tree type %d in load_tree(). Please add support in core_io_tree.c\n", my_TreeType);
-      ABORT(EXIT_FAILURE);
+      FATAL_ERROR("Unsupported tree type %d in load_tree(). Please add support in core_io_tree.c", my_TreeType);
 
   }
 
@@ -222,25 +217,22 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[treenr]);
   if(HaloAux == NULL)
   {
-    fprintf(stderr, "Error: Memory allocation failed for HaloAux array (%d halos, %zu bytes)\n", 
+    FATAL_ERROR("Memory allocation failed for HaloAux array (%d halos, %zu bytes)", 
             TreeNHalos[treenr], TreeNHalos[treenr] * sizeof(struct halo_aux_data));
-    ABORT(0);
   }
   
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   if(HaloGal == NULL)
   {
-    fprintf(stderr, "Error: Memory allocation failed for HaloGal array (%d galaxies, %zu bytes)\n", 
+    FATAL_ERROR("Memory allocation failed for HaloGal array (%d galaxies, %zu bytes)", 
             MaxGals, MaxGals * sizeof(struct GALAXY));
-    ABORT(0);
   }
   
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
   if(Gal == NULL)
   {
-    fprintf(stderr, "Error: Memory allocation failed for Gal array (%d galaxies, %zu bytes)\n", 
+    FATAL_ERROR("Memory allocation failed for Gal array (%d galaxies, %zu bytes)", 
             FoF_MaxGals, FoF_MaxGals * sizeof(struct GALAXY));
-    ABORT(0);
   }
 
   for(i = 0; i < TreeNHalos[treenr]; i++)

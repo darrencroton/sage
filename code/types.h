@@ -238,4 +238,33 @@ struct halo_aux_data
   int FirstGalaxy;
 };
 
+/* Structure to hold runtime simulation state */
+struct SimulationState
+{
+  /* Tree and galaxy counts */
+  int Ntrees;               /* number of trees in current file */
+  int NumGals;              /* Total number of galaxies stored for current tree */
+  int MaxGals;              /* Maximum number of galaxies allowed for current tree */
+  int FoF_MaxGals;          /* Maximum number of galaxies for FoF groups */
+  int GalaxyCounter;        /* unique galaxy ID for main progenitor line in tree */
+  int TotHalos;             /* Total number of halos */
+  int TotGalaxies[ABSOLUTEMAXSNAPS]; /* Galaxy count per snapshot */
+  
+  /* File and tree identifiers */
+  int FileNum;              /* Current file number being processed */
+  int TreeID;               /* Current tree ID being processed */
+  
+  /* Snapshot information */
+  int MAXSNAPS;             /* Maximum number of snapshots */
+  int Snaplistlen;          /* Length of snapshot list */
+  int NOUT;                 /* Number of outputs */
+  int ListOutputSnaps[ABSOLUTEMAXSNAPS]; /* List of output snapshot numbers */
+  
+  /* Tree structure pointers */
+  int *TreeNgals[ABSOLUTEMAXSNAPS];  /* Array of galaxies per tree per snapshot */
+  int *TreeNHalos;          /* Array of halos per tree */
+  int *TreeFirstHalo;       /* Array of first halo in each tree */
+  int *FirstHaloInSnap;     /* Array of first halo in each snapshot */
+};
+
 #endif /* #ifndef TYPES_H */

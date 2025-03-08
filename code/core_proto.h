@@ -83,4 +83,9 @@ double metallicity_dependent_star_formation(int p);
 double Z_dependent_SF(float lower_limit, float upper_limit, float Sigma_c0, float Xi, float gamma);
 double integrand_Z_dependent_SF(double q, void *p);
 
+/* Simulation state functions */
+void initialize_sim_state(void);
+void sync_sim_state_to_globals(void);
+void sync_globals_to_sim_state(void);
+
 #endif /* #ifndef CORE_PROTO_H */

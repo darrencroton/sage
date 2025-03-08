@@ -122,6 +122,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
       if(ngal == (FoF_MaxGals-1)) {
         FoF_MaxGals += 10000;
         Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
+        SimState.FoF_MaxGals = FoF_MaxGals; /* Update SimState directly */
       }
       assert(ngal < FoF_MaxGals);
           
@@ -562,6 +563,7 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT)
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;  /* Update snapshot number */
       HaloGal[NumGals++] = Gal[p];  /* Copy to permanent array and increment counter */
+      SimState.NumGals = NumGals; /* Update SimState after increment */
       HaloAux[currenthalo].NGalaxies++;  /* Increment galaxy count for this halo */
     }
   }

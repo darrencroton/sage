@@ -6,6 +6,9 @@
 /*  Global configuration structure */
 struct SageConfig SageConfig;
 
+/*  Global simulation state structure */
+struct SimulationState SimState;
+
 /*  galaxy data  */
 struct GALAXY			
   *Gal, *HaloGal;

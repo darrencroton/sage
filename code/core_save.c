@@ -103,6 +103,7 @@ void save_galaxies(int filenr, int tree)
           }
 
           TotGalaxies[n]++;
+          SimState.TotGalaxies[n]++; /* Update SimState directly */
           TreeNgals[n][tree]++;
               }
             }

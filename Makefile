@@ -17,6 +17,7 @@ OBJS := ./code/main.o \
 	./code/core_save.o \
 	./code/core_mymalloc.o \
 	./code/core_allvars.o \
+	./code/core_simulation_state.o \
 	./code/model_infall.o \
 	./code/model_cooling_heating.o \
 	./code/model_starformation_and_feedback.o \

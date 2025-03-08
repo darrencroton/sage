@@ -9,6 +9,9 @@
 /* Global configuration structure */
 extern struct SageConfig SageConfig;
 
+/* Global simulation state structure */
+extern struct SimulationState SimState;
+
 #ifdef MPI
 extern int ThisTask, NTask, nodeNameLen;
 extern char *ThisNode;

@@ -40,10 +40,15 @@ void load_tree_table_binary(int32_t filenr)
   }
 
   myfread(&Ntrees, 1, sizeof(int), load_fd);
+  SimState.Ntrees = Ntrees; /* Update SimState directly */
+  
   myfread(&totNHalos, 1, sizeof(int), load_fd);
 
   TreeNHalos = mymalloc(sizeof(int) * Ntrees);
+  SimState.TreeNHalos = TreeNHalos; /* Update SimState pointer directly */
+  
   TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
+  SimState.TreeFirstHalo = TreeFirstHalo; /* Update SimState pointer directly */
 
   myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
 

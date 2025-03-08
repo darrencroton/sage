@@ -47,6 +47,8 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
   for(n = 0; n < NOUT; n++)
   {
     TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
+    SimState.TreeNgals[n] = TreeNgals[n]; /* Update SimState pointer directly */
+    
     for(i = 0; i < Ntrees; i++)
       TreeNgals[n][i] = 0;
 
@@ -59,6 +61,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType)
     }
     fclose(fd);
     TotGalaxies[n] = 0;
+    SimState.TotGalaxies[n] = 0; /* Update SimState directly */
   }
 
 }
@@ -68,10 +71,19 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType)
   int n;
 
   for(n = NOUT - 1; n >= 0; n--)
+  {
     myfree(TreeNgals[n]);
+    TreeNgals[n] = NULL;
+    SimState.TreeNgals[n] = NULL; /* Update SimState pointer */
+  }
 
   myfree(TreeFirstHalo);
+  TreeFirstHalo = NULL;
+  SimState.TreeFirstHalo = NULL; /* Update SimState pointer */
+
   myfree(TreeNHalos);
+  TreeNHalos = NULL;
+  SimState.TreeNHalos = NULL; /* Update SimState pointer */
 
   // Don't forget to free the open file handle
 
@@ -124,6 +136,11 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
     MaxGals = 10000;
 
   FoF_MaxGals = 10000;
+  
+  /* Update SimulationState */
+  SimState.MaxGals = MaxGals;
+  SimState.FoF_MaxGals = FoF_MaxGals;
+  sync_sim_state_to_globals();
 
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[treenr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);

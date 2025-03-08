@@ -2,7 +2,6 @@
 #define GLOBALS_H
 
 #include <stdio.h>
-#include <gsl/gsl_rng.h>
 #include "constants.h"
 #include "types.h"
 
@@ -70,8 +69,7 @@ extern int MAXSNAPS;
 extern int NOUT;
 extern int Snaplistlen;
 
-/* random number generator */
-extern gsl_rng *random_generator;
+/* Random number generator removed - not used in computation */
 
 /* tree and file information */
 extern int TreeID;

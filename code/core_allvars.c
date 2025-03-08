@@ -118,7 +118,7 @@ int Snaplistlen;
 double EnergySNcode;
 double EtaSNcode;
 
-gsl_rng *random_generator;
+/* Random number generator removed - not used in computation */
 
 int TreeID;
 int FileNum;

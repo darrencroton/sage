@@ -9,6 +9,7 @@ EXEC := sage
 OBJS := ./code/main.o \
 	./code/util_parameters.o \
 	./code/util_error.o \
+	./code/util_integration.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
 	./code/io_tree.o \
@@ -31,6 +32,7 @@ INCL := ./code/core_allvars.h  \
 	./code/io_tree.h \
 	./code/io_save_binary.h \
 	./code/util_memory.h \
+	./code/util_integration.h \
 	./code/core_proto.h  \
 	./code/core_simulation.h  \
 	./code/util_parameters.h \
@@ -64,28 +66,12 @@ endif
 
 GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 1)"'
 
-# GSL automatic detection
-GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
-ifndef GSL_FOUND
-  $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
-  # if the automatic detection fails, set GSL_DIR appropriately
-  GSL_DIR := /opt/local
-  GSL_INCL := -I$(GSL_DIR)/include  
-  GSL_LIBDIR := $(GSL_DIR)/lib
-  # since GSL is not in PATH, the runtime environment might not be setup correctly either
-  # therefore, adding the compiletime library path is even more important (the -Xlinker bit)
-  GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
-else
-  # GSL is probably configured correctly, pick up the locations automatically
-  GSL_INCL := $(shell gsl-config --cflags)
-  GSL_LIBDIR := $(shell gsl-config --prefix)/lib
-  GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
-endif
+# GSL dependency removed - using custom implementations instead
 
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
-LIBS   +=   -g -lm  $(GSL_LIBS) 
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+LIBS   +=   -g -lm
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE)
 
 
 default: all

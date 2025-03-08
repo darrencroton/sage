@@ -3,9 +3,8 @@
  * @brief   Initialization functions for the SAGE model
  *
  * This file contains functions responsible for initializing the SAGE model.
- * It handles setting up the random number generator, defining physical units,
- * reading snapshot lists, calculating lookback times, and initializing other
- * components like cooling functions.
+ * It handles defining physical units, reading snapshot lists, calculating
+ * lookback times, and initializing other components like cooling functions.
  *
  * Key functions:
  * - init(): Main initialization function that coordinates all setup tasks
@@ -13,7 +12,7 @@
  * - read_snap_list(): Loads the list of snapshots from disk
  * - time_to_present(): Calculates lookback time for a given redshift
  *
- * The cosmological calculations use GSL integration routines to compute
+ * The cosmological calculations use numerical integration to compute
  * lookback times in a ΛCDM universe.
  */
 
@@ -25,13 +24,11 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_integration.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
 #include "util_error.h"
+#include "util_integration.h"
 
 
 
@@ -58,8 +55,7 @@ void init(void)
 
   Age = mymalloc(ABSOLUTEMAXSNAPS*sizeof(*Age));
 
-  random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-  gsl_rng_set(random_generator, 42);     // start-up seed
+  // No need for random number generator as it's not actually used in the code
 
   set_units();
   srand((unsigned) time(NULL));
@@ -215,8 +211,7 @@ void read_snap_list(void)
  * @return  Lookback time in internal time units
  *
  * This function computes the lookback time from the present to a given
- * redshift in a ΛCDM universe. It uses numerical integration with the
- * GSL library to calculate:
+ * redshift in a ΛCDM universe. It uses numerical integration to calculate:
  *
  * t(z) = 1/H₀ ∫ da / (a² √(Ω_m/a + (1-Ω_m-Ω_Λ) + Ω_Λ a²))
  *
@@ -227,19 +222,22 @@ void read_snap_list(void)
 double time_to_present(double z)
 {
 #define WORKSIZE 1000
-  gsl_function F;
-  gsl_integration_workspace *workspace;
+  integration_function_t F;
+  integration_workspace_t *workspace;
   double time, result, abserr;
 
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
+  workspace = integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_time_to_present;
+  F.params = NULL;
 
-  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / SageConfig.Hubble,
-    1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
+  // Use our custom integration function with the same accuracy parameters
+  // as the original GSL implementation (GSL_INTEG_GAUSS21 = 2)
+  integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / SageConfig.Hubble,
+    1.0e-8, WORKSIZE, 2, workspace, &result, &abserr);
 
   time = 1 / SageConfig.Hubble * result;
 
-  gsl_integration_workspace_free(workspace);
+  integration_workspace_free(workspace);
 
   // return time to present as a function of redshift
   return time;
@@ -251,7 +249,7 @@ double time_to_present(double z)
  * @brief   Integrand function for lookback time calculation
  *
  * @param   a      Scale factor (a = 1/(1+z))
- * @param   param  Unused parameter (required by GSL integration interface)
+ * @param   param  Unused parameter (required by integration interface)
  * @return  Value of the integrand at scale factor a
  *
  * This function provides the integrand for the lookback time calculation:
@@ -259,7 +257,7 @@ double time_to_present(double z)
  * 1/[a² √(Ω_m/a + (1-Ω_m-Ω_Λ) + Ω_Λ a²)]
  * 
  * It represents the differential time element in the Friedmann equation
- * for a ΛCDM universe. The function is passed to the GSL integration
+ * for a ΛCDM universe. The function is passed to the integration
  * routine to compute lookback times.
  */
 double integrand_time_to_present(double a, void *param)

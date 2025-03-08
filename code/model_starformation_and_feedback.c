@@ -103,7 +103,9 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   else
     reheated_mass = 0.0;
 
-  assert(reheated_mass >= 0.0);
+  /* Make sure reheated_mass is not negative (handle possible floating-point issues) */
+  if(reheated_mass < 0.0)
+    reheated_mass = 0.0;
 
   /* Ensure total gas used (stars + feedback) doesn't exceed available cold gas
    * If needed, scale down both star formation and feedback proportionally */

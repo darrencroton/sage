@@ -288,8 +288,7 @@ int main(int argc, char **argv)
       sync_sim_state_to_globals(); /* Update TreeID global */
       load_tree(filenr, treenr, SageConfig.TreeType);
 
-      /* Set random seed based on file and tree numbers for reproducibility */
-      gsl_rng_set(random_generator, filenr * 100000 + treenr);
+      /* Random seed setting removed - not actually used in computation */
       
       /* Reset galaxy counters */
       SimState.NumGals = 0;
@@ -319,8 +318,7 @@ int main(int argc, char **argv)
   Age--;
   myfree(Age);
 
-  /* Free the random number generator */
-  gsl_rng_free(random_generator);
+  /* Random generator freeing removed - not actually used in computation */
 
   /* Set exit status to success */
   exitfail = 0;

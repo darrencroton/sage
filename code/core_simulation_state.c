@@ -165,7 +165,4 @@ void initialize_sim_state(void)
   
   /* Synchronize back to globals for consistency */
   sync_sim_state_to_globals();
-  
-  DEBUG_LOG("Simulation state initialized. NOUT=%d, MAXSNAPS=%d", 
-            SimState.NOUT, SimState.MAXSNAPS);
 }

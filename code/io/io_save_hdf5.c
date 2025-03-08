@@ -30,6 +30,7 @@
 
 #include "io_save_hdf5.h"
 #include "../core_proto.h"
+#include "../error_handling.h"
 
 #define TRUE  1
 #define FALSE 0
@@ -262,11 +263,10 @@ void calc_hdf5_props(void)
   HDF5_field_names[i] = "Heating";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  // DEBUG
+  /* Validate property count */
   if(i != HDF5_n_props){
-    fprintf(stderr, "Error: HDF5 property count mismatch. Expected %d properties but processed %d properties\n", 
-            HDF5_n_props, i);
-    ABORT(EXIT_FAILURE);
+    FATAL_ERROR("HDF5 property count mismatch. Expected %d properties but processed %d properties", 
+                HDF5_n_props, i);
   }
 
 }
@@ -477,9 +477,8 @@ void write_hdf5_attrs(int n, int filenr)
   // Create an array dataset to hold the number of galaxies per tree and write it.
   dims = Ntrees;
   if (dims<=0){
-    fprintf(stderr, "Error: Invalid number of trees (Ntrees=%d) in write_hdf5_attrs for snapshot %d (filenr %d)\n", 
-            (int)dims, ListOutputSnaps[n], filenr);
-    ABORT(EXIT_FAILURE);
+    FATAL_ERROR("Invalid number of trees (Ntrees=%d) in write_hdf5_attrs for snapshot %d (filenr %d)", 
+                (int)dims, ListOutputSnaps[n], filenr);
   }
   dataspace_id = H5Screate_simple(1, &dims, NULL);
   dataset_id = H5Dcreate(group_id, "TreeNgals", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT,
@@ -494,73 +493,117 @@ void write_hdf5_attrs(int n, int filenr)
 
 }
 
+/**
+ * @brief   Stores the simulation parameters as attributes in an HDF5 file
+ *
+ * @param   master_file_id   HDF5 file ID to write parameters to
+ *
+ * This function creates a group in the HDF5 file to store all model parameters
+ * as attributes. It uses the parameter table to iterate through all parameters
+ * and writes their values to the file with appropriate HDF5 data types.
+ * 
+ * The function also adds extra properties such as:
+ * - NCores: Number of cores used for the simulation
+ * - RunEndTime: Timestamp when the simulation completed
+ * - InputSimulation: Name of the input simulation
+ * 
+ * Parameters are retrieved from the SageConfig structure through the parameter
+ * table, ensuring that the most current values are stored.
+ */
 static void store_run_properties(hid_t master_file_id)
 {
-
-  /*
-   * Store the properties of this run in the master HDF5 file.
-   */
-
   hid_t props_group_id, dataspace_id, attribute_id, str_type;
   hsize_t dims;
   herr_t status;
   time_t t;
   struct tm *local;
   int i;
+  ParameterDefinition *param_table;
+  int num_params;
+  
+  /* Get the parameter table and its size */
+  param_table = get_parameter_table();
+  num_params = get_parameter_table_size();
 
-  // Create the group to hold the run properties.
+  /* Create the group to hold the run properties */
   props_group_id = H5Gcreate(master_file_id, "RunProperties", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
-  // Store all of the properties we want as attributes
+  /* Set up common data structures for attributes */
   dims = 1;
   dataspace_id = H5Screate_simple(1, &dims, NULL);
   str_type = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(str_type, 100);
+  status = H5Tset_size(str_type, MAX_STRING_LEN);
 
-  for (i = 0; i < NParam; i++) {
-    // Ignore the OutputDir, DefaultsFile and RequestedMagBands tags.
-    if (strcmp(ParamTag[i], "OutputDir")!=0)
-    {
-      switch (ParamID[i])
-      {
+  /* Store all parameters from the parameter table */
+  for (i = 0; i < num_params; i++) {
+    /* Skip OutputDir as it might contain sensitive path information */
+    if (strcmp(param_table[i].name, "OutputDir") != 0) {
+      switch (param_table[i].type) {
         case INT:
-          attribute_id = H5Acreate(props_group_id, ParamTag[i], H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-          status = H5Awrite(attribute_id, H5T_NATIVE_INT, ParamAddr[i]);
+          attribute_id = H5Acreate(props_group_id, param_table[i].name, 
+                                  H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+          status = H5Awrite(attribute_id, H5T_NATIVE_INT, param_table[i].address);
           status = H5Aclose(attribute_id);
           break;
 
         case DOUBLE:
-          attribute_id = H5Acreate(props_group_id, ParamTag[i], H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-          status = H5Awrite(attribute_id, H5T_NATIVE_DOUBLE, ParamAddr[i]);
+          attribute_id = H5Acreate(props_group_id, param_table[i].name,
+                                  H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+          status = H5Awrite(attribute_id, H5T_NATIVE_DOUBLE, param_table[i].address);
           status = H5Aclose(attribute_id);
           break;
 
         case STRING:
-          attribute_id = H5Acreate(props_group_id, ParamTag[i], str_type, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-          status = H5Awrite(attribute_id, str_type, ParamAddr[i]);
-          status = H5Aclose(attribute_id);
+          /* Special handling for TreeType which doesn't have a direct address */
+          if (strcmp(param_table[i].name, "TreeType") == 0) {
+            const char* tree_type_str;
+            switch (SageConfig.TreeType) {
+              case lhalo_binary:
+                tree_type_str = "lhalo_binary";
+                break;
+              case genesis_lhalo_hdf5:
+                tree_type_str = "genesis_lhalo_hdf5";
+                break;
+              default:
+                tree_type_str = "unknown";
+            }
+            attribute_id = H5Acreate(props_group_id, param_table[i].name,
+                                    str_type, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+            status = H5Awrite(attribute_id, str_type, tree_type_str);
+            status = H5Aclose(attribute_id);
+          } else if (param_table[i].address != NULL) {
+            attribute_id = H5Acreate(props_group_id, param_table[i].name,
+                                    str_type, dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+            status = H5Awrite(attribute_id, str_type, param_table[i].address);
+            status = H5Aclose(attribute_id);
+          }
           break;
       }
     }
   }
   
-  // Add some extra properties
+  /* Add extra properties */
   attribute_id = H5Acreate(props_group_id, "NCores", H5T_NATIVE_INT, dataspace_id,
-                            H5P_DEFAULT, H5P_DEFAULT);
+                          H5P_DEFAULT, H5P_DEFAULT);
   status = H5Awrite(attribute_id, H5T_NATIVE_INT, &NTask);
   status = H5Aclose(attribute_id);
 
+  time(&t);
   local = localtime(&t);
   attribute_id = H5Acreate(props_group_id, "RunEndTime", str_type, dataspace_id,
-                            H5P_DEFAULT, H5P_DEFAULT);
+                          H5P_DEFAULT, H5P_DEFAULT);
   status = H5Awrite(attribute_id, str_type, asctime(local));
   status = H5Aclose(attribute_id);
 
+  /* Add input simulation info if defined */
+#ifdef INPUTSIM
   attribute_id = H5Acreate(props_group_id, "InputSimulation", str_type, dataspace_id,
-                            H5P_DEFAULT, H5P_DEFAULT);
+                          H5P_DEFAULT, H5P_DEFAULT);
   status = H5Awrite(attribute_id, str_type, INPUTSIM);
   status = H5Aclose(attribute_id);
+#endif
 
+  /* Clean up */
   status = H5Sclose(dataspace_id);
   status = H5Gclose(props_group_id);
 }

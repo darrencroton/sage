@@ -313,20 +313,6 @@ int main(int argc, char **argv)
     INFO_LOG("Completed processing file %d", filenr);
   }
 
-/*
-  if(HDF5Output){
-    free_hdf5_ids();
-
-#ifdef MPI
-    // Create a single master HDF5 file with links to the other files...
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (ThisTask == 0)
-#endif
-      //write_master_file();
-
-  }
-*/
-
   /* Clean up allocated memory */
   
   /* Special handling for Age array - needs to be reset to original allocation point */

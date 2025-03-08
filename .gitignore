@@ -1,5 +1,6 @@
 sage
 input/treefiles
 output/results
+ignore/
 *.o
 *.*~

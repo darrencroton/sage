@@ -66,8 +66,6 @@ void init(void)
 
   read_snap_list();
 
-  //Hack to fix deltaT for snapshot 0
-  //This way, galsnapnum = -1 will not segfault.
   Age[0] = time_to_present(1000.0);//lookback time from z=1000
   Age++;
 

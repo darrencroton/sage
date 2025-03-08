@@ -27,7 +27,7 @@
 #include "globals.h"
 #include "config.h"
 #include "core_proto.h"
-#include "error_handling.h"
+#include "util_error.h"
 
 /**
  * @brief   Updates global variables from the SimState structure

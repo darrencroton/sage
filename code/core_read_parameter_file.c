@@ -33,8 +33,8 @@
 #include "config.h"
 #include "constants.h"
 #include "core_proto.h"
-#include "parameter_table.h"
-#include "error_handling.h"
+#include "util_parameters.h"
+#include "util_error.h"
 
 /**
  * @brief   Reads and validates parameters from a configuration file

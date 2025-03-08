@@ -30,7 +30,7 @@
 
 #include "io_save_hdf5.h"
 #include "core_proto.h"
-#include "util_error.h"
+#include "error_handling.h"
 
 #define TRUE  1
 #define FALSE 0

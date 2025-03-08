@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #include "types.h"
-#include "error_handling.h"
+#include "util_error.h"
 
 /* HDF5 configuration */
 #ifdef HDF5

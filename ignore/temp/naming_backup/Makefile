@@ -7,15 +7,15 @@ OPT :=
 
 EXEC := sage 
 OBJS := ./code/main.o \
-	./code/util_parameters.o \
-	./code/util_error.o \
+	./code/parameter_table.o \
+	./code/error_handling.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
-	./code/io_tree.o \
+	./code/core_io_tree.o \
 	./code/core_cool_func.o \
 	./code/core_build_model.o \
-	./code/io_save_binary.o \
-	./code/util_memory.o \
+	./code/core_save.o \
+	./code/core_mymalloc.o \
 	./code/core_allvars.o \
 	./code/core_simulation_state.o \
 	./code/model_infall.o \
@@ -25,21 +25,18 @@ OBJS := ./code/main.o \
 	./code/model_reincorporation.o \
 	./code/model_mergers.o \
 	./code/model_misc.o \
-	./code/io_tree_binary.o
+	./code/tree_binary.o
 
 INCL := ./code/core_allvars.h  \
-	./code/io_tree.h \
-	./code/io_save_binary.h \
-	./code/util_memory.h \
 	./code/core_proto.h  \
 	./code/core_simulation.h  \
-	./code/util_parameters.h \
-	./code/util_error.h \
+	./code/parameter_table.h \
+	./code/error_handling.h \
 	./code/config.h \
 	./code/constants.h \
 	./code/globals.h \
 	./code/types.h \
-	./code/io_tree_binary.h \
+	./code/tree_binary.h \
 	./Makefile 
 
 ifdef USE-MPI
@@ -54,8 +51,8 @@ ifdef USE-HDF5
     HDF5INCL := -I$(HDF5DIR)/include
     HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
 
-    OBJS += ./code/io_tree_hdf5.o ./code/io_save_hdf5.o
-    INCL += ./code/io_tree_hdf5.h ./code/io_save_hdf5.h
+    OBJS += ./code/tree_hdf5.o
+    INCL += ./code/tree_hdf5.h
 
     OPT += -DHDF5
     LIBS += $(HDF5LIB)

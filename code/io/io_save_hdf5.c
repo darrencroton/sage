@@ -228,8 +228,9 @@ void calc_hdf5_props(void)
 
   // DEBUG
   if(i != HDF5_n_props){
-    fprintf(stderr, "Incorrect number of galaxy properties in HDF5 file!\n");
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "Error: HDF5 property count mismatch. Expected %d properties but processed %d properties\n", 
+            HDF5_n_props, i);
+    ABORT(EXIT_FAILURE);
   }
 
 }
@@ -391,7 +392,8 @@ void write_hdf5_attrs(int n, int filenr)
   // Create an array dataset to hold the number of galaxies per tree and write it.
   dims = Ntrees;
   if (dims<=0){
-    fprintf(stderr, "WTF? Ntrees=%d in write_hdf5_attrs !?!\n", (int)dims);
+    fprintf(stderr, "Error: Invalid number of trees (Ntrees=%d) in write_hdf5_attrs for snapshot %d (filenr %d)\n", 
+            (int)dims, ListOutputSnaps[n], filenr);
     ABORT(EXIT_FAILURE);
   }
   dataspace_id = H5Screate_simple(1, &dims, NULL);

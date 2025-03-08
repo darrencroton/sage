@@ -102,7 +102,8 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || 
           Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
       {
-        printf("Instability: Mbulge > Mtot (stars or metals)\n");
+        WARNING_LOG("Disk instability caused bulge mass to exceed total stellar mass in galaxy %d. Bulge/Total = %.4f (stars) or %.4f (metals)",
+                    p, Gal[p].BulgeMass / Gal[p].StellarMass, Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass);
         // ABORT(0);  /* Error checking disabled in original */
       }
     }
@@ -113,7 +114,8 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       /* Sanity check to ensure unstable gas doesn't exceed available cold gas */
       if(unstable_gas/Gal[p].ColdGas > 1.0001)
       {
-        printf("unstable_gas > Gal[p].ColdGas\t%e\t%e\n", unstable_gas, Gal[p].ColdGas);
+        WARNING_LOG("Disk instability calculation produced unstable gas mass exceeding total cold gas in galaxy %d. Unstable gas = %.4e, Cold gas = %.4e", 
+                    p, unstable_gas, Gal[p].ColdGas);
         // ABORT(0);  /* Error checking disabled in original */
       }
 

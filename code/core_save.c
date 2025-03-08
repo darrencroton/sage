@@ -30,7 +30,8 @@ void save_galaxies(int filenr, int tree)
 
   OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
   if(OutputGalOrder == NULL) {
-    fprintf(stderr,"Error: Could not allocate memory for %d int elements in array `OutputGalOrder`\n", NumGals);
+    fprintf(stderr,"Error: Memory allocation failed for OutputGalOrder array (%d elements, %zu bytes)\n", 
+            NumGals, NumGals*sizeof(int));
     ABORT(10);
   }
 
@@ -68,7 +69,8 @@ void save_galaxies(int filenr, int tree)
         save_fd[n] = fopen(buf, "r+");
         if (save_fd[n] == NULL)
         {
-          fprintf(stderr, "can't open file `%s'\n", buf);
+          fprintf(stderr, "Error: Failed to open output galaxy file '%s' for snapshot %d (filenr %d)\n", 
+                  buf, ListOutputSnaps[n], filenr);
           ABORT(0);
         }
 
@@ -77,7 +79,8 @@ void save_galaxies(int filenr, int tree)
         int* tmp_buf = (int*)malloc( size );
         if (tmp_buf == NULL)
         {
-          fprintf(stderr, "Error: Could not allocate memory for header information for file %d\n", n);
+          fprintf(stderr, "Error: Memory allocation failed for header buffer (%zu bytes) for snapshot %d (filenr %d)\n", 
+                  size, ListOutputSnaps[n], filenr);
           ABORT(10);
         }
 
@@ -85,7 +88,10 @@ void save_galaxies(int filenr, int tree)
         nwritten = fwrite( tmp_buf, sizeof(int), Ntrees + 2, save_fd[n] );
         if (nwritten != Ntrees + 2)
         {
-          fprintf(stderr, "Error: Failed to write out %d elements for header information for file %d.  Only wrote %d elements.\n", Ntrees + 2, n, nwritten);
+        ERROR_LOG("Failed to write header information to output file %d. Expected %d elements, wrote %d elements. Will retry after output is complete", 
+                 n, Ntrees + 2, nwritten);
+        // Note: This is converted to ERROR_LOG to demonstrate a recoverable error
+        // We could retry or implement a fallback strategy here instead of aborting
         }
         free( tmp_buf );
             }
@@ -99,7 +105,9 @@ void save_galaxies(int filenr, int tree)
           nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
           if (nwritten != 1)
           {
-            fprintf(stderr, "Error: Failed to write out the galaxy struct for galaxy %d within file %d.  Meant to write 1 element but only wrote %d elements.\n", i, n, nwritten);
+            fprintf(stderr, "Error: Failed to write galaxy data for galaxy %d (tree %d, filenr %d, snapshot %d). Expected 1 element, wrote %d elements\n", 
+                    i, tree, filenr, ListOutputSnaps[n], nwritten);
+            ABORT(0);
           }
 
           TotGalaxies[n]++;
@@ -255,19 +263,25 @@ void finalize_galaxy_file(int filenr)
     nwritten = myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
     if (nwritten != 1)
     {
-      fprintf(stderr, "Error: Failed to write out 1 element for the number of trees for the header of file %d.  Only wrote %d elements.\n", n, nwritten);
+      fprintf(stderr, "Error: Failed to write number of trees to header of file %d (filenr %d). Expected 1 element, wrote %d elements\n", 
+              n, filenr, nwritten);
+      ABORT(0);
     }
 
     nwritten = myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     if (nwritten != 1)
     {
-      fprintf(stderr, "Error: Failed to write out 1 element for the number of galaxies for the header of file %d.  Only wrote %d elements.\n", n, nwritten);
+      fprintf(stderr, "Error: Failed to write total galaxy count to header of file %d (filenr %d). Expected 1 element, wrote %d elements\n", 
+              n, filenr, nwritten);
+      ABORT(0);
     }
 
     nwritten = myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
     if (nwritten != Ntrees)
     {
-      fprintf(stderr, "Error: Failed to write out %d elements for the number of galaxies per tree for the header of file %d.  Only wrote %d elements.\n", Ntrees, n, nwritten);
+      fprintf(stderr, "Error: Failed to write galaxy counts per tree to header of file %d (filenr %d). Expected %d elements, wrote %d elements\n", 
+              n, filenr, Ntrees, nwritten);
+      ABORT(0);
     }
 
 

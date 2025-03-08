@@ -5,11 +5,11 @@
 
 // Error severity levels
 typedef enum {
-    LOG_LEVEL_DEBUG,   // Detailed debugging information
-    LOG_LEVEL_INFO,    // General informational messages
-    LOG_LEVEL_WARNING, // Warnings that don't stop execution
-    LOG_LEVEL_ERROR,   // Recoverable errors
-    LOG_LEVEL_FATAL    // Unrecoverable errors that terminate execution
+    LOG_LEVEL_DEBUG,   // Detailed debugging information (function tracing, variable values, etc.)
+    LOG_LEVEL_INFO,    // General informational messages (processing milestones, configuration info)
+    LOG_LEVEL_WARNING, // Warnings that don't stop execution (unusual but acceptable conditions)
+    LOG_LEVEL_ERROR,   // Recoverable errors (operation failed but program can continue)
+    LOG_LEVEL_FATAL    // Unrecoverable errors that terminate execution (critical failures)
 } LogLevel;
 
 // Function prototypes
@@ -18,7 +18,7 @@ void log_message(LogLevel level, const char *file, const char *func, int line, c
 void set_log_level(LogLevel min_level);
 FILE* set_log_output(FILE *output_file);
 
-// Convenience macros
+// Convenience macros - see error_handling_guidelines.md for detailed usage instructions
 #define DEBUG_LOG(...)   log_message(LOG_LEVEL_DEBUG, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define INFO_LOG(...)    log_message(LOG_LEVEL_INFO, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define WARNING_LOG(...) log_message(LOG_LEVEL_WARNING, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)

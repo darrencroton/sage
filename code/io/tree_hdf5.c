@@ -143,8 +143,11 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
 
   if (hdf5_file <= 0)
   {
-    fprintf(stderr, "The HDF5 file should still be opened when reading the halos in the tree.\n");
-    fprintf(stderr, "For tree %d we encountered error %d\n", treenr, hdf5_file);
+    char err_msg[MAX_STRING_LEN+1];
+    snprintf(err_msg, MAX_STRING_LEN, 
+             "The HDF5 file should still be opened when reading the halos in tree %d. Error code: %d", 
+             treenr, hdf5_file);
+    fprintf(stderr, "%s\n", err_msg);
     ABORT(0);
   }
 
@@ -155,14 +158,22 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr)
   buffer = calloc(NHalos_ThisTree, sizeof(*(buffer)));
   if (buffer == NULL)
   {
-    fprintf(stderr, "Could not allocate memory for the HDF5 buffer.\n");
+    char err_msg[MAX_STRING_LEN+1];
+    snprintf(err_msg, MAX_STRING_LEN, 
+             "Could not allocate memory for the HDF5 buffer for tree %d (%d halos, %zu bytes)", 
+             treenr, NHalos_ThisTree, NHalos_ThisTree * sizeof(*(buffer)));
+    fprintf(stderr, "%s\n", err_msg);
     ABORT(0);
   }
 
   buffer_multipledim = calloc(NHalos_ThisTree * NDIM, sizeof(*(buffer_multipledim)));
   if (buffer_multipledim == NULL)
   {
-    fprintf(stderr, "Could not allocate memory for the HDF5 multiple dimension buffer.\n");
+    char err_msg[MAX_STRING_LEN+1];
+    snprintf(err_msg, MAX_STRING_LEN, 
+             "Could not allocate memory for the HDF5 multiple dimension buffer for tree %d (%d halos, %zu bytes)", 
+             treenr, NHalos_ThisTree, NHalos_ThisTree * NDIM * sizeof(*(buffer_multipledim)));
+    fprintf(stderr, "%s\n", err_msg);
     ABORT(0);
   }
 
@@ -238,7 +249,7 @@ int32_t fill_metadata_names(struct METADATA_NAMES *metadata_names, enum Valid_Tr
       return EXIT_FAILURE;
 
     default:
-      fprintf(stderr, "Your tree type has not been included in the switch statement for ``fill_metadata_names`` in ``io/tree_hdf5.c``.\n");
+      fprintf(stderr, "Your tree type %d has not been included in the switch statement for ``fill_metadata_names`` in ``io/tree_hdf5.c``.\n", my_TreeType);
       fprintf(stderr, "Please add it there.\n");
       ABORT(EXIT_FAILURE);
 

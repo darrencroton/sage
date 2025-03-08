@@ -35,7 +35,7 @@ void load_tree_table_binary(int32_t filenr)
   snprintf(buf, MAX_BUF_SIZE, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr, SageConfig.TreeExtension);
   if(!(load_fd = fopen(buf, "r")))
   {
-    printf("can't open file `%s'\n", buf);
+    fprintf(stderr, "Error: Failed to open binary tree file '%s' (filenr %d)\n", buf, filenr);
     ABORT(0);
   }
 

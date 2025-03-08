@@ -56,7 +56,7 @@ void read_cooling_functions(void)
 
     if(!(fd = fopen(buf, "r")))
     {
-      printf("file `%s' not found\n", buf);
+      fprintf(stderr, "Error: Cooling function file '%s' not found. Please ensure the extra/CoolFunctions directory contains all required cooling tables.\n", buf);
       ABORT(0);
     }
 
@@ -76,7 +76,7 @@ void read_cooling_functions(void)
 #ifdef MPI
   if(ThisTask == 0)
 #endif
-    printf("cooling functions read\n\n");
+    INFO_LOG("Cooling functions successfully read from %d files", 8);
 
 }
 

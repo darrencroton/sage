@@ -65,7 +65,8 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   }
   else
   {
-    printf("No star formation prescription selected!\n");
+    fprintf(stderr, "Error: No star formation prescription selected (SFprescription=%d). Configure a valid prescription in the parameter file.\n", 
+            SageConfig.SFprescription);
     ABORT(0);
   }
 

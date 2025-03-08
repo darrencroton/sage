@@ -31,9 +31,9 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-#include "io/tree_binary.h"
+#include "tree_binary.h"
 #ifdef HDF5
-#include "io/tree_hdf5.h"
+#include "tree_hdf5.h"
 #endif
 
 #ifndef MAX_BUF_SIZE

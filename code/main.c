@@ -35,7 +35,7 @@
 #include "config.h"
 #include "core_proto.h"
 
-#include "io/io_save_hdf5.h"
+#include "io_save_hdf5.h"
 
 #define MAX_BUFZ0_SIZE (3*MAX_STRING_LEN+25)
 static char bufz0[MAX_BUFZ0_SIZE+1]; /* 3 strings + max 19 bytes for a number */

@@ -25,7 +25,7 @@ OBJS := ./code/main.o \
 	./code/model_reincorporation.o \
 	./code/model_mergers.o \
 	./code/model_misc.o \
-	./code/io/tree_binary.o
+	./code/tree_binary.o
 
 INCL := ./code/core_allvars.h  \
 	./code/core_proto.h  \
@@ -36,7 +36,7 @@ INCL := ./code/core_allvars.h  \
 	./code/constants.h \
 	./code/globals.h \
 	./code/types.h \
-	./code/io/tree_binary.h \
+	./code/tree_binary.h \
 	./Makefile 
 
 ifdef USE-MPI
@@ -51,8 +51,8 @@ ifdef USE-HDF5
     HDF5INCL := -I$(HDF5DIR)/include
     HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
 
-    OBJS += ./code/io/tree_hdf5.o
-    INCL += ./code/io/tree_hdf5.h
+    OBJS += ./code/tree_hdf5.o
+    INCL += ./code/tree_hdf5.h
 
     OPT += -DHDF5
     LIBS += $(HDF5LIB)

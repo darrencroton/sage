@@ -4,6 +4,7 @@
 #include "types.h"
 #include "globals.h"
 #include "config.h"
+#include "util_memory.h"
 
 
 size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
@@ -35,9 +36,17 @@ void print_allocated(void);
 void read_parameter_file(char *fname);
 void init_memory_system(unsigned long max_blocks);
 void *mymalloc(size_t n);
+void *mymalloc_cat(size_t size, MemoryCategory category);
 void *myrealloc(void *p, size_t n);
+void *myrealloc_cat(void *p, size_t size, MemoryCategory category);
 void myfree(void *p);
+void set_memory_reporting(int level);
+void print_allocated(void);
+void print_allocated_by_category(void);
+void print_memory_brief(void);
 void check_memory_leaks(void);
+int validate_memory_block(void *ptr);
+int validate_all_memory(void);
 void cleanup_memory_system(void);
 void myexit(int signum);
 

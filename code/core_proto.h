@@ -33,9 +33,12 @@ void free_tree_table(enum Valid_TreeTypes TreeType);
 void print_allocated(void);
 
 void read_parameter_file(char *fname);
+void init_memory_system(unsigned long max_blocks);
 void *mymalloc(size_t n);
 void *myrealloc(void *p, size_t n);
 void myfree(void *p);
+void check_memory_leaks(void);
+void cleanup_memory_system(void);
 void myexit(int signum);
 
 void finalize_galaxy_file(int filenr);

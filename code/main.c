@@ -216,6 +216,9 @@ int main(int argc, char **argv)
   /* Initialize error handling system with the log level determined from command line */
   initialize_error_handling(log_level, NULL);
   
+  /* Initialize memory management system */
+  init_memory_system(0);  /* Use default block limit */
+  
   /* Log startup information */
   DEBUG_LOG("Starting SAGE with verbosity level: %s", get_log_level_name(log_level));
   INFO_LOG("SAGE Semi-Analytic Galaxy Evolution model starting up");
@@ -319,6 +322,10 @@ int main(int argc, char **argv)
   myfree(Age);
 
   /* Random generator freeing removed - not actually used in computation */
+
+  /* Check for memory leaks and clean up memory system */
+  check_memory_leaks();
+  cleanup_memory_system();
 
   /* Set exit status to success */
   exitfail = 0;

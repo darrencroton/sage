@@ -1,22 +1,21 @@
 /**
- * @file    core_mymalloc.c
- * @brief   Custom memory management system with tracking and LIFO constraints
+ * @file    util_memory.c
+ * @brief   Flexible memory management system with tracking
  *
- * This file implements a custom memory allocation and tracking system that:
+ * This file implements a memory allocation and tracking system that:
  * - Tracks memory usage and reports high watermarks
- * - Enforces Last-In-First-Out (LIFO) allocation/deallocation order
- * - Aligns memory allocations to 8-byte boundaries for performance
- * - Provides detailed error messages for memory-related issues
- *
- * The LIFO constraint helps catch memory management bugs but also imposes
- * limitations on how memory can be used in the code. This enforces a
- * structured approach to memory management throughout the codebase.
+ * - Allows memory to be freed in any order (not restricted to LIFO)
+ * - Supports configurable limits on tracked blocks
+ * - Provides memory leak detection
  *
  * Key functions:
+ * - init_memory_system(): Initializes the memory tracking system
  * - mymalloc(): Allocates memory with tracking
- * - myrealloc(): Reallocates memory (only for the most recently allocated block)
- * - myfree(): Frees memory (only for the most recently allocated block)
+ * - myrealloc(): Reallocates memory (any tracked block)
+ * - myfree(): Frees memory (any tracked block)
  * - print_allocated(): Reports current memory usage
+ * - check_memory_leaks(): Detects and reports memory leaks
+ * - cleanup_memory_system(): Frees tracking resources
  */
 
 #include <stdio.h>
@@ -29,16 +28,74 @@
 #include "core_proto.h"
 #include "util_memory.h"
 
-/* Maximum number of memory blocks that can be tracked */
-#define MAXBLOCKS 256
-
 /* Memory tracking variables */
+static unsigned long MaxBlocks = DEFAULT_MAX_MEMORY_BLOCKS;
 static unsigned long Nblocks = 0;            /* Number of allocated blocks */
-static void *Table[MAXBLOCKS];               /* Pointers to allocated blocks */
-static size_t SizeTable[MAXBLOCKS];          /* Sizes of allocated blocks */
+static void *(*Table) = NULL;                /* Pointers to allocated blocks */
+static size_t (*SizeTable) = NULL;           /* Sizes of allocated blocks */
 static size_t TotMem = 0;                    /* Total allocated memory */
 static size_t HighMarkMem = 0;               /* High watermark of memory usage */
 static size_t OldPrintedHighMark = 0;        /* Last reported high watermark */
+static int MemorySystemInitialized = 0;      /* Flag to track initialization state */
+
+/**
+ * @brief   Initialize the memory management system
+ *
+ * @param   max_blocks  Maximum number of memory blocks to track (0 for default)
+ * 
+ * This function must be called before any other memory functions.
+ * It allocates the tracking arrays and initializes the system state.
+ */
+void init_memory_system(unsigned long max_blocks) {
+    /* Use provided max_blocks or default if 0 */
+    MaxBlocks = max_blocks > 0 ? max_blocks : DEFAULT_MAX_MEMORY_BLOCKS;
+    
+    /* Allocate tracking arrays */
+    Table = calloc(MaxBlocks, sizeof(void*));
+    SizeTable = calloc(MaxBlocks, sizeof(size_t));
+    
+    if (!Table || !SizeTable) {
+        FATAL_ERROR("Memory management system initialization failed: Unable to allocate tracking arrays");
+    }
+    
+    /* Initialize tracking variables */
+    Nblocks = 0;
+    TotMem = 0;
+    HighMarkMem = 0;
+    OldPrintedHighMark = 0;
+    MemorySystemInitialized = 1;
+    
+    INFO_LOG("Memory management system initialized with capacity for %lu blocks", MaxBlocks);
+}
+
+/**
+ * @brief   Find the index of a pointer in the tracking table
+ *
+ * @param   ptr     Pointer to find
+ * @return  Index of the pointer if found, -1 if not found
+ * 
+ * This helper function first checks the most recently allocated block
+ * as a fast path, then performs a linear search if needed.
+ */
+static int find_block_index(void *ptr) {
+    /* Handle NULL pointer case */
+    if (ptr == NULL) {
+        return -1;
+    }
+    
+    /* Fast path: check if it's the most recently allocated block */
+    if (Nblocks > 0 && Table[Nblocks - 1] == ptr) {
+        return Nblocks - 1;
+    }
+    
+    /* Standard linear search for other cases */
+    for (int i = 0; i < Nblocks; i++) {
+        if (Table[i] == ptr) {
+            return i;
+        }
+    }
+    return -1;  /* Not found */
+}
 
 
 
@@ -52,147 +109,194 @@ static size_t OldPrintedHighMark = 0;        /* Last reported high watermark */
  * 1. Aligning to 8-byte boundaries for performance
  * 2. Tracking allocation in the Table and SizeTable arrays
  * 3. Recording total memory usage and high watermarks
- * 4. Enforcing the maximum block limit (MAXBLOCKS)
+ * 4. Enforcing the maximum block limit (MaxBlocks)
  * 
- * Memory allocated with mymalloc() must be freed with myfree()
- * in reverse order of allocation (LIFO constraint).
+ * Memory allocated with mymalloc() must be freed with myfree().
  */
 void *mymalloc(size_t n)
 {
-  /* Align memory to 8-byte boundaries for performance */
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
-
-  /* Ensure minimum allocation size */
-  if(n == 0)
-    n = 8;
-
-  /* Check if we've reached the maximum number of tracked blocks */
-  if(Nblocks >= MAXBLOCKS)
-  {
-    FATAL_ERROR("Memory allocation limit reached: No blocks left in mymalloc(). Increase MAXBLOCKS (%d).", MAXBLOCKS);
-  }
-
-  /* Record allocation size and update total */
-  SizeTable[Nblocks] = n;
-  TotMem += n;
-  
-  /* Update and potentially report high watermark */
-  if(TotMem > HighMarkMem)
-  {
-    HighMarkMem = TotMem;
-    /* Only report when we exceed the previous mark by at least 10MB */
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
+    /* Initialize system if not already done */
+    if (!MemorySystemInitialized) {
+        init_memory_system(0);  /* Use default block limit */
     }
-  }
+    
+    /* Align memory to 8-byte boundaries for performance */
+    if((n % 8) > 0)
+        n = (n / 8 + 1) * 8;
 
-  /* Attempt actual allocation */
-  if(!(Table[Nblocks] = malloc(n)))
-  {
-    FATAL_ERROR("Memory allocation failed: Unable to allocate %.2f MB", n / (1024.0 * 1024.0));
-  }
+    /* Ensure minimum allocation size */
+    if(n == 0)
+        n = 8;
 
-  /* Increment block count and return pointer */
-  Nblocks += 1;
-  return Table[Nblocks - 1];
+    /* Check if we've reached the maximum number of tracked blocks */
+    if(Nblocks >= MaxBlocks)
+    {
+        FATAL_ERROR("Memory allocation limit reached: No blocks left in mymalloc(). Increase DEFAULT_MAX_MEMORY_BLOCKS (%lu).", MaxBlocks);
+    }
+
+    /* Attempt actual allocation */
+    void *ptr = malloc(n);
+    if(!ptr)
+    {
+        FATAL_ERROR("Memory allocation failed: Unable to allocate %.2f MB", n / (1024.0 * 1024.0));
+    }
+
+    /* Record allocation */
+    Table[Nblocks] = ptr;
+    SizeTable[Nblocks] = n;
+    
+    /* Record allocation size and update total */
+    TotMem += n;
+    
+    /* Update and potentially report high watermark */
+    if(TotMem > HighMarkMem)
+    {
+        HighMarkMem = TotMem;
+        /* Only report when we exceed the previous mark by at least 10MB */
+        if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
+        {
+            INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
+            OldPrintedHighMark = HighMarkMem;
+        }
+    }
+
+    /* Increment block count and return pointer */
+    Nblocks += 1;
+    return ptr;
 }
 
 
 /**
- * @brief   Reallocates memory for the most recently allocated block
+ * @brief   Reallocates memory - no longer restricted to LIFO order
  *
- * @param   p       Pointer to memory block to be reallocated (must be last allocated)
+ * @param   p       Pointer to memory block to be reallocated
  * @param   n       New size in bytes
  * @return  Pointer to the reallocated memory block
  *
  * This function reallocates memory while:
- * 1. Enforcing LIFO constraint (can only reallocate the most recently allocated block)
- * 2. Maintaining 8-byte alignment
- * 3. Updating tracking information
- * 4. Recording updated memory usage and high watermarks
+ * 1. Finding the block in the tracking table
+ * 2. Updating tracking information
+ * 3. Handling pointer changes if realloc moves the memory
  *
- * The LIFO constraint is crucial - attempting to reallocate any block
- * other than the most recently allocated will result in a fatal error.
+ * Unlike the original implementation, this function allows reallocating any
+ * tracked block, not just the most recently allocated.
  */
 void *myrealloc(void *p, size_t n)
 {
-  /* Align memory to 8-byte boundaries */
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
-
-  /* Ensure minimum allocation size */
-  if(n == 0)
-    n = 8;
-
-  /* Enforce LIFO constraint - can only reallocate the most recently allocated block */
-  if(p != Table[Nblocks - 1])
-  {
-    FATAL_ERROR("Memory management violation: Wrong call of myrealloc() - pointer %p is not the last allocated block (%p)", 
-                p, Table[Nblocks-1]);
-  }
-  
-  /* Attempt reallocation */
-  void *newp = realloc(Table[Nblocks-1], n);
-  if(newp == NULL) {
-    FATAL_ERROR("Memory reallocation failed: Unable to reallocate %.2f MB (old size = %.2f MB)",
-                n / (1024.0 * 1024.0), SizeTable[Nblocks-1] / (1024.0 * 1024.0));
-  }
-  Table[Nblocks-1] = newp;
-  
-  /* Update memory tracking */
-  TotMem -= SizeTable[Nblocks-1];  /* Remove old size from total */
-  TotMem += n;                     /* Add new size to total */
-  SizeTable[Nblocks-1] = n;        /* Update size record */
-  
-  /* Update and potentially report high watermark */
-  if(TotMem > HighMarkMem)
-  {
-    HighMarkMem = TotMem;
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
+    /* Handle NULL pointer case */
+    if(p == NULL) return mymalloc(n);
+    
+    /* Initialize system if not already done */
+    if (!MemorySystemInitialized) {
+        init_memory_system(0);  /* Use default block limit */
     }
-  }
-
-  return Table[Nblocks - 1];
+    
+    /* Align memory to 8-byte boundaries */
+    if((n % 8) > 0)
+        n = (n / 8 + 1) * 8;
+    
+    /* Ensure minimum allocation size */
+    if(n == 0)
+        n = 8;
+    
+    /* Find the block in the table */
+    int index = find_block_index(p);
+    if(index == -1)
+    {
+        FATAL_ERROR("Memory management error: Attempting to reallocate untracked pointer %p", p);
+    }
+    
+    /* Update memory tracking */
+    TotMem -= SizeTable[index];  /* Remove old size from total */
+    
+    /* Attempt reallocation */
+    void *newp = realloc(p, n);
+    if(newp == NULL)
+    {
+        FATAL_ERROR("Memory reallocation failed: Unable to reallocate %.2f MB", n / (1024.0 * 1024.0));
+    }
+    
+    /* Update tracking if pointer changed */
+    if(newp != p)
+    {
+        Table[index] = newp;
+    }
+    
+    /* Update size and totals */
+    SizeTable[index] = n;
+    TotMem += n;
+    
+    /* Update high watermark if needed */
+    if(TotMem > HighMarkMem)
+    {
+        HighMarkMem = TotMem;
+        if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
+        {
+            INFO_LOG("New memory usage high mark: %.2f MB", HighMarkMem / (1024.0 * 1024.0));
+            OldPrintedHighMark = HighMarkMem;
+        }
+    }
+    
+    return newp;
 }
 
 
 /**
- * @brief   Frees memory while enforcing LIFO constraint
+ * @brief   Frees memory - no longer restricted to LIFO order
  *
- * @param   p       Pointer to memory block to be freed (must be last allocated)
+ * @param   p       Pointer to memory block to be freed
  *
  * This function frees memory while:
- * 1. Enforcing LIFO constraint (can only free the most recently allocated block)
+ * 1. Finding the block in the tracking table
  * 2. Updating memory tracking information
+ * 3. Removing the block from tracking
  *
- * The LIFO constraint is strictly enforced - attempting to free any block
- * other than the most recently allocated will result in a fatal error.
- * This prevents memory management bugs but also restricts usage patterns.
+ * Unlike the original implementation, this function allows freeing blocks
+ * in any order, not just the most recently allocated.
  */
 void myfree(void *p)
 {
-  /* Ensure we have blocks to free */
-  assert(Nblocks > 0);
+    /* Handle NULL pointer gracefully */
+    if(p == NULL) return;
+    
+    /* Ensure we have blocks to free */
+    if(Nblocks == 0)
+    {
+        FATAL_ERROR("Memory management error: Attempting to free a block when no blocks are allocated");
+    }
+    
+    /* Find the block in the table */
+    int index = find_block_index(p);
+    if(index == -1)
+    {
+        FATAL_ERROR("Memory management error: Attempting to free untracked pointer %p", p);
+    }
 
-  /* Enforce LIFO constraint - can only free the most recently allocated block */
-  if(p != Table[Nblocks - 1])
-  {
-    FATAL_ERROR("Memory management violation: Wrong call of myfree() - pointer %p is not the last allocated block (%p)",
-                p, Table[Nblocks-1]);
-  }
-
-  /* Free the memory */
-  free(p);
-
-  /* Update tracking information */
-  Nblocks -= 1;
-  TotMem -= SizeTable[Nblocks];  /* Update total memory usage */
+    /* Optional LIFO violation detection for debugging */
+#ifdef DEBUG_LIFO_VIOLATIONS
+    if(index != Nblocks - 1)
+    {
+        WARNING_LOG("LIFO violation: Freeing block at index %d when last allocated is at index %d", 
+                    index, Nblocks - 1);
+    }
+#endif
+    
+    /* Free the memory */
+    free(p);
+    
+    /* Update tracking information */
+    size_t freedSize = SizeTable[index];
+    TotMem -= freedSize;
+    
+    /* Remove from tracking by moving the last element to the freed slot */
+    if(index < Nblocks - 1)
+    {
+        Table[index] = Table[Nblocks - 1];
+        SizeTable[index] = SizeTable[Nblocks - 1];
+    }
+    
+    /* Decrement block count */
+    Nblocks--;
 }
 
 
@@ -206,6 +310,51 @@ void myfree(void *p)
  */
 void print_allocated(void)
 {
-  INFO_LOG("Memory currently allocated: %.2f MB", TotMem / (1024.0 * 1024.0));
+    INFO_LOG("Memory currently allocated: %.2f MB (%lu blocks)", 
+             TotMem / (1024.0 * 1024.0), Nblocks);
 }
 
+/**
+ * @brief   Checks for memory leaks
+ * 
+ * This function reports any memory blocks that are still allocated,
+ * which may indicate memory leaks. It should be called before program
+ * termination or during debugging.
+ */
+void check_memory_leaks(void)
+{
+    if(Nblocks > 0)
+    {
+        WARNING_LOG("Memory leak detected: %lu blocks (%.2f MB) still allocated", 
+                   Nblocks, TotMem / (1024.0 * 1024.0));
+        
+        /* Print details of leaked blocks */
+        for(unsigned long i = 0; i < Nblocks; i++)
+        {
+            WARNING_LOG("  Leaked block %lu: %.2f KB at %p", 
+                       i, SizeTable[i] / 1024.0, Table[i]);
+        }
+    }
+    else
+    {
+        INFO_LOG("No memory leaks detected");
+    }
+}
+
+/**
+ * @brief   Clean up the memory tracking system
+ * 
+ * This function frees the tracking arrays used by the memory system.
+ * It should be called at program termination after check_memory_leaks().
+ */
+void cleanup_memory_system(void)
+{
+    if (MemorySystemInitialized)
+    {
+        free(Table);
+        free(SizeTable);
+        Table = NULL;
+        SizeTable = NULL;
+        MemorySystemInitialized = 0;
+    }
+}

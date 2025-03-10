@@ -200,7 +200,21 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
       if(ngal == (FoF_MaxGals-1)) {
-        FoF_MaxGals += 10000;
+        /* Calculate new size using growth factor */
+        int new_size = (int)(FoF_MaxGals * GALAXY_ARRAY_GROWTH_FACTOR);
+        
+        /* Ensure minimum growth to prevent too-frequent reallocations */
+        if(new_size - FoF_MaxGals < MIN_GALAXY_ARRAY_GROWTH)
+          new_size = FoF_MaxGals + MIN_GALAXY_ARRAY_GROWTH;
+        
+        /* Cap maximum size to prevent excessive memory usage */
+        if(new_size > MAX_GALAXY_ARRAY_SIZE)
+          new_size = MAX_GALAXY_ARRAY_SIZE;
+        
+        INFO_LOG("Growing galaxy array from %d to %d elements", FoF_MaxGals, new_size);
+        
+        /* Reallocate with new size */
+        FoF_MaxGals = new_size;
         Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
         SimState.FoF_MaxGals = FoF_MaxGals; /* Update SimState directly */
       }

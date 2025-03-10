@@ -11,6 +11,12 @@
 #define MAXTAGS          300  /* Max number of parameters */
 #define MAX_STRING_LEN     1024 /* Max length of a string containing a name */
 
+/* Memory allocation parameters */
+#define GALAXY_ARRAY_GROWTH_FACTOR 1.5   /* Factor to grow arrays by (1.5 = 50% growth) */
+#define MIN_GALAXY_ARRAY_GROWTH 1000     /* Minimum growth increment regardless of factor */
+#define MAX_GALAXY_ARRAY_SIZE 1000000000 /* Upper limit to prevent excessive allocation */
+#define INITIAL_FOF_GALAXIES 1000        /* Initial size for FOF galaxy arrays */
+
 /* Physical constants */
 #define GRAVITY     6.672e-8
 #define SOLAR_MASS  1.989e33

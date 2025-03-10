@@ -204,11 +204,15 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType)
 
   }
 
+  /* Calculate MaxGals based on number of halos with a sensible minimum */
   MaxGals = (int)(MAXGALFAC * TreeNHalos[treenr]);
-  if(MaxGals < 10000)
-    MaxGals = 10000;
+  if(MaxGals < MIN_GALAXY_ARRAY_GROWTH)
+    MaxGals = MIN_GALAXY_ARRAY_GROWTH;
 
-  FoF_MaxGals = 10000;
+  /* Start with a reasonable size for FoF_MaxGals based on tree characteristics */
+  FoF_MaxGals = INITIAL_FOF_GALAXIES;
+  if ((int)(0.1 * MaxGals) > FoF_MaxGals)
+    FoF_MaxGals = (int)(0.1 * MaxGals);
   
   /* Update SimulationState */
   SimState.MaxGals = MaxGals;

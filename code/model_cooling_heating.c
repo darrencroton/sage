@@ -28,6 +28,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 
 
@@ -55,7 +56,7 @@ double cooling_recipe(int gal, double dt)
   double tcool, x, logZ, lambda, rcool, rho_rcool, rho0, temp, coolingGas;
 
   /* Only proceed if the galaxy has hot gas and a non-zero virial velocity */
-  if(Gal[gal].HotGas > 0.0 && Gal[gal].Vvir > 0.0)
+  if(is_greater(Gal[gal].HotGas, 0.0) && is_greater(Gal[gal].Vvir, 0.0))
   {
     /* Calculate dynamical time of the halo (approximation for cooling time) */
     tcool = Gal[gal].Rvir / Gal[gal].Vvir;
@@ -66,8 +67,8 @@ double cooling_recipe(int gal, double dt)
     temp = 35.9 * Gal[gal].Vvir * Gal[gal].Vvir;
 
     /* Calculate log of metallicity (Z/Z_sun) for cooling function lookup */
-    if(Gal[gal].MetalsHotGas > 0)
-      logZ = log10(Gal[gal].MetalsHotGas / Gal[gal].HotGas);
+    if(is_greater(Gal[gal].MetalsHotGas, 0.0))
+      logZ = log10(safe_div(Gal[gal].MetalsHotGas, Gal[gal].HotGas, EPSILON_SMALL));
     else
       logZ = -10.0;  /* Set very low metallicity if no metals */
 
@@ -93,37 +94,37 @@ double cooling_recipe(int gal, double dt)
     rcool = sqrt(rho0 / rho_rcool);
 
     /* Determine cooling regime and calculate cooled gas mass */
-    if(rcool > Gal[gal].Rvir)
+    if(is_greater(rcool, Gal[gal].Rvir))
       /* "Cold accretion" regime - rapid cooling throughout the halo
        * All hot gas cools on the dynamical timescale */
-      coolingGas = Gal[gal].HotGas / (Gal[gal].Rvir / Gal[gal].Vvir) * dt; 
+      coolingGas = Gal[gal].HotGas * safe_div(Gal[gal].Vvir, Gal[gal].Rvir, EPSILON_SMALL) * dt; 
     else
       /* "Hot halo cooling" regime - cooling only within cooling radius
        * This follows from integrating the isothermal density profile
        * within rcool and dividing by the cooling time */
-      coolingGas = (Gal[gal].HotGas / Gal[gal].Rvir) * (rcool / (2.0 * tcool)) * dt;
+      coolingGas = safe_div(Gal[gal].HotGas, Gal[gal].Rvir, EPSILON_SMALL) * safe_div(rcool, (2.0 * tcool), EPSILON_SMALL) * dt;
 
     /* Apply limits to ensure physically sensible cooling */
-    if(coolingGas > Gal[gal].HotGas)
+    if(is_greater(coolingGas, Gal[gal].HotGas))
       coolingGas = Gal[gal].HotGas;  /* Cannot cool more gas than is available */
     else 
-      if(coolingGas < 0.0)
+      if(is_less_or_equal(coolingGas, 0.0))
         coolingGas = 0.0;  /* Prevent negative cooling */
 
     /* At this point we have calculated the maximal cooling rate
      * If AGN feedback is enabled, reduce cooling based on past heating */
-    if(SageConfig.AGNrecipeOn > 0 && coolingGas > 0.0)
+    if(SageConfig.AGNrecipeOn > 0 && is_greater(coolingGas, 0.0))
       coolingGas = do_AGN_heating(coolingGas, gal, dt, x, rcool);
   
     /* Accumulate cooling energy for energy budget calculation
      * E_cool = 0.5 * m * V_vir^2 = change in potential energy */
-    if (coolingGas > 0.0)
+    if (is_greater(coolingGas, 0.0))
       Gal[gal].Cooling += 0.5 * coolingGas * Gal[gal].Vvir * Gal[gal].Vvir;
   }
   else
     coolingGas = 0.0;  /* No cooling if no hot gas or zero virial velocity */
 
-  assert(coolingGas >= 0.0);  /* Ensure no negative cooling */
+  assert(is_greater_or_equal(coolingGas, 0.0));  /* Ensure no negative cooling */
   return coolingGas;
 }
 
@@ -158,15 +159,15 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
 
   /* First, reduce cooling rate based on past AGN heating events
    * This models the cumulative effect of multiple AGN outbursts */
-  if(Gal[centralgal].r_heat < rcool)
-    coolingGas = (1.0 - Gal[centralgal].r_heat / rcool) * coolingGas;
+  if(is_less(Gal[centralgal].r_heat, rcool))
+    coolingGas = (1.0 - safe_div(Gal[centralgal].r_heat, rcool, 1.0)) * coolingGas;
   else
     coolingGas = 0.0;  /* Complete suppression if heating radius exceeds cooling radius */
   
-  assert(coolingGas >= 0.0);
+  assert(is_greater_or_equal(coolingGas, 0.0));
 
   /* Calculate the new heating rate from black hole accretion */
-  if(Gal[centralgal].HotGas > 0.0)
+  if(is_greater(Gal[centralgal].HotGas, 0.0))
   {
     /* Choose accretion model based on configuration */
     if(SageConfig.AGNrecipeOn == 2)
@@ -185,8 +186,8 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
       /* Cold cloud accretion model
        * Triggered when BH mass exceeds threshold related to cooling properties
        * Accretion rate = 0.01% of cooling rate when triggered */
-      if(Gal[centralgal].BlackHoleMass > 0.0001 * Gal[centralgal].Mvir * pow(rcool/Gal[centralgal].Rvir, 3.0))
-        AGNrate = 0.0001 * coolingGas / dt;
+      if(is_greater(Gal[centralgal].BlackHoleMass, 0.0001 * Gal[centralgal].Mvir * pow(safe_div(rcool, Gal[centralgal].Rvir, EPSILON_SMALL), 3.0)))
+        AGNrate = 0.0001 * safe_div(coolingGas, dt, EPSILON_SMALL);
       else
         AGNrate = 0.0;
     }
@@ -195,10 +196,10 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
       /* Empirical (standard) accretion recipe
        * Scales with black hole mass, virial velocity, and hot gas fraction
        * Formula based on simulation fits rather than physical first principles */
-      if(Gal[centralgal].Mvir > 0.0)
+      if(is_greater(Gal[centralgal].Mvir, 0.0))
         AGNrate = SageConfig.RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
           * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0)
-            * ((Gal[centralgal].HotGas / Gal[centralgal].Mvir) / 0.1);
+            * (safe_div(Gal[centralgal].HotGas, Gal[centralgal].Mvir, EPSILON_SMALL) / 0.1);
       else
         AGNrate = SageConfig.RadioModeEfficiency / (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
           * (Gal[centralgal].BlackHoleMass / 0.01) * pow(Gal[centralgal].Vvir / 200.0, 3.0);
@@ -210,28 +211,28 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     EDDrate = (1.3e38 * Gal[centralgal].BlackHoleMass * 1e10 / SageConfig.Hubble_h) / (UnitEnergy_in_cgs / UnitTime_in_s) / (0.1 * 9e10);
 
     /* Limit accretion to Eddington rate */
-    if(AGNrate > EDDrate)
+    if(is_greater(AGNrate, EDDrate))
       AGNrate = EDDrate;
 
     /* Calculate total mass accreted onto black hole in this time step */
     AGNaccreted = AGNrate * dt;
 
     /* Ensure we don't accrete more hot gas than is available */
-    if(AGNaccreted > Gal[centralgal].HotGas)
+    if(is_greater(AGNaccreted, Gal[centralgal].HotGas))
       AGNaccreted = Gal[centralgal].HotGas;
 
     /* Calculate heating efficiency coefficient
      * This represents energy per unit mass needed to heat gas to virial temperature
      * 1.34e5 = sqrt(2*eta*c^2), where eta=0.1 is standard efficiency and c is speed of light in km/s
      * Dividing by Vvir converts to dimensionless heating efficiency */
-    AGNcoeff = (1.34e5 / Gal[centralgal].Vvir) * (1.34e5 / Gal[centralgal].Vvir);
+    AGNcoeff = pow(safe_div(1.34e5, Gal[centralgal].Vvir, EPSILON_SMALL), 2.0);
 
     /* Calculate mass of cooling gas that can be suppressed by this heating */
     AGNheating = AGNcoeff * AGNaccreted;
 
     /* Limit heating to the current cooling rate to maintain energy conservation
      * If heating would exceed cooling, reduce accretion accordingly */
-    if(AGNheating > coolingGas)
+    if(is_greater(AGNheating, coolingGas))
     {
       AGNaccreted = coolingGas / AGNcoeff;
       AGNheating = coolingGas;
@@ -245,16 +246,16 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
   
     /* Update the heating radius - this affects future cooling suppression
      * The heating radius grows when effective heating occurs */
-    if(Gal[centralgal].r_heat < rcool && coolingGas > 0.0)
+    if(is_less(Gal[centralgal].r_heat, rcool) && is_greater(coolingGas, 0.0))
     {
-      r_heat_new = (AGNheating / coolingGas) * rcool;
-      if(r_heat_new > Gal[centralgal].r_heat)
+      r_heat_new = safe_div(AGNheating, coolingGas, 0.0) * rcool;
+      if(is_greater(r_heat_new, Gal[centralgal].r_heat))
         Gal[centralgal].r_heat = r_heat_new;
     }
     
     /* Track heating energy for energy budget calculations
      * E_heat = 0.5 * m * V_vir^2 = energy needed to heat gas to virial temperature */
-    if (AGNheating > 0.0)
+    if (is_greater(AGNheating, 0.0))
       Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
   }
 
@@ -282,10 +283,10 @@ void cool_gas_onto_galaxy(int centralgal, double coolingGas)
   double metallicity;
 
   /* Only proceed if there is gas to cool */
-  if(coolingGas > 0.0)
+  if(is_greater(coolingGas, 0.0))
   {
     /* Check if we're trying to cool more gas than is available in the hot halo */
-    if(coolingGas < Gal[centralgal].HotGas)
+    if(is_less(coolingGas, Gal[centralgal].HotGas))
     {
       /* Normal case: cooling doesn't deplete hot gas completely */
       metallicity = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);

@@ -21,6 +21,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 
 
@@ -56,17 +57,17 @@ void reincorporate_gas(int centralgal, double dt)
   double Vcrit = 445.48 * SageConfig.ReIncorporationFactor;
   
   /* Only reincorporate gas if the halo virial velocity exceeds the critical value */
-  if(Gal[centralgal].Vvir > Vcrit)
+  if(is_greater(Gal[centralgal].Vvir, Vcrit))
   {
     /* Calculate reincorporation rate:
      * Rate = (Vvir/Vcrit - 1) * Mejected / tdyn * dt
      * Where tdyn is the dynamical time of the halo (Rvir/Vvir) */
     reincorporated = 
-      (Gal[centralgal].Vvir / Vcrit - 1.0) *
-      Gal[centralgal].EjectedMass / (Gal[centralgal].Rvir / Gal[centralgal].Vvir) * dt;
+      (safe_div(Gal[centralgal].Vvir, Vcrit, EPSILON_SMALL) - 1.0) *
+      Gal[centralgal].EjectedMass * safe_div(Gal[centralgal].Vvir, Gal[centralgal].Rvir, EPSILON_SMALL) * dt;
 
     /* Limit reincorporation to the available ejected mass */
-    if(reincorporated > Gal[centralgal].EjectedMass)
+    if(is_greater(reincorporated, Gal[centralgal].EjectedMass))
       reincorporated = Gal[centralgal].EjectedMass;
 
     /* Calculate metallicity of ejected gas */

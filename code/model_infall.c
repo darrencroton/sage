@@ -27,6 +27,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 /* Macro to suppress unused parameter warnings */
 #define UNUSED(foo) (void)(foo)
@@ -114,11 +115,11 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
   Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
 
   /* Enforce physical constraints on ejected mass and metals */
-  if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
+  if(is_greater(Gal[centralgal].MetalsEjectedMass, Gal[centralgal].EjectedMass))
     Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;  /* Metals can't exceed total mass */
-  if(Gal[centralgal].EjectedMass < 0.0)
+  if(is_less(Gal[centralgal].EjectedMass, 0.0))
     Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;  /* No negative masses */
-  if(Gal[centralgal].MetalsEjectedMass < 0.0)
+  if(is_less(Gal[centralgal].MetalsEjectedMass, 0.0))
     Gal[centralgal].MetalsEjectedMass = 0.0;  /* No negative metal masses */
 
   /* Assign all intracluster stars to the central galaxy (for numerical convenience) */
@@ -126,11 +127,11 @@ double infall_recipe(int centralgal, int ngal, double Zcurr)
   Gal[centralgal].MetalsICS = tot_ICSMetals;
 
   /* Enforce physical constraints on ICS mass and metals */
-  if(Gal[centralgal].MetalsICS > Gal[centralgal].ICS)
+  if(is_greater(Gal[centralgal].MetalsICS, Gal[centralgal].ICS))
     Gal[centralgal].MetalsICS = Gal[centralgal].ICS;  /* Metals can't exceed total mass */
-  if(Gal[centralgal].ICS < 0.0)
+  if(is_less(Gal[centralgal].ICS, 0.0))
     Gal[centralgal].ICS = Gal[centralgal].MetalsICS = 0.0;  /* No negative masses */
-  if(Gal[centralgal].MetalsICS < 0.0)
+  if(is_less(Gal[centralgal].MetalsICS, 0.0))
     Gal[centralgal].MetalsICS = 0.0;  /* No negative metal masses */
 
   return infallingMass;  /* Return calculated infalling gas mass */
@@ -180,15 +181,15 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
    * ( reionization_modifier * BaryonFrac * Gal[gal].deltaMvir ) / STEPS; */
 
   /* Only proceed if there is positive stripping (satellite has excess baryons) */
-  if(strippedGas > 0.0)
+  if(is_greater(strippedGas, 0.0))
   {
     /* Calculate metals in the stripped gas */
     metallicity = get_metallicity(Gal[gal].HotGas, Gal[gal].MetalsHotGas);
     strippedGasMetals = strippedGas * metallicity;
   
     /* Limit stripping to available hot gas and metals */
-    if(strippedGas > Gal[gal].HotGas) strippedGas = Gal[gal].HotGas;
-    if(strippedGasMetals > Gal[gal].MetalsHotGas) strippedGasMetals = Gal[gal].MetalsHotGas;
+    if(is_greater(strippedGas, Gal[gal].HotGas)) strippedGas = Gal[gal].HotGas;
+    if(is_greater(strippedGasMetals, Gal[gal].MetalsHotGas)) strippedGasMetals = Gal[gal].MetalsHotGas;
 
     /* Remove gas and metals from satellite */
     Gal[gal].HotGas -= strippedGas;
@@ -276,23 +277,25 @@ double do_reionization(int gal, double Zcurr)
   Mfiltering = Mjeans * pow(f_of_a, 1.5);
 
   /* Calculate the characteristic mass corresponding to a halo temperature of 10^4K */
-  Vchar = sqrt(Tvir / 36.0);  /* Characteristic velocity */
+  Vchar = sqrt(safe_div(Tvir, 36.0, EPSILON_SMALL));  /* Characteristic velocity */
   
   /* Calculate cosmological parameters at current redshift */
-  omegaZ = SageConfig.Omega * (pow(1.0 + Zcurr, 3.0) / (SageConfig.Omega * pow(1.0 + Zcurr, 3.0) + SageConfig.OmegaLambda));
+  omegaZ = SageConfig.Omega * safe_div(pow(1.0 + Zcurr, 3.0), 
+                                     (SageConfig.Omega * pow(1.0 + Zcurr, 3.0) + SageConfig.OmegaLambda), 
+                                     EPSILON_SMALL);
   xZ = omegaZ - 1.0;
   deltacritZ = 18.0 * M_PI * M_PI + 82.0 * xZ - 39.0 * xZ * xZ;  /* Critical overdensity at z */
   HubbleZ = Hubble * sqrt(SageConfig.Omega * pow(1.0 + Zcurr, 3.0) + SageConfig.OmegaLambda);  /* Hubble parameter at z */
 
   /* Calculate characteristic mass from virial temperature */
-  Mchar = Vchar * Vchar * Vchar / (G * HubbleZ * sqrt(0.5 * deltacritZ));
+  Mchar = Vchar * Vchar * Vchar * safe_div(1.0, (G * HubbleZ * sqrt(0.5 * deltacritZ)), EPSILON_SMALL);
 
   /* Use the maximum of filtering mass and characteristic mass */
   mass_to_use = dmax(Mfiltering, Mchar);
   
   /* Calculate suppression modifier using fitting formula
    * This approaches 0 for low-mass halos and 1 for high-mass halos */
-  modifier = 1.0 / pow(1.0 + 0.26 * (mass_to_use / Gal[gal].Mvir), 3.0);
+  modifier = 1.0 / pow(1.0 + 0.26 * safe_div(mass_to_use, Gal[gal].Mvir, EPSILON_SMALL), 3.0);
 
   return modifier;
 }
@@ -323,21 +326,21 @@ void add_infall_to_hot(int gal, double infallingGas)
   float metallicity;
 
   /* Handle mass loss case (negative infall) */
-  if(infallingGas < 0.0 && Gal[gal].EjectedMass > 0.0)
+  if(is_less(infallingGas, 0.0) && is_greater(Gal[gal].EjectedMass, 0.0))
   {  
     /* First remove from ejected gas reservoir */
     metallicity = get_metallicity(Gal[gal].EjectedMass, Gal[gal].MetalsEjectedMass);
     
     /* Update ejected metals, preserving metallicity */
     Gal[gal].MetalsEjectedMass += infallingGas * metallicity;
-    if(Gal[gal].MetalsEjectedMass < 0.0) 
+    if(is_less(Gal[gal].MetalsEjectedMass, 0.0)) 
       Gal[gal].MetalsEjectedMass = 0.0;  /* Prevent negative metals */
 
     /* Update ejected gas mass */
     Gal[gal].EjectedMass += infallingGas;
     
     /* If ejected reservoir is depleted, continue removing from hot gas */
-    if(Gal[gal].EjectedMass < 0.0)
+    if(is_less(Gal[gal].EjectedMass, 0.0))
     {
       infallingGas = Gal[gal].EjectedMass;  /* Remaining gas to remove */
       Gal[gal].EjectedMass = Gal[gal].MetalsEjectedMass = 0.0;  /* Reset ejected reservoir */
@@ -347,13 +350,13 @@ void add_infall_to_hot(int gal, double infallingGas)
   }
 
   /* If we still have mass loss after depleting ejected gas, remove from hot gas metals */
-  if(infallingGas < 0.0 && Gal[gal].MetalsHotGas > 0.0)
+  if(is_less(infallingGas, 0.0) && is_greater(Gal[gal].MetalsHotGas, 0.0))
   {
     metallicity = get_metallicity(Gal[gal].HotGas, Gal[gal].MetalsHotGas);
     
     /* Update hot gas metals, preserving metallicity */
     Gal[gal].MetalsHotGas += infallingGas * metallicity;
-    if(Gal[gal].MetalsHotGas < 0.0) 
+    if(is_less(Gal[gal].MetalsHotGas, 0.0)) 
       Gal[gal].MetalsHotGas = 0.0;  /* Prevent negative metals */
   }
 
@@ -361,6 +364,6 @@ void add_infall_to_hot(int gal, double infallingGas)
   Gal[gal].HotGas += infallingGas;
   
   /* Ensure non-negative values */
-  if(Gal[gal].HotGas < 0.0) 
+  if(is_less(Gal[gal].HotGas, 0.0)) 
     Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;
 }

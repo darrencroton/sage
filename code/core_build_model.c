@@ -36,6 +36,7 @@
 #include "types.h"
 #include "config.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 
 
@@ -259,7 +260,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
 
           Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
-          if(get_virial_mass(halonr) > Gal[ngal].Mvir)
+          if(is_greater(get_virial_mass(halonr), Gal[ngal].Mvir))
           {
             Gal[ngal].Rvir = get_virial_radius(halonr);  // use the maximum Rvir in model
             Gal[ngal].Vvir = get_virial_velocity(halonr);  // use the maximum Vvir in model
@@ -302,7 +303,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
               Gal[ngal].infallVmax = previousVmax;
             }
 
-            if(Gal[ngal].Type == 0 || Gal[ngal].MergTime > 999.0)
+            if(Gal[ngal].Type == 0 || is_greater(Gal[ngal].MergTime, 999.0))
               // here the galaxy has gone from type 1 to type 2 or otherwise doesn't have a merging time.
               Gal[ngal].MergTime = estimate_merging_time(halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
             
@@ -315,7 +316,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart, int first_occupied
           Gal[ngal].deltaMvir = -1.0*Gal[ngal].Mvir;
           Gal[ngal].Mvir = 0.0;
 
-          if(Gal[ngal].MergTime > 999.0 || Gal[ngal].Type == 0)
+          if(is_greater(Gal[ngal].MergTime, 999.0) || Gal[ngal].Type == 0)
           {
             // here the galaxy has gone from type 0 to type 2 - merge it!
             Gal[ngal].MergTime = 0.0;
@@ -458,7 +459,7 @@ void apply_physical_processes(int ngal, int centralgal, int halonr, double infal
     time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
       
     /* Set time step for galaxies that don't have it yet */
-    if(Gal[p].dT < 0.0)
+    if(is_less(Gal[p].dT, 0.0))
       Gal[p].dT = deltaT;
 
     /* Special processes for the central galaxy */
@@ -473,7 +474,7 @@ void apply_physical_processes(int ngal, int centralgal, int halonr, double infal
     }
     else 
       /* For satellite galaxies with subhalos and hot gas, apply environmental stripping */
-      if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
+      if(Gal[p].Type == 1 && is_greater(Gal[p].HotGas, 0.0))
         strip_from_satellite(halonr, centralgal, p);
 
     /* Calculate cooling gas based on halo properties */
@@ -518,20 +519,20 @@ void handle_mergers(int ngal, int centralgal, int halonr, int step)
     if((Gal[p].Type == 1 || Gal[p].Type == 2) && Gal[p].mergeType == 0)
     {
       /* All satellites should have a valid merger time */
-      assert(Gal[p].MergTime < 999.0);
+      assert(is_less(Gal[p].MergTime, 999.0));
 
       /* Update remaining time until merging */
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       Gal[p].MergTime -= deltaT / STEPS;
       
       /* Calculate current halo mass accounting for linear mass loss during the step */
-      currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
+      currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - safe_div((double)step + 1.0, (double)STEPS, EPSILON_SMALL));
       galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
       
       /* Check if satellite meets disruption/merger criteria:
        * 1. Has no baryonic mass (will never grow)
        * 2. Has a dark matter to baryonic mass ratio below threshold */
-      if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= SageConfig.ThresholdSatDisruption)))        
+      if(is_zero(galaxyBaryons) || (is_greater(galaxyBaryons, 0.0) && is_less_or_equal(safe_div(currentMvir, galaxyBaryons, EPSILON_SMALL), SageConfig.ThresholdSatDisruption)))
       {
         /* Determine which galaxy this satellite will merge into */
         if(Gal[p].Type==1) 
@@ -547,11 +548,11 @@ void handle_mergers(int ngal, int centralgal, int halonr, int step)
         Gal[p].mergeIntoID = NumGals + merger_centralgal;
         
         /* Handle satellite disruption if merger time hasn't expired */
-        if(Gal[p].MergTime > 0.0)
+        if(is_greater(Gal[p].MergTime, 0.0))
         {
           disrupt_satellite_to_ICS(merger_centralgal, p);
         }
-        else if(Gal[p].MergTime <= 0.0)  /* Handle galaxy merger */
+        else if(is_less_or_equal(Gal[p].MergTime, 0.0))  /* Handle galaxy merger */
         {
           /* Calculate the cosmic time for this merger event */
           time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   

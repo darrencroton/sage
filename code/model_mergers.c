@@ -31,6 +31,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 
 
@@ -71,9 +72,10 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
   SatelliteMass = get_virial_mass(sat_halo) + Gal[ngal].StellarMass + Gal[ngal].ColdGas;
   SatelliteRadius = get_virial_radius(mother_halo);
 
-  if(SatelliteMass > 0.0 && coulomb > 0.0)
+  if(is_greater(SatelliteMass, 0.0) && is_greater(coulomb, 0.0))
     mergtime = 2.0 *
-    1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
+    1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) * 
+    safe_div(1.0, (coulomb * G * SatelliteMass), EPSILON_SMALL);
   else
     mergtime = -1.0;
   
@@ -124,8 +126,8 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   }
 
   /* Calculate mass ratio, defaulting to 1.0 if no mass */
-  if(ma > 0)
-    mass_ratio = mi / ma;
+  if(is_greater(ma, 0.0))
+    mass_ratio = safe_div(mi, ma, 1.0);
   else
     mass_ratio = 1.0;
 
@@ -141,11 +143,11 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
 
   /* Update minor merger timing if significant enough (mass ratio > 0.1) */
-  if(mass_ratio > 0.1)
+  if(is_greater(mass_ratio, 0.1))
     Gal[merger_centralgal].TimeOfLastMinorMerger = time;
 
   /* For major mergers (mass ratio > threshold), transform the remnant into a spheroid */
-  if(mass_ratio > SageConfig.ThreshMajorMerger)
+  if(is_greater(mass_ratio, SageConfig.ThreshMajorMerger))
   {
     make_bulge_from_burst(merger_centralgal);
     Gal[merger_centralgal].TimeOfLastMajorMerger = time;
@@ -181,7 +183,7 @@ void grow_black_hole(int merger_centralgal, double mass_ratio)
   double BHaccrete, metallicity;
 
   /* Only proceed if there is cold gas available for accretion */
-  if(Gal[merger_centralgal].ColdGas > 0.0)
+  if(is_greater(Gal[merger_centralgal].ColdGas, 0.0))
   {
     /* Calculate BH accretion rate using the Kauffmann & Haehnelt (2000) formula
      * Accretion increases with:
@@ -189,10 +191,10 @@ void grow_black_hole(int merger_centralgal, double mass_ratio)
      * - Higher virial velocities (deeper potential wells)
      * - More available cold gas (more fuel) */
     BHaccrete = SageConfig.BlackHoleGrowthRate * mass_ratio / 
-      (1.0 + pow(280.0 / Gal[merger_centralgal].Vvir, 2.0)) * Gal[merger_centralgal].ColdGas;
+      (1.0 + pow(safe_div(280.0, Gal[merger_centralgal].Vvir, EPSILON_SMALL), 2.0)) * Gal[merger_centralgal].ColdGas;
 
     /* Limit accretion to available cold gas */
-    if(BHaccrete > Gal[merger_centralgal].ColdGas)
+    if(is_greater(BHaccrete, Gal[merger_centralgal].ColdGas))
       BHaccrete = Gal[merger_centralgal].ColdGas;
 
     /* Calculate metallicity of accreted gas */
@@ -241,12 +243,12 @@ void quasar_mode_wind(int gal, float BHaccrete)
    * 2. Cold gas binding energy (E = 0.5 × Mcold × Vvir²)
    * 3. Hot gas binding energy (E = 0.5 × Mhot × Vvir²) */
   quasar_energy = SageConfig.QuasarModeEfficiency * 0.1 * BHaccrete * 
-                 (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
+                 pow(C / UnitVelocity_in_cm_per_s, 2.0);
   cold_gas_energy = 0.5 * Gal[gal].ColdGas * Gal[gal].Vvir * Gal[gal].Vvir;
   hot_gas_energy = 0.5 * Gal[gal].HotGas * Gal[gal].Vvir * Gal[gal].Vvir;
    
   /* If quasar energy exceeds cold gas binding energy, eject all cold gas */
-  if(quasar_energy > cold_gas_energy)
+  if(is_greater(quasar_energy, cold_gas_energy))
   {
     /* Add cold gas and its metals to ejected reservoir */
     Gal[gal].EjectedMass += Gal[gal].ColdGas;
@@ -258,7 +260,7 @@ void quasar_mode_wind(int gal, float BHaccrete)
   }
   
   /* If quasar energy exceeds combined cold+hot gas binding energy, also eject all hot gas */
-  if(quasar_energy > cold_gas_energy + hot_gas_energy)
+  if(is_greater(quasar_energy, cold_gas_energy + hot_gas_energy))
   {
     /* Add hot gas and its metals to ejected reservoir */
     Gal[gal].EjectedMass += Gal[gal].HotGas;

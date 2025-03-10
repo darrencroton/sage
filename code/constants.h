@@ -1,6 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/* Floating-point comparison epsilon values */
+#define EPSILON_SMALL  1.0e-10  /* For near-zero comparisons */
+#define EPSILON_MEDIUM 1.0e-6   /* For general equality comparisons */
+#define EPSILON_LARGE  1.0e-4   /* For physics model thresholds */
+
 /* Numerical constants for the simulation */
 #define NDIM 3
 #define STEPS 10         /* Number of integration intervals between two snapshots */

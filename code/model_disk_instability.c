@@ -25,6 +25,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "util_numeric.h"
 
 
 
@@ -63,7 +64,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
   diskmass = Gal[p].ColdGas + (Gal[p].StellarMass - Gal[p].BulgeMass);
   
   /* Only proceed if disk mass is positive */
-  if(diskmass > 0.0)
+  if(is_greater(diskmass, 0.0))
   {
     /* Calculate critical disk mass for stability:
      * Mcrit = Vmax^2 * (3 * DiskScaleRadius) / G
@@ -75,7 +76,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       Mcrit = diskmass;
     
     /* Calculate the fractions of gas and stars in the disk */
-    gas_fraction   = Gal[p].ColdGas / diskmass;
+    gas_fraction   = safe_div(Gal[p].ColdGas, diskmass, 0.0);
     star_fraction  = 1.0 - gas_fraction;
     
     /* Calculate unstable gas and stellar masses that need to be transferred */
@@ -83,7 +84,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     unstable_stars = star_fraction * (diskmass - Mcrit);
 
     /* Handle unstable stars - transfer directly to the bulge */
-    if(unstable_stars > 0.0)
+    if(is_greater(unstable_stars, 0.0))
     {
       /* Calculate disk stellar metallicity (excluding existing bulge) */
       metallicity = get_metallicity(Gal[p].StellarMass - Gal[p].BulgeMass, 
@@ -99,8 +100,8 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       // Gal[p].mergeIntoID = NumGals + p - 1;      
       
       /* Sanity check to ensure bulge mass doesn't exceed total stellar mass */
-      if (Gal[p].BulgeMass / Gal[p].StellarMass > 1.0001 || 
-          Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass > 1.0001)
+      if (is_greater(safe_div(Gal[p].BulgeMass, Gal[p].StellarMass, EPSILON_SMALL), 1.0001) || 
+          is_greater(safe_div(Gal[p].MetalsBulgeMass, Gal[p].MetalsStellarMass, EPSILON_SMALL), 1.0001))
       {
         WARNING_LOG("Disk instability caused bulge mass to exceed total stellar mass in galaxy %d. Bulge/Total = %.4f (stars) or %.4f (metals)",
                     p, Gal[p].BulgeMass / Gal[p].StellarMass, Gal[p].MetalsBulgeMass / Gal[p].MetalsStellarMass);
@@ -109,10 +110,10 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
     }
 
     /* Handle unstable gas - trigger starburst and black hole growth */
-    if(unstable_gas > 0.0)
+    if(is_greater(unstable_gas, 0.0))
     {
       /* Sanity check to ensure unstable gas doesn't exceed available cold gas */
-      if(unstable_gas/Gal[p].ColdGas > 1.0001)
+      if(is_greater(safe_div(unstable_gas, Gal[p].ColdGas, EPSILON_SMALL), 1.0001))
       {
         WARNING_LOG("Disk instability calculation produced unstable gas mass exceeding total cold gas in galaxy %d. Unstable gas = %.4e, Cold gas = %.4e", 
                     p, unstable_gas, Gal[p].ColdGas);
@@ -120,7 +121,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       }
 
       /* Calculate fraction of cold gas that is unstable */
-      unstable_gas_fraction = unstable_gas / Gal[p].ColdGas;
+      unstable_gas_fraction = safe_div(unstable_gas, Gal[p].ColdGas, 0.0);
       
       /* Feed black hole if AGN recipe is enabled */
       if(SageConfig.AGNrecipeOn > 0)

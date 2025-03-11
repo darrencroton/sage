@@ -61,9 +61,11 @@ double swap_double(double value);
 int is_same_endian(int file_endian);
 void* swap_bytes_if_needed(void* data, size_t size, size_t count, int file_endian);
 
-/* File format utilities - for future implementation */
+/* File format utilities */
 int write_sage_header(FILE* file, int endianness);
 int read_sage_header(FILE* file, struct SAGEFileHeader* header);
 int check_file_compatibility(const struct SAGEFileHeader* header);
+int check_headerless_file(FILE* file);
+long get_file_size(FILE* file);
 
 #endif /* IO_UTIL_H */

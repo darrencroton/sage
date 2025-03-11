@@ -31,11 +31,16 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 #include "io_tree.h"
+#include "io_util.h"
+#include "util_error.h"
 
 #include "io_tree_binary.h"
 #ifdef HDF5
 #include "io_tree_hdf5.h"
 #endif
+
+/* Global file endianness variable - initialized to host endianness by default */
+static int file_endianness = SAGE_HOST_ENDIAN;
 
 #ifndef MAX_BUF_SIZE
 #define MAX_BUF_SIZE (3*MAX_STRING_LEN+40)
@@ -273,7 +278,41 @@ void free_galaxies_and_tree(void)
 }
 
 /**
- * @brief   Wrapper for the fread function
+ * @brief   Set the endianness for binary file operations
+ *
+ * @param   endianness    The endianness to use (SAGE_LITTLE_ENDIAN or SAGE_BIG_ENDIAN)
+ *
+ * This function sets the global endianness value used for all binary file
+ * operations. It's typically called after detecting the endianness of a file.
+ * The functions myfread and myfwrite will use this value to perform any
+ * necessary byte swapping.
+ */
+void set_file_endianness(int endianness) {
+    if (endianness != SAGE_LITTLE_ENDIAN && endianness != SAGE_BIG_ENDIAN) {
+        WARNING_LOG("Invalid endianness value %d. Using host endianness (%d).", 
+                   endianness, SAGE_HOST_ENDIAN);
+        file_endianness = SAGE_HOST_ENDIAN;
+    } else {
+        file_endianness = endianness;
+        DEBUG_LOG("File endianness set to %s", 
+                 (endianness == SAGE_LITTLE_ENDIAN) ? "little-endian" : "big-endian");
+    }
+}
+
+/**
+ * @brief   Get the current file endianness setting
+ *
+ * @return  Current file endianness (SAGE_LITTLE_ENDIAN or SAGE_BIG_ENDIAN)
+ *
+ * This function returns the global endianness value currently used for
+ * binary file operations.
+ */
+int get_file_endianness(void) {
+    return file_endianness;
+}
+
+/**
+ * @brief   Enhanced wrapper for the fread function with endianness handling
  *
  * @param   ptr      Pointer to the data buffer
  * @param   size     Size of each element
@@ -281,17 +320,58 @@ void free_galaxies_and_tree(void)
  * @param   stream   File stream to read from
  * @return  Number of elements successfully read
  *
- * This function provides a wrapper around the standard fread function.
- * It allows for potential extensions like error handling, logging, or
- * platform-specific optimizations without changing the calling code.
+ * This function provides a wrapper around the standard fread function
+ * with added endianness conversion and error handling. It reads data
+ * from the file and, if necessary, swaps bytes to match the host endianness.
+ * 
+ * The function uses the global file_endianness variable to determine
+ * if byte swapping is needed.
  */
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {
-  return fread(ptr, size, nmemb, stream);
+    size_t items_read;
+    
+    if (ptr == NULL) {
+        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "read", NULL,
+                   "Cannot read into NULL pointer");
+        return 0;
+    }
+    
+    if (stream == NULL) {
+        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "read", NULL,
+                   "Cannot read from NULL file stream");
+        return 0;
+    }
+    
+    /* Perform the actual read operation */
+    items_read = fread(ptr, size, nmemb, stream);
+    
+    if (items_read != nmemb) {
+        /* Check if it's an EOF or an error */
+        if (feof(stream)) {
+            IO_WARNING_LOG(IO_ERROR_EOF, "read", NULL,
+                      "End of file reached after reading %zu of %zu items",
+                      items_read, nmemb);
+        } else if (ferror(stream)) {
+            IO_ERROR_LOG(IO_ERROR_READ_FAILED, "read", NULL,
+                      "Error reading from file after %zu of %zu items",
+                      items_read, nmemb);
+        }
+    }
+    
+    /* Perform endianness conversion if needed */
+    if (items_read > 0 && !is_same_endian(file_endianness)) {
+        /* Only swap if element size is appropriate */
+        if (size == 2 || size == 4 || size == 8) {
+            swap_bytes_if_needed(ptr, size, items_read, file_endianness);
+        }
+    }
+    
+    return items_read;
 }
 
 /**
- * @brief   Wrapper for the fwrite function
+ * @brief   Enhanced wrapper for the fwrite function with endianness handling
  *
  * @param   ptr      Pointer to the data buffer
  * @param   size     Size of each element
@@ -299,28 +379,102 @@ size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
  * @param   stream   File stream to write to
  * @return  Number of elements successfully written
  *
- * This function provides a wrapper around the standard fwrite function.
- * It allows for potential extensions like error handling, logging, or
- * platform-specific optimizations without changing the calling code.
+ * This function provides a wrapper around the standard fwrite function
+ * with added endianness conversion and error handling. If necessary, it
+ * swaps bytes before writing to ensure the file uses the specified endianness.
+ * 
+ * The function uses the global file_endianness variable to determine
+ * if byte swapping is needed.
  */
 size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {
-  return fwrite(ptr, size, nmemb, stream);
+    size_t items_written;
+    void *tmp_buffer = NULL;
+    
+    if (ptr == NULL) {
+        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
+                   "Cannot write from NULL pointer");
+        return 0;
+    }
+    
+    if (stream == NULL) {
+        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "write", NULL,
+                   "Cannot write to NULL file stream");
+        return 0;
+    }
+    
+    /* If endianness conversion is needed, use a temporary buffer */
+    if (!is_same_endian(file_endianness) && (size == 2 || size == 4 || size == 8)) {
+        tmp_buffer = malloc(size * nmemb);
+        if (tmp_buffer == NULL) {
+            IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
+                       "Failed to allocate temporary buffer for endianness conversion");
+            return 0;
+        }
+        
+        /* Copy data to temporary buffer */
+        memcpy(tmp_buffer, ptr, size * nmemb);
+        
+        /* Swap bytes in temporary buffer */
+        swap_bytes_if_needed(tmp_buffer, size, nmemb, file_endianness);
+        
+        /* Write from temporary buffer */
+        items_written = fwrite(tmp_buffer, size, nmemb, stream);
+        
+        /* Free temporary buffer */
+        free(tmp_buffer);
+    } else {
+        /* Write directly from input buffer */
+        items_written = fwrite(ptr, size, nmemb, stream);
+    }
+    
+    if (items_written != nmemb) {
+        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
+                   "Error writing to file: wrote %zu of %zu items",
+                   items_written, nmemb);
+    }
+    
+    return items_written;
 }
 
 /**
- * @brief   Wrapper for the fseek function
+ * @brief   Enhanced wrapper for the fseek function with error handling
  *
  * @param   stream   File stream to seek within
  * @param   offset   Offset from the position specified by whence
  * @param   whence   Position from which to seek (SEEK_SET, SEEK_CUR, SEEK_END)
  * @return  0 on success, non-zero on error
  *
- * This function provides a wrapper around the standard fseek function.
- * It allows for potential extensions like error handling, logging, or
- * platform-specific optimizations without changing the calling code.
+ * This function provides a wrapper around the standard fseek function
+ * with added error handling. It checks for common seek errors and
+ * logs appropriate error messages.
  */
 int myfseek(FILE * stream, long offset, int whence)
 {
-  return fseek(stream, offset, whence);
+    int result;
+    
+    if (stream == NULL) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "seek", NULL,
+                   "Cannot seek in NULL file stream");
+        return -1;
+    }
+    
+    result = fseek(stream, offset, whence);
+    
+    if (result != 0) {
+        const char *whence_str;
+        
+        switch(whence) {
+            case SEEK_SET: whence_str = "SEEK_SET"; break;
+            case SEEK_CUR: whence_str = "SEEK_CUR"; break;
+            case SEEK_END: whence_str = "SEEK_END"; break;
+            default: whence_str = "unknown"; break;
+        }
+        
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "seek", NULL,
+                   "Failed to seek to offset %ld from %s",
+                   offset, whence_str);
+    }
+    
+    return result;
 }

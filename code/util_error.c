@@ -48,6 +48,24 @@ static const char *level_names[] = {
     "FATAL"
 };
 
+// I/O error code names for printing
+static const char *io_error_names[] = {
+    "NONE",
+    "FILE_NOT_FOUND",
+    "PERMISSION_DENIED",
+    "READ_FAILED",
+    "WRITE_FAILED",
+    "SEEK_FAILED",
+    "INVALID_HEADER",
+    "VERSION_MISMATCH",
+    "ENDIANNESS",
+    "FORMAT",
+    "BUFFER",
+    "EOF",
+    "CLOSE_FAILED",
+    "HDF5"
+};
+
 /**
  * @brief   Initializes the error handling and logging system
  *
@@ -87,6 +105,25 @@ const char* get_log_level_name(LogLevel level) {
         return "UNKNOWN";
     }
     return level_names[level];
+}
+
+/**
+ * @brief   Gets the string representation of an I/O error code
+ *
+ * @param   code    The I/O error code to convert to string
+ * @return  String representation of the error code
+ *
+ * This function converts an IOErrorCode enum value to its corresponding
+ * string representation (e.g., IO_ERROR_READ_FAILED -> "READ_FAILED").
+ * If the code is outside the valid range, it returns "UNKNOWN".
+ * 
+ * The returned string is statically allocated and should not be freed.
+ */
+const char* get_io_error_name(IOErrorCode code) {
+    if (code < IO_ERROR_NONE || code > IO_ERROR_HDF5) {
+        return "UNKNOWN";
+    }
+    return io_error_names[code];
 }
 
 /**
@@ -175,6 +212,75 @@ void log_message(LogLevel level, const char *file, const char *func, int line, c
             time_str, level_names[level], file, func, line);
 
     // Print the actual message with variable arguments
+    va_list args;
+    va_start(args, format);
+    vfprintf(output, format, args);
+    va_end(args);
+
+    // Add newline if not already present
+    if (format[strlen(format) - 1] != '\n') {
+        fprintf(output, "\n");
+    }
+
+    // Flush output immediately for errors and fatal messages
+    if (level >= LOG_LEVEL_ERROR) {
+        fflush(output);
+    }
+}
+
+/**
+ * @brief   I/O-specific logging function
+ *
+ * @param   level      Severity level of the message
+ * @param   code       I/O error code
+ * @param   file       Source file where logging occurs
+ * @param   func       Function where logging occurs
+ * @param   line       Line number where logging occurs
+ * @param   operation  Type of I/O operation (e.g., "read", "write", "open")
+ * @param   filename   Name of the file being operated on
+ * @param   format     Printf-style format string for additional details
+ * @param   ...        Variable arguments for format string
+ *
+ * This function extends the core logging functionality with I/O-specific
+ * context information. It formats a message with operation type, filename,
+ * and error code in addition to the standard context information.
+ * 
+ * The function is especially useful for standardizing I/O error reporting
+ * throughout the codebase. It follows the same filtering and output rules
+ * as the core log_message() function.
+ * 
+ * Note: This function is not usually called directly; instead, use
+ * the IO_DEBUG_LOG, IO_INFO_LOG, IO_WARNING_LOG, IO_ERROR_LOG, and
+ * IO_FATAL_ERROR macros defined in error_handling.h.
+ */
+void log_io_error(LogLevel level, IOErrorCode code, const char *file, const char *func, 
+                 int line, const char *operation, const char *filename, const char *format, ...) {
+    // Skip if below current log level
+    if (level < current_log_level) {
+        return;
+    }
+
+    // Get current time
+    time_t now;
+    time(&now);
+    char time_str[20];
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+    // Choose output stream based on message level
+    FILE *output = log_output;
+    if (output == NULL) {
+        output = (level >= LOG_LEVEL_WARNING) ? stderr : stdout;
+    }
+
+    // Print header with time, level, file, function, and line
+    fprintf(output, "[%s] %s - %s:%s:%d - ", 
+            time_str, level_names[level], file, func, line);
+
+    // Print I/O-specific information: operation, filename, and error code
+    fprintf(output, "[I/O %s, file: '%s', error: %s] ", 
+            operation, filename ? filename : "?", get_io_error_name(code));
+
+    // Print the additional details with variable arguments
     va_list args;
     va_start(args, format);
     vfprintf(output, format, args);

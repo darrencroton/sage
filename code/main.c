@@ -34,6 +34,7 @@
 #include "globals.h"
 #include "config.h"
 #include "core_proto.h"
+#include "io_tree.h"
 
 #include "io_save_hdf5.h"
 
@@ -219,6 +220,9 @@ int main(int argc, char **argv)
   /* Initialize memory management system */
   init_memory_system(0);  /* Use default block limit */
   
+  /* Initialize I/O buffering system */
+  init_io_buffering();  /* Set up I/O buffers */
+  
   /* Log startup information */
   DEBUG_LOG("Starting SAGE with verbosity level: %s", get_log_level_name(log_level));
   INFO_LOG("SAGE Semi-Analytic Galaxy Evolution model starting up");
@@ -326,6 +330,9 @@ int main(int argc, char **argv)
   /* Check for memory leaks and clean up memory system */
   check_memory_leaks();
   cleanup_memory_system();
+  
+  /* Clean up I/O buffering system */
+  cleanup_io_buffering();
 
   /* Set exit status to success */
   exitfail = 0;

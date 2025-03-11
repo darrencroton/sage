@@ -113,5 +113,6 @@ int buffered_seek(IOBuffer* buffer, long offset, int whence);
 /* Buffered file operations */
 FILE* buffered_fopen(const char* filename, const char* mode, size_t buffer_size);
 int buffered_fclose(FILE* file);
+int buffered_flush(FILE* file);
 
 #endif /* IO_UTIL_H */

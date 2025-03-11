@@ -20,7 +20,9 @@ static struct {
     IOBuffer* buffer;
 } BufferedFiles[MAX_BUFFERED_FILES] = {0};
 
-/* Buffer management system prototypes defined in header as non-static */
+static int register_buffer(FILE* file, IOBuffer* buffer);
+static IOBuffer* get_buffer(FILE* file);
+static int unregister_buffer(FILE* file);
 
 /**
  * @brief   Detects the host system's endianness at runtime
@@ -431,7 +433,7 @@ long get_file_size(FILE* file) {
  *
  * This function registers a buffer with a file in the buffer management system.
  */
-int register_buffer(FILE* file, IOBuffer* buffer) {
+static int register_buffer(FILE* file, IOBuffer* buffer) {
     int i;
     
     if (file == NULL || buffer == NULL) {
@@ -463,7 +465,7 @@ int register_buffer(FILE* file, IOBuffer* buffer) {
  * This function looks up a file in the buffer management system
  * and returns its associated buffer.
  */
-IOBuffer* get_buffer(FILE* file) {
+static IOBuffer* get_buffer(FILE* file) {
     int i;
     
     if (file == NULL) {
@@ -489,7 +491,7 @@ IOBuffer* get_buffer(FILE* file) {
  *
  * This function removes a file from the buffer management system.
  */
-int unregister_buffer(FILE* file) {
+static int unregister_buffer(FILE* file) {
     int i;
     
     if (file == NULL) {
@@ -651,20 +653,43 @@ int flush_buffer(IOBuffer* buffer) {
     }
     
     /* Only flush if buffer is dirty and in write or read-write mode */
-    if (!buffer->dirty || buffer->mode == IO_BUFFER_READ || buffer->valid_size == 0) {
+    if (!buffer->dirty || buffer->mode == IO_BUFFER_READ) {
         return 0;
     }
     
-    /* For simplicity, write the entire valid buffer content directly at current position
-       which ensures we're not seeking to invalid positions */
+    /* Save current file position */
+    long original_pos = ftell(buffer->file);
+    if (original_pos < 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to get current file position");
+        return IO_ERROR_SEEK_FAILED;
+    }
     
-    /* Write valid buffer contents to file */
+    /* Seek to start of buffer in file */
+    long buffer_start = original_pos - buffer->position;
+    if (fseek(buffer->file, buffer_start, SEEK_SET) != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to seek to buffer start");
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Write buffer contents to file */
     written = fwrite(buffer->buffer, 1, buffer->valid_size, buffer->file);
     if (written != buffer->valid_size) {
         IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "flush_buffer", NULL,
                    "Failed to write buffer contents: %zu of %zu bytes written",
                    written, buffer->valid_size);
+        
+        /* Try to restore file position */
+        fseek(buffer->file, original_pos, SEEK_SET);
         return IO_ERROR_WRITE_FAILED;
+    }
+    
+    /* Restore file position */
+    if (fseek(buffer->file, original_pos, SEEK_SET) != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to restore file position after flush");
+        return IO_ERROR_SEEK_FAILED;
     }
     
     /* Mark buffer as clean */
@@ -896,14 +921,22 @@ size_t buffered_write(IOBuffer* buffer, const void* data, size_t size, size_t co
     
     /* If the request is larger than the buffer, write directly to file */
     if (total_size > buffer->size) {
-        /* For large writes, we'll bypass the buffer entirely */
+        /* Flush buffer if dirty */
+        if (buffer->dirty) {
+            if (flush_buffer(buffer) != 0) {
+                IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_write", NULL,
+                           "Failed to flush buffer before large write");
+                return 0;
+            }
+        }
+        
+        /* Write directly to file */
         bytes_written = fwrite(data, 1, total_size, buffer->file);
         elements_written = bytes_written / size;
         
-        /* Reset buffer state since file position has changed */
+        /* Update buffer position to match file position */
         buffer->position = 0;
         buffer->valid_size = 0;
-        buffer->dirty = 0;
         
         DEBUG_LOG("Direct write of %zu bytes (%zu elements) to file", 
                  bytes_written, elements_written);
@@ -913,18 +946,7 @@ size_t buffered_write(IOBuffer* buffer, const void* data, size_t size, size_t co
     
     /* Try to accumulate write in buffer */
     while (remaining > 0) {
-        /* Check if buffer is full or if we're not at the end of the buffer */
-        if (buffer->position < buffer->valid_size) {
-            /* We're in the middle of the buffer, need to flush first */
-            if (flush_buffer(buffer) != 0) {
-                /* Error flushing buffer */
-                break;
-            }
-            buffer->position = 0;
-            buffer->valid_size = 0;
-        }
-        
-        /* Now calculate remaining space at the end of the buffer */
+        /* Check if buffer is full */
         buffer_remaining = buffer->size - buffer->valid_size;
         
         if (buffer_remaining == 0) {
@@ -940,14 +962,10 @@ size_t buffered_write(IOBuffer* buffer, const void* data, size_t size, size_t co
         
         /* Copy data from source to buffer */
         copy_size = (buffer_remaining < remaining) ? buffer_remaining : remaining;
-        memcpy((char*)buffer->buffer + buffer->position, src, copy_size);
+        memcpy((char*)buffer->buffer + buffer->valid_size, src, copy_size);
         
         /* Update positions */
-        buffer->position += copy_size;
-        /* Expand valid region if we wrote past it */
-        if (buffer->position > buffer->valid_size) {
-            buffer->valid_size = buffer->position;
-        }
+        buffer->valid_size += copy_size;
         buffer->dirty = 1;
         src += copy_size;
         remaining -= copy_size;
@@ -1123,36 +1141,6 @@ FILE* buffered_fopen(const char* filename, const char* mode, size_t buffer_size)
              filename, mode, buffer_size);
     
     return file;
-}
-
-/**
- * @brief   Explicitly flushes a buffered file
- *
- * @param   file    File pointer to flush
- * @return  0 on success, non-zero on error
- *
- * This function flushes any pending changes to disk but keeps
- * the file and buffer open for further operations.
- */
-int buffered_flush(FILE* file) {
-    IOBuffer* buffer;
-    
-    if (file == NULL) {
-        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "buffered_flush", NULL,
-                   "Cannot flush NULL file pointer");
-        return EOF;
-    }
-    
-    /* Retrieve the buffer associated with this file */
-    buffer = get_buffer(file);
-    
-    /* If buffer exists, flush it */
-    if (buffer != NULL && buffer->dirty) {
-        return flush_buffer(buffer);
-    }
-    
-    /* No buffer or not dirty - nothing to do */
-    return 0;
 }
 
 /**

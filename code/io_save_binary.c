@@ -28,6 +28,7 @@
 #include "core_proto.h"
 #include "io_save_binary.h"
 #include "util_error.h"
+#include "io_util.h"
 
 #define TREE_MUL_FAC        (1000000000LL)
 #define FILENR_MUL_FAC      (1000000000000000LL)
@@ -331,7 +332,7 @@ void finalize_galaxy_file(int filenr)
   {
     // file must already be open.
     assert( save_fd[n] );
-
+    
     // seek to the beginning.
     fseek( save_fd[n], 0, SEEK_SET );
 

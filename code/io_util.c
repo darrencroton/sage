@@ -13,6 +13,15 @@
 #include "io_util.h"
 #include "util_error.h"
 
+/* Buffer management system - declare all functions before use */
+#define MAX_BUFFERED_FILES 16
+static struct {
+    FILE* file;
+    IOBuffer* buffer;
+} BufferedFiles[MAX_BUFFERED_FILES] = {0};
+
+/* Buffer management system prototypes defined in header as non-static */
+
 /**
  * @brief   Detects the host system's endianness at runtime
  *
@@ -361,112 +370,6 @@ int check_file_compatibility(const struct SAGEFileHeader* header) {
 }
 
 /**
- * @brief   Checks if a file is a headerless legacy file
- *
- * @param   file    File pointer to check
- * @return  1 if headerless, 0 if has header, negative value on error
- *
- * This function attempts to determine if a file is a legacy file
- * without a SAGE header. It looks at file size and tests for integer
- * patterns at the beginning of the file that would indicate a headerless file.
- */
-int check_headerless_file(FILE* file) {
-    long original_pos, file_size;
-    int ntrees, tothalos;
-    size_t read_items;
-    
-    if (file == NULL) {
-        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "check_headerless", NULL, 
-                   "Cannot check NULL file pointer");
-        return -IO_ERROR_FILE_NOT_FOUND;
-    }
-    
-    /* Save current file position */
-    original_pos = ftell(file);
-    if (original_pos < 0) {
-        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "check_headerless", NULL, 
-                   "Failed to get current file position");
-        return -IO_ERROR_SEEK_FAILED;
-    }
-    
-    /* Get file size */
-    file_size = get_file_size(file);
-    if (file_size < 0) {
-        /* Error already logged by get_file_size */
-        fseek(file, original_pos, SEEK_SET);
-        return file_size; /* Return negative error code */
-    }
-    
-    /* If file is too small to even contain ntrees and tothalos, it's invalid */
-    if (file_size < (long)(2 * sizeof(int))) {
-        IO_ERROR_LOG(IO_ERROR_FORMAT, "check_headerless", NULL, 
-                   "File too small to be a valid SAGE file (%ld bytes)", file_size);
-        fseek(file, original_pos, SEEK_SET);
-        return -IO_ERROR_FORMAT;
-    }
-    
-    /* Rewind to beginning of file */
-    if (fseek(file, 0, SEEK_SET) != 0) {
-        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "check_headerless", NULL, 
-                   "Failed to seek to beginning of file");
-        fseek(file, original_pos, SEEK_SET);
-        return -IO_ERROR_SEEK_FAILED;
-    }
-    
-    /* Check for SAGE header first */
-    struct SAGEFileHeader header;
-    read_items = fread(&header, sizeof(struct SAGEFileHeader), 1, file);
-    if (read_items != 1) {
-        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "check_headerless", NULL, 
-                   "Failed to read potential header");
-        fseek(file, original_pos, SEEK_SET);
-        return -IO_ERROR_READ_FAILED;
-    }
-    
-    /* If magic number matches, it's a header file */
-    if (header.magic == SAGE_MAGIC_NUMBER) {
-        DEBUG_LOG("File has SAGE header (magic: 0x%08X)", header.magic);
-        fseek(file, original_pos, SEEK_SET);
-        return 0; /* Not headerless */
-    }
-    
-    /* If we got here, there's no valid header. Check for headerless format */
-    fseek(file, 0, SEEK_SET);
-    
-    /* Try to read ntrees and tothalos values */
-    read_items = fread(&ntrees, sizeof(int), 1, file);
-    if (read_items != 1) {
-        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "check_headerless", NULL, 
-                   "Failed to read ntrees value");
-        fseek(file, original_pos, SEEK_SET);
-        return -IO_ERROR_READ_FAILED;
-    }
-    
-    read_items = fread(&tothalos, sizeof(int), 1, file);
-    if (read_items != 1) {
-        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "check_headerless", NULL, 
-                   "Failed to read tothalos value");
-        fseek(file, original_pos, SEEK_SET);
-        return -IO_ERROR_READ_FAILED;
-    }
-    
-    /* Sanity check the values - if they're both positive and reasonable, 
-       this is likely a headerless file */
-    if (ntrees > 0 && tothalos > 0 && ntrees <= 1000000 && tothalos <= 100000000) {
-        DEBUG_LOG("File appears to be headerless (ntrees: %d, tothalos: %d)", 
-                 ntrees, tothalos);
-        fseek(file, original_pos, SEEK_SET);
-        return 1; /* Headerless */
-    }
-    
-    /* If we got here, the file format is unrecognized */
-    IO_ERROR_LOG(IO_ERROR_FORMAT, "check_headerless", NULL, 
-               "Unrecognized file format (not a valid SAGE file)");
-    fseek(file, original_pos, SEEK_SET);
-    return -IO_ERROR_FORMAT;
-}
-
-/**
  * @brief   Gets the size of a file
  *
  * @param   file    File pointer to check
@@ -517,4 +420,761 @@ long get_file_size(FILE* file) {
     }
     
     return file_size;
+}
+
+/**
+ * @brief   Registers a buffer with a file
+ *
+ * @param   file    File to register
+ * @param   buffer  Buffer to associate with the file
+ * @return  0 on success, non-zero on error
+ *
+ * This function registers a buffer with a file in the buffer management system.
+ */
+int register_buffer(FILE* file, IOBuffer* buffer) {
+    int i;
+    
+    if (file == NULL || buffer == NULL) {
+        return IO_ERROR_BUFFER;
+    }
+    
+    /* Find an empty slot or an existing entry for this file */
+    for (i = 0; i < MAX_BUFFERED_FILES; i++) {
+        if (BufferedFiles[i].file == NULL || BufferedFiles[i].file == file) {
+            BufferedFiles[i].file = file;
+            BufferedFiles[i].buffer = buffer;
+            return 0;
+        }
+    }
+    
+    /* No empty slots found */
+    IO_ERROR_LOG(IO_ERROR_BUFFER, "register_buffer", NULL,
+               "Maximum number of buffered files (%d) exceeded",
+               MAX_BUFFERED_FILES);
+    return IO_ERROR_BUFFER;
+}
+
+/**
+ * @brief   Retrieves a buffer for a file
+ *
+ * @param   file    File to get buffer for
+ * @return  Associated buffer, or NULL if not found
+ *
+ * This function looks up a file in the buffer management system
+ * and returns its associated buffer.
+ */
+IOBuffer* get_buffer(FILE* file) {
+    int i;
+    
+    if (file == NULL) {
+        return NULL;
+    }
+    
+    /* Find the file in the registry */
+    for (i = 0; i < MAX_BUFFERED_FILES; i++) {
+        if (BufferedFiles[i].file == file) {
+            return BufferedFiles[i].buffer;
+        }
+    }
+    
+    /* File not found in registry */
+    return NULL;
+}
+
+/**
+ * @brief   Unregisters a buffer
+ *
+ * @param   file    File to unregister
+ * @return  0 on success, non-zero on error
+ *
+ * This function removes a file from the buffer management system.
+ */
+int unregister_buffer(FILE* file) {
+    int i;
+    
+    if (file == NULL) {
+        return IO_ERROR_BUFFER;
+    }
+    
+    /* Find the file in the registry */
+    for (i = 0; i < MAX_BUFFERED_FILES; i++) {
+        if (BufferedFiles[i].file == file) {
+            BufferedFiles[i].file = NULL;
+            BufferedFiles[i].buffer = NULL;
+            return 0;
+        }
+    }
+    
+    /* File not found in registry */
+    return IO_ERROR_BUFFER;
+}
+
+/**
+ * @brief   Determines the optimal buffer size for a file
+ *
+ * @param   file    File pointer to analyze
+ * @return  Recommended buffer size in bytes
+ *
+ * This function analyzes the file size to determine an optimal buffer
+ * size for I/O operations. Larger files get larger buffers to improve
+ * throughput, while smaller files get smaller buffers to reduce memory usage.
+ */
+size_t get_optimal_buffer_size(FILE* file) {
+    long file_size;
+    
+    if (file == NULL) {
+        WARNING_LOG("Cannot determine optimal buffer size for NULL file");
+        return IO_BUFFER_MEDIUM; /* Use default for invalid files */
+    }
+    
+    file_size = get_file_size(file);
+    if (file_size < 0) {
+        WARNING_LOG("Failed to get file size for buffer size determination");
+        return IO_BUFFER_MEDIUM; /* Use default if file size unknown */
+    }
+    
+    /* Choose buffer size based on file size */
+    if (file_size < 100 * 1024) { /* < 100 KB */
+        return IO_BUFFER_SMALL;
+    } else if (file_size < 10 * 1024 * 1024) { /* < 10 MB */
+        return IO_BUFFER_MEDIUM;
+    } else if (file_size < 100 * 1024 * 1024) { /* < 100 MB */
+        return IO_BUFFER_LARGE;
+    } else { /* >= 100 MB */
+        return IO_BUFFER_XLARGE;
+    }
+}
+
+/**
+ * @brief   Creates a new I/O buffer
+ *
+ * @param   size    Size of the buffer in bytes
+ * @param   mode    Buffer mode (read, write, or both)
+ * @param   file    File to associate with the buffer
+ * @return  Pointer to the new buffer, or NULL on error
+ *
+ * This function creates a new buffer of the specified size for I/O operations.
+ * The buffer is associated with the given file and mode.
+ */
+IOBuffer* create_buffer(size_t size, IOBufferMode mode, FILE* file) {
+    IOBuffer* buffer;
+    
+    if (file == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
+                   "Cannot create buffer for NULL file");
+        return NULL;
+    }
+    
+    if (size == 0) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
+                   "Cannot create buffer of size 0");
+        return NULL;
+    }
+    
+    /* Allocate the buffer structure */
+    buffer = (IOBuffer*)malloc(sizeof(IOBuffer));
+    if (buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
+                   "Failed to allocate IOBuffer structure");
+        return NULL;
+    }
+    
+    /* Allocate the buffer memory */
+    buffer->buffer = malloc(size);
+    if (buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
+                   "Failed to allocate buffer memory (%zu bytes)", size);
+        free(buffer);
+        return NULL;
+    }
+    
+    /* Initialize the buffer */
+    buffer->size = size;
+    buffer->position = 0;
+    buffer->valid_size = 0;
+    buffer->dirty = 0;
+    buffer->file = file;
+    buffer->mode = mode;
+    
+    DEBUG_LOG("Created %zu byte I/O buffer in %s mode",
+             size, (mode == IO_BUFFER_READ) ? "read" : 
+                   (mode == IO_BUFFER_WRITE) ? "write" : "read-write");
+    
+    return buffer;
+}
+
+/**
+ * @brief   Frees an I/O buffer
+ *
+ * @param   buffer  Buffer to free
+ *
+ * This function frees the memory used by an I/O buffer.
+ * If the buffer is dirty (contains unsaved changes), it
+ * flushes the buffer to disk before freeing.
+ */
+void free_buffer(IOBuffer* buffer) {
+    if (buffer == NULL) {
+        return;
+    }
+    
+    /* Flush any pending writes */
+    if (buffer->dirty) {
+        flush_buffer(buffer);
+    }
+    
+    /* Free the buffer memory */
+    if (buffer->buffer != NULL) {
+        free(buffer->buffer);
+        buffer->buffer = NULL;
+    }
+    
+    /* Free the buffer structure */
+    free(buffer);
+}
+
+/**
+ * @brief   Flushes a buffer to disk
+ *
+ * @param   buffer  Buffer to flush
+ * @return  0 on success, non-zero on error
+ *
+ * This function writes any pending changes in the buffer to disk.
+ * It only has an effect for write and read-write buffers.
+ */
+int flush_buffer(IOBuffer* buffer) {
+    size_t written;
+    
+    if (buffer == NULL || buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "flush_buffer", NULL,
+                   "Cannot flush NULL buffer");
+        return IO_ERROR_BUFFER;
+    }
+    
+    /* Only flush if buffer is dirty and in write or read-write mode */
+    if (!buffer->dirty || buffer->mode == IO_BUFFER_READ) {
+        return 0;
+    }
+    
+    /* Save current file position */
+    long original_pos = ftell(buffer->file);
+    if (original_pos < 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to get current file position");
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Seek to start of buffer in file */
+    long buffer_start = original_pos - buffer->position;
+    if (fseek(buffer->file, buffer_start, SEEK_SET) != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to seek to buffer start");
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Write buffer contents to file */
+    written = fwrite(buffer->buffer, 1, buffer->valid_size, buffer->file);
+    if (written != buffer->valid_size) {
+        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "flush_buffer", NULL,
+                   "Failed to write buffer contents: %zu of %zu bytes written",
+                   written, buffer->valid_size);
+        
+        /* Try to restore file position */
+        fseek(buffer->file, original_pos, SEEK_SET);
+        return IO_ERROR_WRITE_FAILED;
+    }
+    
+    /* Restore file position */
+    if (fseek(buffer->file, original_pos, SEEK_SET) != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "flush_buffer", NULL,
+                   "Failed to restore file position after flush");
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Mark buffer as clean */
+    buffer->dirty = 0;
+    
+    DEBUG_LOG("Flushed %zu bytes from buffer to file", buffer->valid_size);
+    
+    return 0;
+}
+
+/**
+ * @brief   Fills a buffer with data from its file
+ *
+ * @param   buffer     Buffer to fill
+ * @param   min_fill   Minimum number of bytes to fill
+ * @return  Number of bytes filled, or negative error code
+ *
+ * This function reads data from the file into the buffer.
+ * It only has an effect for read and read-write buffers.
+ */
+int fill_buffer(IOBuffer* buffer, size_t min_fill) {
+    size_t read_size, bytes_read;
+    long current_pos;
+    
+    if (buffer == NULL || buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "fill_buffer", NULL,
+                   "Cannot fill NULL buffer");
+        return -IO_ERROR_BUFFER;
+    }
+    
+    /* Only fill if buffer is in read or read-write mode */
+    if (buffer->mode == IO_BUFFER_WRITE) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "fill_buffer", NULL,
+                   "Cannot fill write-only buffer");
+        return -IO_ERROR_BUFFER;
+    }
+    
+    /* Get current file position */
+    current_pos = ftell(buffer->file);
+    if (current_pos < 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "fill_buffer", NULL,
+                   "Failed to get current file position");
+        return -IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Calculate how much to read */
+    read_size = buffer->size;
+    if (min_fill > 0 && min_fill < read_size) {
+        read_size = min_fill;
+    }
+    
+    /* Read data into buffer */
+    bytes_read = fread(buffer->buffer, 1, read_size, buffer->file);
+    
+    /* Handle end of file */
+    if (bytes_read < read_size && feof(buffer->file)) {
+        clearerr(buffer->file); /* Clear EOF indicator */
+    }
+    
+    /* Update buffer state */
+    buffer->position = 0;
+    buffer->valid_size = bytes_read;
+    buffer->dirty = 0;
+    
+    DEBUG_LOG("Filled buffer with %zu bytes from file", bytes_read);
+    
+    return bytes_read;
+}
+
+/**
+ * @brief   Reads data from a buffered file
+ *
+ * @param   buffer   I/O buffer to read from
+ * @param   data     Memory location to read into
+ * @param   size     Size of each element
+ * @param   count    Number of elements to read
+ * @return  Number of elements successfully read
+ *
+ * This function reads data from a buffered file. It attempts to use
+ * data already in the buffer, refilling as needed. If the requested
+ * data exceeds the buffer size, it reads directly from the file.
+ */
+size_t buffered_read(IOBuffer* buffer, void* data, size_t size, size_t count) {
+    size_t total_size, bytes_read, elements_read, remaining;
+    size_t buffer_remaining, copy_size;
+    char* dest;
+    long file_pos;
+    
+    if (buffer == NULL || buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_read", NULL,
+                   "Cannot read from NULL buffer");
+        return 0;
+    }
+    
+    if (data == NULL) {
+        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "buffered_read", NULL,
+                   "Cannot read into NULL pointer");
+        return 0;
+    }
+    
+    if (size == 0 || count == 0) {
+        return 0; /* Nothing to read */
+    }
+    
+    /* Check if buffer is in read mode */
+    if (buffer->mode == IO_BUFFER_WRITE) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_read", NULL,
+                   "Cannot read from write-only buffer");
+        return 0;
+    }
+    
+    total_size = size * count;
+    dest = (char*)data;
+    elements_read = 0;
+    remaining = total_size;
+    
+    /* If the request is larger than the buffer, read directly from file */
+    if (total_size > buffer->size) {
+        /* Flush buffer if dirty */
+        if (buffer->dirty) {
+            if (flush_buffer(buffer) != 0) {
+                IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_read", NULL,
+                           "Failed to flush buffer before large read");
+                return 0;
+            }
+        }
+        
+        /* Get current file position */
+        file_pos = ftell(buffer->file);
+        if (file_pos < 0) {
+            IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "buffered_read", NULL,
+                       "Failed to get file position for direct read");
+            return 0;
+        }
+        
+        /* Read directly from file */
+        bytes_read = fread(data, 1, total_size, buffer->file);
+        elements_read = bytes_read / size;
+        
+        /* Update buffer position to match file position */
+        buffer->position = 0;
+        buffer->valid_size = 0;
+        
+        DEBUG_LOG("Direct read of %zu bytes (%zu elements) from file", 
+                 bytes_read, elements_read);
+        
+        return elements_read;
+    }
+    
+    /* Try to satisfy read from buffer */
+    while (remaining > 0) {
+        /* Check if we need to fill the buffer */
+        buffer_remaining = buffer->valid_size - buffer->position;
+        
+        if (buffer_remaining == 0) {
+            /* Buffer is empty, refill it */
+            if (fill_buffer(buffer, remaining) <= 0) {
+                /* End of file or error */
+                break;
+            }
+            buffer_remaining = buffer->valid_size;
+        }
+        
+        /* Copy data from buffer to destination */
+        copy_size = (buffer_remaining < remaining) ? buffer_remaining : remaining;
+        memcpy(dest, (char*)buffer->buffer + buffer->position, copy_size);
+        
+        /* Update positions */
+        buffer->position += copy_size;
+        dest += copy_size;
+        remaining -= copy_size;
+    }
+    
+    /* Calculate how many elements were read */
+    bytes_read = total_size - remaining;
+    elements_read = bytes_read / size;
+    
+    DEBUG_LOG("Buffered read of %zu bytes (%zu elements)", 
+             bytes_read, elements_read);
+    
+    return elements_read;
+}
+
+/**
+ * @brief   Writes data to a buffered file
+ *
+ * @param   buffer   I/O buffer to write to
+ * @param   data     Data to write
+ * @param   size     Size of each element
+ * @param   count    Number of elements to write
+ * @return  Number of elements successfully written
+ *
+ * This function writes data to a buffered file. It tries to accumulate
+ * writes in the buffer, flushing as needed. If the data exceeds the
+ * buffer size, it writes directly to the file.
+ */
+size_t buffered_write(IOBuffer* buffer, const void* data, size_t size, size_t count) {
+    size_t total_size, bytes_written, elements_written, remaining;
+    size_t buffer_remaining, copy_size;
+    const char* src;
+    
+    if (buffer == NULL || buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_write", NULL,
+                   "Cannot write to NULL buffer");
+        return 0;
+    }
+    
+    if (data == NULL) {
+        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "buffered_write", NULL,
+                   "Cannot write from NULL pointer");
+        return 0;
+    }
+    
+    if (size == 0 || count == 0) {
+        return 0; /* Nothing to write */
+    }
+    
+    /* Check if buffer is in write mode */
+    if (buffer->mode == IO_BUFFER_READ) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_write", NULL,
+                   "Cannot write to read-only buffer");
+        return 0;
+    }
+    
+    total_size = size * count;
+    src = (const char*)data;
+    elements_written = 0;
+    remaining = total_size;
+    
+    /* If the request is larger than the buffer, write directly to file */
+    if (total_size > buffer->size) {
+        /* Flush buffer if dirty */
+        if (buffer->dirty) {
+            if (flush_buffer(buffer) != 0) {
+                IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_write", NULL,
+                           "Failed to flush buffer before large write");
+                return 0;
+            }
+        }
+        
+        /* Write directly to file */
+        bytes_written = fwrite(data, 1, total_size, buffer->file);
+        elements_written = bytes_written / size;
+        
+        /* Update buffer position to match file position */
+        buffer->position = 0;
+        buffer->valid_size = 0;
+        
+        DEBUG_LOG("Direct write of %zu bytes (%zu elements) to file", 
+                 bytes_written, elements_written);
+        
+        return elements_written;
+    }
+    
+    /* Try to accumulate write in buffer */
+    while (remaining > 0) {
+        /* Check if buffer is full */
+        buffer_remaining = buffer->size - buffer->valid_size;
+        
+        if (buffer_remaining == 0) {
+            /* Buffer is full, flush it */
+            if (flush_buffer(buffer) != 0) {
+                /* Error flushing buffer */
+                break;
+            }
+            buffer->position = 0;
+            buffer->valid_size = 0;
+            buffer_remaining = buffer->size;
+        }
+        
+        /* Copy data from source to buffer */
+        copy_size = (buffer_remaining < remaining) ? buffer_remaining : remaining;
+        memcpy((char*)buffer->buffer + buffer->valid_size, src, copy_size);
+        
+        /* Update positions */
+        buffer->valid_size += copy_size;
+        buffer->dirty = 1;
+        src += copy_size;
+        remaining -= copy_size;
+    }
+    
+    /* Calculate how many elements were written */
+    bytes_written = total_size - remaining;
+    elements_written = bytes_written / size;
+    
+    DEBUG_LOG("Buffered write of %zu bytes (%zu elements)", 
+             bytes_written, elements_written);
+    
+    return elements_written;
+}
+
+/**
+ * @brief   Seeks to a position in a buffered file
+ *
+ * @param   buffer   I/O buffer to seek in
+ * @param   offset   Offset from the reference position
+ * @param   whence   Reference position (SEEK_SET, SEEK_CUR, SEEK_END)
+ * @return  0 on success, non-zero on error
+ *
+ * This function changes the current position in a buffered file.
+ * If the new position is outside the buffer, it flushes any changes
+ * and resets the buffer state. If the position is within the buffer,
+ * it simply adjusts the buffer position.
+ */
+int buffered_seek(IOBuffer* buffer, long offset, int whence) {
+    long absolute_offset, buffer_start, buffer_end;
+    
+    if (buffer == NULL || buffer->buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_seek", NULL,
+                   "Cannot seek in NULL buffer");
+        return IO_ERROR_BUFFER;
+    }
+    
+    /* Get current file position */
+    long file_pos = ftell(buffer->file);
+    if (file_pos < 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "buffered_seek", NULL,
+                   "Failed to get current file position");
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Calculate absolute offset based on whence */
+    switch (whence) {
+        case SEEK_SET:
+            absolute_offset = offset;
+            break;
+        case SEEK_CUR:
+            absolute_offset = file_pos - buffer->position + buffer->valid_size + offset;
+            break;
+        case SEEK_END: {
+            /* Need to get file size for SEEK_END */
+            long file_size = get_file_size(buffer->file);
+            if (file_size < 0) {
+                return -file_size; /* Error already logged */
+            }
+            absolute_offset = file_size + offset;
+            break;
+        }
+        default:
+            IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "buffered_seek", NULL,
+                       "Invalid whence value: %d", whence);
+            return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Calculate buffer boundaries */
+    buffer_start = file_pos - buffer->position;
+    buffer_end = buffer_start + buffer->valid_size;
+    
+    /* Check if new position is within buffer */
+    if (absolute_offset >= buffer_start && absolute_offset < buffer_end) {
+        /* New position is within buffer, adjust buffer position */
+        buffer->position = absolute_offset - buffer_start;
+        
+        DEBUG_LOG("Seek within buffer to position %ld", absolute_offset);
+        return 0;
+    }
+    
+    /* New position is outside buffer, need to flush and reset */
+    if (buffer->dirty) {
+        if (flush_buffer(buffer) != 0) {
+            IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_seek", NULL,
+                       "Failed to flush buffer during seek");
+            return IO_ERROR_BUFFER;
+        }
+    }
+    
+    /* Perform seek in the underlying file */
+    if (fseek(buffer->file, absolute_offset, SEEK_SET) != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "buffered_seek", NULL,
+                   "Failed to seek to position %ld", absolute_offset);
+        return IO_ERROR_SEEK_FAILED;
+    }
+    
+    /* Reset buffer state */
+    buffer->position = 0;
+    buffer->valid_size = 0;
+    buffer->dirty = 0;
+    
+    DEBUG_LOG("Seek to position %ld (outside buffer)", absolute_offset);
+    
+    return 0;
+}
+
+/**
+ * @brief   Opens a file with buffering
+ *
+ * @param   filename     Name of the file to open
+ * @param   mode         File mode string ("r", "w", etc.)
+ * @param   buffer_size  Size of the buffer to use (0 for automatic)
+ * @return  File pointer on success, NULL on error
+ *
+ * This function opens a file with an associated I/O buffer.
+ * It creates and attaches a buffer structure that is used for
+ * subsequent I/O operations. The buffer is automatically sized
+ * if buffer_size is 0.
+ */
+FILE* buffered_fopen(const char* filename, const char* mode, size_t buffer_size) {
+    FILE* file;
+    IOBuffer* buffer;
+    IOBufferMode buffer_mode;
+    
+    if (filename == NULL || mode == NULL) {
+        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "buffered_fopen", NULL,
+                   "Invalid filename or mode");
+        return NULL;
+    }
+    
+    /* Open the file */
+    file = fopen(filename, mode);
+    if (file == NULL) {
+        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "buffered_fopen", filename,
+                   "Failed to open file with mode '%s'", mode);
+        return NULL;
+    }
+    
+    /* Determine buffer mode from file mode */
+    if (strchr(mode, '+') != NULL) {
+        buffer_mode = IO_BUFFER_READWRITE;
+    } else if (strchr(mode, 'r') != NULL) {
+        buffer_mode = IO_BUFFER_READ;
+    } else {
+        buffer_mode = IO_BUFFER_WRITE;
+    }
+    
+    /* Determine buffer size if not specified */
+    if (buffer_size == 0) {
+        buffer_size = get_optimal_buffer_size(file);
+    }
+    
+    /* Create buffer and associate with file */
+    buffer = create_buffer(buffer_size, buffer_mode, file);
+    if (buffer == NULL) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_fopen", filename,
+                   "Failed to create buffer for file");
+        fclose(file);
+        return NULL;
+    }
+    
+    /* Register buffer with file */
+    if (register_buffer(file, buffer) != 0) {
+        IO_ERROR_LOG(IO_ERROR_BUFFER, "buffered_fopen", filename,
+                   "Failed to register buffer for file");
+        free_buffer(buffer);
+        fclose(file);
+        return NULL;
+    }
+    
+    DEBUG_LOG("Opened file '%s' with mode '%s' and %zu byte buffer", 
+             filename, mode, buffer_size);
+    
+    return file;
+}
+
+/**
+ * @brief   Closes a buffered file
+ *
+ * @param   file    File pointer to close
+ * @return  0 on success, EOF on error
+ *
+ * This function flushes any pending changes to the file,
+ * frees the associated buffer, and closes the file.
+ */
+int buffered_fclose(FILE* file) {
+    IOBuffer* buffer;
+    int result;
+    
+    if (file == NULL) {
+        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "buffered_fclose", NULL,
+                   "Cannot close NULL file pointer");
+        return EOF;
+    }
+    
+    /* Retrieve the buffer associated with this file */
+    buffer = get_buffer(file);
+    
+    /* If buffer exists, flush and free it */
+    if (buffer != NULL) {
+        free_buffer(buffer);
+        unregister_buffer(file);
+    }
+    
+    /* Close the file */
+    result = fclose(file);
+    if (result != 0) {
+        IO_ERROR_LOG(IO_ERROR_CLOSE_FAILED, "buffered_fclose", NULL,
+                   "Failed to close file");
+    }
+    
+    return result;
 }

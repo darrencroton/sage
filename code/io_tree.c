@@ -42,6 +42,10 @@
 /* Global file endianness variable - initialized to host endianness by default */
 static int file_endianness = SAGE_HOST_ENDIAN;
 
+/* Table of active I/O buffers */
+static IOBuffer *read_buffer = NULL;
+static IOBuffer *write_buffer = NULL;
+
 #ifndef MAX_BUF_SIZE
 #define MAX_BUF_SIZE (3*MAX_STRING_LEN+40)
 #endif
@@ -312,7 +316,52 @@ int get_file_endianness(void) {
 }
 
 /**
- * @brief   Enhanced wrapper for the fread function with endianness handling
+ * @brief   Initializes I/O buffering for SAGE
+ *
+ * This function sets up buffers for reading and writing operations.
+ * It should be called once during program initialization.
+ */
+void init_io_buffering(void)
+{
+    /* Release any existing buffers */
+    if (read_buffer != NULL) {
+        free_buffer(read_buffer);
+        read_buffer = NULL;
+    }
+    
+    if (write_buffer != NULL) {
+        free_buffer(write_buffer);
+        write_buffer = NULL;
+    }
+    
+    /* Buffers will be created on-demand when files are opened */
+    INFO_LOG("I/O buffering system initialized");
+}
+
+/**
+ * @brief   Cleans up I/O buffering resources
+ *
+ * This function frees buffers used for I/O operations.
+ * It should be called before program termination.
+ */
+void cleanup_io_buffering(void)
+{
+    /* Free buffers */
+    if (read_buffer != NULL) {
+        free_buffer(read_buffer);
+        read_buffer = NULL;
+    }
+    
+    if (write_buffer != NULL) {
+        free_buffer(write_buffer);
+        write_buffer = NULL;
+    }
+    
+    INFO_LOG("I/O buffering system cleaned up");
+}
+
+/**
+ * @brief   Enhanced wrapper for the fread function with buffering and endianness handling
  *
  * @param   ptr      Pointer to the data buffer
  * @param   size     Size of each element
@@ -321,28 +370,47 @@ int get_file_endianness(void) {
  * @return  Number of elements successfully read
  *
  * This function provides a wrapper around the standard fread function
- * with added endianness conversion and error handling. It reads data
- * from the file and, if necessary, swaps bytes to match the host endianness.
- * 
- * The function uses the global file_endianness variable to determine
- * if byte swapping is needed.
+ * with added buffering, endianness conversion, and error handling.
  */
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {
     size_t items_read;
+    IOBuffer* buffer;
     
-    if (ptr == NULL) {
-        WARNING_LOG("Cannot read into NULL pointer");
+    if (ptr == NULL || stream == NULL) {
+        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "myfread", NULL, 
+                    "NULL pointer passed to myfread");
         return 0;
     }
     
-    if (stream == NULL) {
-        WARNING_LOG("Cannot read from NULL file stream");
-        return 0;
+    /* Get buffer for this file */
+    buffer = get_buffer(stream);
+    if (buffer == NULL) {
+        /* No buffer yet, create one */
+        size_t buffer_size = get_optimal_buffer_size(stream);
+        buffer = create_buffer(buffer_size, IO_BUFFER_READ, stream);
+        if (buffer == NULL) {
+            /* Fall back to direct read if buffer creation fails */
+            WARNING_LOG("Failed to create read buffer - using direct read");
+            items_read = fread(ptr, size, nmemb, stream);
+            
+            /* Perform endianness conversion if needed */
+            if (items_read > 0 && !is_same_endian(file_endianness)) {
+                /* Only swap if element size is appropriate */
+                if (size == 2 || size == 4 || size == 8) {
+                    swap_bytes_if_needed(ptr, size, items_read, file_endianness);
+                }
+            }
+            return items_read;
+        }
+        register_buffer(stream, buffer);
+        if (read_buffer == NULL) {
+            read_buffer = buffer; /* Store global reference to the main read buffer */
+        }
     }
     
-    /* Perform the actual read operation */
-    items_read = fread(ptr, size, nmemb, stream);
+    /* Use buffered read */
+    items_read = buffered_read(buffer, ptr, size, nmemb);
     
     /* Perform endianness conversion if needed */
     if (items_read > 0 && !is_same_endian(file_endianness)) {
@@ -356,7 +424,7 @@ size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 }
 
 /**
- * @brief   Enhanced wrapper for the fwrite function with endianness handling
+ * @brief   Enhanced wrapper for the fwrite function with buffering and endianness handling
  *
  * @param   ptr      Pointer to the data buffer
  * @param   size     Size of each element
@@ -365,65 +433,88 @@ size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
  * @return  Number of elements successfully written
  *
  * This function provides a wrapper around the standard fwrite function
- * with added endianness conversion and error handling. If necessary, it
- * swaps bytes before writing to ensure the file uses the specified endianness.
- * 
- * The function uses the global file_endianness variable to determine
- * if byte swapping is needed.
+ * with added buffering, endianness conversion, and error handling.
  */
 size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {
-    size_t items_written;
     void *tmp_buffer = NULL;
+    size_t items_written;
+    IOBuffer* buffer;
     
-    if (ptr == NULL) {
-        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
-                   "Cannot write from NULL pointer");
+    if (ptr == NULL || stream == NULL) {
+        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "myfwrite", NULL, 
+                    "NULL pointer passed to myfwrite");
         return 0;
     }
     
-    if (stream == NULL) {
-        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "write", NULL,
-                   "Cannot write to NULL file stream");
-        return 0;
+    /* Get buffer for this file */
+    buffer = get_buffer(stream);
+    if (buffer == NULL) {
+        /* No buffer yet, create one */
+        size_t buffer_size = get_optimal_buffer_size(stream);
+        buffer = create_buffer(buffer_size, IO_BUFFER_WRITE, stream);
+        if (buffer == NULL) {
+            /* Fall back to direct write if buffer creation fails */
+            WARNING_LOG("Failed to create write buffer - using direct write");
+            
+            /* If endianness conversion is needed, use a temporary buffer */
+            if (!is_same_endian(file_endianness) && (size == 2 || size == 4 || size == 8)) {
+                tmp_buffer = malloc(size * nmemb);
+                if (tmp_buffer == NULL) {
+                    WARNING_LOG("Failed to allocate temporary buffer for endianness conversion");
+                    return 0;
+                }
+                
+                /* Copy data to temporary buffer */
+                memcpy(tmp_buffer, ptr, size * nmemb);
+                
+                /* Swap bytes in temporary buffer */
+                swap_bytes_if_needed(tmp_buffer, size, nmemb, file_endianness);
+                
+                /* Write from temporary buffer */
+                items_written = fwrite(tmp_buffer, size, nmemb, stream);
+                
+                /* Free temporary buffer */
+                free(tmp_buffer);
+                return items_written;
+            }
+            
+            /* Direct write without endianness conversion */
+            return fwrite(ptr, size, nmemb, stream);
+        }
+        register_buffer(stream, buffer);
+        if (write_buffer == NULL) {
+            write_buffer = buffer; /* Store global reference to the main write buffer */
+        }
     }
     
-    /* If endianness conversion is needed, use a temporary buffer */
+    /* Handle endianness conversion if needed */
     if (!is_same_endian(file_endianness) && (size == 2 || size == 4 || size == 8)) {
+        /* Create a temporary buffer for conversion */
         tmp_buffer = malloc(size * nmemb);
         if (tmp_buffer == NULL) {
-            IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
-                       "Failed to allocate temporary buffer for endianness conversion");
+            WARNING_LOG("Failed to allocate temporary buffer for endianness conversion");
             return 0;
         }
         
-        /* Copy data to temporary buffer */
+        /* Copy and convert data */
         memcpy(tmp_buffer, ptr, size * nmemb);
-        
-        /* Swap bytes in temporary buffer */
         swap_bytes_if_needed(tmp_buffer, size, nmemb, file_endianness);
         
-        /* Write from temporary buffer */
-        items_written = fwrite(tmp_buffer, size, nmemb, stream);
+        /* Write converted data */
+        items_written = buffered_write(buffer, tmp_buffer, size, nmemb);
         
-        /* Free temporary buffer */
+        /* Clean up */
         free(tmp_buffer);
-    } else {
-        /* Write directly from input buffer */
-        items_written = fwrite(ptr, size, nmemb, stream);
+        return items_written;
     }
     
-    if (items_written != nmemb) {
-        IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "write", NULL,
-                   "Error writing to file: wrote %zu of %zu items",
-                   items_written, nmemb);
-    }
-    
-    return items_written;
+    /* Use buffered write with no conversion needed */
+    return buffered_write(buffer, ptr, size, nmemb);
 }
 
 /**
- * @brief   Enhanced wrapper for the fseek function with error handling
+ * @brief   Enhanced wrapper for the fseek function with buffering support
  *
  * @param   stream   File stream to seek within
  * @param   offset   Offset from the position specified by whence
@@ -431,35 +522,36 @@ size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
  * @return  0 on success, non-zero on error
  *
  * This function provides a wrapper around the standard fseek function
- * with added error handling. It checks for common seek errors and
- * logs appropriate error messages.
+ * with added buffer management.
  */
 int myfseek(FILE * stream, long offset, int whence)
 {
+    IOBuffer* buffer;
     int result;
     
     if (stream == NULL) {
-        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "seek", NULL,
-                   "Cannot seek in NULL file stream");
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "myfseek", NULL, 
+                    "NULL stream pointer passed to myfseek");
         return -1;
     }
     
-    result = fseek(stream, offset, whence);
-    
-    if (result != 0) {
-        const char *whence_str;
-        
-        switch(whence) {
-            case SEEK_SET: whence_str = "SEEK_SET"; break;
-            case SEEK_CUR: whence_str = "SEEK_CUR"; break;
-            case SEEK_END: whence_str = "SEEK_END"; break;
-            default: whence_str = "unknown"; break;
+    /* Get buffer for this file */
+    buffer = get_buffer(stream);
+    if (buffer == NULL) {
+        /* No buffer, use direct seek */
+        result = fseek(stream, offset, whence);
+        if (result != 0) {
+            IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "myfseek", NULL, 
+                        "fseek failed with error %d", result);
         }
-        
-        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "seek", NULL,
-                   "Failed to seek to offset %ld from %s",
-                   offset, whence_str);
+        return result;
     }
     
+    /* Use buffered seek */
+    result = buffered_seek(buffer, offset, whence);
+    if (result != 0) {
+        IO_ERROR_LOG(IO_ERROR_SEEK_FAILED, "myfseek", NULL, 
+                    "buffered_seek failed with error %d", result);
+    }
     return result;
 }

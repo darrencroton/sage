@@ -14,6 +14,31 @@
 #include <stdio.h>
 #include <stdint.h>
 
+/* Buffer management definitions */
+#define IO_BUFFER_SMALL    8192    /* 8 KB - For small files or random access */
+#define IO_BUFFER_MEDIUM   65536   /* 64 KB - Default buffer size */
+#define IO_BUFFER_LARGE    262144  /* 256 KB - For sequential access to large files */
+#define IO_BUFFER_XLARGE   1048576 /* 1 MB - For very large files or high bandwidth operations */
+#define MAX_BUFFERED_FILES 16      /* Maximum number of buffered files */
+
+/* Buffer access modes */
+typedef enum {
+    IO_BUFFER_READ,       /* Read-only buffer */
+    IO_BUFFER_WRITE,      /* Write-only buffer */
+    IO_BUFFER_READWRITE   /* Read-write buffer */
+} IOBufferMode;
+
+/* I/O buffer structure */
+typedef struct {
+    void*   buffer;        /* Buffer memory */
+    size_t  size;          /* Total buffer size */
+    size_t  position;      /* Current position in buffer */
+    size_t  valid_size;    /* Amount of valid data in buffer */
+    int     dirty;         /* Whether buffer contains unsaved changes */
+    FILE*   file;          /* Associated file */
+    IOBufferMode mode;     /* Buffer mode (read, write, or both) */
+} IOBuffer;
+
 /* Endianness definitions */
 #define SAGE_LITTLE_ENDIAN 0
 #define SAGE_BIG_ENDIAN    1
@@ -67,5 +92,26 @@ int read_sage_header(FILE* file, struct SAGEFileHeader* header);
 int check_file_compatibility(const struct SAGEFileHeader* header);
 int check_headerless_file(FILE* file);
 long get_file_size(FILE* file);
+
+/* Buffer management functions */
+IOBuffer* create_buffer(size_t size, IOBufferMode mode, FILE* file);
+void free_buffer(IOBuffer* buffer);
+int flush_buffer(IOBuffer* buffer);
+int fill_buffer(IOBuffer* buffer, size_t min_fill);
+size_t get_optimal_buffer_size(FILE* file);
+
+/* Buffer registry management */
+IOBuffer* get_buffer(FILE* file);
+int register_buffer(FILE* file, IOBuffer* buffer);
+int unregister_buffer(FILE* file);
+
+/* Buffered I/O operations */
+size_t buffered_read(IOBuffer* buffer, void* data, size_t size, size_t count);
+size_t buffered_write(IOBuffer* buffer, const void* data, size_t size, size_t count);
+int buffered_seek(IOBuffer* buffer, long offset, int whence);
+
+/* Buffered file operations */
+FILE* buffered_fopen(const char* filename, const char* mode, size_t buffer_size);
+int buffered_fclose(FILE* file);
 
 #endif /* IO_UTIL_H */

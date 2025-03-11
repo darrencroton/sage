@@ -37,6 +37,7 @@ typedef struct {
     int     dirty;         /* Whether buffer contains unsaved changes */
     FILE*   file;          /* Associated file */
     IOBufferMode mode;     /* Buffer mode (read, write, or both) */
+    long    file_offset;   /* File offset corresponding to buffer start */
 } IOBuffer;
 
 /* Endianness definitions */

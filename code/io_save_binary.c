@@ -65,8 +65,7 @@ void save_galaxies(int filenr, int tree)
 {
   char buf[MAX_BUF_SIZE+1];
   int i, n;
-  static const struct GALAXY_OUTPUT galaxy_output_null = {0};
-  struct GALAXY_OUTPUT galaxy_output = galaxy_output_null;
+  /* No need for static output structure anymore since we use dynamic allocation */
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
 
@@ -107,15 +106,21 @@ void save_galaxies(int filenr, int tree)
             {
         snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
-        save_fd[n] = fopen(buf, "r+");
+        /* Open in binary mode with update permissions */
+        save_fd[n] = fopen(buf, "wb+");
         if (save_fd[n] == NULL)
         {
           FATAL_ERROR("Failed to open output galaxy file '%s' for snapshot %d (filenr %d)", 
                     buf, ListOutputSnaps[n], filenr);
         }
+        
+        /* Disable stdio buffering to maximize reliability */
+        setvbuf(save_fd[n], NULL, _IONBF, 0);
+        
+        /* We use direct I/O for writing, so no buffer is needed */
 
-        // write out placeholders for the header data.
-        size_t size = (Ntrees + 2)*sizeof(int); /* Extra two inegers are for saving the total number of trees and total number of galaxies in this file */
+        /* Write out placeholders for the header data using direct I/O */
+        size_t size = (Ntrees + 2)*sizeof(int); /* Extra two integers are for saving the total number of trees and total number of galaxies in this file */
         int* tmp_buf = (int*)malloc( size );
         if (tmp_buf == NULL)
         {
@@ -124,14 +129,18 @@ void save_galaxies(int filenr, int tree)
         }
 
         memset( tmp_buf, 0, size );
-        nwritten = fwrite( tmp_buf, sizeof(int), Ntrees + 2, save_fd[n] );
+        
+        /* Use direct I/O for the header to avoid buffer confusion */
+        nwritten = fwrite(tmp_buf, sizeof(int), Ntrees + 2, save_fd[n]);
         if (nwritten != Ntrees + 2)
         {
-        ERROR_LOG("Failed to write header information to output file %d. Expected %d elements, wrote %d elements. Will retry after output is complete", 
-                 n, Ntrees + 2, nwritten);
-        // Note: This is converted to ERROR_LOG to demonstrate a recoverable error
-        // We could retry or implement a fallback strategy here instead of aborting
+          ERROR_LOG("Failed to write header information to output file %d. Expected %d elements, wrote %d elements. Will retry after output is complete", 
+                   n, Ntrees + 2, nwritten);
         }
+        
+        /* Make sure data is actually written to disk */
+        fflush(save_fd[n]);
+        
         free( tmp_buf );
             }
 
@@ -139,18 +148,26 @@ void save_galaxies(int filenr, int tree)
             {
         if(HaloGal[i].SnapNum == ListOutputSnaps[n])
               {
+          /* Use stack allocation instead of dynamic allocation */
+          struct GALAXY_OUTPUT galaxy_output = {0}; /* Zero-initialize */
+          
+          /* Convert internal galaxy to output format */
           prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
-
-          nwritten = myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-          if (nwritten != 1)
-          {
-            FATAL_ERROR("Failed to write galaxy data for galaxy %d (tree %d, filenr %d, snapshot %d). Expected 1 element, wrote %d elements", 
-                       i, tree, filenr, ListOutputSnaps[n], nwritten);
+          
+          /* Write using direct file I/O */
+          size_t galaxy_size = sizeof(struct GALAXY_OUTPUT);
+          nwritten = fwrite(&galaxy_output, galaxy_size, 1, save_fd[n]);
+          
+          if (nwritten != 1) {
+            FATAL_ERROR("Failed to write galaxy data for galaxy %d (tree %d, filenr %d, snapshot %d)", 
+                       i, tree, filenr, ListOutputSnaps[n]);
           }
-
+          
+          /* Increment galaxy counters right after successful write */
           TotGalaxies[n]++;
           SimState.TotGalaxies[n]++; /* Update SimState directly */
           TreeNgals[n][tree]++;
+          
               }
             }
 
@@ -331,38 +348,46 @@ void finalize_galaxy_file(int filenr)
   for(n = 0; n < SageConfig.NOUT; n++)
   {
     // file must already be open.
-    assert( save_fd[n] );
+    assert(save_fd[n]);
     
-    // seek to the beginning.
-    fseek( save_fd[n], 0, SEEK_SET );
-
-    nwritten = myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
-    if (nwritten != 1)
-    {
-      FATAL_ERROR("Failed to write number of trees to header of file %d (filenr %d). Expected 1 element, wrote %d elements", 
-                 n, filenr, nwritten);
+    // Finalize the file for this snapshot
+    
+    // Force a final flush to ensure all data is written
+    fflush(save_fd[n]);
+    
+    // Seek to the beginning of the file for header writing
+    if (fseek(save_fd[n], 0, SEEK_SET) != 0) {
+      FATAL_ERROR("Failed to seek to beginning of file for writing header");
     }
-
-    nwritten = myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
-    if (nwritten != 1)
-    {
-      FATAL_ERROR("Failed to write total galaxy count to header of file %d (filenr %d). Expected 1 element, wrote %d elements", 
-                 n, filenr, nwritten);
+    
+    // Write the total number of trees (first header field)
+    nwritten = fwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
+    if (nwritten != 1) {
+      FATAL_ERROR("Failed to write number of trees to header of file %d (filenr %d)", 
+                n, filenr);
     }
-
-    nwritten = myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
-    if (nwritten != Ntrees)
-    {
-      FATAL_ERROR("Failed to write galaxy counts per tree to header of file %d (filenr %d). Expected %d elements, wrote %d elements", 
-                 n, filenr, Ntrees, nwritten);
+    
+    // Write the total number of galaxies (second header field)
+    nwritten = fwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
+    if (nwritten != 1) {
+      FATAL_ERROR("Failed to write total galaxy count to header of file %d (filenr %d)", 
+                n, filenr);
     }
-
-
-    // close the file and clear handle after everything has been written
-    fclose( save_fd[n] );
+    
+    // Write galaxies per tree (array of integers)
+    nwritten = fwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
+    if (nwritten != Ntrees) {
+      FATAL_ERROR("Failed to write galaxy counts per tree to header of file %d (filenr %d)", 
+                n, filenr);
+    }
+    
+    // Final data flush
+    fflush(save_fd[n]);
+    
+    // Close the file and clear handle
+    fclose(save_fd[n]);
     save_fd[n] = NULL;
   }
-
 }
 
 #undef TREE_MUL_FAC

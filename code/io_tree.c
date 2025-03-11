@@ -298,8 +298,6 @@ void set_file_endianness(int endianness) {
         file_endianness = SAGE_HOST_ENDIAN;
     } else {
         file_endianness = endianness;
-        DEBUG_LOG("File endianness set to %s", 
-                 (endianness == SAGE_LITTLE_ENDIAN) ? "little-endian" : "big-endian");
     }
 }
 
@@ -335,7 +333,6 @@ void init_io_buffering(void)
     }
     
     /* Buffers will be created on-demand when files are opened */
-    INFO_LOG("I/O buffering system initialized");
 }
 
 /**
@@ -351,7 +348,6 @@ void cleanup_io_buffering(void)
     write_buffer = NULL;
     
     /* The actual buffers will be freed when file handles are closed */
-    INFO_LOG("I/O buffering system cleaned up");
 }
 
 /**
@@ -433,6 +429,7 @@ size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {
     void *tmp_buffer = NULL;
     size_t items_written;
+    IOBuffer* buffer;
     
     if (ptr == NULL || stream == NULL) {
         IO_ERROR_LOG(IO_ERROR_WRITE_FAILED, "myfwrite", NULL, 
@@ -440,37 +437,43 @@ size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream)
         return 0;
     }
     
-    /* TEMPORARY FIX: Bypass buffer system for write operations to avoid data loss */
-    /* If endianness conversion is needed, use a temporary buffer */
+    /* Create a clean copy of the data for writing */
+    tmp_buffer = malloc(size * nmemb);
+    if (tmp_buffer == NULL) {
+        WARNING_LOG("Failed to allocate temporary buffer for write operation");
+        return 0;
+    }
+    
+    /* First zero the buffer to avoid any garbage data */
+    memset(tmp_buffer, 0, size * nmemb);
+    
+    /* Then copy the data to ensure clean transfer */
+    memcpy(tmp_buffer, ptr, size * nmemb);
+    
+    /* Perform endianness conversion if needed */
     if (!is_same_endian(file_endianness) && (size == 2 || size == 4 || size == 8)) {
-        tmp_buffer = malloc(size * nmemb);
-        if (tmp_buffer == NULL) {
-            WARNING_LOG("Failed to allocate temporary buffer for endianness conversion");
-            return 0;
-        }
-        
-        /* Copy data to temporary buffer */
-        memcpy(tmp_buffer, ptr, size * nmemb);
-        
         /* Swap bytes in temporary buffer */
         swap_bytes_if_needed(tmp_buffer, size, nmemb, file_endianness);
+    }
+    
+    /* STEP 1: Try using our simplified buffer approach for better performance */
+    buffer = get_buffer(stream);
+    if (buffer != NULL) {
+        /* Use our simplified buffer implementation */
+        items_written = buffered_write(buffer, tmp_buffer, size, nmemb);
         
-        /* Write from temporary buffer */
+        /* For large or critical data, force an immediate flush */
+        if (size > 100 || nmemb > 100) {
+            buffered_flush(stream);
+        }
+    } else {
+        /* Fallback to direct write if no buffer */
         items_written = fwrite(tmp_buffer, size, nmemb, stream);
-        
-        /* Free temporary buffer */
-        free(tmp_buffer);
-        return items_written;
     }
     
-    /* Direct write without endianness conversion */
-    items_written = fwrite(ptr, size, nmemb, stream);
-    if (items_written != nmemb) {
-        WARNING_LOG("Partial write: %zu of %zu elements written", items_written, nmemb);
-    }
-    return items_written;
+    /* Free temporary buffer */
+    free(tmp_buffer);
     
-    /* Removed buffered write code since we're bypassing the buffer system */
     return items_written;
 }
 

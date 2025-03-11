@@ -332,32 +332,17 @@ size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
     size_t items_read;
     
     if (ptr == NULL) {
-        IO_ERROR_LOG(IO_ERROR_READ_FAILED, "read", NULL,
-                   "Cannot read into NULL pointer");
+        WARNING_LOG("Cannot read into NULL pointer");
         return 0;
     }
     
     if (stream == NULL) {
-        IO_ERROR_LOG(IO_ERROR_FILE_NOT_FOUND, "read", NULL,
-                   "Cannot read from NULL file stream");
+        WARNING_LOG("Cannot read from NULL file stream");
         return 0;
     }
     
     /* Perform the actual read operation */
     items_read = fread(ptr, size, nmemb, stream);
-    
-    if (items_read != nmemb) {
-        /* Check if it's an EOF or an error */
-        if (feof(stream)) {
-            IO_WARNING_LOG(IO_ERROR_EOF, "read", NULL,
-                      "End of file reached after reading %zu of %zu items",
-                      items_read, nmemb);
-        } else if (ferror(stream)) {
-            IO_ERROR_LOG(IO_ERROR_READ_FAILED, "read", NULL,
-                      "Error reading from file after %zu of %zu items",
-                      items_read, nmemb);
-        }
-    }
     
     /* Perform endianness conversion if needed */
     if (items_read > 0 && !is_same_endian(file_endianness)) {

@@ -66,114 +66,52 @@ static FILE *load_fd;
  * 
  * The function also updates the SimState structure to maintain consistency
  * with the global variables.
- * 
- * This function has been enhanced to detect file endianness and handle
- * both modern (with header) and legacy (headerless) binary file formats.
  */
 void load_tree_table_binary(int32_t filenr)
 {
-  int i, totNHalos, headerless_status;
+  int i, totNHalos;
   char buf[MAX_BUF_SIZE+1];
-  long original_pos;
-  struct SAGEFileHeader header;
 
   // Open the file
   snprintf(buf, MAX_BUF_SIZE, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr, SageConfig.TreeExtension);
-  if(!(load_fd = fopen(buf, "rb")))  // Note 'rb' mode for binary files
+  if(!(load_fd = fopen(buf, "r")))
   {
-    IO_FATAL_ERROR(IO_ERROR_FILE_NOT_FOUND, "open", buf, 
-                "Failed to open binary tree file for filenr %d", filenr);
+    FATAL_ERROR("Failed to open binary tree file '%s' (filenr %d)", buf, filenr);
   }
 
-  // First, try to detect if this is a headerless file or a modern file with header
-  headerless_status = check_headerless_file(load_fd);
-  
-  if (headerless_status < 0) {
-    // Error occurred during detection - abort
-    IO_FATAL_ERROR(-headerless_status, "check_format", buf, 
-                "Failed to determine file format");
-  }
-  
-  if (headerless_status == 0) {
-    // File has a header - read and validate it
-    if (read_sage_header(load_fd, &header) != 0) {
-      IO_FATAL_ERROR(IO_ERROR_INVALID_HEADER, "read_header", buf,
-                  "Invalid or corrupted file header");
-    }
-    
-    if (check_file_compatibility(&header) != 0) {
-      IO_FATAL_ERROR(IO_ERROR_VERSION_MISMATCH, "check_compatibility", buf,
-                  "File format version is incompatible");
-    }
-    
-    // Set endianness based on header information
-    set_file_endianness(header.endianness);
-    INFO_LOG("Using file format with header (version %d, %s endian)", 
-            header.version, (header.endianness == SAGE_LITTLE_ENDIAN) ? "little" : "big");
-  } else {
-    // Headerless file - use host endianness and rewind
-    set_file_endianness(SAGE_HOST_ENDIAN);
-    rewind(load_fd);
-    INFO_LOG("Using legacy headerless file format (assuming %s endian)", 
-            (SAGE_HOST_ENDIAN == SAGE_LITTLE_ENDIAN) ? "little" : "big");
-  }
-  
-  // Save current position after header processing
-  original_pos = ftell(load_fd);
+  // For simplicity, assume host endianness for legacy files
+  set_file_endianness(SAGE_HOST_ENDIAN);
+  INFO_LOG("Using legacy headerless file format (assuming %s endian)", 
+          (SAGE_HOST_ENDIAN == SAGE_LITTLE_ENDIAN) ? "little" : "big");
   
   // Read the tree metadata
-  myfread(&Ntrees, 1, sizeof(int), load_fd);
+  if (fread(&Ntrees, sizeof(int), 1, load_fd) != 1) {
+    FATAL_ERROR("Failed to read Ntrees from file '%s'", buf);
+  }
   SimState.Ntrees = Ntrees; /* Update SimState directly */
   
-  myfread(&totNHalos, 1, sizeof(int), load_fd);
-
-  // Check that the values are reasonable - otherwise we might have endianness wrong
-  if (Ntrees <= 0 || Ntrees > 1000000 || totNHalos <= 0 || totNHalos > 100000000) {
-    WARNING_LOG("Suspicious metadata values (Ntrees=%d, totNHalos=%d). Trying opposite endianness.", 
-               Ntrees, totNHalos);
-    
-    // Try the opposite endianness
-    set_file_endianness(get_file_endianness() == SAGE_LITTLE_ENDIAN ? 
-                        SAGE_BIG_ENDIAN : SAGE_LITTLE_ENDIAN);
-    
-    // Reposition and re-read with new endianness
-    fseek(load_fd, original_pos, SEEK_SET);
-    myfread(&Ntrees, 1, sizeof(int), load_fd);
-    myfread(&totNHalos, 1, sizeof(int), load_fd);
-    
-    if (Ntrees <= 0 || Ntrees > 1000000 || totNHalos <= 0 || totNHalos > 100000000) {
-      IO_FATAL_ERROR(IO_ERROR_FORMAT, "read_metadata", buf,
-                  "Invalid tree metadata even after endianness conversion. "
-                  "File may be corrupted or not a valid SAGE binary file.");
-    }
-    
-    INFO_LOG("Endianness conversion successful: Ntrees=%d, totNHalos=%d", 
-            Ntrees, totNHalos);
+  if (fread(&totNHalos, sizeof(int), 1, load_fd) != 1) {
+    FATAL_ERROR("Failed to read totNHalos from file '%s'", buf);
   }
-  
+
   DEBUG_LOG("Reading %d trees with %d total halos", Ntrees, totNHalos);
   
   // Allocate arrays for tree data
   TreeNHalos = mymalloc(sizeof(int) * Ntrees);
   if (TreeNHalos == NULL) {
-    IO_FATAL_ERROR(IO_ERROR_FORMAT, "allocate", buf,
-                "Failed to allocate memory for TreeNHalos array");
+    FATAL_ERROR("Failed to allocate memory for TreeNHalos array");
   }
   SimState.TreeNHalos = TreeNHalos; /* Update SimState pointer directly */
   
   TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
   if (TreeFirstHalo == NULL) {
-    IO_FATAL_ERROR(IO_ERROR_FORMAT, "allocate", buf,
-                "Failed to allocate memory for TreeFirstHalo array");
+    FATAL_ERROR("Failed to allocate memory for TreeFirstHalo array");
   }
   SimState.TreeFirstHalo = TreeFirstHalo; /* Update SimState pointer directly */
 
-  // Read the number of halos per tree
-  size_t read_items = myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
-  if (read_items != Ntrees) {
-    IO_FATAL_ERROR(IO_ERROR_READ_FAILED, "read", buf,
-                "Failed to read tree halo counts. Expected %d items, got %zu", 
-                Ntrees, read_items);
+  // Read the number of halos per tree - using direct fread for now
+  if (fread(TreeNHalos, sizeof(int), Ntrees, load_fd) != Ntrees) {
+    FATAL_ERROR("Failed to read tree halo counts from file '%s'", buf);
   }
 
   // Calculate starting indices for each tree
@@ -205,12 +143,17 @@ void load_tree_table_binary(int32_t filenr)
 void load_tree_binary(int32_t filenr, int32_t treenr)
 {
   // must have an FD
-  assert(load_fd );
+  assert(load_fd);
 
   Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[treenr]);
+  if (Halo == NULL) {
+    FATAL_ERROR("Failed to allocate memory for Halo array with %d halos", TreeNHalos[treenr]);
+  }
 
-  myfread(Halo, TreeNHalos[treenr], sizeof(struct halo_data), load_fd);
-
+  // Use direct fread to avoid our problematic wrapper
+  if (fread(Halo, sizeof(struct halo_data), TreeNHalos[treenr], load_fd) != TreeNHalos[treenr]) {
+    FATAL_ERROR("Failed to read halo data for tree %d", treenr);
+  }
 }
 
 /**

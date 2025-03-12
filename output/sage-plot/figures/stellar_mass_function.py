@@ -227,8 +227,9 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     setup_legend(ax, loc='lower left')
     
     # Print debugging info for output directory
-    print(f"Output directory for SMF plot: {output_dir}")
-    print(f"Output directory exists: {os.path.exists(output_dir)}")
+    if verbose:
+        print(f"Output directory for SMF plot: {output_dir}")
+        print(f"Output directory exists: {os.path.exists(output_dir)}")
     
     # Save the figure, ensuring the output directory exists
     try:

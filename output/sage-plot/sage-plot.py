@@ -274,7 +274,8 @@ def read_galaxies(model_path, first_file, last_file, params=None):
         max_tree_files = params.get('MaxTreeFiles', 8) if params else 8
     
     # Print the model path for debugging
-    print(f"Looking for galaxy files with base: {model_path}")
+    if args.verbose:
+        print(f"Looking for galaxy files with base: {model_path}")
     
     # Look for files matching the pattern in the same directory
     dir_path = os.path.dirname(model_path)
@@ -287,24 +288,27 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     pattern2 = os.path.join(dir_path, f"{base_name}_*")
     
     # Log the patterns we're trying
-    print(f"  Trying exact pattern: {pattern1}")
-    print(f"  Trying generic pattern: {pattern2}")
+    if args.verbose:
+        print(f"  Trying exact pattern: {pattern1}")
+        print(f"  Trying generic pattern: {pattern2}")
     
     # Try the exact pattern first
     exact_files = glob.glob(pattern1)
     if exact_files:
         existing_files = exact_files
-        print(f"  Found file with exact pattern")
+        if args.verbose:
+            print(f"  Found file with exact pattern")
     else:
         # Fall back to the generic pattern
         existing_files = glob.glob(pattern2)
     
     if existing_files:
-        print(f"Found {len(existing_files)} files matching the pattern.")
-        for f in existing_files[:5]:  # Show first 5 files
-            print(f"  {f}")
-        if len(existing_files) > 5:
-            print(f"  ... and {len(existing_files) - 5} more")
+        if args.verbose:
+            print(f"Found {len(existing_files)} files matching the pattern.")
+            for f in existing_files[:5]:  # Show first 5 files
+                print(f"  {f}")
+            if len(existing_files) > 5:
+                print(f"  ... and {len(existing_files) - 5} more")
     else:
         print(f"No files found matching the pattern {base_name}_*")
     
@@ -316,7 +320,8 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     tot_ngals = 0
     good_files = 0
     
-    print(f"Determining storage requirements for files {first_file} to {last_file}...")
+    if args.verbose:
+        print(f"Determining storage requirements for files {first_file} to {last_file}...")
     
     # First pass: Determine total number of galaxies
     # Only show progress bar when verbose is enabled
@@ -333,7 +338,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
         
         try:
             with open(fname, 'rb') as fin:
-                ntrees = np.fromfile(fin, np.dtype(np.int32), 1)
+                ntrees = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Extract scalar value
                 ntotgals = np.fromfile(fin, np.dtype(np.int32), 1)[0]
                 tot_ntrees += ntrees
                 tot_ngals += ntotgals
@@ -428,7 +433,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
         
         try:
             with open(fname, 'rb') as fin:
-                ntrees = np.fromfile(fin, np.dtype(np.int32), 1)
+                ntrees = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Extract scalar value
                 ntotgals = np.fromfile(fin, np.dtype(np.int32), 1)[0]
                 gals_per_tree = np.fromfile(fin, np.dtype((np.int32, ntrees)), 1)
                 
@@ -844,11 +849,11 @@ def main():
                     verbose=args.verbose
                 )
                 generated_plots.append(plot_path)
-                if args.verbose:
-                    print(f"Generated: {plot_path}")
+                print(f"Generated: {plot_path}")
             except Exception as e:
                 print(f"Error generating {plot_name}: {e}")
 
+        
         if args.verbose:
             print(f"Generated {len(generated_plots)} snapshot plots.")
     
@@ -1035,11 +1040,11 @@ def main():
                     verbose=args.verbose
                 )
                 generated_plots.append(plot_path)
-                if args.verbose:
-                    print(f"Generated: {plot_path}")
+                print(f"Generated: {plot_path}")
             except Exception as e:
                 print(f"Error generating {plot_name}: {e}")
 
+        
         if args.verbose:
             print(f"Generated {len(generated_plots)} evolution plots.")
 

@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""
+Setup script for the SAGE Plotting Tool package.
+
+This file defines the package metadata, dependencies, and entry points
+for the SAGE Plotting Tool, which provides a centralized system for 
+generating plots from SAGE galaxy formation model outputs.
+"""
+
 from setuptools import setup, find_packages
 
 setup(

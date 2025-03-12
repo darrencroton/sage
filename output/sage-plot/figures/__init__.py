@@ -5,6 +5,7 @@ This package contains self-contained modules for creating various plots from SAG
 """
 
 # Standard figure settings for consistent appearance
+"""Standard figure settings for consistent appearance across all plots."""
 AXIS_LABEL_SIZE = 16  # Font size for axis labels
 TICK_LABEL_SIZE = 12  # Font size for tick labels
 LEGEND_FONT_SIZE = 12  # Size for legend text (use numeric size instead of 'large')
@@ -122,6 +123,7 @@ from . import mass_reservoir_scatter
 from . import spatial_distribution
 
 # Define available plot types
+"""List of all available snapshot plot modules."""
 SNAPSHOT_PLOTS = [
     'stellar_mass_function',
     'baryonic_mass_function',
@@ -143,6 +145,7 @@ SNAPSHOT_PLOTS = [
     'spatial_distribution'
 ]
 
+"""List of all available evolution plot modules."""
 EVOLUTION_PLOTS = [
     'smf_evolution',
     'sfr_density_evolution',
@@ -151,7 +154,7 @@ EVOLUTION_PLOTS = [
 
 # Make sure this dictionary matches the classifications above
 
-# Define a mapping of plot names to their functions
+"""Mapping of plot names to their corresponding functions."""
 PLOT_FUNCS = {
     'stellar_mass_function': stellar_mass_function.plot,
     'baryonic_mass_function': baryonic_mass_function.plot,

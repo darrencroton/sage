@@ -68,8 +68,6 @@ python sage-plot.py --param-file=/path/to/sage_params.par --snapshot=63 --no-tex
 - `metallicity`: Gas-phase metallicity vs. stellar mass
 - `bulge_mass_fraction`: Bulge mass fraction vs. stellar mass
 - `quiescent_fraction`: Fraction of quiescent galaxies vs. stellar mass
-- `galaxy_size`: Galaxy size vs. stellar mass
-- `color_distribution`: Galaxy color-magnitude diagram
 
 #### Halo Properties:
 - `halo_occupation`: Halo occupation distribution

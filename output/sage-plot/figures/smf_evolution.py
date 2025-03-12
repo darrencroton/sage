@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from figures import get_mass_function_labels, get_stellar_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
@@ -26,6 +27,9 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
     
     # Determine IMF type from params
     whichimf = params.get('IMF_Type', 1)  # Default to Chabrier IMF
@@ -85,10 +89,17 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     elif whichimf == 1:
         ax.plot(np.log10(10.0**M *1.6/1.8), yval, 'r:', lw=10, alpha=0.5, label='... z=[3.0,4.0]')
     
+    # Debug information
+    print(f"SMF Evolution plot debug:")
+    print(f"  Number of snapshots: {len(snapshots)}")
+    for snap, (galaxies, volume, metadata) in snapshots.items():
+        print(f"  Snapshot {snap}: {len(galaxies)} galaxies, z={metadata.get('redshift', 'unknown')}")
+    
     # Sort snapshots by redshift
-    sorted_snapshots = [(snap, data, metadata['redshift']) 
-                       for snap, (data, volume, metadata) in snapshots.items()]
-    sorted_snapshots.sort(key=lambda x: x[2])
+    sorted_snapshots = [(snap, galaxies, volume, metadata) 
+                       for snap, (galaxies, volume, metadata) in snapshots.items()]
+    # Sort by redshift
+    sorted_snapshots.sort(key=lambda x: x[3]['redshift'])
     
     # Colors for different redshifts
     colors = ['k', 'b', 'g', 'r', 'm', 'y', 'c', 'orange']
@@ -99,7 +110,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No snapshot data available for SMF evolution plot", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -109,9 +120,13 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         return output_path
     
     # Plot model SMFs at various redshifts
-    for i, (snap, (galaxies, volume, metadata), redshift) in enumerate(sorted_snapshots[:8]):  # Limit to 8 redshifts
+    for i, (snap, galaxies, volume, metadata) in enumerate(sorted_snapshots[:8]):  # Limit to 8 redshifts
         hubble_h = metadata['hubble_h']
+        redshift = metadata['redshift']
         color = colors[i % len(colors)]
+        
+        # Debug output
+        print(f"Processing SMF for snapshot {snap}, z={redshift:.1f}")
         
         # Select galaxies with stellar mass
         w = np.where(galaxies.StellarMass > 0.0)[0]
@@ -141,7 +156,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
             # Find a suitable y-value for the text
             idx = np.argmin(np.abs(xaxis - 10.5))
             y_value = counts[idx] / volume * hubble_h**3 / binwidth
-            ax.text(10.7, y_value, f"z={redshift:.1f}", color=color, fontsize=10)
+            ax.text(10.7, y_value, f"z={redshift:.1f}", color=color, fontsize=IN_FIGURE_TEXT_SIZE)
     
     # Customize the plot
     ax.set_yscale('log')
@@ -149,18 +164,23 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     ax.set_ylim(1.0e-6, 1.0e-1)
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     
-    ax.set_ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
-    ax.set_xlabel(r'$\log_{10} M_{\mathrm{stars}}\ (M_{\odot})$')
+    ax.set_ylabel(get_mass_function_labels(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_stellar_mass_label(), fontsize=AXIS_LABEL_SIZE)
     
-    # Add legend
-    leg = ax.legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='lower left')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"StellarMassFunction_Evolution{output_format}")
+    print(f"Saving Stellar Mass Function Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

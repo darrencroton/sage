@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from random import sample, seed
+from figures import get_baryonic_mass_label, get_vmax_label
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
     """
@@ -75,8 +76,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.plot(w_obs, TF, 'b-', lw=2.0, label='Stark, McGaugh \\& Swatters 2009')
     
     # Customize the plot
-    ax.set_ylabel(r'$\log_{10}\ M_{\mathrm{bar}}\ (M_{\odot})$')
-    ax.set_xlabel(r'$\log_{10}V_{max}\ (km/s)$')
+    ax.set_ylabel(get_baryonic_mass_label())
+    ax.set_xlabel(get_vmax_label())
     
     # Set the axis limits and minor ticks
     ax.set_xlim(1.4, 2.6)
@@ -90,9 +91,17 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"BaryonicTullyFisher{output_format}")
+    print(f"Saving Baryonic Tully-Fisher to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

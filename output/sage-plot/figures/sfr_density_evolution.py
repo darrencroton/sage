@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from figures import get_sfr_density_label, get_redshift_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
@@ -26,6 +27,9 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
     
     # Add observational data (compilation used in many papers)
     ObsSFRdensity = np.array([
@@ -90,7 +94,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No snapshot data available for SFR density evolution plot", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -129,13 +133,24 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     redshifts = redshifts[sort_idx]
     sfr_density = sfr_density[sort_idx]
     
+    # Debug information
+    print(f"SFR density plot debug:")
+    print(f"  Number of snapshots: {len(snapshots)}")
+    print(f"  Redshifts available: {redshifts}")
+    print(f"  SFR density values: {sfr_density}")
+    
     # Plot the model results
     nonzero = np.where(sfr_density > 0.0)[0]
-    ax.plot(redshifts[nonzero], np.log10(sfr_density[nonzero]), 'k-', lw=3.0, label='Model')
+    if len(nonzero) > 0:
+        print(f"  Plotting {len(nonzero)} nonzero SFR density points")
+        # Use blue color to match the original plot
+        ax.plot(redshifts[nonzero], np.log10(sfr_density[nonzero]), 'b-', lw=3.0, label='Model')
+    else:
+        print("  WARNING: No nonzero SFR density points to plot!")
     
     # Customize the plot
-    ax.set_ylabel(r'$\log_{10} \mathrm{SFR\ density}\ (M_{\odot}\ \mathrm{yr}^{-1}\ \mathrm{Mpc}^{-3})$')
-    ax.set_xlabel(r'$\mathrm{redshift}$')
+    ax.set_ylabel(get_sfr_density_label(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_redshift_label(), fontsize=AXIS_LABEL_SIZE)
     
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(0.5))
@@ -143,15 +158,20 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     ax.set_xlim(0.0, 8.0)
     ax.set_ylim(-3.0, -0.4)
     
-    # Add legend
-    leg = ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)
-    for t in leg.get_texts():
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='upper right')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"SFR_Density_Evolution{output_format}")
+    print(f"Saving SFR Density Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

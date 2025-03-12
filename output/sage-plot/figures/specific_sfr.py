@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from random import sample, seed
+from figures import get_stellar_mass_label, get_ssfr_label
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
     """
@@ -74,8 +75,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.text(11, ssfr_cut - 0.5, 'Quiescent', color='r')
     
     # Customize the plot
-    ax.set_ylabel(r'$\log_{10}$ sSFR [yr$^{-1}$]')
-    ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{stars}}\ (M_{\odot})$')
+    ax.set_ylabel(get_ssfr_label())
+    ax.set_xlabel(get_stellar_mass_label())
     
     # Set the axis limits and minor ticks
     ax.set_xlim(8.0, 12.0)
@@ -89,9 +90,17 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"SpecificSFR{output_format}")
+    print(f"Saving Specific SFR to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

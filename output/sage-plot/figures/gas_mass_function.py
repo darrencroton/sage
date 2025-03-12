@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from figures import get_mass_function_labels, get_gas_mass_label
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
     """
@@ -157,8 +158,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.set_ylim(1.0e-6, 1.0e-1)
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     
-    ax.set_ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
-    ax.set_xlabel(r'$\log_{10} M_{\mathrm{X}}\ (M_{\odot})$')
+    ax.set_ylabel(get_mass_function_labels())
+    ax.set_xlabel(get_gas_mass_label())
     
     # Add legend
     leg = ax.legend(loc='lower left', numpoints=1, labelspacing=0.1)
@@ -166,9 +167,17 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"GasMassFunction{output_format}")
+    print(f"Saving gas mass function to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

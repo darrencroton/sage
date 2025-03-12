@@ -4,7 +4,7 @@
 SAGE Plotting Tool - Master plotting script for SAGE galaxy formation model output
 
 Usage:
-  python sage-plot.py --param-file=<param_file> [options]
+  python sage-plot-fixed.py --param-file=<param_file> [options]
 
 Options:
   --param-file=<file>    SAGE parameter file (required)
@@ -18,7 +18,7 @@ Options:
   --format=<format>      Output format (.png, .pdf) [default: .png]
   --plots=<list>         Comma-separated list of plots to generate
                          [default: all available plots]
-  --no-tex               Don't use LaTeX for text rendering
+  --use-tex              Use LaTeX for text rendering (not recommended)
   --verbose              Show detailed output
   --help                 Show this help message
 """
@@ -28,12 +28,15 @@ import sys
 import argparse
 import importlib
 import glob
-import re
+import re  # Required for regular expressions in file pattern matching
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 from tqdm import tqdm
+import time
+import random
+random.seed(42)  # For reproducibility with sample data
 
 # Import figure modules
 from figures import *
@@ -110,26 +113,62 @@ class SAGEParameters:
         if not os.path.exists(self.param_file):
             raise FileNotFoundError(f"Parameter file not found: {self.param_file}")
         
+        # Check for snapshot output list line
+        output_snapshots = []
+        
         # Parse the parameter file
         with open(self.param_file, 'r') as f:
             for line in f:
-                # Skip comments and empty lines
-                if line.startswith('#') or line.strip() == '':
+                # Skip empty lines and full comment lines
+                if line.strip() == '' or line.strip().startswith('#') or line.strip().startswith('%'):
+                    continue
+                
+                # Check for arrow notation for snapshots (e.g., "-> 63 37 32 27 23 20 18 16")
+                if '->' in line:
+                    snapshot_list = line.split('->')[1].strip().split()
+                    output_snapshots = [int(snap) for snap in snapshot_list]
+                    self.params['OutputSnapshots'] = output_snapshots
                     continue
                 
                 # Parse key-value pairs
-                parts = line.split('=')
-                if len(parts) == 2:
+                if '=' in line:
+                    # Standard equals-separated key-value
+                    parts = line.split('=')
                     key = parts[0].strip()
-                    value = parts[1].strip().split('#')[0].strip()  # Remove inline comments
-                    
-                    # Convert to appropriate type
-                    if value.isdigit():
-                        value = int(value)
-                    elif self._is_float(value):
-                        value = float(value)
-                    
-                    self.params[key] = value
+                    value_part = parts[1].strip()
+                else:
+                    # Handle space-separated key-value pairs (common in parameter files)
+                    parts = line.split(None, 1)  # Split on whitespace, max 1 split
+                    if len(parts) >= 2:
+                        key = parts[0].strip()
+                        value_part = parts[1].strip()
+                    else:
+                        continue  # Skip lines that don't match our format
+                
+                # Handle inline comments
+                if ';' in value_part:
+                    value = value_part.split(';')[0].strip()
+                elif '#' in value_part:
+                    value = value_part.split('#')[0].strip()
+                else:
+                    value = value_part
+                
+                # Clean the value - especially important for paths
+                value = value.strip()
+                
+                # Convert to appropriate type
+                if value.isdigit():
+                    value = int(value)
+                elif self._is_float(value):
+                    value = float(value)
+                elif key in ['OutputDir', 'SimulationDir', 'FileWithSnapList']:
+                    # Ensure paths are properly formatted
+                    value = value.strip('"').strip("'")
+                    # Make sure the path has a trailing slash
+                    if value and not value.endswith('/'):
+                        value = value + '/'
+                
+                self.params[key] = value
     
     def _is_float(self, value):
         """Check if a string can be converted to float."""
@@ -152,7 +191,7 @@ class SAGEParameters:
         return key in self.params
 
 
-def setup_matplotlib(use_tex=True):
+def setup_matplotlib(use_tex=False):
     """Set up matplotlib with standard settings."""
     matplotlib.rcdefaults()
     plt.rc('xtick', labelsize='x-large')
@@ -160,11 +199,25 @@ def setup_matplotlib(use_tex=True):
     plt.rc('lines', linewidth='2.0')
     plt.rc('legend', numpoints=1, fontsize='x-large')
     
+    # Only use LaTeX if explicitly requested
     if use_tex:
-        plt.rc('text', usetex=True)
+        try:
+            plt.rc('text', usetex=True)
+            print("LaTeX rendering enabled for text")
+        except Exception as e:
+            print(f"Warning: Could not enable LaTeX: {e}")
+            # Fall back to regular text rendering
+            plt.rc('text', usetex=False)
+    else:
+        # Explicitly disable LaTeX
+        plt.rc('text', usetex=False)
+        
+    # Set up nice math rendering even without LaTeX
+    plt.rcParams['mathtext.fontset'] = 'dejavusans'
+    plt.rcParams['mathtext.default'] = 'regular'
 
 
-def read_galaxies(model_path, first_file, last_file):
+def read_galaxies(model_path, first_file, last_file, params=None):
     """
     Read galaxy data from SAGE output files.
     
@@ -172,6 +225,7 @@ def read_galaxies(model_path, first_file, last_file):
         model_path: Path to model files
         first_file: First file number to read
         last_file: Last file number to read
+        params: Dictionary with SAGE parameters
     
     Returns:
         Tuple containing:
@@ -179,11 +233,41 @@ def read_galaxies(model_path, first_file, last_file):
             - Volume of the simulation
             - Dictionary of metadata
     """
-    # Get simulation parameters from the model path
-    # This would typically come from the parameter file
-    hubble_h = 0.73
-    box_size = 62.5  # Mpc/h for Mini-Millennium
-    max_tree_files = 8  # For Mini-Millennium
+    print(f"Reading galaxy data from {model_path}")
+    """
+    Read galaxy data from SAGE output files.
+    
+    Args:
+        model_path: Path to model files
+        first_file: First file number to read
+        last_file: Last file number to read
+        params: Dictionary with SAGE parameters
+    
+    Returns:
+        Tuple containing:
+            - Numpy recarray of galaxy data
+            - Volume of the simulation
+            - Dictionary of metadata
+    """
+    # Get simulation parameters from the parameter file
+    hubble_h = params.get('Hubble_h', 0.73) if params else 0.73
+    
+    # BoxSize might be defined directly or may need to be determined by the simulation choice
+    whichsimulation = 0  # Default to Mini-Millennium
+    if 'WhichSimulation' in params:
+        whichsimulation = int(params['WhichSimulation'])
+    
+    # Box size depends on the simulation    
+    if whichsimulation == 0:  # Mini-Millennium
+        box_size = 62.5  # Mpc/h
+        max_tree_files = 8  # FilesPerSnapshot
+    elif whichsimulation == 1:  # Full Millennium
+        box_size = 500.0  # Mpc/h
+        max_tree_files = 512  # FilesPerSnapshot
+    else:
+        # Use parameters from parameter file if available
+        box_size = params.get('BoxSize', 62.5) if params else 62.5
+        max_tree_files = params.get('MaxTreeFiles', 8) if params else 8
     
     # Print the model path for debugging
     print(f"Looking for galaxy files with base: {model_path}")
@@ -191,7 +275,25 @@ def read_galaxies(model_path, first_file, last_file):
     # Look for files matching the pattern in the same directory
     dir_path = os.path.dirname(model_path)
     base_name = os.path.basename(model_path)
-    existing_files = glob.glob(os.path.join(dir_path, f"{base_name}_*"))
+    
+    # First try exact file number pattern (model_z0.000_0, model_z0.000_1, etc.)
+    pattern1 = f"{model_path}_{first_file}"
+    
+    # Then try generic pattern (model_z0.000_*)
+    pattern2 = os.path.join(dir_path, f"{base_name}_*")
+    
+    # Log the patterns we're trying
+    print(f"  Trying exact pattern: {pattern1}")
+    print(f"  Trying generic pattern: {pattern2}")
+    
+    # Try the exact pattern first
+    exact_files = glob.glob(pattern1)
+    if exact_files:
+        existing_files = exact_files
+        print(f"  Found file with exact pattern")
+    else:
+        # Fall back to the generic pattern
+        existing_files = glob.glob(pattern2)
     
     if existing_files:
         print(f"Found {len(existing_files)} files matching the pattern.")
@@ -246,25 +348,63 @@ def read_galaxies(model_path, first_file, last_file):
         sample_galaxies = np.recarray((sample_size,), dtype=galdesc)
         
         # Generate some plausible values for testing
+        # - Based on a typical distribution from Millennium simulation
         sample_galaxies.SnapNum = 63
         sample_galaxies.Type = np.random.randint(0, 2, sample_size)
-        sample_galaxies.StellarMass = 10**np.random.uniform(-2, 1, sample_size)
-        sample_galaxies.ColdGas = 10**np.random.uniform(-2, 0.5, sample_size)
-        sample_galaxies.BulgeMass = sample_galaxies.StellarMass * np.random.uniform(0, 0.5, sample_size)
-        sample_galaxies.SfrDisk = 10**np.random.uniform(-3, 1, sample_size) * sample_galaxies.StellarMass
-        sample_galaxies.SfrBulge = 10**np.random.uniform(-4, 0, sample_size) * sample_galaxies.StellarMass
-        sample_galaxies.Vmax = 10**np.random.uniform(1.5, 2.5, sample_size)
+        
+        # Stellar mass with a Schechter-like distribution
+        # Create a range of masses with more low-mass galaxies
+        mass_range = np.logspace(-2, 1, sample_size)
+        np.random.shuffle(mass_range)
+        sample_galaxies.StellarMass = mass_range
+        
+        # Cold gas as a fraction of stellar mass, with scatter
+        sample_galaxies.ColdGas = sample_galaxies.StellarMass * np.random.uniform(0.1, 1.0, sample_size)
+        
+        # Bulge mass as a fraction of stellar mass
+        sample_galaxies.BulgeMass = sample_galaxies.StellarMass * np.random.uniform(0, 0.8, sample_size)
+        
+        # SFR values - correlate with stellar mass but add scatter
+        # Red sequence and blue cloud bimodality
+        red_seq = np.random.uniform(0, 0.3, sample_size) # Low SFR
+        blue_cloud = np.random.uniform(0.5, 3.0, sample_size) # Higher SFR
+        red_or_blue = np.random.random(sample_size) < 0.4  # 40% red, 60% blue
+        sfr_factor = np.where(red_or_blue, red_seq, blue_cloud)
+        
+        sample_galaxies.SfrDisk = 10**np.random.uniform(-3, 0, sample_size) * sample_galaxies.StellarMass * sfr_factor
+        sample_galaxies.SfrBulge = 10**np.random.uniform(-4, -1, sample_size) * sample_galaxies.StellarMass * sfr_factor * 0.3
+        
+        # Velocities follow Tully-Fisher-like relation
+        sample_galaxies.Vmax = 50 * (sample_galaxies.StellarMass * 1.0e10 / 1.0e10)**(0.25) * np.random.uniform(0.8, 1.2, sample_size)
+        
+        # Add other required fields
+        sample_galaxies.HotGas = sample_galaxies.StellarMass * np.random.uniform(0.5, 2.0, sample_size)
+        sample_galaxies.EjectedMass = sample_galaxies.StellarMass * np.random.uniform(0.1, 1.0, sample_size)
+        sample_galaxies.IntraClusterStars = sample_galaxies.StellarMass * np.random.uniform(0, 0.3, sample_size)
+        sample_galaxies.BlackHoleMass = sample_galaxies.BulgeMass * np.random.uniform(0.001, 0.003, sample_size)
+        
+        # Metallicities
+        sample_galaxies.MetalsColdGas = sample_galaxies.ColdGas * np.random.uniform(0.001, 0.04, sample_size)
+        sample_galaxies.MetalsStellarMass = sample_galaxies.StellarMass * np.random.uniform(0.001, 0.04, sample_size)
+        sample_galaxies.MetalsBulgeMass = sample_galaxies.BulgeMass * np.random.uniform(0.001, 0.04, sample_size)
+        sample_galaxies.MetalsHotGas = sample_galaxies.HotGas * np.random.uniform(0.0001, 0.02, sample_size)
+        sample_galaxies.MetalsEjectedMass = sample_galaxies.EjectedMass * np.random.uniform(0.0001, 0.02, sample_size)
+        sample_galaxies.MetalsIntraClusterStars = sample_galaxies.IntraClusterStars * np.random.uniform(0.001, 0.04, sample_size)
+        
+        # Calculate volume based on params
+        volume = box_size**3 * max_tree_files / max_tree_files  # Simplified to box_size^3
         
         # Use this sample data
-        return sample_galaxies, box_size**3, {
+        return sample_galaxies, volume, {
             'hubble_h': hubble_h,
             'box_size': box_size,
             'max_tree_files': max_tree_files,
-            'volume': box_size**3,
+            'volume': volume,
             'ntrees': sample_size // 10,
             'ngals': sample_size,
             'good_files': max_tree_files,
-            'sample_data': True  # Flag that this is sample data
+            'sample_data': True,  # Flag that this is sample data
+            'redshift': 0.0 if "_z" not in model_path else float(model_path.split("_z")[-1].split("_")[0])
         }
     
     # Initialize the storage array
@@ -299,8 +439,8 @@ def read_galaxies(model_path, first_file, last_file):
     # Convert to recarray for attribute access
     galaxies = galaxies.view(np.recarray)
     
-    # Calculate the volume based on good files
-    volume = box_size**3 * good_files / max_tree_files
+    # Calculate the volume based on good files - follow the original calculation
+    volume = box_size**3.0 * good_files / max_tree_files
     
     # Create metadata dictionary
     metadata = {
@@ -326,10 +466,10 @@ def parse_arguments():
     parser.add_argument("--all-snapshots", action="store_true", help="Process all available snapshots")
     parser.add_argument("--evolution", action="store_true", help="Generate evolution plots")
     parser.add_argument("--snapshot-plots", action="store_true", help="Generate snapshot plots")
-    parser.add_argument("--output-dir", default="./plots", help="Output directory for plots")
+    parser.add_argument("--output-dir", default=None, help="DEPRECATED - Output directory is always <OutputDir>/plots")
     parser.add_argument("--format", default=".png", help="Output format (.png, .pdf)")
     parser.add_argument("--plots", default="all", help="Comma-separated list of plots to generate")
-    parser.add_argument("--no-tex", action="store_true", help="Don't use LaTeX for text rendering")
+    parser.add_argument("--use-tex", action="store_true", help="Use LaTeX for text rendering (not recommended)")
     parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     
     args = parser.parse_args()
@@ -353,21 +493,11 @@ def get_available_plot_modules(plot_type):
     """
     modules = {}
     
-    # Determine which modules to look for based on plot type
+    # Get the module patterns from the figures module
     if plot_type == 'snapshot':
-        module_patterns = [
-            'stellar_mass_function', 
-            'baryonic_mass_function',
-            'gas_mass_function',
-            'baryonic_tully_fisher',
-            'specific_sfr'
-        ]
+        module_patterns = SNAPSHOT_PLOTS
     else:  # 'evolution'
-        module_patterns = [
-            'smf_evolution',
-            'sfr_density_evolution',
-            'stellar_mass_density_evolution'
-        ]
+        module_patterns = EVOLUTION_PLOTS
     
     # Import modules
     for pattern in module_patterns:
@@ -395,13 +525,18 @@ def main():
         params = SAGEParameters(args.param_file)
         if args.verbose:
             print(f"Loaded parameters from {args.param_file}")
-            # Print a sample of parameters to avoid overwhelming output
-            for i, (key, value) in enumerate(params.params.items()):
-                if i < 10:
-                    print(f"  {key} = {value}")
-                else:
-                    print("  ...")
-                    break
+            
+            # Print important parameters
+            important_params = ['OutputDir', 'FileNameGalaxies', 'LastSnapShotNr', 'FirstFile', 'LastFile', 'Hubble_h', 'WhichIMF']
+            for key in important_params:
+                if key in params.params:
+                    print(f"  {key} = {params.params[key]}")
+                    
+        # Print raw params for debugging
+        if args.verbose:
+            print("\nRaw parameter values:")
+            for key, value in params.params.items():
+                print(f"  {key} = {value} (type: {type(value)})")
     except Exception as e:
         print(f"Error loading parameter file: {e}")
         sys.exit(1)
@@ -409,6 +544,13 @@ def main():
     # Verify paths from parameter file
     output_dir = params.get('OutputDir')
     simulation_dir = params.get('SimulationDir')
+    file_name_galaxies = params.get('FileNameGalaxies', 'model')
+    
+    if args.verbose:
+        print(f"Parameter file details:")
+        print(f"  OutputDir: {output_dir}")
+        print(f"  SimulationDir: {simulation_dir}")
+        print(f"  FileNameGalaxies: {file_name_galaxies}")
     
     if output_dir and not os.path.exists(output_dir):
         print(f"Warning: OutputDir '{output_dir}' from parameter file does not exist or is not accessible.")
@@ -417,49 +559,234 @@ def main():
         print(f"Warning: SimulationDir '{simulation_dir}' from parameter file does not exist or is not accessible.")
     
     # Set up matplotlib
-    setup_matplotlib(not args.no_tex)
+    setup_matplotlib(args.use_tex)
+    
+    # Get output directory from parameter file
+    model_output_dir = params.get('OutputDir', './')
+    
+    # Debug raw path
+    if args.verbose:
+        print(f"\nOutput directory handling:")
+        print(f"  Raw model_output_dir from params: '{model_output_dir}'")
+    
+    # Clean up the path - strip quotes if present, expand user home if needed
+    if isinstance(model_output_dir, str):
+        model_output_dir = model_output_dir.strip().strip("'").strip('"')
+        model_output_dir = os.path.expanduser(model_output_dir)
+    
+    # Debug cleaned path
+    if args.verbose:
+        print(f"  Cleaned model_output_dir: '{model_output_dir}'")
+    
+    # Check if model_output_dir exists and is writable
+    model_dir_exists = os.path.exists(model_output_dir) and os.path.isdir(model_output_dir)
+    model_dir_writable = os.access(model_output_dir, os.W_OK) if model_dir_exists else False
+    
+    if args.verbose:
+        print(f"  model_output_dir exists: {model_dir_exists}")
+        print(f"  model_output_dir is writable: {model_dir_writable}")
+    
+    # Decide on the output directory
+    if model_dir_exists and model_dir_writable:
+        # Use the plots subdirectory of the model output directory
+        output_dir = os.path.join(model_output_dir, 'plots')
+        if args.verbose:
+            print(f"  Using output_dir from parameter file: '{output_dir}'")
+    else:
+        # Fall back to local plots directory
+        output_dir = './plots'
+        if args.verbose:
+            print(f"  Output directory from params doesn't exist or isn't writable")
+            print(f"  Using fallback local output directory: '{output_dir}'")
+    
+    # Ensure the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        if args.verbose:
+            print(f"  Successfully created/verified output directory: {output_dir}")
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Final fallback - current directory
+        output_dir = '.'
+        if args.verbose:
+            print(f"  Using current directory as last resort: {output_dir}")
+    
+    if args.output_dir and args.output_dir != output_dir:
+        print(f"Note: Using output directory from parameters ({output_dir}) instead of command line argument ({args.output_dir})")
     
     # Ensure output directory exists
-    os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     
     # Determine which plots to generate
     if args.plots == "all":
         selected_plots = None  # All available
     else:
         selected_plots = [p.strip() for p in args.plots.split(",")]
+        
+        # Check if any evolution plots are specifically requested but --evolution flag is not set
+        requested_evolution_plots = [p for p in selected_plots if p in EVOLUTION_PLOTS]
+        if requested_evolution_plots and not args.evolution:
+            print(f"Warning: Evolution plots requested ({', '.join(requested_evolution_plots)}) but --evolution flag not set.")
+            print(f"These plots require data from multiple snapshots to work correctly.")
+            print(f"Adding --evolution flag automatically.")
+            args.evolution = True
     
     # Generate snapshot plots
     if args.snapshot_plots:
-        # Get output model path and snapshot number
+        # Get output model path and snapshot number from parameter file
         model_path = params.get('OutputDir', './')
-        snapshot = args.snapshot or params.get('LastSnapshotNr', 63)
+        snapshot = args.snapshot or params.get('LastSnapShotNr', 63)
         
-        # Check if model_path exists
+        if args.verbose:
+            print(f"\nModel file discovery:")
+            print(f"  Raw model_path from params: '{model_path}'")
+            
+        # Clean up the path if it's a string
+        if isinstance(model_path, str):
+            model_path = model_path.strip().strip("'").strip('"')
+            model_path = os.path.expanduser(model_path)
+        
+        if args.verbose:
+            print(f"  Cleaned model_path: '{model_path}'")
+            print(f"  model_path exists: {os.path.exists(model_path)}")
+            
+        # Check if model_path exists and print debug information
         if not os.path.exists(model_path):
             print(f"Warning: OutputDir '{model_path}' from parameter file does not exist.")
-            print("Using a default path instead.")
-            model_path = "./"
+            
+            # Try to find the model directory by checking parent directories
+            candidate_dirs = [
+                os.path.join(os.path.dirname(args.param_file), "output"),
+                "./output",
+                "../output",
+                "."
+            ]
+            
+            for candidate in candidate_dirs:
+                if os.path.exists(candidate):
+                    print(f"Using alternative directory: {candidate}")
+                    model_path = candidate
+                    break
         
-        # Look for model files with pattern model_z*.* in the model_path
-        model_files = glob.glob(os.path.join(model_path, "model_z*.*"))
+        # Get the model file name and all paths from the parameter file
+        file_name_galaxies = params.get('FileNameGalaxies', 'model')
+        
+        # More verbose logging to help diagnose file finding issues
+        if args.verbose:
+            print(f"  file_name_galaxies: '{file_name_galaxies}'")
+            print(f"  Looking in directory: {model_path}")
+            if os.path.exists(model_path):
+                print(f"  Directory contents: {os.listdir(model_path)[:5] if os.path.isdir(model_path) and len(os.listdir(model_path)) > 0 else 'empty or not accessible'}")
+            
+        # Look for model files using the exact pattern in the parameter file
+        # Try different patterns to be thorough
+        patterns = [
+            f"{file_name_galaxies}_z*.*", 
+            f"{file_name_galaxies}*.*",
+            f"*{file_name_galaxies}*.*"
+        ]
+        
+        model_files = []
+        for pattern in patterns:
+            full_pattern = os.path.join(model_path, pattern)
+            if args.verbose:
+                print(f"  Trying pattern: {full_pattern}")
+            found_files = glob.glob(full_pattern)
+            if found_files:
+                model_files.extend(found_files)
+                if args.verbose:
+                    print(f"  Found {len(found_files)} files with pattern: {pattern}")
+                    if len(found_files) > 0:
+                        print(f"  Examples: {found_files[:3]}")
+                break
         
         if len(model_files) > 0:
-            # Use the first matching file as the base
-            base_model_file = os.path.splitext(model_files[0])[0]
+            # Look for files with z in the name for better matching
+            z_files = [f for f in model_files if "_z" in os.path.basename(f)]
+            
+            # Try to find files that match our target snapshot's redshift
+            snap_redshift = 0.0
+            if snapshot < params.get('LastSnapShotNr', 63):
+                # Approximate redshift calculation (matches history.py approach)
+                snap_redshift = 0.5 * (params.get('LastSnapShotNr', 63) - snapshot)
+            
             if args.verbose:
-                print(f"Found model file: {base_model_file}")
-        else:
-            # Determine model file path using redshift
-            redshift = params.get('ZZ', 0.0)
-            if isinstance(redshift, str):
-                try:
-                    redshift = float(redshift)
-                except ValueError:
-                    redshift = 0.0
+                print(f"  Looking for files with redshift around z={snap_redshift:.3f}")
+            
+            # Try different redshift patterns with varying precision
+            target_files = []
+            
+            # Try pattern with 1 decimal place
+            target_z_pattern1 = f"_z{snap_redshift:.1f}"
+            target_files.extend([f for f in z_files if target_z_pattern1 in f])
+            
+            # Try pattern with 2 decimal places
+            if not target_files:
+                target_z_pattern2 = f"_z{snap_redshift:.2f}"
+                target_files.extend([f for f in z_files if target_z_pattern2 in f])
+                
+            # Try pattern with 3 decimal places
+            if not target_files:
+                target_z_pattern3 = f"_z{snap_redshift:.3f}"
+                target_files.extend([f for f in z_files if target_z_pattern3 in f])
+            
+            # If still no match, try to find closest redshift
+            if not target_files and z_files:
+                # Extract redshifts from filenames using regex
+                redshifts = []
+                for zf in z_files:
+                    match = re.search(r'_z(\d+\.\d+)', zf)
+                    if match:
+                        try:
+                            file_z = float(match.group(1))
+                            redshifts.append((zf, file_z, abs(file_z - snap_redshift)))
+                        except ValueError:
+                            continue
+                
+                # Sort by distance to target redshift
+                if redshifts:
+                    redshifts.sort(key=lambda x: x[2])
+                    target_files = [redshifts[0][0]]
                     
-            base_model_file = f"{model_path}/model_z{redshift:.3f}"
+                    if args.verbose:
+                        print(f"  No exact redshift match found. Using closest redshift z={redshifts[0][1]:.3f}")
+            
+            if target_files:
+                # Use a file with the right redshift
+                base_filename = os.path.basename(target_files[0])
+                # Extract just the base part (model_z0.000) without the suffix
+                base_part = base_filename.rsplit('_', 1)[0] 
+                base_model_file = os.path.join(os.path.dirname(target_files[0]), base_part)
+                
+                if args.verbose:
+                    print(f"  Found model file matching target redshift: {base_model_file}")
+            elif z_files:
+                # Attempt to use any z-file if no exact match
+                base_filename = os.path.basename(z_files[0])
+                base_part = base_filename.rsplit('_', 1)[0]
+                base_model_file = os.path.join(os.path.dirname(z_files[0]), base_part)
+                
+                if args.verbose:
+                    print(f"  Using best available z-format model file: {base_model_file}")
+            else:
+                # Use the first matching file as the base
+                base_model_file = os.path.splitext(model_files[0])[0]
+                if args.verbose:
+                    print(f"  Using first model file: {base_model_file}")
+        else:
+            # Determine model file path using snapshot
+            snap_redshift = 0.0
+            
+            # Try to find redshift for this snapshot
+            last_snapshot_nr = params.get('LastSnapShotNr', 63)
+            if snapshot < last_snapshot_nr:
+                # Approximate redshift calculation (matches history.py approach)
+                snap_redshift = 0.5 * (last_snapshot_nr - snapshot)
+            
+            base_model_file = f"{model_path}/{file_name_galaxies}_z{snap_redshift:.3f}"
             if args.verbose:
-                print(f"Using model file: {base_model_file}")
+                print(f"  No model files found. Using constructed path: {base_model_file}")
+                print(f"  This may result in no data being read!")
         
         # Determine last file number if not specified
         last_file = args.last_file
@@ -471,7 +798,8 @@ def main():
             galaxies, volume, metadata = read_galaxies(
                 model_path=base_model_file,
                 first_file=args.first_file,
-                last_file=last_file
+                last_file=last_file,
+                params=params.params
             )
             if args.verbose:
                 if metadata.get('sample_data', False):
@@ -503,7 +831,7 @@ def main():
                     volume=volume,
                     metadata=metadata,
                     params=params.params,
-                    output_dir=args.output_dir,
+                    output_dir=output_dir,
                     output_format=args.format
                 )
                 generated_plots.append(plot_path)
@@ -551,17 +879,20 @@ def main():
             if snap < 63:
                 redshift = 0.5 * (63 - snap)
             
+            # Get the model file name from the parameter file
+            file_name_galaxies = params.get('FileNameGalaxies', 'model')
+            
             # Determine model file path for this snapshot
-            # Look for model files with pattern model_z{redshift}*.* in the model_path
+            # Look for model files with pattern {file_name_galaxies}_z{redshift}*.* in the model_path
             # Use a fuzzy match approach to find a file with a similar redshift
-            model_files = glob.glob(os.path.join(model_path, f"model_z*.*"))
+            model_files = glob.glob(os.path.join(model_path, f"{file_name_galaxies}_z*.*"))
             
             # Find the closest match based on redshift in the filename
             base_model_file = None
             if model_files:
                 best_match = None
                 min_diff = float('inf')
-                pattern = re.compile(r'model_z(\d+\.\d+)')
+                pattern = re.compile(f"{file_name_galaxies}_z(\\d+\\.\\d+)")
                 
                 for model_file in model_files:
                     match = pattern.search(model_file)
@@ -579,7 +910,7 @@ def main():
             
             # If no match found, use the default naming pattern
             if not base_model_file:
-                base_model_file = f"{model_path}/model_z{redshift:.3f}"
+                base_model_file = f"{model_path}/{file_name_galaxies}_z{redshift:.3f}"
                 if args.verbose:
                     print(f"Using default model file pattern: {base_model_file}")
             
@@ -592,7 +923,8 @@ def main():
                 galaxies, volume, metadata = read_galaxies(
                     model_path=base_model_file,
                     first_file=args.first_file,
-                    last_file=last_file
+                    last_file=last_file,
+                    params=params.params
                 )
                 # Add redshift to metadata
                 metadata['redshift'] = redshift
@@ -613,7 +945,7 @@ def main():
                 plot_path = plot_func(
                     snapshots=snapshot_data,
                     params=params.params,
-                    output_dir=args.output_dir,
+                    output_dir=output_dir,
                     output_format=args.format
                 )
                 generated_plots.append(plot_path)

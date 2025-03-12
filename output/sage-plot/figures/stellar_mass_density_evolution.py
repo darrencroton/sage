@@ -10,6 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from figures import get_redshift_label
 
 def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
@@ -200,8 +201,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     ax.plot(redshifts[nonzero], smd[nonzero], 'k-', lw=3.0, label='Model')
     
     # Customize the plot
-    ax.set_ylabel(r'$\log_{10}\ \rho_{*}\ (M_{\odot}\ \mathrm{Mpc}^{-3})$')
-    ax.set_xlabel(r'$\mathrm{redshift}$')
+    ax.set_ylabel(r'log$_{10}$ $\rho_{*}$ (M$_{\odot}$ Mpc$^{-3}$)')
+    ax.set_xlabel(get_redshift_label())
     
     ax.xaxis.set_minor_locator(MultipleLocator(0.5))
     ax.yaxis.set_minor_locator(MultipleLocator(0.1))
@@ -215,9 +216,17 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     for t in leg.get_texts():
         t.set_fontsize('medium')
     
-    # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
+    # Save the figure, ensuring the output directory exists
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create output directory {output_dir}: {e}")
+        # Try to use a subdirectory of the current directory as fallback
+        output_dir = './plots'
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, f"Stellar_Mass_Density_Evolution{output_format}")
+    print(f"Saving Stellar Mass Density Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

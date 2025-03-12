@@ -78,6 +78,16 @@ def get_vmax_label():
     x_label = r'log$_{10}$ V$_{\rm max}$ (km/s)'
     return x_label
 
+def get_black_hole_mass_label():
+    """Return consistent x-axis label for black hole mass plots."""
+    x_label = r'log$_{10}$ M$_{\rm BH}$ (M$_{\odot}$)'
+    return x_label
+    
+def get_bulge_mass_label():
+    """Return consistent x-axis label for bulge mass plots."""
+    x_label = r'log$_{10}$ M$_{\rm bulge}$ (M$_{\odot}$)'
+    return x_label
+
 # Import all the figure modules so they can be discovered
 from . import stellar_mass_function
 from . import baryonic_mass_function
@@ -87,6 +97,11 @@ from . import specific_sfr
 from . import smf_evolution
 from . import sfr_density_evolution
 from . import stellar_mass_density_evolution
+from . import black_hole_bulge_relation
+from . import gas_fraction
+from . import metallicity
+from . import bulge_mass_fraction
+from . import quiescent_fraction
 
 # Define available plot types
 SNAPSHOT_PLOTS = [
@@ -94,7 +109,12 @@ SNAPSHOT_PLOTS = [
     'baryonic_mass_function',
     'gas_mass_function',
     'baryonic_tully_fisher',
-    'specific_sfr'
+    'specific_sfr',
+    'black_hole_bulge_relation',
+    'gas_fraction',
+    'metallicity',
+    'bulge_mass_fraction',
+    'quiescent_fraction'
 ]
 
 EVOLUTION_PLOTS = [
@@ -114,5 +134,10 @@ PLOT_FUNCS = {
     'specific_sfr': specific_sfr.plot,
     'smf_evolution': smf_evolution.plot,
     'sfr_density_evolution': sfr_density_evolution.plot,
-    'stellar_mass_density_evolution': stellar_mass_density_evolution.plot
+    'stellar_mass_density_evolution': stellar_mass_density_evolution.plot,
+    'black_hole_bulge_relation': black_hole_bulge_relation.plot,
+    'gas_fraction': gas_fraction.plot,
+    'metallicity': metallicity.plot,
+    'bulge_mass_fraction': bulge_mass_fraction.plot,
+    'quiescent_fraction': quiescent_fraction.plot
 }

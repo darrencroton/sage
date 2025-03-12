@@ -116,6 +116,10 @@ from . import halo_occupation
 from . import galaxy_size
 from . import baryon_fraction
 from . import spin_distribution
+from . import color_distribution
+from . import velocity_distribution
+from . import mass_reservoir_scatter
+from . import spatial_distribution
 
 # Define available plot types
 SNAPSHOT_PLOTS = [
@@ -132,7 +136,11 @@ SNAPSHOT_PLOTS = [
     'halo_occupation',
     'galaxy_size',
     'baryon_fraction',
-    'spin_distribution'
+    'spin_distribution',
+    'color_distribution',
+    'velocity_distribution',
+    'mass_reservoir_scatter',
+    'spatial_distribution'
 ]
 
 EVOLUTION_PLOTS = [
@@ -161,5 +169,9 @@ PLOT_FUNCS = {
     'halo_occupation': halo_occupation.plot,
     'galaxy_size': galaxy_size.plot,
     'baryon_fraction': baryon_fraction.plot,
-    'spin_distribution': spin_distribution.plot
+    'spin_distribution': spin_distribution.plot,
+    'color_distribution': color_distribution.plot,
+    'velocity_distribution': velocity_distribution.plot,
+    'mass_reservoir_scatter': mass_reservoir_scatter.plot,
+    'spatial_distribution': spatial_distribution.plot
 }

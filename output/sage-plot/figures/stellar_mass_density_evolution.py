@@ -185,8 +185,10 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         
         if len(w) > 0:
             # Sum stellar masses and normalize by volume
-            stellar_mass_sum = np.sum(galaxies.StellarMass[w])
-            smd.append(np.log10(stellar_mass_sum / volume))
+            # Need to convert to solar masses and account for volume units
+            stellar_mass_sum = np.sum(galaxies.StellarMass[w]) * 1.0e10 / hubble_h
+            density = stellar_mass_sum / (volume / hubble_h**3)
+            smd.append(np.log10(density))
         else:
             smd.append(0.0)
     
@@ -199,9 +201,19 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     redshifts = redshifts[sort_idx]
     smd = smd[sort_idx]
     
+    # Debug information
+    print(f"Stellar Mass Density plot debug:")
+    print(f"  Number of snapshots: {len(snapshots)}")
+    print(f"  Redshifts available: {redshifts}")
+    print(f"  Stellar Mass Density values: {smd}")
+    
     # Plot the model results
     nonzero = np.where(smd > 0.0)[0]
-    ax.plot(redshifts[nonzero], smd[nonzero], 'k-', lw=3.0, label='Model')
+    if len(nonzero) > 0:
+        print(f"  Plotting {len(nonzero)} nonzero Stellar Mass Density points")
+        ax.plot(redshifts[nonzero], smd[nonzero], 'k-', lw=3.0, label='Model')
+    else:
+        print("  WARNING: No nonzero Stellar Mass Density points to plot!")
     
     # Customize the plot
     ax.set_ylabel(r'log$_{10}$ $\rho_{*}$ (M$_{\odot}$ Mpc$^{-3}$)', fontsize=AXIS_LABEL_SIZE)

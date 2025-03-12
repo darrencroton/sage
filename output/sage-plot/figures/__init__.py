@@ -87,6 +87,16 @@ def get_bulge_mass_label():
     """Return consistent x-axis label for bulge mass plots."""
     x_label = r'log$_{10}$ M$_{\rm bulge}$ (M$_{\odot}$)'
     return x_label
+    
+def get_halo_mass_label():
+    """Return consistent x-axis label for halo mass plots."""
+    x_label = r'log$_{10}$ M$_{\rm halo}$ (M$_{\odot}$)'
+    return x_label
+    
+def get_spin_parameter_label():
+    """Return consistent x-axis label for spin parameter plots."""
+    x_label = r'Spin Parameter'
+    return x_label
 
 # Import all the figure modules so they can be discovered
 from . import stellar_mass_function
@@ -102,6 +112,10 @@ from . import gas_fraction
 from . import metallicity
 from . import bulge_mass_fraction
 from . import quiescent_fraction
+from . import halo_occupation
+from . import galaxy_size
+from . import baryon_fraction
+from . import spin_distribution
 
 # Define available plot types
 SNAPSHOT_PLOTS = [
@@ -114,7 +128,11 @@ SNAPSHOT_PLOTS = [
     'gas_fraction',
     'metallicity',
     'bulge_mass_fraction',
-    'quiescent_fraction'
+    'quiescent_fraction',
+    'halo_occupation',
+    'galaxy_size',
+    'baryon_fraction',
+    'spin_distribution'
 ]
 
 EVOLUTION_PLOTS = [
@@ -139,5 +157,9 @@ PLOT_FUNCS = {
     'gas_fraction': gas_fraction.plot,
     'metallicity': metallicity.plot,
     'bulge_mass_fraction': bulge_mass_fraction.plot,
-    'quiescent_fraction': quiescent_fraction.plot
+    'quiescent_fraction': quiescent_fraction.plot,
+    'halo_occupation': halo_occupation.plot,
+    'galaxy_size': galaxy_size.plot,
+    'baryon_fraction': baryon_fraction.plot,
+    'spin_distribution': spin_distribution.plot
 }

@@ -114,10 +114,8 @@ from . import metallicity
 from . import bulge_mass_fraction
 from . import quiescent_fraction
 from . import halo_occupation
-from . import galaxy_size
 from . import baryon_fraction
 from . import spin_distribution
-from . import color_distribution
 from . import velocity_distribution
 from . import mass_reservoir_scatter
 from . import spatial_distribution
@@ -136,10 +134,8 @@ SNAPSHOT_PLOTS = [
     'bulge_mass_fraction',
     'quiescent_fraction',
     'halo_occupation',
-    'galaxy_size',
     'baryon_fraction',
     'spin_distribution',
-    'color_distribution',
     'velocity_distribution',
     'mass_reservoir_scatter',
     'spatial_distribution'
@@ -170,10 +166,8 @@ PLOT_FUNCS = {
     'bulge_mass_fraction': bulge_mass_fraction.plot,
     'quiescent_fraction': quiescent_fraction.plot,
     'halo_occupation': halo_occupation.plot,
-    'galaxy_size': galaxy_size.plot,
     'baryon_fraction': baryon_fraction.plot,
     'spin_distribution': spin_distribution.plot,
-    'color_distribution': color_distribution.plot,
     'velocity_distribution': velocity_distribution.plot,
     'mass_reservoir_scatter': mass_reservoir_scatter.plot,
     'spatial_distribution': spatial_distribution.plot

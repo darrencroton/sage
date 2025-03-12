@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, get_stellar_mass_label, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a gas fraction vs. stellar mass plot.
     
@@ -43,12 +43,15 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Maximum number of points to plot (for better performance and readability)
     dilute = 7500
     
-    # Filter for type 0 (central) galaxies with both stellar and cold gas,
-    # and with a specific bulge-to-total ratio range (Sb/c galaxies)
-    w = np.where((galaxies.Type == 0) & 
-               (galaxies.StellarMass + galaxies.ColdGas > 0.0) & 
-               (galaxies.BulgeMass / galaxies.StellarMass > 0.1) & 
-               (galaxies.BulgeMass / galaxies.StellarMass < 0.5))[0]
+    # First filter for valid mass values - avoid division by zero
+    valid_mass = (galaxies.Type == 0) & (galaxies.StellarMass > 0.0) & (galaxies.StellarMass + galaxies.ColdGas > 0.0)
+    
+    # Calculate ratio safely for valid galaxies
+    bulge_ratio = np.zeros_like(galaxies.StellarMass)
+    bulge_ratio[valid_mass] = galaxies.BulgeMass[valid_mass] / galaxies.StellarMass[valid_mass]
+    
+    # Now apply all filters
+    w = np.where(valid_mass & (bulge_ratio > 0.1) & (bulge_ratio < 0.5))[0]
     
     # Check if we have any galaxies to plot
     if len(w) == 0:
@@ -73,11 +76,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     stellar_mass = np.log10(galaxies.StellarMass[w] * 1.0e10 / hubble_h)
     gas_fraction = galaxies.ColdGas[w] / (galaxies.StellarMass[w] + galaxies.ColdGas[w])
     
-    # Print some debug information
-    print(f"Gas Fraction plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
-    print(f"  Gas fraction range: {min(gas_fraction):.3f} to {max(gas_fraction):.3f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Gas Fraction plot debug:")
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
+        print(f"  Gas fraction range: {min(gas_fraction):.3f} to {max(gas_fraction):.3f}")
     
     # Plot the galaxy data
     ax.scatter(stellar_mass, gas_fraction, marker='o', s=1, c='k', alpha=0.5, label='Model Sb/c galaxies')
@@ -107,7 +111,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"GasFraction{output_format}")
-    print(f"Saving Gas Fraction plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Gas Fraction plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

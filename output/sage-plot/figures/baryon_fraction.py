@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a baryon fraction vs. halo mass plot.
     
@@ -77,7 +77,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Loop through halo mass bins
     for i in range(nbins - 1):
         # Get central galaxies in this mass bin
-        halo_mass = np.log10(galaxies.Mvir * 1.0e10 / hubble_h)
+        # Handle log10 of halo mass safely
+        halo_mass = np.full(len(galaxies), -np.inf)  # Initialize with negative infinity
+        valid_mvir = (galaxies.Mvir > 0) & central_mask
+        halo_mass[valid_mvir] = np.log10(galaxies.Mvir[valid_mvir] * 1.0e10 / hubble_h)
+        
         bin_mask = central_mask & (halo_mass >= halo_bins[i]) & (halo_mass < halo_bins[i+1])
         centrals_in_bin = np.where(bin_mask)[0]
         
@@ -144,12 +148,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     mean_ics = np.array(mean_ics)
     mean_bh = np.array(mean_bh)
     
-    # Print some debug information
-    print(f"Baryon Fraction plot debug:")
-    print(f"  Number of mass bins with data: {len(central_halo_mass)}")
-    print(f"  Halo mass range: {min(central_halo_mass):.2f} to {max(central_halo_mass):.2f}")
-    print(f"  Mean baryon fraction range: {min(mean_baryon_fraction):.3f} to {max(mean_baryon_fraction):.3f}")
-    print(f"  Cosmic baryon fraction (parameter): {baryon_frac:.3f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Baryon Fraction plot debug:")
+        print(f"  Number of mass bins with data: {len(central_halo_mass)}")
+        print(f"  Halo mass range: {min(central_halo_mass):.2f} to {max(central_halo_mass):.2f}")
+        print(f"  Mean baryon fraction range: {min(mean_baryon_fraction):.3f} to {max(mean_baryon_fraction):.3f}")
+        print(f"  Cosmic baryon fraction (parameter): {baryon_frac:.3f}")
     
     # Plot the results
     # Total baryon fraction
@@ -202,7 +207,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"BaryonFraction{output_format}")
-    print(f"Saving Baryon Fraction plot to: {output_path}")
+    if verbose:
+        print(f"Saving Baryon Fraction plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

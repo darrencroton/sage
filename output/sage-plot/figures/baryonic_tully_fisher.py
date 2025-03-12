@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 from random import sample, seed
 from figures import get_baryonic_mass_label, get_vmax_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500, verbose=False):
     """
     Create a baryonic Tully-Fisher plot.
     
@@ -42,10 +42,15 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     setup_plot_fonts(ax)
     
     # Select Sb/c galaxies (Type=0 and bulge/total ratio between 0.1 and 0.5)
-    w = np.where((galaxies.Type == 0) & 
-                 (galaxies.StellarMass + galaxies.ColdGas > 0.0) & 
-                 (galaxies.BulgeMass / galaxies.StellarMass > 0.1) & 
-                 (galaxies.BulgeMass / galaxies.StellarMass < 0.5))[0]
+    # First filter for non-zero stellar mass to avoid division by zero
+    valid_mass = (galaxies.Type == 0) & (galaxies.StellarMass > 0.0) & (galaxies.StellarMass + galaxies.ColdGas > 0.0)
+    
+    # Then calculate ratios safely
+    bulge_to_stellar = np.zeros_like(galaxies.StellarMass)
+    bulge_to_stellar[valid_mass] = galaxies.BulgeMass[valid_mass] / galaxies.StellarMass[valid_mass]
+    
+    # Now apply all filters
+    w = np.where(valid_mass & (bulge_to_stellar > 0.1) & (bulge_to_stellar < 0.5))[0]
     
     # Check if we have any galaxies to plot
     if len(w) == 0:
@@ -101,7 +106,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"BaryonicTullyFisher{output_format}")
-    print(f"Saving Baryonic Tully-Fisher to: {output_path}")
+    if verbose:
+                                print(f"Saving Baryonic Tully-Fisher to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

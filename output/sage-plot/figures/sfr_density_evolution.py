@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_sfr_density_label, get_redshift_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(snapshots, params, output_dir="plots", output_format=".png"):
+def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a star formation rate density evolution plot.
     
@@ -134,18 +134,21 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     sfr_density = sfr_density[sort_idx]
     
     # Debug information
-    print(f"SFR density plot debug:")
-    print(f"  Number of snapshots: {len(snapshots)}")
-    print(f"  Redshifts available: {redshifts}")
-    print(f"  SFR density values: {sfr_density}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of snapshots: {len(snapshots)}")
+        print(f"  Redshifts available: {redshifts}")
+        print(f"  SFR density values: {sfr_density}")
     
     # Plot the model results
     nonzero = np.where(sfr_density > 0.0)[0]
     if len(nonzero) > 0:
-        print(f"  Plotting {len(nonzero)} nonzero SFR density points")
+        if verbose:
+            print(f"  Plotting {len(nonzero)} nonzero SFR density points")
         # Use blue color to match the original plot
         ax.plot(redshifts[nonzero], np.log10(sfr_density[nonzero]), 'b-', lw=3.0, label='Model')
     else:
+        # Always show warnings even without verbose
         print("  WARNING: No nonzero SFR density points to plot!")
     
     # Customize the plot
@@ -171,7 +174,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"SFR_Density_Evolution{output_format}")
-    print(f"Saving SFR Density Evolution to: {output_path}")
+    if verbose:
+                                print(f"Saving SFR Density Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

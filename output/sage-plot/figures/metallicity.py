@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, get_stellar_mass_label, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a metallicity vs. stellar mass plot.
     
@@ -51,12 +51,15 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Maximum number of points to plot (for better performance and readability)
     dilute = 7500
     
-    # Filter for type 0 (central) galaxies with significant cold gas (gas fraction > 0.1)
-    w = np.where((galaxies.Type == 0) & 
-               (galaxies.ColdGas / (galaxies.StellarMass + galaxies.ColdGas) > 0.1) & 
-               (galaxies.StellarMass > 0.01) &
-               (galaxies.ColdGas > 0.0) &
-               (galaxies.MetalsColdGas > 0.0))[0]
+    # First filter for valid mass values - avoid division by zero
+    valid_mass = (galaxies.Type == 0) & (galaxies.StellarMass > 0.01) & (galaxies.ColdGas > 0.0) & (galaxies.MetalsColdGas > 0.0)
+    
+    # Calculate gas fraction safely for valid galaxies
+    gas_fraction = np.zeros_like(galaxies.StellarMass)
+    gas_fraction[valid_mass] = galaxies.ColdGas[valid_mass] / (galaxies.StellarMass[valid_mass] + galaxies.ColdGas[valid_mass])
+    
+    # Now apply all filters
+    w = np.where(valid_mass & (gas_fraction > 0.1))[0]
     
     # Check if we have any galaxies to plot
     if len(w) == 0:
@@ -82,12 +85,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Metallicity in units of solar (Z_solar = 0.02)
     metallicity = np.log10((galaxies.MetalsColdGas[w] / galaxies.ColdGas[w]) / 0.02) + 9.0
     
-    # Print some debug information
-    print(f"Metallicity plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
-    print(f"  Metallicity range: {min(metallicity):.3f} to {max(metallicity):.3f}")
-    print(f"  WhichIMF: {whichimf}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Metallicity plot debug:")
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
+        print(f"  Metallicity range: {min(metallicity):.3f} to {max(metallicity):.3f}")
+        print(f"  WhichIMF: {whichimf}")
     
     # Plot the galaxy data
     ax.scatter(stellar_mass, metallicity, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
@@ -132,7 +136,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"Metallicity{output_format}")
-    print(f"Saving Metallicity plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Metallicity plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

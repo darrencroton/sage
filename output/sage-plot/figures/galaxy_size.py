@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, get_stellar_mass_label, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a galaxy size vs. stellar mass plot.
     
@@ -43,15 +43,16 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Maximum number of points to plot (for better performance and readability)
     dilute = 7500
     
-    # Filter for galaxies with non-zero DiskRadius and StellarMass
-    # Divide by types: disk-dominated and bulge-dominated
-    disk_dominated = np.where((galaxies.DiskRadius > 0.0) & 
-                             (galaxies.StellarMass > 0.0) &
-                             (galaxies.BulgeMass / galaxies.StellarMass < 0.5))[0]
+    # First filter for valid disk radius and stellar mass - avoid division by zero
+    valid_galaxies = (galaxies.DiskRadius > 0.0) & (galaxies.StellarMass > 0.0)
     
-    bulge_dominated = np.where((galaxies.DiskRadius > 0.0) & 
-                              (galaxies.StellarMass > 0.0) &
-                              (galaxies.BulgeMass / galaxies.StellarMass >= 0.5))[0]
+    # Calculate ratio safely for valid galaxies
+    bulge_ratio = np.zeros_like(galaxies.StellarMass)
+    bulge_ratio[valid_galaxies] = galaxies.BulgeMass[valid_galaxies] / galaxies.StellarMass[valid_galaxies]
+    
+    # Select disk-dominated and bulge-dominated galaxies
+    disk_dominated = np.where(valid_galaxies & (bulge_ratio < 0.5))[0]
+    bulge_dominated = np.where(valid_galaxies & (bulge_ratio >= 0.5))[0]
     
     # Check if we have any galaxies to plot
     if len(disk_dominated) == 0 and len(bulge_dominated) == 0:
@@ -85,12 +86,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     bulge_mass = np.log10(galaxies.StellarMass[bulge_indices] * 1.0e10 / hubble_h)
     bulge_radius = galaxies.DiskRadius[bulge_indices] / hubble_h  # in kpc
     
-    # Print some debug information
-    print(f"Galaxy Size Relations plot debug:")
-    print(f"  Number of disk-dominated galaxies: {len(disk_indices)}")
-    print(f"  Number of bulge-dominated galaxies: {len(bulge_indices)}")
-    print(f"  Disk-dominated mass range: {min(disk_mass):.2f} to {max(disk_mass):.2f}")
-    print(f"  Disk-dominated radius range: {min(disk_radius):.2f} to {max(disk_radius):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Galaxy Size Relations plot debug:")
+        print(f"  Number of disk-dominated galaxies: {len(disk_indices)}")
+        print(f"  Number of bulge-dominated galaxies: {len(bulge_indices)}")
+        print(f"  Disk-dominated mass range: {min(disk_mass):.2f} to {max(disk_mass):.2f}")
+        print(f"  Disk-dominated radius range: {min(disk_radius):.2f} to {max(disk_radius):.2f}")
     
     # Plot the galaxy data
     ax.scatter(disk_mass, disk_radius, marker='o', s=1, c='b', alpha=0.5, label='Disk-dominated')
@@ -142,7 +144,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"GalaxySize{output_format}")
-    print(f"Saving Galaxy Size Relations plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Galaxy Size Relations plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

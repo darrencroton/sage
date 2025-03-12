@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_mass_function_labels, get_stellar_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(snapshots, params, output_dir="plots", output_format=".png"):
+def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a stellar mass function evolution plot.
     
@@ -90,10 +90,11 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         ax.plot(np.log10(10.0**M *1.6/1.8), yval, 'r:', lw=10, alpha=0.5, label='... z=[3.0,4.0]')
     
     # Debug information
-    print(f"SMF Evolution plot debug:")
-    print(f"  Number of snapshots: {len(snapshots)}")
-    for snap, (galaxies, volume, metadata) in snapshots.items():
-        print(f"  Snapshot {snap}: {len(galaxies)} galaxies, z={metadata.get('redshift', 'unknown')}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of snapshots: {len(snapshots)}")
+        for snap, (galaxies, volume, metadata) in snapshots.items():
+            print(f"  Snapshot {snap}: {len(galaxies)} galaxies, z={metadata.get('redshift', 'unknown')}")
     
     # Sort snapshots by redshift
     sorted_snapshots = [(snap, galaxies, volume, metadata) 
@@ -125,8 +126,9 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         redshift = metadata['redshift']
         color = colors[i % len(colors)]
         
-        # Debug output
-        print(f"Processing SMF for snapshot {snap}, z={redshift:.1f}")
+        # Debug output - only show if verbose is enabled
+        if verbose:
+            print(f"Processing SMF for snapshot {snap}, z={redshift:.1f}")
         
         # Select galaxies with stellar mass
         w = np.where(galaxies.StellarMass > 0.0)[0]
@@ -180,7 +182,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"StellarMassFunction_Evolution{output_format}")
-    print(f"Saving Stellar Mass Function Evolution to: {output_path}")
+    if verbose:
+                                print(f"Saving Stellar Mass Function Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

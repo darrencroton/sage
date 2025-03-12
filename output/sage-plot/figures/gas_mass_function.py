@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_mass_function_labels, get_gas_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a gas mass function plot.
     
@@ -62,7 +62,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Calculate specific SFR for red/blue division
     sfr = galaxies.SfrDisk[w] + galaxies.SfrBulge[w]
     stellar_mass = galaxies.StellarMass[w] * 1.0e10 / hubble_h
-    ssfr = sfr / stellar_mass
+    
+    # Avoid division by zero
+    nonzero_mass = stellar_mass > 0
+    ssfr = np.zeros_like(stellar_mass)
+    if np.any(nonzero_mass):
+        ssfr[nonzero_mass] = sfr[nonzero_mass] / stellar_mass[nonzero_mass]
+    
     ssfr_cut = -11.0  # log10(sSFR) cut between red and blue galaxies
     
     # Set up histogram bins
@@ -177,7 +183,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"GasMassFunction{output_format}")
-    print(f"Saving gas mass function to: {output_path}")
+    if verbose:
+                                print(f"Saving gas mass function to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

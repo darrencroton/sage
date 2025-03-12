@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import setup_plot_fonts, setup_legend, get_stellar_mass_label, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a quiescent fraction vs. stellar mass plot.
     
@@ -60,11 +60,24 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         plt.close()
         return output_path
     
-    # Calculate required quantities for all selected galaxies
+    # Calculate required quantities for all selected galaxies - safely handle zeros
     StellarMass = np.log10(galaxies.StellarMass[w] * 1.0e10 / hubble_h)
-    CentralMvir = np.log10(galaxies.CentralMvir[w] * 1.0e10 / hubble_h)
+    
+    # Safely handle CentralMvir values (avoid log10 of zero/negative)
+    valid_mvir = galaxies.CentralMvir[w] > 0
+    CentralMvir = np.full(len(w), np.nan)  # Initialize with NaN
+    CentralMvir[valid_mvir] = np.log10(galaxies.CentralMvir[w][valid_mvir] * 1.0e10 / hubble_h)
+    
     Type = galaxies.Type[w]
-    sSFR = (galaxies.SfrDisk[w] + galaxies.SfrBulge[w]) / (galaxies.StellarMass[w] * 1.0e10 / hubble_h)
+    
+    # Safely calculate sSFR (avoid division by zero)
+    sSFR = np.zeros(len(w))
+    stellar_mass_phys = galaxies.StellarMass[w] * 1.0e10 / hubble_h
+    nonzero_mass = stellar_mass_phys > 0
+    
+    if np.any(nonzero_mass):
+        sfr = galaxies.SfrDisk[w][nonzero_mass] + galaxies.SfrBulge[w][nonzero_mass]
+        sSFR[nonzero_mass] = sfr / stellar_mass_phys[nonzero_mass]
     
     # Define mass bins
     min_range = 9.5
@@ -162,11 +175,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     satellite_fraction_lo = np.array(satellite_fraction_lo)
     satellite_fraction_hi = np.array(satellite_fraction_hi)
     
-    # Print some debug information
-    print(f"Quiescent Fraction plot debug:")
-    print(f"  Total number of galaxies: {len(w)}")
-    print(f"  Number of mass bins: {nbins}")
-    print(f"  Stellar mass range: {min(StellarMass):.2f} to {max(StellarMass):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Quiescent Fraction plot debug:")
+        print(f"  Total number of galaxies: {len(w)}")
+        print(f"  Number of mass bins: {nbins}")
+        print(f"  Stellar mass range: {min(StellarMass):.2f} to {max(StellarMass):.2f}")
     
     # Plot the fractions
     # All galaxies
@@ -219,7 +233,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"QuiescentFraction{output_format}")
-    print(f"Saving Quiescent Fraction plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Quiescent Fraction plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import setup_plot_fonts, setup_legend, get_stellar_mass_label, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a bulge mass fraction vs. stellar mass plot.
     
@@ -83,12 +83,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
             f_disk_ave[i] = np.mean(f_disk[bin_mask])
             f_disk_var[i] = np.std(f_disk[bin_mask]) ** 2    # Variance
     
-    # Print some debug information
-    print(f"Bulge Mass Fraction plot debug:")
-    print(f"  Number of galaxies: {len(valid_galaxies)}")
-    print(f"  Stellar mass range: {min(mass):.2f} to {max(mass):.2f}")
-    print(f"  Bulge fraction range: {min(f_bulge):.3f} to {max(f_bulge):.3f}")
-    print(f"  Number of mass bins: {bins}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Bulge Mass Fraction plot debug:")
+        print(f"  Number of galaxies: {len(valid_galaxies)}")
+        print(f"  Stellar mass range: {min(mass):.2f} to {max(mass):.2f}")
+        print(f"  Bulge fraction range: {min(f_bulge):.3f} to {max(f_bulge):.3f}")
+        print(f"  Number of mass bins: {bins}")
     
     # Plot bulge fractions
     mask_bulge = f_bulge_ave > 0.0
@@ -131,7 +132,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"BulgeMassFraction{output_format}")
-    print(f"Saving Bulge Mass Fraction plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Bulge Mass Fraction plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

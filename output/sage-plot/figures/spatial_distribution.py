@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a spatial distribution plot.
     
@@ -79,10 +79,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     buffer = box_size * 0.1
     
     # Print some debug information
-    print(f"Spatial Distribution plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Box size: {box_size}")
-    print(f"  X position range: {min(xx):.2f} to {max(xx):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Box size: {box_size}")
+        print(f"  X position range: {min(xx):.2f} to {max(xx):.2f}")
     
     # Plot X-Y projection
     axes[0].scatter(xx, yy, marker='o', s=0.3, c='k', alpha=0.5)
@@ -118,7 +119,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"SpatialDistribution{output_format}")
-    print(f"Saving Spatial Distribution plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Spatial Distribution plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

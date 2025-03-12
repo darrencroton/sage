@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_redshift_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(snapshots, params, output_dir="plots", output_format=".png"):
+def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a stellar mass density evolution plot.
     
@@ -202,17 +202,20 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     smd = smd[sort_idx]
     
     # Debug information
-    print(f"Stellar Mass Density plot debug:")
-    print(f"  Number of snapshots: {len(snapshots)}")
-    print(f"  Redshifts available: {redshifts}")
-    print(f"  Stellar Mass Density values: {smd}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of snapshots: {len(snapshots)}")
+        print(f"  Redshifts available: {redshifts}")
+        print(f"  Stellar Mass Density values: {smd}")
     
     # Plot the model results
     nonzero = np.where(smd > 0.0)[0]
     if len(nonzero) > 0:
-        print(f"  Plotting {len(nonzero)} nonzero Stellar Mass Density points")
+        if verbose:
+            print(f"  Plotting {len(nonzero)} nonzero Stellar Mass Density points")
         ax.plot(redshifts[nonzero], smd[nonzero], 'k-', lw=3.0, label='Model')
     else:
+        # Always show warnings even without verbose
         print("  WARNING: No nonzero Stellar Mass Density points to plot!")
     
     # Customize the plot
@@ -238,7 +241,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"Stellar_Mass_Density_Evolution{output_format}")
-    print(f"Saving Stellar Mass Density Evolution to: {output_path}")
+    if verbose:
+                                print(f"Saving Stellar Mass Density Evolution to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_mass_function_labels, get_stellar_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a stellar mass function plot.
     
@@ -88,11 +88,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     xaxis = binedges[:-1] + 0.5 * binwidth
     
     # Print debugging info
-    print(f"SMF Histogram debug:")
-    print(f"  mi={mi}, ma={ma}, nbins={nbins}")
-    print(f"  min mass={min(mass)}, max mass={max(mass)}")
-    print(f"  volume={volume}, hubble_h={hubble_h}")
-    print(f"  whichimf={whichimf}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  mi={mi}, ma={ma}, nbins={nbins}")
+        print(f"  min mass={min(mass)}, max mass={max(mass)}")
+        print(f"  volume={volume}, hubble_h={hubble_h}")
+        print(f"  whichimf={whichimf}")
     
     # Plot the main histogram - EXACTLY copying original code
     ax.plot(
@@ -239,7 +240,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"StellarMassFunction{output_format}")
-    print(f"Saving stellar mass function to: {output_path}")
+    if verbose:
+                                print(f"Saving stellar mass function to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

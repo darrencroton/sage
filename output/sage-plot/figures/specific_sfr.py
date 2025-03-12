@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 from random import sample, seed
 from figures import get_stellar_mass_label, get_ssfr_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500, verbose=False):
     """
     Create a specific star formation rate plot.
     
@@ -66,7 +66,17 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Calculate stellar mass and specific SFR
     mass = np.log10(galaxies.StellarMass[w] * 1.0e10 / hubble_h)
     sfr = galaxies.SfrDisk[w] + galaxies.SfrBulge[w]
-    ssfr = np.log10(sfr / (galaxies.StellarMass[w] * 1.0e10 / hubble_h))
+    
+    # Avoid log10(0) and division by zero
+    valid_sfr = sfr > 0
+    
+    # Initialize ssfr with a very low value (below the plot range)
+    ssfr = np.full_like(mass, -15.0)  # Well below typical plot range
+    
+    if np.any(valid_sfr):
+        # Calculate SSFR only for galaxies with non-zero SFR
+        stellar_mass_phys = galaxies.StellarMass[w][valid_sfr] * 1.0e10 / hubble_h
+        ssfr[valid_sfr] = np.log10(sfr[valid_sfr] / stellar_mass_phys)
     
     # Plot the model galaxies
     ax.scatter(mass, ssfr, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
@@ -101,7 +111,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"SpecificSFR{output_format}")
-    print(f"Saving Specific SFR to: {output_path}")
+    if verbose:
+                                print(f"Saving Specific SFR to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

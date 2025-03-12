@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a halo occupation distribution plot.
     
@@ -106,10 +106,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     occupation_satellite = np.array(occupation_satellite)
     
     # Print some debug information
-    print(f"Halo Occupation Distribution plot debug:")
-    print(f"  Number of halos: {len(halo_mass)}")
-    print(f"  Halo mass range: {np.log10(min(halo_mass)):.2f} to {np.log10(max(halo_mass)):.2f}")
-    print(f"  Occupation number range: {min(occupation_all)} to {max(occupation_all)}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of halos: {len(halo_mass)}")
+        print(f"  Halo mass range: {np.log10(min(halo_mass)):.2f} to {np.log10(max(halo_mass)):.2f}")
+        print(f"  Occupation number range: {min(occupation_all)} to {max(occupation_all)}")
     
     # Bin the data by halo mass for the mean occupation
     bin_width = 0.2  # dex
@@ -120,7 +121,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     bin_counts = np.zeros(len(mass_bins) - 1)
     
     # Calculate mean occupation in each bin
-    log_halo_mass = np.log10(halo_mass)
+    # Handle log10 of potentially zero values safely
+    log_halo_mass = np.zeros_like(halo_mass)
+    valid_mass = halo_mass > 0
+    if np.any(valid_mass):
+        log_halo_mass[valid_mass] = np.log10(halo_mass[valid_mass])
+    
     for i in range(len(mass_bins) - 1):
         bin_mask = (log_halo_mass >= mass_bins[i]) & (log_halo_mass < mass_bins[i+1])
         
@@ -172,7 +178,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"HaloOccupation{output_format}")
-    print(f"Saving Halo Occupation Distribution plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Halo Occupation Distribution plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import get_mass_function_labels, get_baryonic_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a baryonic mass function plot.
     
@@ -120,7 +120,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"BaryonicMassFunction{output_format}")
-    print(f"Saving baryonic mass function to: {output_path}")
+    if verbose:
+                                print(f"Saving baryonic mass function to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

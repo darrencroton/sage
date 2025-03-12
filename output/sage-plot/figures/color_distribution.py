@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a galaxy color distribution plot (color-magnitude diagram).
     
@@ -91,12 +91,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     is_red = log_ssfr < ssfr_cut
     
     # Print some debug information
-    print(f"Color Distribution plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Red sequence galaxies: {np.sum(is_red)}")
-    print(f"  Blue cloud galaxies: {np.sum(~is_red)}")
-    print(f"  Absolute magnitude range: {min(abs_mag):.2f} to {max(abs_mag):.2f}")
-    print(f"  log10(sSFR) range: {min(log_ssfr):.2f} to {max(log_ssfr):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Red sequence galaxies: {np.sum(is_red)}")
+        print(f"  Blue cloud galaxies: {np.sum(~is_red)}")
+        print(f"  Absolute magnitude range: {min(abs_mag):.2f} to {max(abs_mag):.2f}")
+        print(f"  log10(sSFR) range: {min(log_ssfr):.2f} to {max(log_ssfr):.2f}")
     
     # Plot the color-magnitude diagram as a scatter plot
     # Red sequence galaxies
@@ -142,7 +143,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"ColorDistribution{output_format}")
-    print(f"Saving Galaxy Color Distribution plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Galaxy Color Distribution plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a mass reservoir scatter plot.
     
@@ -76,10 +76,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ics = np.log10(np.maximum(galaxies.IntraClusterStars[w] * 1.0e10, 1.0))
     
     # Print some debug information
-    print(f"Mass Reservoir Scatter plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Halo mass range: {min(mvir):.2f} to {max(mvir):.2f}")
-    print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Halo mass range: {min(mvir):.2f} to {max(mvir):.2f}")
+        print(f"  Stellar mass range: {min(stellar_mass):.2f} to {max(stellar_mass):.2f}")
     
     # Plot each mass component
     ax.scatter(mvir, stellar_mass, marker='o', s=0.8, c='k', alpha=0.5, label='Stars')
@@ -122,7 +123,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"MassReservoirScatter{output_format}")
-    print(f"Saving Mass Reservoir Scatter plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Mass Reservoir Scatter plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

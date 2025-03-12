@@ -236,6 +236,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
             - Volume of the simulation
             - Dictionary of metadata
     """
+    # This is important information, so show regardless of verbose flag
     print(f"Reading galaxy data from {model_path}")
     """
     Read galaxy data from SAGE output files.
@@ -318,7 +319,9 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     print(f"Determining storage requirements for files {first_file} to {last_file}...")
     
     # First pass: Determine total number of galaxies
-    for fnr in tqdm(range(first_file, last_file + 1), desc="Counting galaxies"):
+    # Only show progress bar when verbose is enabled
+    file_iterator = tqdm(range(first_file, last_file + 1), desc="Counting galaxies") if args.verbose else range(first_file, last_file + 1)
+    for fnr in file_iterator:
         fname = f"{model_path}_{fnr}"
         
         if not os.path.isfile(fname):
@@ -415,7 +418,9 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     
     # Second pass: Read the galaxy data
     offset = 0
-    for fnr in tqdm(range(first_file, last_file + 1), desc="Reading galaxies"):
+    # Only show progress bar when verbose is enabled
+    file_iterator = tqdm(range(first_file, last_file + 1), desc="Reading galaxies") if args.verbose else range(first_file, last_file + 1)
+    for fnr in file_iterator:
         fname = f"{model_path}_{fnr}"
         
         if not os.path.isfile(fname) or os.path.getsize(fname) == 0:
@@ -835,14 +840,17 @@ def main():
                     metadata=metadata,
                     params=params.params,
                     output_dir=output_dir,
-                    output_format=args.format
+                    output_format=args.format,
+                    verbose=args.verbose
                 )
                 generated_plots.append(plot_path)
-                print(f"Generated: {plot_path}")
+                if args.verbose:
+                    print(f"Generated: {plot_path}")
             except Exception as e:
                 print(f"Error generating {plot_name}: {e}")
-        
-        print(f"Generated {len(generated_plots)} snapshot plots.")
+
+        if args.verbose:
+            print(f"Generated {len(generated_plots)} snapshot plots.")
     
     # Generate evolution plots
     if args.evolution:
@@ -874,8 +882,9 @@ def main():
             
             # Ensure we have a diverse set of redshifts
             if len(set(mapper.get_redshift(snap) for snap in snapshots)) < 2:
-                print("Warning: Not enough different redshifts available in snapshots.")
-                print("Adding a generated sample snapshot at redshift 0 for better evolution plots.")
+                if args.verbose:
+                    print("Warning: Not enough different redshifts available in snapshots.")
+                    print("Adding a generated sample snapshot at redshift 0 for better evolution plots.")
                 # Ensure we have at least a z=0 snapshot for proper evolution plots
                 snapshots = list(set(snapshots))  # Remove duplicates
                 
@@ -891,7 +900,9 @@ def main():
         
         # Read galaxy data for each snapshot
         snapshot_data = {}
-        for snap in tqdm(snapshots, desc="Loading snapshot data for evolution plots"):
+        # Only show progress bar when verbose is enabled
+        snapshot_iterator = tqdm(snapshots, desc="Loading snapshot data for evolution plots") if args.verbose else snapshots
+        for snap in snapshot_iterator:
             # Special case for sample z=0 data
             if snap == -1:
                 if args.verbose:
@@ -1020,14 +1031,17 @@ def main():
                     snapshots=snapshot_data,
                     params=params.params,
                     output_dir=output_dir,
-                    output_format=args.format
+                    output_format=args.format,
+                    verbose=args.verbose
                 )
                 generated_plots.append(plot_path)
-                print(f"Generated: {plot_path}")
+                if args.verbose:
+                    print(f"Generated: {plot_path}")
             except Exception as e:
                 print(f"Error generating {plot_name}: {e}")
-        
-        print(f"Generated {len(generated_plots)} evolution plots.")
+
+        if args.verbose:
+            print(f"Generated {len(generated_plots)} evolution plots.")
 
 
 if __name__ == "__main__":

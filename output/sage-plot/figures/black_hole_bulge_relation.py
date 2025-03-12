@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator
 import random
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a black hole - bulge mass relation plot.
     
@@ -69,11 +69,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     bh_mass = np.log10(galaxies.BlackHoleMass[w] * 1.0e10 / hubble_h)
     bulge_mass = np.log10(galaxies.BulgeMass[w] * 1.0e10 / hubble_h)
     
-    # Print some debug information
-    print(f"Black Hole-Bulge Relation plot debug:")
-    print(f"  Number of galaxies plotted: {len(w)}")
-    print(f"  Bulge mass range: {min(bulge_mass):.2f} to {max(bulge_mass):.2f}")
-    print(f"  Black hole mass range: {min(bh_mass):.2f} to {max(bh_mass):.2f}")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"Black Hole-Bulge Relation plot debug:")
+        print(f"  Number of galaxies plotted: {len(w)}")
+        print(f"  Bulge mass range: {min(bulge_mass):.2f} to {max(bulge_mass):.2f}")
+        print(f"  Black hole mass range: {min(bh_mass):.2f} to {max(bh_mass):.2f}")
     
     # Plot the galaxy data
     ax.scatter(bulge_mass, bh_mass, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
@@ -110,7 +111,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"BlackHoleBulgeRelation{output_format}")
-    print(f"Saving Black Hole - Bulge Mass Relation to: {output_path}")
+    if verbose:
+                                print(f"Saving Black Hole - Bulge Mass Relation to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

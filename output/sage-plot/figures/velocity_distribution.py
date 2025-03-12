@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from figures import setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
-def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
+def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", verbose=False):
     """
     Create a velocity distribution plot.
     
@@ -93,10 +93,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     tot_gals = len(pos_x)
     
     # Print some debug information
-    print(f"Velocity Distribution plot debug:")
-    print(f"  Number of galaxies: {tot_gals}")
-    print(f"  Line-of-sight velocity range: {min(vel_los):.2f} to {max(vel_los):.2f} km/s")
-    print(f"  X velocity range: {min(vel_x):.2f} to {max(vel_x):.2f} km/s")
+    # Print some debug information if verbose mode is enabled
+    if verbose:
+        print(f"  Number of galaxies: {tot_gals}")
+        print(f"  Line-of-sight velocity range: {min(vel_los):.2f} to {max(vel_los):.2f} km/s")
+        print(f"  X velocity range: {min(vel_x):.2f} to {max(vel_x):.2f} km/s")
     
     # Create histograms for each velocity component
     # Line-of-sight velocity
@@ -143,7 +144,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         os.makedirs(output_dir, exist_ok=True)
         
     output_path = os.path.join(output_dir, f"VelocityDistribution{output_format}")
-    print(f"Saving Velocity Distribution plot to: {output_path}")
+    if verbose:
+                                print(f"Saving Velocity Distribution plot to: {output_path}")
     plt.savefig(output_path)
     plt.close()
     

@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from random import sample, seed
-from figures import get_stellar_mass_label, get_ssfr_label
+from figures import get_stellar_mass_label, get_ssfr_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
     """
@@ -38,6 +38,9 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
     
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
+    
     # Select galaxies with sufficient stellar mass
     w = np.where(galaxies.StellarMass > 0.01)[0]
     
@@ -47,7 +50,7 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No galaxies found with stellar mass > 0.01", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -71,12 +74,13 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Add a horizontal line at the division between star-forming and quiescent galaxies
     ssfr_cut = -11.0
     ax.axhline(y=ssfr_cut, c='r', ls='--', lw=2)
-    ax.text(11, ssfr_cut + 0.1, 'Star-forming', color='b')
-    ax.text(11, ssfr_cut - 0.5, 'Quiescent', color='r')
+    # Use IN_FIGURE_TEXT_SIZE for consistent text sizing
+    ax.text(11, ssfr_cut + 0.1, 'Star-forming', color='b', fontsize=IN_FIGURE_TEXT_SIZE)
+    ax.text(11, ssfr_cut - 0.5, 'Quiescent', color='r', fontsize=IN_FIGURE_TEXT_SIZE)
     
     # Customize the plot
-    ax.set_ylabel(get_ssfr_label())
-    ax.set_xlabel(get_stellar_mass_label())
+    ax.set_ylabel(get_ssfr_label(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_stellar_mass_label(), fontsize=AXIS_LABEL_SIZE)
     
     # Set the axis limits and minor ticks
     ax.set_xlim(8.0, 12.0)
@@ -84,11 +88,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.xaxis.set_minor_locator(MultipleLocator(0.5))
     ax.yaxis.set_minor_locator(MultipleLocator(0.5))
     
-    # Add legend
-    leg = ax.legend(loc='upper right')
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='upper right')
     
     # Save the figure, ensuring the output directory exists
     try:

@@ -10,7 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from figures import get_mass_function_labels, get_stellar_mass_label
+from figures import get_mass_function_labels, get_stellar_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
     """
@@ -40,9 +40,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
     
-    # Increase font sizes
-    plt.rcParams.update({'font.size': plt.rcParams['font.size'] * 1.1})  # Increase all text by 1.1x
-    plt.rcParams['axes.labelsize'] = plt.rcParams['font.size'] * 1.3  # Make axis labels 1.3x larger
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
     
     # Set up binning
     binwidth = 0.1  # mass function histogram bin width
@@ -56,7 +55,7 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No galaxies found with stellar mass > 0.0", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -219,18 +218,12 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.set_ylim(1.0e-6, 1.0e-1)
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     
-    # Increase tick label sizes
-    ax.tick_params(axis='both', which='major', labelsize=plt.rcParams['font.size'] * 1.1)
-    ax.tick_params(axis='both', which='minor', labelsize=plt.rcParams['font.size'] * 1.1)
+    # Set labels with larger font sizes
+    ax.set_ylabel(get_mass_function_labels(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_stellar_mass_label(), fontsize=AXIS_LABEL_SIZE)
     
-    ax.set_ylabel(get_mass_function_labels())
-    ax.set_xlabel(get_stellar_mass_label())
-    
-    # Add legend
-    leg = ax.legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Set legend text size
-        t.set_fontsize('large')  # Larger than the default 'medium'
+    # Add consistently styled legend
+    setup_legend(ax, loc='lower left')
     
     # Print debugging info for output directory
     print(f"Output directory for SMF plot: {output_dir}")

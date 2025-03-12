@@ -10,7 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from figures import get_mass_function_labels, get_gas_mass_label
+from figures import get_mass_function_labels, get_gas_mass_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png"):
     """
@@ -33,6 +33,9 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
     
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
+    
     # Set up binning
     binwidth = 0.1  # mass function histogram bin width
     
@@ -45,7 +48,7 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No galaxies found with cold gas > 0.0", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -158,14 +161,11 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.set_ylim(1.0e-6, 1.0e-1)
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     
-    ax.set_ylabel(get_mass_function_labels())
-    ax.set_xlabel(get_gas_mass_label())
+    ax.set_ylabel(get_mass_function_labels(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_gas_mass_label(), fontsize=AXIS_LABEL_SIZE)
     
-    # Add legend
-    leg = ax.legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='lower left')
     
     # Save the figure, ensuring the output directory exists
     try:

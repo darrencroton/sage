@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from random import sample, seed
-from figures import get_baryonic_mass_label, get_vmax_label
+from figures import get_baryonic_mass_label, get_vmax_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(galaxies, volume, metadata, params, output_dir="plots", output_format=".png", dilute=7500):
     """
@@ -38,6 +38,9 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
     
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
+    
     # Select Sb/c galaxies (Type=0 and bulge/total ratio between 0.1 and 0.5)
     w = np.where((galaxies.Type == 0) & 
                  (galaxies.StellarMass + galaxies.ColdGas > 0.0) & 
@@ -50,7 +53,7 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No suitable galaxies found for Tully-Fisher plot", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -76,8 +79,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.plot(w_obs, TF, 'b-', lw=2.0, label='Stark, McGaugh \\& Swatters 2009')
     
     # Customize the plot
-    ax.set_ylabel(get_baryonic_mass_label())
-    ax.set_xlabel(get_vmax_label())
+    ax.set_ylabel(get_baryonic_mass_label(), fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_vmax_label(), fontsize=AXIS_LABEL_SIZE)
     
     # Set the axis limits and minor ticks
     ax.set_xlim(1.4, 2.6)
@@ -85,11 +88,8 @@ def plot(galaxies, volume, metadata, params, output_dir="plots", output_format="
     ax.xaxis.set_minor_locator(MultipleLocator(0.05))
     ax.yaxis.set_minor_locator(MultipleLocator(0.25))
     
-    # Add legend
-    leg = ax.legend(loc='lower right')
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='lower right')
     
     # Save the figure, ensuring the output directory exists
     try:

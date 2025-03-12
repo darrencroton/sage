@@ -10,7 +10,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from figures import get_redshift_label
+from figures import get_redshift_label, setup_plot_fonts, setup_legend, AXIS_LABEL_SIZE, LEGEND_FONT_SIZE, IN_FIGURE_TEXT_SIZE
 
 def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
@@ -27,6 +27,9 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     """
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Apply consistent font settings
+    setup_plot_fonts(ax)
     
     # Determine IMF type from params
     whichimf = params.get('IMF_Type', 1)  # Default to Chabrier IMF
@@ -151,7 +154,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
         # Create an empty plot with a message
         ax.text(0.5, 0.5, "No snapshot data available for stellar mass density evolution plot", 
                 horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontsize=IN_FIGURE_TEXT_SIZE)
         
         # Save the figure
         os.makedirs(output_dir, exist_ok=True)
@@ -201,8 +204,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     ax.plot(redshifts[nonzero], smd[nonzero], 'k-', lw=3.0, label='Model')
     
     # Customize the plot
-    ax.set_ylabel(r'log$_{10}$ $\rho_{*}$ (M$_{\odot}$ Mpc$^{-3}$)')
-    ax.set_xlabel(get_redshift_label())
+    ax.set_ylabel(r'log$_{10}$ $\rho_{*}$ (M$_{\odot}$ Mpc$^{-3}$)', fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel(get_redshift_label(), fontsize=AXIS_LABEL_SIZE)
     
     ax.xaxis.set_minor_locator(MultipleLocator(0.5))
     ax.yaxis.set_minor_locator(MultipleLocator(0.1))
@@ -210,11 +213,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png"):
     ax.set_xlim(0.0, 8.0)
     ax.set_ylim(6.5, 9.0)
     
-    # Add legend
-    leg = ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)
-    for t in leg.get_texts():
-        t.set_fontsize('medium')
+    # Add consistently styled legend
+    setup_legend(ax, loc='upper right')
     
     # Save the figure, ensuring the output directory exists
     try:

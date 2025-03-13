@@ -114,6 +114,59 @@ void bye()
 
 
 /**
+ * @brief   Extracts filename from a path
+ *
+ * @param   path        Full path to file
+ * @return  Pointer to filename portion of path
+ */
+const char *get_filename_from_path(const char *path) {
+  const char *filename = strrchr(path, '/');
+  if (filename) {
+    return filename + 1;
+  }
+  return path;
+}
+
+/**
+ * @brief   Copies a file from source to destination
+ *
+ * @param   source      Source file path
+ * @param   dest        Destination file path
+ * @return  0 on success, non-zero on error
+ */
+int copy_file(const char *source, const char *dest) {
+  FILE *src, *dst;
+  char buffer[8192];
+  size_t bytes;
+
+  src = fopen(source, "rb");
+  if (!src) {
+    ERROR_LOG("Failed to open source file: %s", source);
+    return 1;
+  }
+
+  dst = fopen(dest, "wb");
+  if (!dst) {
+    ERROR_LOG("Failed to open destination file: %s", dest);
+    fclose(src);
+    return 2;
+  }
+
+  while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+    if (fwrite(buffer, 1, bytes, dst) != bytes) {
+      ERROR_LOG("Error writing to destination file: %s", dest);
+      fclose(src);
+      fclose(dst);
+      return 3;
+    }
+  }
+
+  fclose(src);
+  fclose(dst);
+  return 0;
+}
+
+/**
  * @brief   Main program entry point
  *
  * @param   argc      Number of command-line arguments
@@ -161,6 +214,9 @@ int main(int argc, char **argv)
   /* Set default logging level */
   LogLevel log_level = LOG_LEVEL_INFO;
   
+  /* Set default value for overwrite flag */
+  SageConfig.OverwriteOutputFiles = 0;
+  
   /* Parse command-line arguments for special flags like help, verbosity */
   int i;
   for (i = 1; i < argc; i++) {
@@ -175,7 +231,8 @@ int main(int argc, char **argv)
       printf("Options:\n");
       printf("  -h, --help       Display this help message and exit\n");
       printf("  -v, --verbose    Show debug messages (most verbose)\n");
-      printf("  -q, --quiet      Show only warnings and errors (least verbose)\n\n");
+      printf("  -q, --quiet      Show only warnings and errors (least verbose)\n");
+      printf("  --overwrite      Overwrite existing output files instead of skipping\n\n");
       exit(0);
     } else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
       log_level = LOG_LEVEL_DEBUG;
@@ -188,6 +245,15 @@ int main(int argc, char **argv)
       i--;
     } else if (strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--quiet") == 0) {
       log_level = LOG_LEVEL_WARNING;
+      /* Remove the argument from argv */
+      int k;
+      for (k = i; k < argc - 1; k++) {
+        argv[k] = argv[k + 1];
+      }
+      argc--;
+      i--;
+    } else if (strcmp(argv[i], "--overwrite") == 0) {
+      SageConfig.OverwriteOutputFiles = 1;
       /* Remove the argument from argv */
       int k;
       for (k = i; k < argc - 1; k++) {
@@ -258,9 +324,9 @@ int main(int argc, char **argv)
     else
       fclose(fd);
 
-    /* Check if output file already exists (to avoid reprocessing) */
+    /* Check if output file already exists (to avoid reprocessing unless overwrite flag is set) */
     snprintf(bufz0, MAX_BUFZ0_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir, SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
-    if(stat(bufz0, &filestatus) == 0)
+    if(stat(bufz0, &filestatus) == 0 && !SageConfig.OverwriteOutputFiles)
     {
       INFO_LOG("Output for tree %s already exists ... skipping", bufz0);
       continue;  // output seems to already exist, dont overwrite, move along
@@ -333,6 +399,27 @@ int main(int argc, char **argv)
   
   /* Clean up I/O buffering system */
   cleanup_io_buffering();
+
+  /* Copy parameter file and snapshot list file to output metadata directory */
+  char metadata_dir[MAX_STRING_LEN + 15];  // +15 for "/metadata" and null terminator
+  char source_path[MAX_STRING_LEN];
+  char dest_path[MAX_STRING_LEN + 50];  // Extra space for filenames
+     
+  // Create metadata directory if it doesn't exist
+  snprintf(metadata_dir, sizeof(metadata_dir), "%s/metadata", SageConfig.OutputDir);
+  mkdir(metadata_dir, 0777);
+     
+  // Copy parameter file
+  snprintf(source_path, sizeof(source_path), "%s", argv[1]);
+  snprintf(dest_path, sizeof(dest_path), "%s/%s", metadata_dir, get_filename_from_path(argv[1]));
+  if (copy_file(source_path, dest_path) == 0) {
+    // Copy snapshot list file
+    snprintf(source_path, sizeof(source_path), "%s", SageConfig.FileWithSnapList);
+    snprintf(dest_path, sizeof(dest_path), "%s/%s", metadata_dir, get_filename_from_path(SageConfig.FileWithSnapList));
+    if (copy_file(source_path, dest_path) == 0) {
+      INFO_LOG("Parameter file and snapshot list copied to %s", metadata_dir);
+    }
+  }
 
   /* Set exit status to success */
   exitfail = 0;

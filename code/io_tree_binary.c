@@ -81,8 +81,8 @@ void load_tree_table_binary(int32_t filenr)
 
   // For simplicity, assume host endianness for legacy files
   set_file_endianness(SAGE_HOST_ENDIAN);
-  INFO_LOG("Using legacy headerless file format (assuming %s endian)", 
-          (SAGE_HOST_ENDIAN == SAGE_LITTLE_ENDIAN) ? "little" : "big");
+  DEBUG_LOG("Using legacy headerless file format (assuming %s endian)",
+           (SAGE_HOST_ENDIAN == SAGE_LITTLE_ENDIAN) ? "little" : "big");
   
   // Read the tree metadata
   if (fread(&Ntrees, sizeof(int), 1, load_fd) != 1) {

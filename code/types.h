@@ -60,6 +60,7 @@ struct SageConfig
   int DiskInstabilityOn;
   int AGNrecipeOn;
   int SFprescription;
+  int OverwriteOutputFiles;  // Flag to overwrite existing output files
 
   /* output parameters */
   int NOUT;

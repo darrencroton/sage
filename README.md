@@ -24,7 +24,6 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 
 - C compiler (gcc or compatible)
 - GNU Make
-- [GNU Scientific Library (GSL)](http://www.gnu.org/software/gsl/) (Optional - custom implementations now included)
 - (Optional) HDF5 libraries for HDF5 tree format support
 
 ### Building SAGE

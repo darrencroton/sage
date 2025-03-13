@@ -25,6 +25,8 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 - C compiler (gcc or compatible)
 - GNU Make
 - (Optional) HDF5 libraries for HDF5 tree format support
+- (Optional) clang-format for code formatting
+- (Optional) black and isort for Python code formatting
 
 ### Building SAGE
 
@@ -113,6 +115,24 @@ AGNrecipeOn              1
 ```
 
 Note: A full example parameter file can be found in the `input` directory.
+
+## Code Formatting
+
+SAGE includes a code formatting script to maintain consistent coding style:
+
+```bash
+# Format all code (C and Python)
+./beautify.sh
+
+# Format only C code
+./beautify.sh --c-only
+
+# Format only Python code
+./beautify.sh --py-only
+
+# See more options
+./beautify.sh --help
+```
 
 ## Code Structure
 

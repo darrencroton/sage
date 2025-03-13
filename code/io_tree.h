@@ -12,8 +12,8 @@ void set_file_endianness(int endianness);
 int get_file_endianness(void);
 void init_io_buffering(void);
 void cleanup_io_buffering(void);
-size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream);
-size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE * stream);
-int myfseek(FILE * stream, long offset, int whence);
+size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int myfseek(FILE *stream, long offset, int whence);
 
 #endif /* IO_TREE_H */

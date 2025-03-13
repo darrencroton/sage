@@ -1,18 +1,20 @@
 #ifndef UTIL_NUMERIC_H
 #define UTIL_NUMERIC_H
 
-#include <stdbool.h>
-#include <math.h>
 #include "constants.h"
+#include <math.h>
+#include <stdbool.h>
 
 /**
  * @file    util_numeric.h
- * @brief   Utility functions for numerical stability and safer floating-point operations
+ * @brief   Utility functions for numerical stability and safer floating-point
+ * operations
  *
  * This file provides utility functions to improve numerical stability in
  * the SAGE codebase by offering safer floating-point comparison operations,
- * division checks, and value validation functions. Using these utilities instead
- * of direct floating-point operations helps avoid common numerical issues.
+ * division checks, and value validation functions. Using these utilities
+ * instead of direct floating-point operations helps avoid common numerical
+ * issues.
  */
 
 /**
@@ -33,7 +35,8 @@ bool is_zero(double x);
 bool is_equal(double x, double y);
 
 /**
- * @brief   Checks if x is definitely greater than y (accounting for floating-point error)
+ * @brief   Checks if x is definitely greater than y (accounting for
+ * floating-point error)
  *
  * @param   x   First value to compare
  * @param   y   Second value to compare
@@ -42,7 +45,8 @@ bool is_equal(double x, double y);
 bool is_greater(double x, double y);
 
 /**
- * @brief   Checks if x is definitely less than y (accounting for floating-point error)
+ * @brief   Checks if x is definitely less than y (accounting for floating-point
+ * error)
  *
  * @param   x   First value to compare
  * @param   y   Second value to compare
@@ -51,7 +55,8 @@ bool is_greater(double x, double y);
 bool is_less(double x, double y);
 
 /**
- * @brief   Checks if x is greater than or equal to y (accounting for floating-point error)
+ * @brief   Checks if x is greater than or equal to y (accounting for
+ * floating-point error)
  *
  * @param   x   First value to compare
  * @param   y   Second value to compare
@@ -60,7 +65,8 @@ bool is_less(double x, double y);
 bool is_greater_or_equal(double x, double y);
 
 /**
- * @brief   Checks if x is less than or equal to y (accounting for floating-point error)
+ * @brief   Checks if x is less than or equal to y (accounting for
+ * floating-point error)
  *
  * @param   x   First value to compare
  * @param   y   Second value to compare
@@ -74,7 +80,8 @@ bool is_less_or_equal(double x, double y);
  * @param   x     Value to check
  * @param   min   Minimum acceptable value
  * @param   max   Maximum acceptable value
- * @return  true if min <= x <= max (accounting for floating-point error), false otherwise
+ * @return  true if min <= x <= max (accounting for floating-point error), false
+ * otherwise
  */
 bool is_within(double x, double min, double max);
 

@@ -4,11 +4,11 @@
 Setup script for the SAGE Plotting Tool package.
 
 This file defines the package metadata, dependencies, and entry points
-for the SAGE Plotting Tool, which provides a centralized system for 
+for the SAGE Plotting Tool, which provides a centralized system for
 generating plots from SAGE galaxy formation model outputs.
 """
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="sage-plot",
@@ -17,14 +17,14 @@ setup(
     author="SAGE Team",
     packages=find_packages(),
     entry_points={
-        'console_scripts': [
-            'sage-plot=sage_plot:main',
+        "console_scripts": [
+            "sage-plot=sage_plot:main",
         ],
     },
     install_requires=[
-        'numpy',
-        'matplotlib',
-        'tqdm',
+        "numpy",
+        "matplotlib",
+        "tqdm",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )

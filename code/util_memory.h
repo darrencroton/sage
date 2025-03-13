@@ -5,13 +5,13 @@
 
 /* Memory categories for component-level tracking */
 typedef enum {
-    MEM_UNKNOWN = 0,
-    MEM_GALAXIES,
-    MEM_HALOS,
-    MEM_TREES,
-    MEM_IO,
-    MEM_UTILITY,
-    MEM_MAX_CATEGORY  /* For bounds checking */
+  MEM_UNKNOWN = 0,
+  MEM_GALAXIES,
+  MEM_HALOS,
+  MEM_TREES,
+  MEM_IO,
+  MEM_UTILITY,
+  MEM_MAX_CATEGORY /* For bounds checking */
 } MemoryCategory;
 
 /* Memory reporting levels */
@@ -21,7 +21,7 @@ typedef enum {
 
 /* Configuration */
 #ifndef DEFAULT_MAX_MEMORY_BLOCKS
-#define DEFAULT_MAX_MEMORY_BLOCKS 1024  /* Increased from 256 */
+#define DEFAULT_MAX_MEMORY_BLOCKS 1024 /* Increased from 256 */
 #endif
 
 /* Memory allocation utilities */

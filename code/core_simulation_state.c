@@ -22,11 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "constants.h"
-#include "types.h"
-#include "globals.h"
 #include "config.h"
+#include "constants.h"
 #include "core_proto.h"
+#include "globals.h"
+#include "types.h"
 #include "util_error.h"
 
 /**
@@ -46,8 +46,7 @@
  * modified and those changes need to be reflected in the global variables
  * used throughout the rest of the code.
  */
-void sync_sim_state_to_globals(void)
-{
+void sync_sim_state_to_globals(void) {
   /* Tree and galaxy counts */
   Ntrees = SimState.Ntrees;
   NumGals = SimState.NumGals;
@@ -55,20 +54,22 @@ void sync_sim_state_to_globals(void)
   FoF_MaxGals = SimState.FoF_MaxGals;
   GalaxyCounter = SimState.GalaxyCounter;
   TotHalos = SimState.TotHalos;
-  
+
   /* Copy array values */
   memcpy(TotGalaxies, SimState.TotGalaxies, sizeof(int) * ABSOLUTEMAXSNAPS);
-  
+
   /* File and tree identifiers */
   FileNum = SimState.FileNum;
   TreeID = SimState.TreeID;
-  
-  /* Snapshot information - handled differently as these can also be in SageConfig */
+
+  /* Snapshot information - handled differently as these can also be in
+   * SageConfig */
   MAXSNAPS = SimState.MAXSNAPS;
   Snaplistlen = SimState.Snaplistlen;
   NOUT = SimState.NOUT;
-  memcpy(ListOutputSnaps, SimState.ListOutputSnaps, sizeof(int) * ABSOLUTEMAXSNAPS);
-  
+  memcpy(ListOutputSnaps, SimState.ListOutputSnaps,
+         sizeof(int) * ABSOLUTEMAXSNAPS);
+
   /* Pointers - these need special care */
   for (int i = 0; i < ABSOLUTEMAXSNAPS; i++) {
     if (i < NOUT) {
@@ -98,8 +99,7 @@ void sync_sim_state_to_globals(void)
  * and allows the simulation state to be captured and stored in a
  * single, self-contained structure.
  */
-void sync_globals_to_sim_state(void)
-{
+void sync_globals_to_sim_state(void) {
   /* Tree and galaxy counts */
   SimState.Ntrees = Ntrees;
   SimState.NumGals = NumGals;
@@ -107,20 +107,21 @@ void sync_globals_to_sim_state(void)
   SimState.FoF_MaxGals = FoF_MaxGals;
   SimState.GalaxyCounter = GalaxyCounter;
   SimState.TotHalos = TotHalos;
-  
+
   /* Copy array values */
   memcpy(SimState.TotGalaxies, TotGalaxies, sizeof(int) * ABSOLUTEMAXSNAPS);
-  
+
   /* File and tree identifiers */
   SimState.FileNum = FileNum;
   SimState.TreeID = TreeID;
-  
+
   /* Snapshot information */
   SimState.MAXSNAPS = MAXSNAPS;
   SimState.Snaplistlen = Snaplistlen;
   SimState.NOUT = NOUT;
-  memcpy(SimState.ListOutputSnaps, ListOutputSnaps, sizeof(int) * ABSOLUTEMAXSNAPS);
-  
+  memcpy(SimState.ListOutputSnaps, ListOutputSnaps,
+         sizeof(int) * ABSOLUTEMAXSNAPS);
+
   /* Pointers - these need special care */
   for (int i = 0; i < ABSOLUTEMAXSNAPS; i++) {
     if (i < NOUT) {
@@ -152,17 +153,17 @@ void sync_globals_to_sim_state(void)
  * global variables will contain the same, consistent set of values
  * for the simulation state.
  */
-void initialize_sim_state(void)
-{
+void initialize_sim_state(void) {
   /* Initialize the structure from global variables */
   sync_globals_to_sim_state();
-  
+
   /* Update MAXSNAPS, Snaplistlen, NOUT, and ListOutputSnaps from SageConfig */
   SimState.MAXSNAPS = SageConfig.MAXSNAPS;
   SimState.Snaplistlen = SageConfig.Snaplistlen;
   SimState.NOUT = SageConfig.NOUT;
-  memcpy(SimState.ListOutputSnaps, SageConfig.ListOutputSnaps, sizeof(int) * ABSOLUTEMAXSNAPS);
-  
+  memcpy(SimState.ListOutputSnaps, SageConfig.ListOutputSnaps,
+         sizeof(int) * ABSOLUTEMAXSNAPS);
+
   /* Synchronize back to globals for consistency */
   sync_sim_state_to_globals();
 }

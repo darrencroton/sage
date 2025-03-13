@@ -1,9 +1,9 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include <stdio.h>
 #include "constants.h"
 #include "types.h"
+#include <stdio.h>
 
 /* Global configuration structure */
 extern struct SageConfig SageConfig;
@@ -22,11 +22,12 @@ extern struct halo_data *Halo;
 extern struct halo_aux_data *HaloAux;
 
 /* runtime file information */
-extern int Ntrees;      /* number of trees in current file  */
-extern int NumGals;     /* Total number of galaxies stored for current tree */
-extern int MaxGals;     /* Maximum number of galaxies allowed for current tree */  
+extern int Ntrees;  /* number of trees in current file  */
+extern int NumGals; /* Total number of galaxies stored for current tree */
+extern int MaxGals; /* Maximum number of galaxies allowed for current tree */
 extern int FoF_MaxGals;
-extern int GalaxyCounter;     /* unique galaxy ID for main progenitor line in tree */
+extern int
+    GalaxyCounter; /* unique galaxy ID for main progenitor line in tree */
 
 /* halo information */
 extern int TotHalos;
@@ -46,19 +47,10 @@ extern void *ParamAddr[MAXTAGS];
 extern double EnergySNcode, EtaSNcode;
 
 /* units */
-extern double UnitLength_in_cm,
-  UnitTime_in_s,
-  UnitVelocity_in_cm_per_s,
-  UnitMass_in_g,
-  RhoCrit,
-  UnitPressure_in_cgs,
-  UnitDensity_in_cgs,
-  UnitCoolingRate_in_cgs,
-  UnitEnergy_in_cgs,
-  UnitTime_in_Megayears, 
-  G,
-  Hubble,
-  a0, ar;
+extern double UnitLength_in_cm, UnitTime_in_s, UnitVelocity_in_cm_per_s,
+    UnitMass_in_g, RhoCrit, UnitPressure_in_cgs, UnitDensity_in_cgs,
+    UnitCoolingRate_in_cgs, UnitEnergy_in_cgs, UnitTime_in_Megayears, G, Hubble,
+    a0, ar;
 
 /* output snapshots - kept for backward compatibility */
 extern int ListOutputSnaps[ABSOLUTEMAXSNAPS];

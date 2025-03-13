@@ -2,14 +2,16 @@
  * @file    model_starformation_and_feedback.c
  * @brief   Star formation and supernova feedback processes
  *
- * This file implements the physical processes governing star formation in galaxy
- * disks and the subsequent supernova feedback that regulates this star formation.
- * The star formation follows the Kennicutt-Schmidt law with a critical gas surface
- * density threshold, while feedback is modeled using an energy-driven outflow
- * approach with both gas reheating (within the halo) and gas ejection (from the halo).
+ * This file implements the physical processes governing star formation in
+ * galaxy disks and the subsequent supernova feedback that regulates this star
+ * formation. The star formation follows the Kennicutt-Schmidt law with a
+ * critical gas surface density threshold, while feedback is modeled using an
+ * energy-driven outflow approach with both gas reheating (within the halo) and
+ * gas ejection (from the halo).
  *
  * Key functions:
- * - starformation_and_feedback(): Main function calculating star formation and feedback
+ * - starformation_and_feedback(): Main function calculating star formation and
+ * feedback
  * - update_from_star_formation(): Updates galaxy properties after stars form
  * - update_from_feedback(): Updates galaxy properties after supernova feedback
  *
@@ -20,20 +22,18 @@
  * - Krumholz & Dekel (2011) - Metal distribution model
  */
 
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
-#include <assert.h>
 
-#include "globals.h"
-#include "types.h"
 #include "config.h"
 #include "core_proto.h"
+#include "globals.h"
+#include "types.h"
 #include "util_numeric.h"
-
-
 
 /**
  * @brief   Implements star formation and feedback processes for a galaxy
@@ -57,61 +57,65 @@
  * gas surface density threshold. Feedback is proportional to the star
  * formation rate, following the supernova energy-driven model.
  */
-void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step)
-{
-  double reff, tdyn, strdot, stars, reheated_mass, ejected_mass, fac, metallicity;
+void starformation_and_feedback(int p, int centralgal, double time, double dt,
+                                int halonr, int step) {
+  double reff, tdyn, strdot, stars, reheated_mass, ejected_mass, fac,
+      metallicity;
   double cold_crit;
   double FracZleaveDiskVal;
-  
+
   /* Initialize star formation rate */
   strdot = 0.0;
 
   /* Apply the selected star formation recipe */
-  if(SageConfig.SFprescription == 0)
-  {
-    /* Calculate effective star-forming radius - 3 scale lengths (Milky Way guide) */
+  if (SageConfig.SFprescription == 0) {
+    /* Calculate effective star-forming radius - 3 scale lengths (Milky Way
+     * guide) */
     reff = 3.0 * Gal[p].DiskScaleRadius;
-    
+
     /* Calculate dynamical time of the disk */
     tdyn = reff / Gal[p].Vvir;
 
     /* Calculate critical cold gas mass using Kauffmann (1996) eq7 x πR²
      * (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h */
     cold_crit = 0.19 * Gal[p].Vvir * reff;
-    
+
     /* Star formation occurs only if gas mass exceeds critical threshold
      * and dynamical time is positive */
-    if(is_greater(Gal[p].ColdGas, cold_crit) && is_greater(tdyn, 0.0))
-      strdot = SageConfig.SfrEfficiency * (Gal[p].ColdGas - cold_crit) * safe_div(1.0, tdyn, EPSILON_SMALL);
+    if (is_greater(Gal[p].ColdGas, cold_crit) && is_greater(tdyn, 0.0))
+      strdot = SageConfig.SfrEfficiency * (Gal[p].ColdGas - cold_crit) *
+               safe_div(1.0, tdyn, EPSILON_SMALL);
     else
       strdot = 0.0;
-  }
-  else
-  {
-    fprintf(stderr, "Error: No star formation prescription selected (SFprescription=%d). Configure a valid prescription in the parameter file.\n", 
-            SageConfig.SFprescription);
+  } else {
+    fprintf(
+        stderr,
+        "Error: No star formation prescription selected (SFprescription=%d). "
+        "Configure a valid prescription in the parameter file.\n",
+        SageConfig.SFprescription);
     ABORT(0);
   }
 
   /* Calculate mass of stars formed in this time step */
   stars = strdot * dt;
-  if(is_less(stars, 0.0))
+  if (is_less(stars, 0.0))
     stars = 0.0;
 
   /* Calculate gas reheated by supernova feedback */
-  if(SageConfig.SupernovaRecipeOn == 1)
+  if (SageConfig.SupernovaRecipeOn == 1)
     reheated_mass = SageConfig.FeedbackReheatingEpsilon * stars;
   else
     reheated_mass = 0.0;
 
-  /* Make sure reheated_mass is not negative (handle possible floating-point issues) */
-  if(is_less(reheated_mass, 0.0))
+  /* Make sure reheated_mass is not negative (handle possible floating-point
+   * issues) */
+  if (is_less(reheated_mass, 0.0))
     reheated_mass = 0.0;
 
   /* Ensure total gas used (stars + feedback) doesn't exceed available cold gas
    * If needed, scale down both star formation and feedback proportionally */
-  if(is_greater(stars + reheated_mass, Gal[p].ColdGas) && is_greater(stars + reheated_mass, 0.0))
-  {
+  if (is_greater(stars + reheated_mass, Gal[p].ColdGas) &&
+      is_greater(stars + reheated_mass, 0.0)) {
     fac = Gal[p].ColdGas / (stars + reheated_mass);
     stars *= fac;
     reheated_mass *= fac;
@@ -122,22 +126,21 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
    * 1. Supernova energy per unit stellar mass (EtaSNcode * EnergySNcode)
    * 2. Halo escape velocity (proportional to Vvir²)
    * 3. Efficiency parameters */
-  if(SageConfig.SupernovaRecipeOn == 1)
-  {
-    if(is_greater(Gal[centralgal].Vvir, 0.0))
-      ejected_mass = 
-        (SageConfig.FeedbackEjectionEfficiency * safe_div(EtaSNcode * EnergySNcode, 
-                                                          Gal[centralgal].Vvir * Gal[centralgal].Vvir, 
-                                                          EPSILON_SMALL) -
-          SageConfig.FeedbackReheatingEpsilon) * stars;
+  if (SageConfig.SupernovaRecipeOn == 1) {
+    if (is_greater(Gal[centralgal].Vvir, 0.0))
+      ejected_mass = (SageConfig.FeedbackEjectionEfficiency *
+                          safe_div(EtaSNcode * EnergySNcode,
+                                   Gal[centralgal].Vvir * Gal[centralgal].Vvir,
+                                   EPSILON_SMALL) -
+                      SageConfig.FeedbackReheatingEpsilon) *
+                     stars;
     else
       ejected_mass = 0.0;
-    
+
     /* Ensure ejected mass is non-negative */
-    if(is_less(ejected_mass, 0.0))
+    if (is_less(ejected_mass, 0.0))
       ejected_mass = 0.0;
-  }
-  else
+  } else
     ejected_mass = 0.0;
 
   /* Update star formation rate history */
@@ -156,31 +159,34 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity);
 
   /* Check for disk instability if enabled */
-  if(SageConfig.DiskInstabilityOn)
+  if (SageConfig.DiskInstabilityOn)
     check_disk_instability(p, centralgal, halonr, time, dt, step);
 
   /* Formation of new metals - instantaneous recycling approximation
    * This models metal production from Type II supernovae */
-  if(is_greater(Gal[p].ColdGas, 1.0e-8))  /* Only if there is cold gas to enrich */
+  if (is_greater(Gal[p].ColdGas,
+                 1.0e-8)) /* Only if there is cold gas to enrich */
   {
     /* Calculate fraction of metals that leave the disk based on halo mass
      * Following Krumholz & Dekel 2011 Eq. 22 */
-    FracZleaveDiskVal = SageConfig.FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);
-    
-    /* Distribute newly produced metals between cold disk gas and hot halo gas */
-    Gal[p].MetalsColdGas += SageConfig.Yield * (1.0 - FracZleaveDiskVal) * stars;
-    Gal[centralgal].MetalsHotGas += SageConfig.Yield * FracZleaveDiskVal * stars;
+    FracZleaveDiskVal =
+        SageConfig.FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);
+
+    /* Distribute newly produced metals between cold disk gas and hot halo gas
+     */
+    Gal[p].MetalsColdGas +=
+        SageConfig.Yield * (1.0 - FracZleaveDiskVal) * stars;
+    Gal[centralgal].MetalsHotGas +=
+        SageConfig.Yield * FracZleaveDiskVal * stars;
     /* Commented out in original code: */
-    /* Gal[centralgal].MetalsEjectedMass += SageConfig.Yield * FracZleaveDiskVal * stars; */
-  }
-  else
+    /* Gal[centralgal].MetalsEjectedMass += SageConfig.Yield * FracZleaveDiskVal
+     * * stars; */
+  } else
     /* If no cold gas, all metals go to hot gas */
     Gal[centralgal].MetalsHotGas += SageConfig.Yield * stars;
-    /* Commented out in original code: */
-    /* Gal[centralgal].MetalsEjectedMass += Yield * stars; */
+  /* Commented out in original code: */
+  /* Gal[centralgal].MetalsEjectedMass += Yield * stars; */
 }
-
-
 
 /**
  * @brief   Updates galaxy properties due to star formation
@@ -201,22 +207,21 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
  * winds and supernovae. This implements a simple form of the instantaneous
  * recycling approximation.
  */
-void update_from_star_formation(int p, double stars, double metallicity)
-{
+void update_from_star_formation(int p, double stars, double metallicity) {
   /* Update cold gas mass, accounting for recycling */
   Gal[p].ColdGas -= (1 - SageConfig.RecycleFraction) * stars;
-  
+
   /* Update cold gas metal content */
-  Gal[p].MetalsColdGas -= metallicity * (1 - SageConfig.RecycleFraction) * stars;
-  
+  Gal[p].MetalsColdGas -=
+      metallicity * (1 - SageConfig.RecycleFraction) * stars;
+
   /* Update stellar mass */
   Gal[p].StellarMass += (1 - SageConfig.RecycleFraction) * stars;
-  
+
   /* Update stellar metal content */
-  Gal[p].MetalsStellarMass += metallicity * (1 - SageConfig.RecycleFraction) * stars;
+  Gal[p].MetalsStellarMass +=
+      metallicity * (1 - SageConfig.RecycleFraction) * stars;
 }
-
-
 
 /**
  * @brief   Updates galaxy properties due to supernova feedback
@@ -239,15 +244,15 @@ void update_from_star_formation(int p, double stars, double metallicity)
  * - Then, some of this hot gas may be ejected from the halo completely if
  *   the supernova energy is sufficient to overcome the halo potential
  */
-void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity)
-{
+void update_from_feedback(int p, int centralgal, double reheated_mass,
+                          double ejected_mass, double metallicity) {
   double metallicityHot;
 
   /* Sanity check: reheated mass shouldn't exceed available cold gas */
-  assert(!(is_greater(reheated_mass, Gal[p].ColdGas) && is_greater(reheated_mass, 0.0)));
+  assert(!(is_greater(reheated_mass, Gal[p].ColdGas) &&
+           is_greater(reheated_mass, 0.0)));
 
-  if(SageConfig.SupernovaRecipeOn == 1)
-  {
+  if (SageConfig.SupernovaRecipeOn == 1) {
     /* Remove reheated gas from cold phase */
     Gal[p].ColdGas -= reheated_mass;
     Gal[p].MetalsColdGas -= metallicity * reheated_mass;
@@ -257,23 +262,22 @@ void update_from_feedback(int p, int centralgal, double reheated_mass, double ej
     Gal[centralgal].MetalsHotGas += metallicity * reheated_mass;
 
     /* Limit ejected mass to available hot gas */
-    if(is_greater(ejected_mass, Gal[centralgal].HotGas))
+    if (is_greater(ejected_mass, Gal[centralgal].HotGas))
       ejected_mass = Gal[centralgal].HotGas;
-    
+
     /* Calculate current hot gas metallicity */
-    metallicityHot = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
+    metallicityHot =
+        get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
 
     /* Remove ejected gas from hot phase */
     Gal[centralgal].HotGas -= ejected_mass;
     Gal[centralgal].MetalsHotGas -= metallicityHot * ejected_mass;
-    
+
     /* Add ejected gas to ejected reservoir */
     Gal[centralgal].EjectedMass += ejected_mass;
     Gal[centralgal].MetalsEjectedMass += metallicityHot * ejected_mass;
 
     /* Update outflow rate for the galaxy */
-    Gal[p].OutflowRate += reheated_mass;    
+    Gal[p].OutflowRate += reheated_mass;
   }
 }
-
-

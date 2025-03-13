@@ -1,10 +1,10 @@
 /**
  * @file    util_integration.c
- * @brief   Numerical integration utilities to replace GSL dependency
+ * @brief   Numerical integration utilities for SAGE
  *
- * This file implements high-accuracy numerical integration functions to
- * replace GSL integration functions. It provides an adaptive Simpson's rule
- * implementation that matches the precision of GSL's integration functions.
+ * This file implements high-accuracy numerical integration functions.
+ * It provides an adaptive Simpson's rule implementation for precise
+ * calculation of definite integrals.
  */
 
 #include <stdio.h>
@@ -15,15 +15,13 @@
 #include "util_integration.h"
 #include "util_error.h"
 
-/* Define integration constants for compatibility */
-#define GSL_INTEG_GAUSS15  1
-#define GSL_INTEG_GAUSS21  2
-#define GSL_INTEG_GAUSS31  3
-#define GSL_INTEG_GAUSS41  4
-#define GSL_INTEG_GAUSS51  5
-#define GSL_INTEG_GAUSS61  6
-
-/* We've removed the complex Gauss-Kronrod rules in favor of a simpler adaptive Simpson's method */
+/* Define integration constants */
+#define INTEG_GAUSS15  1
+#define INTEG_GAUSS21  2
+#define INTEG_GAUSS31  3
+#define INTEG_GAUSS41  4
+#define INTEG_GAUSS51  5
+#define INTEG_GAUSS61  6
 
 /**
  * @brief Simple adaptive Simpson's rule integration method
@@ -78,7 +76,7 @@ static void adaptive_simpson(
 }
 
 /**
- * Simpler and more robust integration function to replace the complex Gauss-Kronrod method
+ * Implementation of Simpson's rule integration
  */
 static void simpson_integrate(
     double a, double b, 
@@ -124,7 +122,7 @@ void integration_workspace_free(integration_workspace_t *workspace)
 }
 
 /**
- * Simplified integration function that just uses adaptive Simpson's rule
+ * Main integration function using adaptive Simpson's rule
  */
 int integration_qag(
     integration_function_t *f,

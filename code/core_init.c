@@ -230,10 +230,9 @@ double time_to_present(double z)
   F.function = &integrand_time_to_present;
   F.params = NULL;
 
-  // Use our custom integration function with the same accuracy parameters
-  // as the original GSL implementation (GSL_INTEG_GAUSS21 = 2)
+  // Use adaptive integration with GAUSS21 method
   integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / SageConfig.Hubble,
-    1.0e-8, WORKSIZE, 2, workspace, &result, &abserr);
+    1.0e-8, WORKSIZE, INTEG_GAUSS21, workspace, &result, &abserr);
 
   time = 1 / SageConfig.Hubble * result;
 

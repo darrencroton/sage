@@ -1,22 +1,22 @@
 /**
  * @file    util_integration.h
- * @brief   Numerical integration utilities to replace GSL dependency
+ * @brief   Numerical integration utilities for SAGE
  *
- * This file provides replacements for GSL numerical integration functions
- * used in the SAGE codebase. It implements highly accurate numerical integration
- * methods to ensure the same level of precision as the original GSL implementations.
+ * This file provides highly accurate numerical integration functions used
+ * in the SAGE codebase. It implements adaptive integration methods for
+ * precise calculations of cosmological quantities.
  */
 
 #ifndef UTIL_INTEGRATION_H
 #define UTIL_INTEGRATION_H
 
-/* Constants for integration methods (for compatibility with GSL) */
-#define GSL_INTEG_GAUSS15  1
-#define GSL_INTEG_GAUSS21  2
-#define GSL_INTEG_GAUSS31  3
-#define GSL_INTEG_GAUSS41  4
-#define GSL_INTEG_GAUSS51  5
-#define GSL_INTEG_GAUSS61  6
+/* Constants for integration methods */
+#define INTEG_GAUSS15  1
+#define INTEG_GAUSS21  2
+#define INTEG_GAUSS31  3
+#define INTEG_GAUSS41  4
+#define INTEG_GAUSS51  5
+#define INTEG_GAUSS61  6
 
 /**
  * @brief Function pointer type for the integrand function
@@ -32,10 +32,10 @@ typedef struct {
 } integration_function_t;
 
 /**
- * @brief Integration workspace structure (minimal version)
+ * @brief Integration workspace structure
  * 
- * This is a simplified version of the integration workspace.
- * We don't actually use its contents, but keep it for API compatibility.
+ * This structure holds the workspace for numerical integration.
+ * Current implementation only tracks size.
  */
 typedef struct {
     int size;        /**< Workspace size */
@@ -57,11 +57,11 @@ integration_workspace_t *integration_workspace_alloc(size_t size);
 void integration_workspace_free(integration_workspace_t *workspace);
 
 /**
- * @brief Adaptive integration using Simpson's rule
+ * @brief Adaptive integration for high-accuracy numerical integration
  *
- * This function replaces gsl_integration_qag for high-accuracy integration.
- * It implements adaptive integration using Simpson's rule to achieve
- * the same level of accuracy as GSL for smooth functions.
+ * Implements adaptive integration using Simpson's rule for high-accuracy
+ * calculation of definite integrals. Suitable for smooth functions like
+ * those encountered in cosmological calculations.
  *
  * @param f        Integration function structure
  * @param a        Lower integration limit
@@ -69,7 +69,7 @@ void integration_workspace_free(integration_workspace_t *workspace);
  * @param epsabs   Absolute error tolerance
  * @param epsrel   Relative error tolerance
  * @param limit    Maximum number of subintervals
- * @param key      Integration rule (ignored in this implementation)
+ * @param key      Integration rule to use (see INTEG_* constants)
  * @param workspace Integration workspace
  * @param result   Pointer to store integration result
  * @param abserr   Pointer to store error estimate

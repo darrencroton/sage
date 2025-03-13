@@ -60,9 +60,7 @@ check_tool() {
 # Don't exit on error as we want to try all formatting stages
 set +e
 
-SAGE_ROOT="/Users/dcroton/Local/testing-ground/sage"
-CODE_DIR="${SAGE_ROOT}/code"
-OUTPUT_DIR="${SAGE_ROOT}/output"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 # ANSI color codes
 GREEN='\033[0;32m'
@@ -77,12 +75,12 @@ echo "${YELLOW}=== SAGE Code Beautifier ===${NC}"
 if $FORMAT_C; then
     echo -n "Formatting C code... "
     if check_tool clang-format "brew install clang-format"; then
-        if cd "${SAGE_ROOT}" && find . \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i -style=LLVM > /dev/null 2>&1; then
+        if cd "${ROOT_DIR}" && find . \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i -style=LLVM > /dev/null 2>&1; then
             echo "${GREEN}✓${NC}"
         else
             echo "${RED}✗${NC}"
             echo "${RED}Error formatting C code. See details below:${NC}"
-            cd "${SAGE_ROOT}" && find . \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i -style=LLVM
+            cd "${ROOT_DIR}" && find . \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i -style=LLVM
         fi
     else
         echo "${RED}✗ (tool not found)${NC}"
@@ -94,7 +92,7 @@ if $FORMAT_PY; then
     # Format with Black
     echo -n "Formatting Python code with Black... "
     if check_tool black "pip install black"; then
-        if black --quiet "${SAGE_ROOT}" 2> /tmp/black_errors.log; then
+        if black --quiet "${ROOT_DIR}" 2> /tmp/black_errors.log; then
             echo "${GREEN}✓${NC}"
         else
             echo "${RED}✗${NC}"
@@ -108,7 +106,7 @@ if $FORMAT_PY; then
     # Sort imports with isort
     echo -n "Sorting Python imports with isort... "
     if check_tool isort "pip install isort"; then
-        if isort --profile black --quiet "${SAGE_ROOT}" 2> /tmp/isort_errors.log; then
+        if isort --profile black --quiet "${ROOT_DIR}" 2> /tmp/isort_errors.log; then
             echo "${GREEN}✓${NC}"
         else
             echo "${RED}✗${NC}"

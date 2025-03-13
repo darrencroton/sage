@@ -116,24 +116,6 @@ AGNrecipeOn              1
 
 Note: A full example parameter file can be found in the `input` directory.
 
-## Code Formatting
-
-SAGE includes a code formatting script to maintain consistent coding style:
-
-```bash
-# Format all code (C and Python)
-./beautify.sh
-
-# Format only C code
-./beautify.sh --c-only
-
-# Format only Python code
-./beautify.sh --py-only
-
-# See more options
-./beautify.sh --help
-```
-
 ## Code Structure
 
 The SAGE codebase is organized around these key components:
@@ -168,6 +150,24 @@ The SAGE codebase is organized around these key components:
   - `types.h`: Structure definitions
   - `globals.h`: Global variable declarations
   - `config.h`: Configuration parameters
+
+## Code Formatting
+
+SAGE includes a code formatting script to maintain consistent coding style:
+
+```bash
+# Format all code (C and Python)
+./beautify.sh
+
+# Format only C code
+./beautify.sh --c-only
+
+# Format only Python code
+./beautify.sh --py-only
+
+# See more options
+./beautify.sh --help
+```
 
 ## Visualization System
 

@@ -88,7 +88,12 @@ static int execute_command(const char *command, char *output, size_t size) {
  * @return  0 on success, non-zero if git information couldn't be retrieved
  */
 static int get_git_commit_hash(char *hash_buffer, size_t size) {
+#ifdef GITREF_STR
+    strncpy(hash_buffer, GITREF_STR, size);
+    return 0;
+#else
     return execute_command("git rev-parse HEAD 2>/dev/null", hash_buffer, size);
+#endif
 }
 
 /**
@@ -99,7 +104,12 @@ static int get_git_commit_hash(char *hash_buffer, size_t size) {
  * @return  0 on success, non-zero if git information couldn't be retrieved
  */
 static int get_git_branch_name(char *branch_buffer, size_t size) {
+#ifdef GITBRANCH_STR
+    strncpy(branch_buffer, GITBRANCH_STR, size);
+    return 0;
+#else
     return execute_command("git rev-parse --abbrev-ref HEAD 2>/dev/null", branch_buffer, size);
+#endif
 }
 
 /**
@@ -173,7 +183,7 @@ static void get_compiler_info(char *compiler_buffer, size_t size) {
 }
 
 /**
- * @brief   Gets system information
+ * @brief   Gets detailed system information including OS version
  * 
  * @param   system_buffer   Buffer to store system information
  * @param   size            Size of the buffer
@@ -181,6 +191,7 @@ static void get_compiler_info(char *compiler_buffer, size_t size) {
  */
 static int get_system_info(char *system_buffer, size_t size) {
     struct utsname system_info;
+    char os_version[MAX_OUTPUT_LENGTH] = "";
     
     if (uname(&system_info) != 0) {
         ERROR_LOG("Failed to get system information");
@@ -188,8 +199,72 @@ static int get_system_info(char *system_buffer, size_t size) {
         return 1;
     }
     
-    snprintf(system_buffer, size, "%s %s %s", 
-             system_info.sysname, system_info.release, system_info.machine);
+    /* Get more detailed OS version information */
+    if (strcmp(system_info.sysname, "Darwin") == 0) {
+        /* For macOS, use sw_vers command to get precise version */
+        if (execute_command("sw_vers -productVersion 2>/dev/null", os_version, sizeof(os_version)) == 0) {
+            snprintf(system_buffer, size, "macOS %s %s", 
+                     os_version, system_info.machine);
+        } else {
+            /* Fallback to basic information */
+            snprintf(system_buffer, size, "macOS %s %s", 
+                     system_info.release, system_info.machine);
+        }
+    } else if (strcmp(system_info.sysname, "Linux") == 0) {
+        /* For Linux, try to get distribution information */
+        FILE *os_release = fopen("/etc/os-release", "r");
+        if (os_release) {
+            char line[256];
+            char distro_name[128] = "";
+            char distro_version[128] = "";
+            
+            while (fgets(line, sizeof(line), os_release)) {
+                if (strncmp(line, "NAME=", 5) == 0) {
+                    char *value = line + 5;
+                    /* Remove quotes if present */
+                    if (value[0] == '"') {
+                        value++;
+                        char *end = strchr(value, '"');
+                        if (end) *end = '\0';
+                    }
+                    strncpy(distro_name, value, sizeof(distro_name) - 1);
+                    /* Remove newline if present */
+                    char *nl = strchr(distro_name, '\n');
+                    if (nl) *nl = '\0';
+                } else if (strncmp(line, "VERSION_ID=", 11) == 0) {
+                    char *value = line + 11;
+                    /* Remove quotes if present */
+                    if (value[0] == '"') {
+                        value++;
+                        char *end = strchr(value, '"');
+                        if (end) *end = '\0';
+                    }
+                    strncpy(distro_version, value, sizeof(distro_version) - 1);
+                    /* Remove newline if present */
+                    char *nl = strchr(distro_version, '\n');
+                    if (nl) *nl = '\0';
+                }
+            }
+            fclose(os_release);
+            
+            if (distro_name[0] && distro_version[0]) {
+                snprintf(system_buffer, size, "%s %s %s %s", 
+                         system_info.sysname, distro_name, distro_version, system_info.machine);
+            } else {
+                snprintf(system_buffer, size, "%s %s %s", 
+                         system_info.sysname, system_info.release, system_info.machine);
+            }
+        } else {
+            /* Fallback to basic information */
+            snprintf(system_buffer, size, "%s %s %s", 
+                     system_info.sysname, system_info.release, system_info.machine);
+        }
+    } else {
+        /* For other OSes, use the standard uname information */
+        snprintf(system_buffer, size, "%s %s %s", 
+                 system_info.sysname, system_info.release, system_info.machine);
+    }
+    
     return 0;
 }
 

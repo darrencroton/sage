@@ -70,14 +70,16 @@ ifdef USE-HDF5
     CFLAGS += $(HDF5INCL) 
 endif
 
-GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 1)"'
+# Generate git version information during compilation
+GITREF = -DGITREF_STR='"$(shell git rev-parse HEAD)"'
+GITBRANCH = -DGITBRANCH_STR='"$(shell git rev-parse --abbrev-ref HEAD)"'
 
 # GSL dependency removed - using custom implementations instead
 
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   +=   -g -lm
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE)
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GITREF) $(GITBRANCH)
 
 
 default: all

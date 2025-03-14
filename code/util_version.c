@@ -23,6 +23,7 @@
 #include "types.h"
 #include "util_error.h"
 #include "util_version.h"
+#include "git_version.h"
 
 /* No version number is defined for SAGE */
 
@@ -88,12 +89,14 @@ static int execute_command(const char *command, char *output, size_t size) {
  * @return  0 on success, non-zero if git information couldn't be retrieved
  */
 static int get_git_commit_hash(char *hash_buffer, size_t size) {
-#ifdef GITREF_STR
-    strncpy(hash_buffer, GITREF_STR, size);
-    return 0;
-#else
-    return execute_command("git rev-parse HEAD 2>/dev/null", hash_buffer, size);
+    /* The header file might not exist during the first build, so check both approaches */
+#ifdef GIT_COMMIT_HASH
+    if (strcmp(GIT_COMMIT_HASH, "@GIT_COMMIT_HASH@") != 0) { /* Make sure it was properly substituted */
+        strncpy(hash_buffer, GIT_COMMIT_HASH, size);
+        return 0;
+    }
 #endif
+    return execute_command("git rev-parse HEAD 2>/dev/null", hash_buffer, size);
 }
 
 /**
@@ -104,12 +107,14 @@ static int get_git_commit_hash(char *hash_buffer, size_t size) {
  * @return  0 on success, non-zero if git information couldn't be retrieved
  */
 static int get_git_branch_name(char *branch_buffer, size_t size) {
-#ifdef GITBRANCH_STR
-    strncpy(branch_buffer, GITBRANCH_STR, size);
-    return 0;
-#else
-    return execute_command("git rev-parse --abbrev-ref HEAD 2>/dev/null", branch_buffer, size);
+    /* The header file might not exist during the first build, so check both approaches */
+#ifdef GIT_BRANCH_NAME
+    if (strcmp(GIT_BRANCH_NAME, "@GIT_BRANCH_NAME@") != 0) { /* Make sure it was properly substituted */
+        strncpy(branch_buffer, GIT_BRANCH_NAME, size);
+        return 0;
+    }
 #endif
+    return execute_command("git rev-parse --abbrev-ref HEAD 2>/dev/null", branch_buffer, size);
 }
 
 /**

@@ -70,27 +70,37 @@ ifdef USE-HDF5
     CFLAGS += $(HDF5INCL) 
 endif
 
-# Generate git version information during compilation
-GITREF = -DGITREF_STR='"$(shell git rev-parse HEAD)"'
-GITBRANCH = -DGITBRANCH_STR='"$(shell git rev-parse --abbrev-ref HEAD)"'
+# Path to the Git version header files
+GIT_VERSION_IN = ./code/git_version.h.in
+GIT_VERSION_H = ./code/git_version.h
 
 # GSL dependency removed - using custom implementations instead
 
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
 LIBS   +=   -g -lm
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GITREF) $(GITBRANCH)
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE)
 
 
 default: all
 
-$(EXEC): $(OBJS) 
+# Generate the Git version header file
+$(GIT_VERSION_H): $(GIT_VERSION_IN)
+	@echo "Generating Git version header"
+	@sed -e "s/@GIT_COMMIT_HASH@/$(shell git rev-parse HEAD)/g" \
+	     -e "s/@GIT_BRANCH_NAME@/$(shell git rev-parse --abbrev-ref HEAD)/g" \
+	     $(GIT_VERSION_IN) > $(GIT_VERSION_H)
+
+$(EXEC): $(OBJS)
 	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
-$(OBJS): $(INCL) 
+$(OBJS): $(INCL) $(GIT_VERSION_H)
+
+# Force regeneration of git_version.h for each build
+.PHONY: $(GIT_VERSION_H)
 
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) $(GIT_VERSION_H)
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)

@@ -426,7 +426,7 @@ int main(int argc, char **argv) {
       INFO_LOG("Parameter file and snapshot list copied to %s", metadata_dir);
     }
   }
-  
+
   // Create version metadata file
   if (create_version_metadata(SageConfig.OutputDir, argv[1]) != 0) {
     WARNING_LOG("Failed to create version metadata file");

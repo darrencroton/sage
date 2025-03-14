@@ -96,7 +96,8 @@ $(EXEC): $(OBJS)
 
 $(OBJS): $(INCL) $(GIT_VERSION_H)
 
-# Force regeneration of git_version.h for each build
+# Mark git_version.h as PHONY to ensure it's regenerated with each build
+# This ensures the git information is always current, even without cleaning
 .PHONY: $(GIT_VERSION_H)
 
 clean:

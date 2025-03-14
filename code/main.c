@@ -37,6 +37,7 @@
 #include "io_tree.h"
 
 #include "io_save_hdf5.h"
+#include "util_version.h"
 
 #define MAX_BUFZ0_SIZE (3 * MAX_STRING_LEN + 25)
 static char
@@ -424,6 +425,11 @@ int main(int argc, char **argv) {
     if (copy_file(source_path, dest_path) == 0) {
       INFO_LOG("Parameter file and snapshot list copied to %s", metadata_dir);
     }
+  }
+  
+  // Create version metadata file
+  if (create_version_metadata(SageConfig.OutputDir, argv[1]) != 0) {
+    WARNING_LOG("Failed to create version metadata file");
   }
 
   /* Set exit status to success */

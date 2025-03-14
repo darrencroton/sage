@@ -7,11 +7,12 @@ OPT :=
 
 EXEC := sage 
 OBJS := ./code/main.o \
-	./code/util_parameters.o \
-	./code/util_error.o \
-	./code/util_integration.o \
-	./code/util_numeric.o \
-	./code/io_util.o \
+        ./code/util_parameters.o \
+        ./code/util_error.o \
+        ./code/util_integration.o \
+        ./code/util_numeric.o \
+        ./code/util_version.o \
+        ./code/io_util.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
 	./code/io_tree.o \
@@ -31,11 +32,12 @@ OBJS := ./code/main.o \
 	./code/io_tree_binary.o
 
 INCL := ./code/core_allvars.h  \
-	./code/io_tree.h \
-	./code/io_save_binary.h \
-	./code/util_memory.h \
-	./code/util_integration.h \
-	./code/util_numeric.h \
+        ./code/io_tree.h \
+        ./code/io_save_binary.h \
+        ./code/util_memory.h \
+        ./code/util_integration.h \
+        ./code/util_numeric.h \
+        ./code/util_version.h \
 	./code/io_util.h \
 	./code/core_proto.h  \
 	./code/core_simulation.h  \

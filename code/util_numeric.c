@@ -41,8 +41,6 @@ bool is_within(double x, double min, double max) {
 /* Perform division with protection against division by zero */
 double safe_div(double num, double denom, double default_val) {
   if (is_zero(denom)) {
-    /* Optional logging if denominator is zero */
-    DEBUG_LOG("Division by zero detected. Using default value %g", default_val);
     return default_val;
   }
   return num / denom;

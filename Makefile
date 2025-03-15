@@ -7,14 +7,21 @@ OPT :=
 
 EXEC := sage 
 OBJS := ./code/main.o \
+        ./code/util_parameters.o \
+        ./code/util_error.o \
+        ./code/util_integration.o \
+        ./code/util_numeric.o \
+        ./code/util_version.o \
+        ./code/io_util.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
-	./code/core_io_tree.o \
+	./code/io_tree.o \
 	./code/core_cool_func.o \
 	./code/core_build_model.o \
-	./code/core_save.o \
-	./code/core_mymalloc.o \
+	./code/io_save_binary.o \
+	./code/util_memory.o \
 	./code/core_allvars.o \
+	./code/core_simulation_state.o \
 	./code/model_infall.o \
 	./code/model_cooling_heating.o \
 	./code/model_starformation_and_feedback.o \
@@ -22,12 +29,25 @@ OBJS := ./code/main.o \
 	./code/model_reincorporation.o \
 	./code/model_mergers.o \
 	./code/model_misc.o \
-	./code/io/tree_binary.o
+	./code/io_tree_binary.o
 
 INCL := ./code/core_allvars.h  \
+        ./code/io_tree.h \
+        ./code/io_save_binary.h \
+        ./code/util_memory.h \
+        ./code/util_integration.h \
+        ./code/util_numeric.h \
+        ./code/util_version.h \
+	./code/io_util.h \
 	./code/core_proto.h  \
 	./code/core_simulation.h  \
-	./code/io/tree_binary.h \
+	./code/util_parameters.h \
+	./code/util_error.h \
+	./code/config.h \
+	./code/constants.h \
+	./code/globals.h \
+	./code/types.h \
+	./code/io_tree_binary.h \
 	./Makefile 
 
 ifdef USE-MPI
@@ -42,49 +62,46 @@ ifdef USE-HDF5
     HDF5INCL := -I$(HDF5DIR)/include
     HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
 
-    OBJS += ./code/io/tree_hdf5.o
-    INCL += ./code/io/tree_hdf5.h
+    OBJS += ./code/io_tree_hdf5.o ./code/io_save_hdf5.o
+    INCL += ./code/io_tree_hdf5.h ./code/io_save_hdf5.h
 
     OPT += -DHDF5
     LIBS += $(HDF5LIB)
     CFLAGS += $(HDF5INCL) 
 endif
 
-GITREF = -DGITREF_STR='"$(shell git show-ref --head | head -n 1 | cut -d " " -f 1)"'
+# Path to the Git version header files
+GIT_VERSION_IN = ./code/git_version.h.in
+GIT_VERSION_H = ./code/git_version.h
 
-# GSL automatic detection
-GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
-ifndef GSL_FOUND
-  $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
-  # if the automatic detection fails, set GSL_DIR appropriately
-  GSL_DIR := /opt/local
-  GSL_INCL := -I$(GSL_DIR)/include  
-  GSL_LIBDIR := $(GSL_DIR)/lib
-  # since GSL is not in PATH, the runtime environment might not be setup correctly either
-  # therefore, adding the compiletime library path is even more important (the -Xlinker bit)
-  GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
-else
-  # GSL is probably configured correctly, pick up the locations automatically
-  GSL_INCL := $(shell gsl-config --cflags)
-  GSL_LIBDIR := $(shell gsl-config --prefix)/lib
-  GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
-endif
+# GSL dependency removed - using custom implementations instead
 
 OPTIMIZE = -g -O0 -Wall # optimization and warning flags
 
-LIBS   +=   -g -lm  $(GSL_LIBS) 
-CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+LIBS   +=   -g -lm
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE)
 
 
 default: all
 
-$(EXEC): $(OBJS) 
+# Generate the Git version header file
+$(GIT_VERSION_H): $(GIT_VERSION_IN)
+	@echo "Generating Git version header"
+	@sed -e "s/@GIT_COMMIT_HASH@/$(shell git rev-parse HEAD)/g" \
+	     -e "s/@GIT_BRANCH_NAME@/$(shell git rev-parse --abbrev-ref HEAD)/g" \
+	     $(GIT_VERSION_IN) > $(GIT_VERSION_H)
+
+$(EXEC): $(OBJS)
 	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
-$(OBJS): $(INCL) 
+$(OBJS): $(INCL) $(GIT_VERSION_H)
+
+# Mark git_version.h as PHONY to ensure it's regenerated with each build
+# This ensures the git information is always current, even without cleaning
+.PHONY: $(GIT_VERSION_H)
 
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) $(GIT_VERSION_H)
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)

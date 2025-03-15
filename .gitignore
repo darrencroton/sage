@@ -1,5 +1,9 @@
 sage
 input/treefiles
 output/results
+ignore/
 *.o
 *.*~
+__pycache__/
+*.py[cod]
+*$py.class

@@ -1,5 +1,5 @@
-#ifndef TREE_HDF5_H 
-#define TREE_HDF5_H 
+#ifndef TREE_HDF5_H
+#define TREE_HDF5_H
 
 #ifdef HDF5
 #include <hdf5.h>

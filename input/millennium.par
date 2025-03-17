@@ -8,9 +8,6 @@ OutputDir              /Volumes/Internal/results/sage/millennium/
 FirstFile         0
 LastFile          7
 
-TotalFiles        8     ; not used but needed for plotting
-BoxSize           62.5  ; in Mpc/h - not used but needed for plotting
-
 
 %------------------------------------------
 %----- Snapshot output list ---------------
@@ -26,12 +23,14 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 %----- Simulation information  ------------
 %------------------------------------------
 
-TreeName              trees_063   ; assumes the trees are named TreeName.n where n is the file number
-TreeType              lhalo_binary ; either 'genesis_lhalo_hdf5' or 'lhalo_binary'
+TreeName                    trees_063   ; assumes the trees are named TreeName.n where n is the file number
+TreeType                    lhalo_binary ; either 'genesis_lhalo_hdf5' or 'lhalo_binary'
 
-SimulationDir         /Volumes/Internal/data/millennium/
-FileWithSnapList      /Volumes/Internal/data/millennium/millennium.a_list
-LastSnapShotNr        63
+SimulationDir               /Volumes/Internal/data/millennium/
+FileWithSnapList            /Volumes/Internal/data/millennium/millennium.a_list
+LastSnapShotNr              63
+NumSimulationTreeFiles      8     ; not used but needed for plotting
+BoxSize                     62.5  ; in Mpc/h - not used but needed for plotting
 
 Omega           0.25 
 OmegaLambda     0.75

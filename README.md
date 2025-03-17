@@ -76,8 +76,6 @@ OutputDir              /path/to/output/directory/
 
 FirstFile              0
 LastFile               7
-TotalFiles             8
-BoxSize                62.5  
 
 %------------------------------------------
 %----- Snapshot output list ---------------
@@ -97,6 +95,8 @@ TreeType               lhalo_binary
 SimulationDir          /path/to/simulation/data/
 FileWithSnapList       /path/to/snapshot/list
 LastSnapShotNr         63
+NumSimulationTreeFiles 8
+BoxSize                62.5  
 
 Omega                  0.25 
 OmegaLambda            0.75

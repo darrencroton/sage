@@ -419,7 +419,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     
     # If we have information about first/last file and good files, adjust volume
     if "FirstFile" in params and "LastFile" in params:
-        total_files = params["TotalFiles"]
+        total_files = params["NumSimulationTreeFiles"]
         if total_files > 0 and good_files > 0:
             volume = volume * good_files / total_files
             if args.verbose:
@@ -562,7 +562,7 @@ def main():
         "BoxSize",
         "Hubble_h",
         "FileWithSnapList",
-        "TotalFiles"
+        "NumSimulationTreeFiles"
     ]
     
     missing_params = []
@@ -906,7 +906,7 @@ def main():
                 print(f"Using model file pattern: {model_file_base}")
 
             # Required parameters check
-            required_params = ["FirstFile", "LastFile", "TotalFiles"]
+            required_params = ["FirstFile", "LastFile", "NumSimulationTreeFiles"]
             missing_params = [p for p in required_params if p not in params.params]
             if missing_params:
                 print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")

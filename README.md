@@ -76,6 +76,7 @@ OutputDir              /path/to/output/directory/
 
 FirstFile              0
 LastFile               7
+TotalFiles             8
 BoxSize                62.5  
 
 %------------------------------------------

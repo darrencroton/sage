@@ -7,9 +7,8 @@ This module provides a class to handle mapping between snapshot numbers and reds
 for SAGE galaxy evolution plots.
 """
 
-import glob
 import os
-import re
+import sys
 from collections import OrderedDict
 
 import numpy as np
@@ -42,29 +41,18 @@ class SnapshotRedshiftMapper:
 
     def load_mapping(self):
         """
-        Load mapping between snapshots and redshifts using various methods.
+        Load mapping between snapshots and redshifts from parameter file.
 
         Returns:
             True if mapping was successfully loaded, False otherwise
         """
-        # Strategy 1: Try to read from .a_list file specified in parameter file
-        if self._load_from_a_list():
-            self.mapping_source = "a_list_file"
-            return True
-
-        # Strategy 2: Try to discover redshifts from existing model files
-        if self._load_from_model_files():
-            self.mapping_source = "model_files"
-            return True
-
-        # Strategy 3: Fall back to hardcoded redshift list from original code
-        if self._load_hardcoded_values():
-            self.mapping_source = "hardcoded_values"
-            return True
-
-        # Strategy 4: Use approximate formula as last resort
-        self._generate_approximate_mapping()
-        self.mapping_source = "approximate_formula"
+        # Only use the a_list file specified in parameter file - no fallbacks
+        if not self._load_from_a_list():
+            print("Error: Could not load redshift data from FileWithSnapList")
+            print("Please ensure FileWithSnapList parameter points to a valid a_list file")
+            sys.exit(1)
+            
+        self.mapping_source = "a_list_file"
         return True
 
     def _load_from_a_list(self):
@@ -74,13 +62,17 @@ class SnapshotRedshiftMapper:
         Returns:
             True if successful, False otherwise
         """
-        # Get the .a_list file path from parameters
+        # Get the .a_list file path from parameters - required parameter
         if not self.params:
+            print("Error: Parameter dictionary is required")
             return False
 
-        a_list_file = self.params.get("FileWithSnapList")
-        if not a_list_file:
+        # Check if required parameter exists
+        if "FileWithSnapList" not in self.params:
+            print("Error: FileWithSnapList parameter is required in the parameter file")
             return False
+            
+        a_list_file = self.params["FileWithSnapList"]
 
         # Ensure path is absolute
         if self.output_dir and not os.path.isabs(a_list_file):
@@ -88,7 +80,7 @@ class SnapshotRedshiftMapper:
 
         # Check if the file exists
         if not os.path.exists(a_list_file):
-            print(f"Warning: FileWithSnapList '{a_list_file}' not found")
+            print(f"Error: FileWithSnapList '{a_list_file}' not found")
             return False
 
         try:
@@ -110,7 +102,7 @@ class SnapshotRedshiftMapper:
 
             # If we didn't find any valid expansion factors, return False
             if not expansion_factors:
-                print(f"Warning: No valid expansion factors found in {a_list_file}")
+                print(f"Error: No valid expansion factors found in {a_list_file}")
                 return False
 
             # Convert expansion factors to redshifts
@@ -137,206 +129,10 @@ class SnapshotRedshiftMapper:
             print(f"Error loading from a_list file: {e}")
             return False
 
-    def _load_from_model_files(self):
-        """
-        Discover redshifts from existing model files in output directory.
-
-        Returns:
-            True if successful, False otherwise
-        """
-        if not self.output_dir:
-            return False
-
-        try:
-            # Search for model files with redshift in the name
-            pattern = f"{self.file_name_galaxies}_z*.?_*"
-            model_files = glob.glob(os.path.join(self.output_dir, pattern))
-
-            # If no files, try more generic pattern
-            if not model_files:
-                pattern = f"{self.file_name_galaxies}_z*"
-                model_files = glob.glob(os.path.join(self.output_dir, pattern))
-
-            # If still no files, return False
-            if not model_files:
-                print(f"Warning: No model files found matching pattern '{pattern}'")
-                return False
-
-            # Extract redshifts from filenames using regex
-            z_pattern = re.compile(f"{self.file_name_galaxies}_z(\\d+\\.\\d+)")
-            redshift_map = {}
-
-            for model_file in model_files:
-                match = z_pattern.search(os.path.basename(model_file))
-                if match:
-                    redshift = float(match.group(1))
-                    # We don't know the snapshot number yet, but we'll sort by redshift
-                    redshift_map[redshift] = match.group(0)
-
-            # If we didn't find any valid redshifts, return False
-            if not redshift_map:
-                print(f"Warning: No valid redshifts extracted from model files")
-                return False
-
-            # Sort redshifts in descending order (highest redshift = first snapshot)
-            sorted_redshifts = sorted(redshift_map.keys(), reverse=True)
-
-            # Create the mapping
-            self.snapshots = list(range(len(sorted_redshifts)))
-            self.redshifts = sorted_redshifts
-
-            # Create formatted redshift strings for filenames
-            self.redshift_strs = [f"_z{z:.3f}" for z in self.redshifts]
-
-            # Create file patterns
-            self.redshift_file_patterns = [
-                f"{self.file_name_galaxies}{self.redshift_strs[i]}"
-                for i in range(len(self.snapshots))
-            ]
-
-            print(f"Discovered {len(self.redshifts)} redshift values from model files")
-            return True
-
-        except Exception as e:
-            print(f"Error discovering redshifts from model files: {e}")
-            return False
-
-    def _load_hardcoded_values(self):
-        """
-        Load hardcoded redshift values from the original script.
-
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            # These values are taken from the original history.py script
-            hardcoded_redshifts = [
-                127.000,
-                79.998,
-                50.000,
-                30.000,
-                19.916,
-                18.244,
-                16.725,
-                15.343,
-                14.086,
-                12.941,
-                11.897,
-                10.944,
-                10.073,
-                9.278,
-                8.550,
-                7.883,
-                7.272,
-                6.712,
-                6.197,
-                5.724,
-                5.289,
-                4.888,
-                4.520,
-                4.179,
-                3.866,
-                3.576,
-                3.308,
-                3.060,
-                2.831,
-                2.619,
-                2.422,
-                2.239,
-                2.070,
-                1.913,
-                1.766,
-                1.630,
-                1.504,
-                1.386,
-                1.276,
-                1.173,
-                1.078,
-                0.989,
-                0.905,
-                0.828,
-                0.755,
-                0.687,
-                0.624,
-                0.564,
-                0.509,
-                0.457,
-                0.408,
-                0.362,
-                0.320,
-                0.280,
-                0.242,
-                0.208,
-                0.175,
-                0.144,
-                0.116,
-                0.089,
-                0.064,
-                0.041,
-                0.020,
-                0.000,
-            ]
-
-            # Create the mapping
-            self.snapshots = list(range(len(hardcoded_redshifts)))
-            self.redshifts = hardcoded_redshifts
-
-            # Create formatted redshift strings for filenames
-            self.redshift_strs = [f"_z{z:.3f}" for z in self.redshifts]
-
-            # Create file patterns
-            self.redshift_file_patterns = [
-                f"{self.file_name_galaxies}{self.redshift_strs[i]}"
-                for i in range(len(self.snapshots))
-            ]
-
-            print(f"Using {len(self.redshifts)} hardcoded redshift values")
-            return True
-
-        except Exception as e:
-            print(f"Error loading hardcoded redshift values: {e}")
-            return False
-
-    def _generate_approximate_mapping(self):
-        """
-        Generate approximate mapping using simple formula.
-
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            # Get parameters for the approximate mapping
-            last_snapshot = self.params.get("LastSnapShotNr", 63) if self.params else 63
-            first_snapshot = self.params.get("FirstSnapShotNr", 0) if self.params else 0
-
-            # Create snapshot list
-            self.snapshots = list(range(first_snapshot, last_snapshot + 1))
-
-            # Generate redshifts using approximate formula
-            # This formula is derived from the original code
-            self.redshifts = []
-            for snap in self.snapshots:
-                if snap == last_snapshot:
-                    z = 0.0
-                else:
-                    z = 0.5 * (last_snapshot - snap)
-                self.redshifts.append(z)
-
-            # Create formatted redshift strings for filenames
-            self.redshift_strs = [f"_z{z:.3f}" for z in self.redshifts]
-
-            # Create file patterns
-            self.redshift_file_patterns = [
-                f"{self.file_name_galaxies}{self.redshift_strs[i]}"
-                for i in range(len(self.snapshots))
-            ]
-
-            print(f"Generated {len(self.redshifts)} approximate redshift values")
-            return True
-
-        except Exception as e:
-            print(f"Error generating approximate redshift mapping: {e}")
-            return False
+    # Removed fallback methods:
+    # - _load_from_model_files
+    # - _load_hardcoded_values
+    # - _generate_approximate_mapping
 
     def get_redshift(self, snapshot):
         """
@@ -346,18 +142,15 @@ class SnapshotRedshiftMapper:
             snapshot: Snapshot index
 
         Returns:
-            Redshift value, or 0.0 if not found
+            Redshift value
         """
         try:
             idx = self.snapshots.index(snapshot)
             return self.redshifts[idx]
         except (ValueError, IndexError):
-            # If snapshot not found or out of range, use approximate calculation
-            last_snapshot = max(self.snapshots) if self.snapshots else 63
-            if snapshot == last_snapshot:
-                return 0.0
-            else:
-                return 0.5 * (last_snapshot - snapshot)
+            print(f"Error: Snapshot {snapshot} not found in redshift mapping")
+            print(f"Available snapshots: {self.snapshots}")
+            sys.exit(1)
 
     def get_redshift_str(self, snapshot):
         """
@@ -367,15 +160,15 @@ class SnapshotRedshiftMapper:
             snapshot: Snapshot index
 
         Returns:
-            Formatted string (e.g., "_z0.000"), or empty string if not found
+            Formatted string (e.g., "_z0.000")
         """
         try:
             idx = self.snapshots.index(snapshot)
             return self.redshift_strs[idx]
         except (ValueError, IndexError):
-            # If snapshot not found or out of range, generate on the fly
-            redshift = self.get_redshift(snapshot)
-            return f"_z{redshift:.3f}"
+            print(f"Error: Snapshot {snapshot} not found in redshift mapping")
+            print(f"Available snapshots: {self.snapshots}")
+            sys.exit(1)
 
     def get_model_file_path(self, snapshot, file_num):
         """
@@ -465,56 +258,65 @@ class SnapshotRedshiftMapper:
 
     def get_evolution_snapshots(self):
         """
-        Get the standard set of snapshots for evolution plots.
+        Get snapshots for evolution plots based on available snapshots.
 
         Returns:
-            List of snapshot indices corresponding to the standard set
+            List of snapshot indices for evolution plots
         """
-        # If we have a significant number of snapshots, select a diverse range
-        if len(self.snapshots) >= 6:
+        # Check if we have the OutputSnapshots list from parameter file
+        if "OutputSnapshots" in self.params:
+            # Use snapshots defined in parameter file
+            snapshots = self.params["OutputSnapshots"]
+            # Validate that these snapshots exist in our mapping
+            for snap in snapshots:
+                if snap not in self.snapshots:
+                    print(f"Warning: Snapshot {snap} from OutputSnapshots not found in redshift mapping")
+            
+            # Return only snapshots that exist in our mapping
+            valid_snapshots = [snap for snap in snapshots if snap in self.snapshots]
+            if valid_snapshots:
+                return valid_snapshots
+            
+            print("Warning: No valid snapshots found in OutputSnapshots list")
+        
+        # If we don't have OutputSnapshots or none are valid, select a diverse range
+        if len(self.snapshots) > 0:
             # Sort snapshots by redshift
             sorted_pairs = sorted(
                 zip(self.snapshots, self.redshifts), key=lambda p: p[1]
             )
-
-            # Get a diverse selection of snapshots
+            
+            # Get a diverse selection of snapshots (up to 8)
             if len(sorted_pairs) >= 8:
                 # Pick z=0 and high-z, plus 6 spaced out in between
-                z0_pair = sorted_pairs[0]  # Lowest redshift (closest to z=0)
+                z0_pair = sorted_pairs[0]  # Lowest redshift
                 high_z_pair = sorted_pairs[-1]  # Highest redshift
-
+                
                 # Add these two definitely
                 selected = [z0_pair]
-
+                
                 # For the remaining 6, space them out
                 remaining = sorted_pairs[1:-1]
                 if len(remaining) <= 6:
-                    # Use all remaining if 6 or fewer
                     selected.extend(remaining)
                 else:
-                    # Otherwise pick 6 evenly spaced
                     step = len(remaining) // 6
                     for i in range(0, len(remaining), step):
-                        if len(selected) < 7:  # Only pick 6 more
+                        if len(selected) < 7:
                             selected.append(remaining[i])
-
+                
                 # Add the high redshift one
                 selected.append(high_z_pair)
-
-                # Extract just the snapshot numbers
+                
+                # Return just the snapshot numbers
                 return [snap for snap, _ in selected]
             else:
                 # Use all snapshots if fewer than 8
                 return self.snapshots
-
-        # If we only have a few snapshots, use all of them
-        if len(self.snapshots) > 0:
-            return self.snapshots
-
-        # If no snapshots available, use the standard list and try to find closest matches
-        # These values are equivalent to SMFsnaps in history.py
-        smf_snaps = [63, 37, 32, 27, 23, 20, 18, 16]
-        return smf_snaps  # Just return the standard ones as a fallback
+        
+        # If we reach here, we have no snapshots at all - this is an error
+        print("Error: No snapshots available for evolution plots")
+        sys.exit(1)
 
     def debug_info(self):
         """

@@ -435,11 +435,11 @@ def read_galaxies(model_path, first_file, last_file, params=None):
 def parse_arguments():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="SAGE Plotting Tool")
-    parser.add_argument("--param-file", required=True, help="SAGE parameter file")
-    parser.add_argument("--first-file", type=int, default=0, help="First file to read")
-    parser.add_argument("--last-file", type=int, default=None, help="Last file to read")
+    parser.add_argument("--param-file", required=True, help="SAGE parameter file (required)")
+    parser.add_argument("--first-file", type=int, help="First file to read (overrides parameter file)")
+    parser.add_argument("--last-file", type=int, help="Last file to read (overrides parameter file)")
     parser.add_argument(
-        "--snapshot", type=int, default=None, help="Process only this snapshot number"
+        "--snapshot", type=int, help="Process only this snapshot number (overrides parameter file)"
     )
     parser.add_argument(
         "--all-snapshots", action="store_true", help="Process all available snapshots"
@@ -452,12 +452,11 @@ def parse_arguments():
     )
     parser.add_argument(
         "--output-dir",
-        default=None,
         help="DEPRECATED - Output directory is always <OutputDir>/plots",
     )
     parser.add_argument("--format", default=".png", help="Output format (.png, .pdf)")
     parser.add_argument(
-        "--plots", default="all", help="Comma-separated list of plots to generate"
+        "--plots", help="Comma-separated list of plots to generate (default: all available plots)"
     )
     parser.add_argument(
         "--use-tex",
@@ -471,6 +470,10 @@ def parse_arguments():
     # Default to snapshot plots if neither is specified
     if not args.evolution and not args.snapshot_plots:
         args.snapshot_plots = True
+        
+    # Default to all plots if not specified
+    if args.plots is None:
+        args.plots = "all"
 
     return args
 
@@ -567,67 +570,48 @@ def main():
     # Set up matplotlib
     setup_matplotlib(args.use_tex)
 
-    # Get output directory from parameter file
-    model_output_dir = params.get("OutputDir", "./")
-
-    # Debug raw path
+    # Get output directory from parameter file - required parameter
+    if "OutputDir" not in params:
+        print("Error: OutputDir parameter is required in the parameter file.")
+        sys.exit(1)
+    
+    # Get and clean the output directory path
+    model_output_dir = params["OutputDir"]
+    model_output_dir = model_output_dir.strip().strip("'").strip('"')
+    model_output_dir = os.path.expanduser(model_output_dir)
+    
     if args.verbose:
         print(f"\nOutput directory handling:")
-        print(f"  Raw model_output_dir from params: '{model_output_dir}'")
-
-    # Clean up the path - strip quotes if present, expand user home if needed
-    if isinstance(model_output_dir, str):
-        model_output_dir = model_output_dir.strip().strip("'").strip('"')
-        model_output_dir = os.path.expanduser(model_output_dir)
-
-    # Debug cleaned path
+        print(f"  model_output_dir from params: '{model_output_dir}'")
+    
+    # Check if output directory exists
+    if not os.path.exists(model_output_dir):
+        print(f"Error: OutputDir '{model_output_dir}' specified in parameter file does not exist.")
+        sys.exit(1)
+    
+    # Check if output directory is writable
+    if not os.access(model_output_dir, os.W_OK):
+        print(f"Error: OutputDir '{model_output_dir}' specified in parameter file is not writable.")
+        sys.exit(1)
+    
+    # Set the plots directory as a subdirectory of the output directory
+    output_dir = os.path.join(model_output_dir, "plots")
+    
     if args.verbose:
-        print(f"  Cleaned model_output_dir: '{model_output_dir}'")
-
-    # Check if model_output_dir exists and is writable
-    model_dir_exists = os.path.exists(model_output_dir) and os.path.isdir(
-        model_output_dir
-    )
-    model_dir_writable = (
-        os.access(model_output_dir, os.W_OK) if model_dir_exists else False
-    )
-
-    if args.verbose:
-        print(f"  model_output_dir exists: {model_dir_exists}")
-        print(f"  model_output_dir is writable: {model_dir_writable}")
-
-    # Decide on the output directory
-    if model_dir_exists and model_dir_writable:
-        # Use the plots subdirectory of the model output directory
-        output_dir = os.path.join(model_output_dir, "plots")
-        if args.verbose:
-            print(f"  Using output_dir from parameter file: '{output_dir}'")
-    else:
-        # Fall back to local plots directory
-        output_dir = "./plots"
-        if args.verbose:
-            print(f"  Output directory from params doesn't exist or isn't writable")
-            print(f"  Using fallback local output directory: '{output_dir}'")
-
-    # Ensure the output directory exists
+        print(f"  Using output directory: '{output_dir}'")
+    
+    # Create the plots directory if it doesn't exist
     try:
         os.makedirs(output_dir, exist_ok=True)
         if args.verbose:
             print(f"  Successfully created/verified output directory: {output_dir}")
     except Exception as e:
-        print(f"Warning: Could not create output directory {output_dir}: {e}")
-        # Final fallback - current directory
-        output_dir = "."
-        if args.verbose:
-            print(f"  Using current directory as last resort: {output_dir}")
-
-    if args.output_dir and args.output_dir != output_dir:
-        print(
-            f"Note: Using output directory from parameters ({output_dir}) instead of command line argument ({args.output_dir})"
-        )
-
-    # Ensure output directory exists
-    os.makedirs(output_dir, exist_ok=True)
+        print(f"Error: Could not create output directory {output_dir}: {e}")
+        sys.exit(1)
+    
+    # If output_dir argument was provided, inform user we're ignoring it
+    if args.output_dir:
+        print(f"Note: Ignoring --output-dir argument. Using directory from parameter file: {output_dir}")
 
     # Determine which plots to generate
     if args.plots == "all":
@@ -649,185 +633,72 @@ def main():
 
     # Generate snapshot plots
     if args.snapshot_plots:
-        # Get output model path and snapshot number from parameter file
-        model_path = params.get("OutputDir", "./")
-        snapshot = args.snapshot or params.get("LastSnapShotNr", 63)
-
+        # Get required parameters for finding model files
+        if "OutputDir" not in params:
+            print("Error: OutputDir parameter is required in the parameter file.")
+            sys.exit(1)
+            
+        if "FileNameGalaxies" not in params:
+            print("Error: FileNameGalaxies parameter is required in the parameter file.")
+            sys.exit(1)
+            
+        # Get output model path and snapshot number
+        model_path = params["OutputDir"]
+        snapshot = args.snapshot or params.get("LastSnapShotNr")
+        
+        if not snapshot:
+            print("Error: LastSnapShotNr not found in parameter file and no snapshot specified.")
+            sys.exit(1)
+        
+        # Clean up the path
+        model_path = model_path.strip().strip("'").strip('"')
+        model_path = os.path.expanduser(model_path)
+        
+        # File name from parameter file
+        file_name_galaxies = params["FileNameGalaxies"]
+        
         if args.verbose:
             print(f"\nModel file discovery:")
-            print(f"  Raw model_path from params: '{model_path}'")
-
-        # Clean up the path if it's a string
-        if isinstance(model_path, str):
-            model_path = model_path.strip().strip("'").strip('"')
-            model_path = os.path.expanduser(model_path)
-
-        if args.verbose:
-            print(f"  Cleaned model_path: '{model_path}'")
-            print(f"  model_path exists: {os.path.exists(model_path)}")
-
-        # Check if model_path exists and print debug information
-        if not os.path.exists(model_path):
-            print(
-                f"Warning: OutputDir '{model_path}' from parameter file does not exist."
-            )
-
-            # Try to find the model directory by checking parent directories
-            candidate_dirs = [
-                os.path.join(os.path.dirname(args.param_file), "output"),
-                "./output",
-                "../output",
-                ".",
-            ]
-
-            for candidate in candidate_dirs:
-                if os.path.exists(candidate):
-                    print(f"Using alternative directory: {candidate}")
-                    model_path = candidate
-                    break
-
-        # Get the model file name and all paths from the parameter file
-        file_name_galaxies = params.get("FileNameGalaxies", "model")
-
-        # More verbose logging to help diagnose file finding issues
-        if args.verbose:
+            print(f"  model_path from params: '{model_path}'")
             print(f"  file_name_galaxies: '{file_name_galaxies}'")
-            print(f"  Looking in directory: {model_path}")
-            if os.path.exists(model_path):
-                print(
-                    f"  Directory contents: {os.listdir(model_path)[:5] if os.path.isdir(model_path) and len(os.listdir(model_path)) > 0 else 'empty or not accessible'}"
-                )
+            print(f"  Using snapshot: {snapshot}")
+        
+        # Check if model_path exists
+        if not os.path.exists(model_path):
+            print(f"Error: OutputDir '{model_path}' from parameter file does not exist.")
+            sys.exit(1)
 
-        # Look for model files using the exact pattern in the parameter file
-        # Try different patterns to be thorough
-        patterns = [
-            f"{file_name_galaxies}_z*.*",
-            f"{file_name_galaxies}*.*",
-            f"*{file_name_galaxies}*.*",
-        ]
+        # Get the redshift for this snapshot using the mapper
+        mapper = SnapshotRedshiftMapper(args.param_file, params.params, model_path)
+        redshift_str = mapper.get_redshift_str(snapshot)
+        
+        if args.verbose:
+            print(f"  Redshift string for snapshot {snapshot}: {redshift_str}")
+        
+        # Construct the base model file path directly
+        base_model_file = os.path.join(model_path, f"{file_name_galaxies}{redshift_str}")
+        
+        if args.verbose:
+            print(f"  Using model file base: {base_model_file}")
 
-        model_files = []
-        for pattern in patterns:
-            full_pattern = os.path.join(model_path, pattern)
-            if args.verbose:
-                print(f"  Trying pattern: {full_pattern}")
-            found_files = glob.glob(full_pattern)
-            if found_files:
-                model_files.extend(found_files)
-                if args.verbose:
-                    print(f"  Found {len(found_files)} files with pattern: {pattern}")
-                    if len(found_files) > 0:
-                        print(f"  Examples: {found_files[:3]}")
-                break
-
-        if len(model_files) > 0:
-            # Look for files with z in the name for better matching
-            z_files = [f for f in model_files if "_z" in os.path.basename(f)]
-
-            # Try to find files that match our target snapshot's redshift
-            snap_redshift = 0.0
-            if snapshot < params.get("LastSnapShotNr", 63):
-                # Approximate redshift calculation (matches history.py approach)
-                snap_redshift = 0.5 * (params.get("LastSnapShotNr", 63) - snapshot)
-
-            if args.verbose:
-                print(f"  Looking for files with redshift around z={snap_redshift:.3f}")
-
-            # Try different redshift patterns with varying precision
-            target_files = []
-
-            # Try pattern with 1 decimal place
-            target_z_pattern1 = f"_z{snap_redshift:.1f}"
-            target_files.extend([f for f in z_files if target_z_pattern1 in f])
-
-            # Try pattern with 2 decimal places
-            if not target_files:
-                target_z_pattern2 = f"_z{snap_redshift:.2f}"
-                target_files.extend([f for f in z_files if target_z_pattern2 in f])
-
-            # Try pattern with 3 decimal places
-            if not target_files:
-                target_z_pattern3 = f"_z{snap_redshift:.3f}"
-                target_files.extend([f for f in z_files if target_z_pattern3 in f])
-
-            # If still no match, try to find closest redshift
-            if not target_files and z_files:
-                # Extract redshifts from filenames using regex
-                redshifts = []
-                for zf in z_files:
-                    match = re.search(r"_z(\d+\.\d+)", zf)
-                    if match:
-                        try:
-                            file_z = float(match.group(1))
-                            redshifts.append((zf, file_z, abs(file_z - snap_redshift)))
-                        except ValueError:
-                            continue
-
-                # Sort by distance to target redshift
-                if redshifts:
-                    redshifts.sort(key=lambda x: x[2])
-                    target_files = [redshifts[0][0]]
-
-                    if args.verbose:
-                        print(
-                            f"  No exact redshift match found. Using closest redshift z={redshifts[0][1]:.3f}"
-                        )
-
-            if target_files:
-                # Use a file with the right redshift
-                base_filename = os.path.basename(target_files[0])
-                # Extract just the base part (model_z0.000) without the suffix
-                base_part = base_filename.rsplit("_", 1)[0]
-                base_model_file = os.path.join(
-                    os.path.dirname(target_files[0]), base_part
-                )
-
-                if args.verbose:
-                    print(
-                        f"  Found model file matching target redshift: {base_model_file}"
-                    )
-            elif z_files:
-                # Attempt to use any z-file if no exact match
-                base_filename = os.path.basename(z_files[0])
-                base_part = base_filename.rsplit("_", 1)[0]
-                base_model_file = os.path.join(os.path.dirname(z_files[0]), base_part)
-
-                if args.verbose:
-                    print(
-                        f"  Using best available z-format model file: {base_model_file}"
-                    )
-            else:
-                # Use the first matching file as the base
-                base_model_file = os.path.splitext(model_files[0])[0]
-                if args.verbose:
-                    print(f"  Using first model file: {base_model_file}")
-        else:
-            # Determine model file path using snapshot
-            snap_redshift = 0.0
-
-            # Try to find redshift for this snapshot
-            last_snapshot_nr = params.get("LastSnapShotNr", 63)
-            if snapshot < last_snapshot_nr:
-                # Approximate redshift calculation (matches history.py approach)
-                snap_redshift = 0.5 * (last_snapshot_nr - snapshot)
-
-            base_model_file = f"{model_path}/{file_name_galaxies}_z{snap_redshift:.3f}"
-            if args.verbose:
-                print(
-                    f"  No model files found. Using constructed path: {base_model_file}"
-                )
-                print(f"  This may result in no data being read!")
-
-        # Determine last file number if not specified
-        last_file = args.last_file
+        # Get first and last file numbers from parameter file if not specified in args
+        first_file = args.first_file if args.first_file is not None else params.get("FirstFile")
+        last_file = args.last_file if args.last_file is not None else params.get("LastFile")
+        
+        # Check that required file range parameters exist
+        if first_file is None:
+            print("Error: FirstFile parameter not found in parameter file and not specified with --first-file")
+            sys.exit(1)
+            
         if last_file is None:
-            last_file = params.get("FirstFile", 0) + params.get("NumFiles", 8) - 1
+            print("Error: LastFile parameter not found in parameter file and not specified with --last-file")
+            sys.exit(1)
 
         # Read galaxy data
         try:
             galaxies, volume, metadata = read_galaxies(
                 model_path=base_model_file,
-                first_file=args.first_file,
+                first_file=first_file,
                 last_file=last_file,
                 params=params.params,
             )
@@ -963,15 +834,23 @@ def main():
                 print(f"Processing snapshot {snap} (z={redshift:.3f})")
                 print(f"Using model file pattern: {model_file_base}")
 
-            # Determine last file number if not specified
-            last_file = args.last_file
+            # Get first and last file numbers from parameter file if not specified in args
+            first_file = args.first_file if args.first_file is not None else params.get("FirstFile")
+            last_file = args.last_file if args.last_file is not None else params.get("LastFile")
+            
+            # Check that required file range parameters exist
+            if first_file is None:
+                print("Error: FirstFile parameter not found in parameter file and not specified with --first-file")
+                sys.exit(1)
+                
             if last_file is None:
-                last_file = params.get("FirstFile", 0) + params.get("NumFiles", 8) - 1
+                print("Error: LastFile parameter not found in parameter file and not specified with --last-file")
+                sys.exit(1)
 
             try:
                 galaxies, volume, metadata = read_galaxies(
                     model_path=model_file_base,
-                    first_file=args.first_file,
+                    first_file=first_file,
                     last_file=last_file,
                     params=params.params,
                 )

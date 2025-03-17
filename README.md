@@ -68,48 +68,50 @@ make USE-HDF5=yes
 
 ```
 %------------------------------------------
-%----- SAGE parameter file -----------------
+%----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies         SA
-OutputDir                output/results
+FileNameGalaxies       model 
+OutputDir              /path/to/output/directory/
 
-FirstFile                0
-LastFile                 7
-
-NumSimulationTreeFiles   8
-
-%------------------------------------------
-%----- Simulation input options ------------
-%------------------------------------------
-
-TreeName                 trees_063
-TreeExtension            .0
-SimulationDir            input/treefiles
-
-LastSnapShot             63
-FirstSnapShot            0
-BoxSize                  100.0
+FirstFile              0
+LastFile               7
+BoxSize                62.5  
 
 %------------------------------------------
-%----- Cosmological values -----------------
+%----- Snapshot output list ---------------
 %------------------------------------------
 
-Omega_m                  0.25 
-Omega_b                  0.045
-Omega_lambda             0.75
-PartMass                 1.0e9
-Hubble_h                 0.73
+NumOutputs             8   
+
+% List of output snapshots
+-> 63 37 32 27 23 20 18 16
 
 %------------------------------------------
-%----- Galaxy formation model options ------
+%----- Simulation information  ------------
 %------------------------------------------
 
-SFprescription           0
-ReionizationOn           1
-SupernovaRecipeOn        1
-DiskInstabilityOn        1
-AGNrecipeOn              1
+TreeName               trees_063
+TreeType               lhalo_binary
+SimulationDir          /path/to/simulation/data/
+FileWithSnapList       /path/to/snapshot/list
+LastSnapShotNr         63
+
+Omega                  0.25 
+OmegaLambda            0.75
+BaryonFrac             0.17
+Hubble_h               0.73
+PartMass               0.0860657
+
+%------------------------------------------
+%----- SAGE recipe options ----------------
+%------------------------------------------
+
+SFprescription         0
+AGNrecipeOn            2
+SupernovaRecipeOn      1
+ReionizationOn         1
+DiskInstabilityOn      1
 
 % ... (additional parameters)
 ```

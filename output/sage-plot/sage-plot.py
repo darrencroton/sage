@@ -419,9 +419,12 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     
     # If we have information about first/last file and good files, adjust volume
     if "FirstFile" in params and "LastFile" in params:
-        expected_files = params["LastFile"] - params["FirstFile"] + 1
-        if expected_files > 0 and good_files > 0:
-            volume = volume * good_files / expected_files
+        total_files = params["TotalFiles"]
+        if total_files > 0 and good_files > 0:
+            volume = volume * good_files / total_files
+            if args.verbose:
+                print(f"  Volume fraction: {good_files}/{total_files} = {good_files/total_files:.4f}")
+                print(f"  Adjusted volume: {volume:.2f} (Mpc/h)³")
 
     # Create metadata dictionary
     metadata = {
@@ -558,7 +561,8 @@ def main():
         "LastFile",
         "BoxSize",
         "Hubble_h",
-        "FileWithSnapList"
+        "FileWithSnapList",
+        "TotalFiles"
     ]
     
     missing_params = []
@@ -902,7 +906,7 @@ def main():
                 print(f"Using model file pattern: {model_file_base}")
 
             # Required parameters check
-            required_params = ["FirstFile", "LastFile"]
+            required_params = ["FirstFile", "LastFile", "TotalFiles"]
             missing_params = [p for p in required_params if p not in params.params]
             if missing_params:
                 print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")

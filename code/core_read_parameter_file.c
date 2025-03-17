@@ -114,10 +114,8 @@ void read_parameter_file(char *fname) {
       continue;
 
     // Look up parameter in the table
-    int param_found = 0;
     for (i = 0; i < num_params; i++) {
       if (strcmp(buf1, param_table[i].name) == 0) {
-        param_found = 1;
         param_read[i] = 1;
 
         // Print parameter value being read
@@ -164,11 +162,6 @@ void read_parameter_file(char *fname) {
         }
         break;
       }
-    }
-
-    if (!param_found) {
-      ERROR_LOG("Parameter '%s' in file '%s' is not recognized", buf1, fname);
-      errorFlag = 1;
     }
   }
 

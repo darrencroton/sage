@@ -260,25 +260,23 @@ def read_galaxies(model_path, first_file, last_file, params=None):
             - Volume of the simulation
             - Dictionary of metadata
     """
-    # Get simulation parameters from the parameter file
-    hubble_h = params.get("Hubble_h", 0.73) if params else 0.73
-
-    # BoxSize might be defined directly or may need to be determined by the simulation choice
-    whichsimulation = 0  # Default to Mini-Millennium
-    if "WhichSimulation" in params:
-        whichsimulation = int(params["WhichSimulation"])
-
-    # Box size depends on the simulation
-    if whichsimulation == 0:  # Mini-Millennium
-        box_size = 62.5  # Mpc/h
-        max_tree_files = 8  # FilesPerSnapshot
-    elif whichsimulation == 1:  # Full Millennium
-        box_size = 500.0  # Mpc/h
-        max_tree_files = 512  # FilesPerSnapshot
-    else:
-        # Use parameters from parameter file if available
-        box_size = params.get("BoxSize", 62.5) if params else 62.5
-        max_tree_files = params.get("MaxTreeFiles", 8) if params else 8
+    # Get required parameters from the parameter file
+    if not params:
+        print("Error: Parameter dictionary is required.")
+        sys.exit(1)
+        
+    # Ensure required parameters exist
+    required_params = ["Hubble_h", "BoxSize"]
+    missing_params = [p for p in required_params if p not in params]
+    if missing_params:
+        print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+        sys.exit(1)
+        
+    hubble_h = params["Hubble_h"]
+    box_size = params["BoxSize"]
+    
+    # For volume calculation, we'll use the number of good files read
+    # No need for MaxTreeFiles parameter - we'll calculate based on actual files read
 
     # Print the model path for debugging
     if args.verbose:
@@ -366,120 +364,9 @@ def read_galaxies(model_path, first_file, last_file, params=None):
 
     # Check if we found any galaxies
     if tot_ngals == 0:
-        print("No galaxies found. Providing a small sample dataset for testing.")
-
-        # Create a small sample dataset for testing
-        # This will allow the plotting code to run even without real data
-        sample_size = 1000
-        sample_galaxies = np.recarray((sample_size,), dtype=galdesc)
-
-        # Generate some plausible values for testing
-        # - Based on a typical distribution from Millennium simulation
-        sample_galaxies.SnapNum = 63
-        sample_galaxies.Type = np.random.randint(0, 2, sample_size)
-
-        # Stellar mass with a Schechter-like distribution
-        # Create a range of masses with more low-mass galaxies
-        mass_range = np.logspace(-2, 1, sample_size)
-        np.random.shuffle(mass_range)
-        sample_galaxies.StellarMass = mass_range
-
-        # Cold gas as a fraction of stellar mass, with scatter
-        sample_galaxies.ColdGas = sample_galaxies.StellarMass * np.random.uniform(
-            0.1, 1.0, sample_size
-        )
-
-        # Bulge mass as a fraction of stellar mass
-        sample_galaxies.BulgeMass = sample_galaxies.StellarMass * np.random.uniform(
-            0, 0.8, sample_size
-        )
-
-        # SFR values - correlate with stellar mass but add scatter
-        # Red sequence and blue cloud bimodality
-        red_seq = np.random.uniform(0, 0.3, sample_size)  # Low SFR
-        blue_cloud = np.random.uniform(0.5, 3.0, sample_size)  # Higher SFR
-        red_or_blue = np.random.random(sample_size) < 0.4  # 40% red, 60% blue
-        sfr_factor = np.where(red_or_blue, red_seq, blue_cloud)
-
-        sample_galaxies.SfrDisk = (
-            10 ** np.random.uniform(-3, 0, sample_size)
-            * sample_galaxies.StellarMass
-            * sfr_factor
-        )
-        sample_galaxies.SfrBulge = (
-            10 ** np.random.uniform(-4, -1, sample_size)
-            * sample_galaxies.StellarMass
-            * sfr_factor
-            * 0.3
-        )
-
-        # Velocities follow Tully-Fisher-like relation
-        sample_galaxies.Vmax = (
-            50
-            * (sample_galaxies.StellarMass * 1.0e10 / 1.0e10) ** (0.25)
-            * np.random.uniform(0.8, 1.2, sample_size)
-        )
-
-        # Add other required fields
-        sample_galaxies.HotGas = sample_galaxies.StellarMass * np.random.uniform(
-            0.5, 2.0, sample_size
-        )
-        sample_galaxies.EjectedMass = sample_galaxies.StellarMass * np.random.uniform(
-            0.1, 1.0, sample_size
-        )
-        sample_galaxies.IntraClusterStars = (
-            sample_galaxies.StellarMass * np.random.uniform(0, 0.3, sample_size)
-        )
-        sample_galaxies.BlackHoleMass = sample_galaxies.BulgeMass * np.random.uniform(
-            0.001, 0.003, sample_size
-        )
-
-        # Metallicities
-        sample_galaxies.MetalsColdGas = sample_galaxies.ColdGas * np.random.uniform(
-            0.001, 0.04, sample_size
-        )
-        sample_galaxies.MetalsStellarMass = (
-            sample_galaxies.StellarMass * np.random.uniform(0.001, 0.04, sample_size)
-        )
-        sample_galaxies.MetalsBulgeMass = sample_galaxies.BulgeMass * np.random.uniform(
-            0.001, 0.04, sample_size
-        )
-        sample_galaxies.MetalsHotGas = sample_galaxies.HotGas * np.random.uniform(
-            0.0001, 0.02, sample_size
-        )
-        sample_galaxies.MetalsEjectedMass = (
-            sample_galaxies.EjectedMass * np.random.uniform(0.0001, 0.02, sample_size)
-        )
-        sample_galaxies.MetalsIntraClusterStars = (
-            sample_galaxies.IntraClusterStars
-            * np.random.uniform(0.001, 0.04, sample_size)
-        )
-
-        # Calculate volume based on params
-        volume = (
-            box_size**3 * max_tree_files / max_tree_files
-        )  # Simplified to box_size^3
-
-        # Use this sample data
-        return (
-            sample_galaxies,
-            volume,
-            {
-                "hubble_h": hubble_h,
-                "box_size": box_size,
-                "max_tree_files": max_tree_files,
-                "volume": volume,
-                "ntrees": sample_size // 10,
-                "ngals": sample_size,
-                "good_files": max_tree_files,
-                "sample_data": True,  # Flag that this is sample data
-                "redshift": (
-                    0.0
-                    if "_z" not in model_path
-                    else float(model_path.split("_z")[-1].split("_")[0])
-                ),
-            },
-        )
+        print("Error: No galaxies found in the model files.")
+        print(f"Please check that the model files exist and are not empty.")
+        sys.exit(1)
 
     # Initialize the storage array
     galaxies = np.empty(tot_ngals, dtype=galdesc)
@@ -521,14 +408,21 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     # Convert to recarray for attribute access
     galaxies = galaxies.view(np.recarray)
 
-    # Calculate the volume based on good files - follow the original calculation
-    volume = box_size**3.0 * good_files / max_tree_files
+    # Calculate the volume based on the box size and the number of good files read
+    # Volume is the box size cubed, scaled by the fraction of files actually read
+    # This assumes files are distributed uniformly across the simulation volume
+    volume = box_size**3.0
+    
+    # If we have information about first/last file and good files, adjust volume
+    if "FirstFile" in params and "LastFile" in params:
+        expected_files = params["LastFile"] - params["FirstFile"] + 1
+        if expected_files > 0 and good_files > 0:
+            volume = volume * good_files / expected_files
 
     # Create metadata dictionary
     metadata = {
         "hubble_h": hubble_h,
         "box_size": box_size,
-        "max_tree_files": max_tree_files,
         "volume": volume,
         "ntrees": tot_ntrees,
         "ngals": tot_ngals,
@@ -1052,147 +946,11 @@ def main():
             else snapshots
         )
         for snap in snapshot_iterator:
-            # Special case for sample z=0 data
+            # Special case for -1 snap code that was used for sample z=0 data
             if snap == -1:
-                if args.verbose:
-                    print(f"Generating sample data for z=0.0")
-
-                # Get simulation parameters from the parameter file
-                hubble_h = params.get("Hubble_h", 0.73)
-                box_size = params.get("BoxSize", 62.5)
-                max_tree_files = params.get("MaxTreeFiles", 8)
-
-                # Create a sample dataset with appropriate properties for z=0
-                galdesc = get_galaxy_dtype()
-                sample_size = 5000
-
-                # Create sample galaxies
-                sample_galaxies = np.recarray((sample_size,), dtype=galdesc)
-
-                # Stellar mass with a Schechter-like distribution
-                log_m_star = 10.5  # Characteristic mass at z=0
-                alpha = -1.2  # Faint-end slope
-
-                # Generate masses following Schechter function
-                mass_array = np.logspace(8.0, 12.0, 1000) / 1.0e10  # In SAGE units
-                phi = (mass_array / 10**log_m_star) ** (alpha + 1.0) * np.exp(
-                    -mass_array / 10**log_m_star
-                )
-                phi = phi / np.sum(phi)
-                mass_indices = np.random.choice(
-                    len(mass_array), size=sample_size, p=phi
-                )
-
-                # Assign stellar masses
-                sample_galaxies.StellarMass = mass_array[mass_indices]
-                sample_galaxies.SnapNum = 63  # Typically snapshot 63 is z=0
-
-                # Generate other galaxy properties
-                # Cold gas as a function of stellar mass with appropriate z=0 scaling
-                sample_galaxies.ColdGas = (
-                    sample_galaxies.StellarMass
-                    * np.random.uniform(0.1, 0.8, sample_size)
-                )
-                sample_galaxies.BulgeMass = (
-                    sample_galaxies.StellarMass * np.random.uniform(0, 0.8, sample_size)
-                )
-                sample_galaxies.Type = np.random.randint(0, 2, sample_size)
-
-                # SFR - bimodal distribution with red sequence and blue cloud
-                red_seq = np.random.uniform(
-                    0, 0.1, sample_size
-                )  # Low SFR - z=0 quenched galaxies
-                blue_cloud = np.random.uniform(0.5, 2.0, sample_size)  # Higher SFR
-                red_or_blue = np.random.random(sample_size) < 0.5  # 50% red at z=0
-                sfr_factor = np.where(red_or_blue, red_seq, blue_cloud)
-
-                sample_galaxies.SfrDisk = (
-                    10 ** np.random.uniform(-3, 0, sample_size)
-                    * sample_galaxies.StellarMass
-                    * sfr_factor
-                )
-                sample_galaxies.SfrBulge = (
-                    10 ** np.random.uniform(-4, -1, sample_size)
-                    * sample_galaxies.StellarMass
-                    * sfr_factor
-                    * 0.2
-                )
-
-                # Other required properties
-                sample_galaxies.HotGas = (
-                    sample_galaxies.StellarMass
-                    * np.random.uniform(0.5, 2.0, sample_size)
-                )
-                sample_galaxies.EjectedMass = (
-                    sample_galaxies.StellarMass
-                    * np.random.uniform(0.1, 1.0, sample_size)
-                )
-                sample_galaxies.IntraClusterStars = (
-                    sample_galaxies.StellarMass * np.random.uniform(0, 0.3, sample_size)
-                )
-                sample_galaxies.BlackHoleMass = (
-                    sample_galaxies.BulgeMass
-                    * np.random.uniform(0.001, 0.003, sample_size)
-                )
-
-                # Velocities - follow Tully-Fisher relation at z=0
-                sample_galaxies.Vmax = (
-                    50
-                    * (sample_galaxies.StellarMass * 1.0e10 / 1.0e10) ** (0.25)
-                    * np.random.uniform(0.8, 1.2, sample_size)
-                )
-
-                # Metallicities
-                sample_galaxies.MetalsColdGas = (
-                    sample_galaxies.ColdGas
-                    * np.random.uniform(0.001, 0.04, sample_size)
-                )
-                sample_galaxies.MetalsStellarMass = (
-                    sample_galaxies.StellarMass
-                    * np.random.uniform(0.001, 0.04, sample_size)
-                )
-                sample_galaxies.MetalsBulgeMass = (
-                    sample_galaxies.BulgeMass
-                    * np.random.uniform(0.001, 0.04, sample_size)
-                )
-                sample_galaxies.MetalsHotGas = (
-                    sample_galaxies.HotGas
-                    * np.random.uniform(0.0001, 0.02, sample_size)
-                )
-                sample_galaxies.MetalsEjectedMass = (
-                    sample_galaxies.EjectedMass
-                    * np.random.uniform(0.0001, 0.02, sample_size)
-                )
-                sample_galaxies.MetalsIntraClusterStars = (
-                    sample_galaxies.IntraClusterStars
-                    * np.random.uniform(0.001, 0.04, sample_size)
-                )
-
-                # Calculate volume
-                volume = box_size**3
-
-                # Create metadata
-                metadata = {
-                    "hubble_h": hubble_h,
-                    "box_size": box_size,
-                    "max_tree_files": max_tree_files,
-                    "volume": volume,
-                    "ntrees": sample_size // 10,
-                    "ngals": sample_size,
-                    "good_files": max_tree_files,
-                    "sample_data": True,
-                    "redshift": 0.0,  # Specifically z=0 for evolution comparison
-                }
-
-                # Add to snapshot data with key 63 (typical z=0 snapshot)
-                snapshot_data[63] = (sample_galaxies, volume, metadata)
-
-                if args.verbose:
-                    print(
-                        f"  Generated sample data with {sample_size} galaxies at z=0.0"
-                    )
-
-                continue
+                print("Error: Sample data generation is no longer supported.")
+                print("Please ensure all necessary data files exist.")
+                sys.exit(1)
 
             # Regular case - read actual snapshot data
             # Get redshift and model file path from mapper
@@ -1221,8 +979,6 @@ def main():
                 metadata["redshift"] = redshift
                 snapshot_data[snap] = (galaxies, volume, metadata)
                 if args.verbose:
-                    if metadata.get("sample_data", False):
-                        print(f"  Using SAMPLE DATA for z={redshift:.2f}")
                     print(f"  Read {len(galaxies)} galaxies at z={redshift:.2f}")
             except Exception as e:
                 print(f"Error reading snapshot {snap}: {e}")

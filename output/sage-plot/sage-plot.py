@@ -829,34 +829,45 @@ def main():
         if args.verbose:
             print(mapper.debug_info())
 
+        # Create the mapper from parameter file
+        mapper = SnapshotRedshiftMapper(args.param_file, params.params, params["OutputDir"])
+        
         # Determine which snapshots to process
         if args.all_snapshots:
-            # Process all snapshots based on parameter file
+            # Process all available snapshots
             snapshots = mapper.get_all_snapshots()
+            if args.verbose:
+                print(f"Using all {len(snapshots)} available snapshots")
         elif args.snapshot:
             # Process only the specified snapshot
+            # Verify this snapshot exists in our mapping
+            if args.snapshot not in mapper.snapshots:
+                print(f"Error: Specified snapshot {args.snapshot} not found in redshift mapping")
+                print(f"Available snapshots: {mapper.snapshots}")
+                sys.exit(1)
+            
             snapshots = [args.snapshot]
+            if args.verbose:
+                print(f"Using single snapshot: {args.snapshot}")
         else:
-            # Use the standard evolution snapshots
+            # Use the evolution snapshots determined by the mapper
+            # This will prioritize OutputSnapshots from parameter file
             snapshots = mapper.get_evolution_snapshots()
-
-            # Ensure we have a diverse set of redshifts
-            if len(set(mapper.get_redshift(snap) for snap in snapshots)) < 2:
-                if args.verbose:
-                    print(
-                        "Warning: Not enough different redshifts available in snapshots."
-                    )
-                    print(
-                        "Adding a generated sample snapshot at redshift 0 for better evolution plots."
-                    )
-                # Ensure we have at least a z=0 snapshot for proper evolution plots
-                snapshots = list(set(snapshots))  # Remove duplicates
-
-                # If we only have high-z snapshots, add a sample z=0 snapshot
-                redshifts = [mapper.get_redshift(snap) for snap in snapshots]
-                if all(z > 1.0 for z in redshifts):
-                    # Add a special flag for the sample z=0 data
-                    snapshots.append(-1)  # Use -1 as a special flag for sample z=0 data
+            
+            # Check that we have at least 2 snapshots for a meaningful evolution plot
+            if len(snapshots) < 2:
+                print("Error: At least 2 snapshots are required for evolution plots")
+                print(f"Available snapshots: {snapshots}")
+                sys.exit(1)
+                
+            # Check for diverse redshift coverage
+            redshifts = [mapper.get_redshift(snap) for snap in snapshots]
+            min_z = min(redshifts)
+            max_z = max(redshifts)
+            
+            if args.verbose:
+                print(f"Using {len(snapshots)} snapshots for evolution plots")
+                print(f"Redshift range: z={min_z:.3f} to z={max_z:.3f}")
 
         if args.verbose:
             print(f"Selected snapshots for evolution plots: {snapshots}")

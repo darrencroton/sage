@@ -330,65 +330,95 @@ class SnapshotRedshiftMapper:
 
     def get_evolution_snapshots(self):
         """
-        Get snapshots for evolution plots based on available snapshots.
-
+        Get snapshots for evolution plots based on parameter file.
+        
+        Priority:
+        1. OutputSnapshots list from parameter file (-> arrow notation in param file)
+        2. If no OutputSnapshots or invalid, use a diverse selection of available snapshots
+        
         Returns:
             List of snapshot indices for evolution plots
         """
-        # Check if we have the OutputSnapshots list from parameter file
+        # First, ensure we have snapshots available
+        if not self.snapshots:
+            print("Error: No snapshots available in redshift mapping")
+            sys.exit(1)
+            
+        # Check for the OutputSnapshots parameter which is set by the arrow notation in parameter file
         if "OutputSnapshots" in self.params:
-            # Use snapshots defined in parameter file
-            snapshots = self.params["OutputSnapshots"]
-            # Validate that these snapshots exist in our mapping
-            for snap in snapshots:
-                if snap not in self.snapshots:
-                    print(f"Warning: Snapshot {snap} from OutputSnapshots not found in redshift mapping")
+            output_snapshots = self.params["OutputSnapshots"]
             
-            # Return only snapshots that exist in our mapping
-            valid_snapshots = [snap for snap in snapshots if snap in self.snapshots]
-            if valid_snapshots:
-                return valid_snapshots
-            
-            print("Warning: No valid snapshots found in OutputSnapshots list")
+            if not output_snapshots:
+                print("Warning: OutputSnapshots parameter is empty")
+            else:
+                # Check which snapshots from OutputSnapshots are valid
+                valid_snapshots = []
+                invalid_snapshots = []
+                
+                for snap in output_snapshots:
+                    if snap in self.snapshots:
+                        valid_snapshots.append(snap)
+                    else:
+                        invalid_snapshots.append(snap)
+                
+                # Report on validity
+                if invalid_snapshots:
+                    print(f"Warning: Some snapshots from OutputSnapshots are not in redshift mapping: {invalid_snapshots}")
+                
+                if valid_snapshots:
+                    # Sort by redshift (from low to high)
+                    # This ensures we get a proper evolution sequence
+                    snap_z_pairs = [(snap, self.get_redshift(snap)) for snap in valid_snapshots]
+                    sorted_pairs = sorted(snap_z_pairs, key=lambda x: x[1])
+                    
+                    print(f"Using {len(sorted_pairs)} snapshots from parameter file for evolution plots")
+                    
+                    # Return just the snapshot numbers, sorted by redshift
+                    return [snap for snap, _ in sorted_pairs]
+                else:
+                    print("Warning: No valid snapshots found in OutputSnapshots list")
         
         # If we don't have OutputSnapshots or none are valid, select a diverse range
-        if len(self.snapshots) > 0:
-            # Sort snapshots by redshift
-            sorted_pairs = sorted(
-                zip(self.snapshots, self.redshifts), key=lambda p: p[1]
-            )
+        print("Note: Using a diverse selection of snapshots for evolution plots")
+        
+        # Sort all available snapshots by redshift (low to high)
+        sorted_pairs = sorted(
+            zip(self.snapshots, self.redshifts), key=lambda p: p[1]
+        )
+        
+        # Get a diverse selection of snapshots
+        if len(sorted_pairs) >= 8:
+            # For 8 or more available snapshots, pick a diverse set:
+            # - Lowest redshift (closest to z=0)
+            # - Highest redshift
+            # - 6 evenly spaced in between
+            z0_pair = sorted_pairs[0]
+            high_z_pair = sorted_pairs[-1]
             
-            # Get a diverse selection of snapshots (up to 8)
-            if len(sorted_pairs) >= 8:
-                # Pick z=0 and high-z, plus 6 spaced out in between
-                z0_pair = sorted_pairs[0]  # Lowest redshift
-                high_z_pair = sorted_pairs[-1]  # Highest redshift
-                
-                # Add these two definitely
-                selected = [z0_pair]
-                
-                # For the remaining 6, space them out
-                remaining = sorted_pairs[1:-1]
+            # Start with lowest redshift
+            selected = [z0_pair]
+            
+            # Add evenly spaced intermediate redshifts
+            remaining = sorted_pairs[1:-1]
+            if remaining:
                 if len(remaining) <= 6:
+                    # If 6 or fewer remaining, use all of them
                     selected.extend(remaining)
                 else:
+                    # Pick 6 evenly spaced
                     step = len(remaining) // 6
                     for i in range(0, len(remaining), step):
-                        if len(selected) < 7:
+                        if len(selected) < 7:  # We want 7 total (plus high-z = 8)
                             selected.append(remaining[i])
-                
-                # Add the high redshift one
-                selected.append(high_z_pair)
-                
-                # Return just the snapshot numbers
-                return [snap for snap, _ in selected]
-            else:
-                # Use all snapshots if fewer than 8
-                return self.snapshots
+            
+            # Add highest redshift
+            selected.append(high_z_pair)
+        else:
+            # For fewer than 8 snapshots, use all available
+            selected = sorted_pairs
         
-        # If we reach here, we have no snapshots at all - this is an error
-        print("Error: No snapshots available for evolution plots")
-        sys.exit(1)
+        # Extract and return just the snapshot numbers
+        return [snap for snap, _ in selected]
 
     def debug_info(self):
         """

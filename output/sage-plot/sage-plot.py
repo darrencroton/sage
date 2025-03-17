@@ -550,26 +550,60 @@ def main():
         print(f"Error loading parameter file: {e}")
         sys.exit(1)
 
-    # Verify paths from parameter file
-    output_dir = params.get("OutputDir")
-    simulation_dir = params.get("SimulationDir")
-    file_name_galaxies = params.get("FileNameGalaxies", "model")
+    # Verify all required parameters exist
+    required_params = [
+        "OutputDir", 
+        "FileNameGalaxies", 
+        "FirstFile", 
+        "LastFile",
+        "BoxSize",
+        "Hubble_h",
+        "FileWithSnapList"
+    ]
+    
+    missing_params = []
+    for param in required_params:
+        if param not in params.params:
+            missing_params.append(param)
+    
+    if missing_params:
+        print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+        sys.exit(1)
+    
+    # Verify paths from parameter file exist
+    output_dir = params["OutputDir"]
+    simulation_dir = params.get("SimulationDir")  # May not be used directly
+    file_name_galaxies = params["FileNameGalaxies"]
+    file_with_snap_list = params["FileWithSnapList"]
 
     if args.verbose:
         print(f"Parameter file details:")
         print(f"  OutputDir: {output_dir}")
-        print(f"  SimulationDir: {simulation_dir}")
+        print(f"  SimulationDir: {simulation_dir if simulation_dir else 'Not specified'}")
         print(f"  FileNameGalaxies: {file_name_galaxies}")
+        print(f"  FirstFile: {params['FirstFile']}")
+        print(f"  LastFile: {params['LastFile']}")
+        print(f"  FileWithSnapList: {file_with_snap_list}")
+        print(f"  BoxSize: {params['BoxSize']}")
+        print(f"  Hubble_h: {params['Hubble_h']}")
 
-    if output_dir and not os.path.exists(output_dir):
-        print(
-            f"Warning: OutputDir '{output_dir}' from parameter file does not exist or is not accessible."
-        )
-
-    if simulation_dir and not os.path.exists(simulation_dir):
-        print(
-            f"Warning: SimulationDir '{simulation_dir}' from parameter file does not exist or is not accessible."
-        )
+    # Check if OutputDir exists
+    if not os.path.exists(output_dir):
+        print(f"Error: OutputDir '{output_dir}' from parameter file does not exist.")
+        sys.exit(1)
+        
+    # Check if FileWithSnapList exists
+    file_with_snap_list = file_with_snap_list.strip().strip("'").strip('"')
+    if not os.path.isabs(file_with_snap_list) and simulation_dir:
+        # Try relative to simulation directory if it's not absolute
+        full_path = os.path.join(simulation_dir, file_with_snap_list)
+        if os.path.exists(full_path):
+            file_with_snap_list = full_path
+    
+    if not os.path.exists(file_with_snap_list):
+        print(f"Error: FileWithSnapList '{file_with_snap_list}' not found.")
+        print("Please verify the path is correct in the parameter file.")
+        sys.exit(1)
 
     # Set up matplotlib
     setup_matplotlib(args.use_tex)
@@ -685,17 +719,35 @@ def main():
         if args.verbose:
             print(f"  Using model file base: {base_model_file}")
 
-        # Get first and last file numbers from parameter file if not specified in args
-        first_file = args.first_file if args.first_file is not None else params.get("FirstFile")
-        last_file = args.last_file if args.last_file is not None else params.get("LastFile")
-        
-        # Check that required file range parameters exist
-        if first_file is None:
-            print("Error: FirstFile parameter not found in parameter file and not specified with --first-file")
+        # Required parameters check
+        required_params = ["FirstFile", "LastFile"]
+        missing_params = [p for p in required_params if p not in params.params]
+        if missing_params:
+            print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
             sys.exit(1)
             
-        if last_file is None:
-            print("Error: LastFile parameter not found in parameter file and not specified with --last-file")
+        # Get first and last file numbers, prioritizing command-line arguments
+        if args.first_file is not None:
+            first_file = args.first_file
+            if args.verbose:
+                print(f"Using first_file={first_file} from command-line argument")
+        else:
+            first_file = params["FirstFile"]
+            if args.verbose:
+                print(f"Using first_file={first_file} from parameter file")
+                
+        if args.last_file is not None:
+            last_file = args.last_file
+            if args.verbose:
+                print(f"Using last_file={last_file} from command-line argument")
+        else:
+            last_file = params["LastFile"]
+            if args.verbose:
+                print(f"Using last_file={last_file} from parameter file")
+                
+        # Validate file range
+        if first_file > last_file:
+            print(f"Error: FirstFile ({first_file}) is greater than LastFile ({last_file})")
             sys.exit(1)
 
         # Read galaxy data
@@ -838,17 +890,35 @@ def main():
                 print(f"Processing snapshot {snap} (z={redshift:.3f})")
                 print(f"Using model file pattern: {model_file_base}")
 
-            # Get first and last file numbers from parameter file if not specified in args
-            first_file = args.first_file if args.first_file is not None else params.get("FirstFile")
-            last_file = args.last_file if args.last_file is not None else params.get("LastFile")
-            
-            # Check that required file range parameters exist
-            if first_file is None:
-                print("Error: FirstFile parameter not found in parameter file and not specified with --first-file")
+            # Required parameters check
+            required_params = ["FirstFile", "LastFile"]
+            missing_params = [p for p in required_params if p not in params.params]
+            if missing_params:
+                print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
                 sys.exit(1)
                 
-            if last_file is None:
-                print("Error: LastFile parameter not found in parameter file and not specified with --last-file")
+            # Get first and last file numbers, prioritizing command-line arguments
+            if args.first_file is not None:
+                first_file = args.first_file
+                if args.verbose:
+                    print(f"Using first_file={first_file} from command-line argument")
+            else:
+                first_file = params["FirstFile"]
+                if args.verbose:
+                    print(f"Using first_file={first_file} from parameter file")
+                    
+            if args.last_file is not None:
+                last_file = args.last_file
+                if args.verbose:
+                    print(f"Using last_file={last_file} from command-line argument")
+            else:
+                last_file = params["LastFile"]
+                if args.verbose:
+                    print(f"Using last_file={last_file} from parameter file")
+                    
+            # Validate file range
+            if first_file > last_file:
+                print(f"Error: FirstFile ({first_file}) is greater than LastFile ({last_file})")
                 sys.exit(1)
 
             try:

@@ -171,12 +171,16 @@ class SAGEParameters:
                     value = int(value)
                 elif self._is_float(value):
                     value = float(value)
-                elif key in ["OutputDir", "SimulationDir", "FileWithSnapList"]:
-                    # Ensure paths are properly formatted
+                elif key in ["OutputDir", "SimulationDir"]:
+                    # Ensure directory paths are properly formatted
                     value = value.strip('"').strip("'")
-                    # Make sure the path has a trailing slash
+                    # Make sure directory paths have a trailing slash
                     if value and not value.endswith("/"):
                         value = value + "/"
+                elif key in ["FileWithSnapList"]:
+                    # Ensure file paths are properly formatted
+                    value = value.strip('"').strip("'")
+                    # Don't add trailing slash to file paths
 
                 self.params[key] = value
 

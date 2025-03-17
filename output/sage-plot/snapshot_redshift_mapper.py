@@ -28,15 +28,29 @@ class SnapshotRedshiftMapper:
         """
         self.param_file = param_file
         self.params = params  # Can pass already parsed params
+        
+        # Check that we have valid parameters
+        if not params:
+            print("Error: Parameter dictionary is required for SnapshotRedshiftMapper")
+            sys.exit(1)
+        
+        # Check for critical parameters
+        required_params = ["FileNameGalaxies"]
+        missing_params = [p for p in required_params if p not in params]
+        if missing_params:
+            print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+            sys.exit(1)
+            
+        # Set up the mapper
         self.output_dir = output_dir
-        self.file_name_galaxies = (
-            params.get("FileNameGalaxies", "model") if params else "model"
-        )
+        self.file_name_galaxies = params["FileNameGalaxies"]
         self.snapshots = []  # Snapshot indices (0 to n-1)
         self.redshifts = []  # Corresponding redshift values
         self.redshift_strs = []  # Formatted strings for filenames (e.g., "_z0.000")
         self.redshift_file_patterns = []  # Complete filename patterns
         self.mapping_source = None  # Record where mapping came from for debugging
+        
+        # Load the mapping between snapshots and redshifts
         self.load_mapping()
 
     def load_mapping(self):
@@ -67,27 +81,39 @@ class SnapshotRedshiftMapper:
             print("Error: Parameter dictionary is required")
             return False
 
-        # Check if required parameter exists
-        if "FileWithSnapList" not in self.params:
-            print("Error: FileWithSnapList parameter is required in the parameter file")
+        # Check if required parameters exist
+        required_params = ["FileWithSnapList", "LastSnapShotNr"]
+        missing_params = [p for p in required_params if p not in self.params]
+        if missing_params:
+            print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
             return False
             
         a_list_file = self.params["FileWithSnapList"]
+        last_snapshot_nr = self.params["LastSnapShotNr"]
 
-        # Ensure path is absolute
+        # Clean up the file path - remove quotes and trailing slashes if present
+        a_list_file = a_list_file.strip().strip("'").strip('"')
+        # If it's a relative path and we have an output directory, make it absolute
         if self.output_dir and not os.path.isabs(a_list_file):
             a_list_file = os.path.join(self.output_dir, a_list_file)
+
+        if self.params.get("verbose", False):
+            print(f"Using a_list file: {a_list_file}")
 
         # Check if the file exists
         if not os.path.exists(a_list_file):
             print(f"Error: FileWithSnapList '{a_list_file}' not found")
+            print(f"Please check that the file exists and the path is correct")
             return False
 
+        # Try to read the a_list file 
         try:
             # Read expansion factors from the file
             expansion_factors = []
+            line_number = 0
             with open(a_list_file, "r") as f:
                 for line in f:
+                    line_number += 1
                     # Skip comments and empty lines
                     line = line.strip()
                     if not line or line.startswith("#"):
@@ -96,21 +122,59 @@ class SnapshotRedshiftMapper:
                     # Try to parse as float
                     try:
                         a = float(line)
+                        # Check for valid expansion factor (must be positive)
+                        if a <= 0:
+                            print(f"Warning: Invalid expansion factor {a} at line {line_number} (must be positive)")
+                            continue
                         expansion_factors.append(a)
                     except ValueError:
+                        print(f"Warning: Non-numeric value '{line}' at line {line_number}")
                         continue
 
             # If we didn't find any valid expansion factors, return False
             if not expansion_factors:
                 print(f"Error: No valid expansion factors found in {a_list_file}")
+                print("File should contain one expansion factor per line (e.g., 0.5, 0.6, 0.7, ...)")
                 return False
+
+            # Expansion factors should be in descending order (earliest time first, latest last)
+            # Check if they need to be reversed
+            if len(expansion_factors) > 1 and expansion_factors[0] > expansion_factors[-1]:
+                expansion_factors.reverse()
+                print("Note: Expansion factors were in descending order, reversing to ascending order")
 
             # Convert expansion factors to redshifts
             # Formula: z = 1/a - 1
-            redshifts = [1.0 / a - 1.0 for a in expansion_factors]
+            try:
+                redshifts = [1.0 / a - 1.0 for a in expansion_factors]
+            except ZeroDivisionError:
+                print("Error: Encountered division by zero when converting expansion factors to redshifts")
+                print("Ensure all expansion factors are positive non-zero values")
+                return False
 
-            # Create the mapping
-            self.snapshots = list(range(len(redshifts)))
+            # Create the mapping - need to match snapshot numbers to redshifts
+            # Typically, the last expansion factor (largest) corresponds to the LastSnapShotNr
+            # The first expansion factor (smallest) corresponds to snapshot 0
+            num_snapshots = len(expansion_factors)
+            
+            # Calculate snapshot numbers
+            if num_snapshots <= 1:
+                self.snapshots = [last_snapshot_nr]
+            else:
+                # Handle case where we have multiple snapshots
+                # In typical format, snapshots run from 0 to LastSnapShotNr
+                snapshot_step = last_snapshot_nr / (num_snapshots - 1)
+                self.snapshots = [round(i * snapshot_step) for i in range(num_snapshots)]
+                
+                # Ensure last snapshot is exactly LastSnapShotNr
+                if self.snapshots[-1] != last_snapshot_nr:
+                    self.snapshots[-1] = last_snapshot_nr
+                    
+            # Ensure we have the same number of snapshots and redshifts
+            if len(self.snapshots) != len(redshifts):
+                print(f"Error: Mismatch between number of snapshots ({len(self.snapshots)}) and redshifts ({len(redshifts)})")
+                return False
+                
             self.redshifts = redshifts
 
             # Create formatted redshift strings for filenames
@@ -123,6 +187,14 @@ class SnapshotRedshiftMapper:
             ]
 
             print(f"Loaded {len(self.redshifts)} redshift values from {a_list_file}")
+            if self.params.get("verbose", False):
+                # Print first few snapshot-redshift pairs
+                print("Snapshot-Redshift mapping (showing first 5):")
+                for i in range(min(5, len(self.snapshots))):
+                    print(f"  Snapshot {self.snapshots[i]}: z = {self.redshifts[i]:.3f}")
+                if len(self.snapshots) > 5:
+                    print(f"  ... and {len(self.snapshots) - 5} more snapshots")
+                    
             return True
 
         except Exception as e:

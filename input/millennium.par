@@ -7,7 +7,9 @@ OutputDir              /Volumes/Internal/results/sage/millennium/
 
 FirstFile         0
 LastFile          7
-BoxSize           62.5  ; in Mpc/h - not used but handy for plotting
+
+TotalFiles        8     ; not used but needed for plotting
+BoxSize           62.5  ; in Mpc/h - not used but needed for plotting
 
 
 %------------------------------------------

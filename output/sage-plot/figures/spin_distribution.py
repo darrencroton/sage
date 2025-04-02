@@ -17,7 +17,7 @@ from figures import (
     setup_legend,
     setup_plot_fonts,
 )
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, MaxNLocator
 
 
 def plot(
@@ -168,9 +168,10 @@ def plot(
     ax.set_xlabel(r"Spin Parameter", fontsize=AXIS_LABEL_SIZE)
     ax.set_ylabel(r"Number", fontsize=AXIS_LABEL_SIZE)
 
-    # Set the x and y axis minor ticks
+    # Set the x and y axis minor ticks with MaxNLocator to avoid excessive ticks
     ax.xaxis.set_minor_locator(MultipleLocator(0.01))
-    ax.yaxis.set_minor_locator(MultipleLocator(50))
+    # Use MaxNLocator instead to prevent too many ticks
+    ax.yaxis.set_minor_locator(MaxNLocator(10))
 
     # Set axis limits
     ax.set_xlim(0.0, 0.25)

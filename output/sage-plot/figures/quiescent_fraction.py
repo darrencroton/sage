@@ -161,31 +161,25 @@ def plot(
             # Calculate fraction
             satellite_fraction.append(quiescent_satellite_count / satellite_bin_count)
 
+            # For satellites, the original code used the count of ALL satellites as denominator
+            # for both the satellite fraction and the lo/hi satellite fractions
+            
             # Low-mass halo satellites
             low_mass_mask = satellite_bin_mask & (CentralMvir < groupscale)
-            low_mass_count = np.sum(low_mass_mask)
-
-            if low_mass_count > 0:
-                quiescent_low_mass_mask = low_mass_mask & (sSFR < 10.0**sSFRcut)
-                quiescent_low_mass_count = np.sum(quiescent_low_mass_mask)
-
-                satellite_fraction_lo.append(quiescent_low_mass_count / low_mass_count)
-            else:
-                satellite_fraction_lo.append(0.0)
+            quiescent_low_mass_mask = low_mass_mask & (sSFR < 10.0**sSFRcut)
+            quiescent_low_mass_count = np.sum(quiescent_low_mass_mask)
+            
+            # We use satellite_bin_count as the denominator (all satellites in this mass bin)
+            # to ensure low + high fractions add up to the total satellite fraction
+            satellite_fraction_lo.append(quiescent_low_mass_count / satellite_bin_count if satellite_bin_count > 0 else 0.0)
 
             # High-mass halo satellites
             high_mass_mask = satellite_bin_mask & (CentralMvir >= groupscale)
-            high_mass_count = np.sum(high_mass_mask)
-
-            if high_mass_count > 0:
-                quiescent_high_mass_mask = high_mass_mask & (sSFR < 10.0**sSFRcut)
-                quiescent_high_mass_count = np.sum(quiescent_high_mass_mask)
-
-                satellite_fraction_hi.append(
-                    quiescent_high_mass_count / high_mass_count
-                )
-            else:
-                satellite_fraction_hi.append(0.0)
+            quiescent_high_mass_mask = high_mass_mask & (sSFR < 10.0**sSFRcut)
+            quiescent_high_mass_count = np.sum(quiescent_high_mass_mask)
+            
+            # Same denominator as above for consistency
+            satellite_fraction_hi.append(quiescent_high_mass_count / satellite_bin_count if satellite_bin_count > 0 else 0.0)
         else:
             satellite_fraction.append(0.0)
             satellite_fraction_lo.append(0.0)
@@ -228,12 +222,12 @@ def plot(
     # Satellites in low-mass halos
     mask = satellite_fraction_lo > 0
     if np.any(mask):
-        ax.plot(mass[mask], satellite_fraction_lo[mask], "r--", label="Satellites-Lo")
+        ax.plot(mass[mask], satellite_fraction_lo[mask], "r--", label="Satellites-Lo", linewidth=0.8)
 
     # Satellites in high-mass halos
     mask = satellite_fraction_hi > 0
     if np.any(mask):
-        ax.plot(mass[mask], satellite_fraction_hi[mask], "r-.", label="Satellites-Hi")
+        ax.plot(mass[mask], satellite_fraction_hi[mask], "r-", label="Satellites-Hi", linewidth=0.8, dashes=[8, 3])
 
     # Customize the plot
     ax.set_xlabel(get_stellar_mass_label(), fontsize=AXIS_LABEL_SIZE)

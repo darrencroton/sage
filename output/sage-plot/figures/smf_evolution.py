@@ -35,6 +35,9 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
     Returns:
         Path to the saved plot file
     """
+    # Define target redshifts and their tolerances
+    target_redshifts = [0.0, 1.3, 2.0, 3.0]
+    target_tolerance = [0.2, 0.5, 0.5, 0.5]
     # Set up the figure
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -164,19 +167,38 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
                 f"  Snapshot {snap}: {len(galaxies)} galaxies, z={metadata.get('redshift', 'unknown')}"
             )
 
-    # Sort snapshots by redshift
+    # Sort snapshots by redshift and filter to target redshifts
     sorted_snapshots = [
         (snap, galaxies, volume, metadata)
         for snap, (galaxies, volume, metadata) in snapshots.items()
     ]
     # Sort by redshift
     sorted_snapshots.sort(key=lambda x: x[3]["redshift"])
-
+    
+    # Filter snapshots to match target redshifts
+    target_snapshots = []
+    
+    # For each target redshift, find the closest snapshot within tolerance
+    for i, target_z in enumerate(target_redshifts):
+        tolerance = target_tolerance[i]
+        # Filter snapshots with z >= target_z
+        candidates = [s for s in sorted_snapshots if s[3]["redshift"] >= target_z]
+        if candidates:
+            # Find the closest one
+            closest = min(candidates, key=lambda x: abs(x[3]["redshift"] - target_z))
+            # Check if it's within tolerance
+            if abs(closest[3]["redshift"] - target_z) <= tolerance:
+                target_snapshots.append(closest)
+                if verbose:
+                    print(f"Target z={target_z:.1f}: Using snapshot with z={closest[3]['redshift']:.3f}")
+        elif verbose:
+            print(f"Target z={target_z:.1f}: No suitable snapshot found")
+    
     # Colors for different redshifts
     colors = ["k", "b", "g", "r", "m", "y", "c", "orange"]
 
-    # Check if we have any snapshots
-    if len(sorted_snapshots) == 0:
+    # Check if we have any snapshots to plot
+    if len(target_snapshots) == 0:
         print("No snapshot data available for SMF evolution plot")
         # Create an empty plot with a message
         ax.text(
@@ -198,10 +220,8 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
         plt.close()
         return output_path
 
-    # Plot model SMFs at various redshifts
-    for i, (snap, galaxies, volume, metadata) in enumerate(
-        sorted_snapshots[:8]
-    ):  # Limit to 8 redshifts
+    # Plot model SMFs at target redshifts
+    for i, (snap, galaxies, volume, metadata) in enumerate(target_snapshots):
         hubble_h = metadata["hubble_h"]
         redshift = metadata["redshift"]
         color = colors[i % len(colors)]
@@ -235,18 +255,12 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
             xaxis, counts / volume * hubble_h**3 / binwidth, color=color, linestyle="-"
         )
 
-        # Add a text label near the line
-        if i < 4:  # Only label the first 4 redshifts to avoid clutter
-            # Find a suitable y-value for the text
-            idx = np.argmin(np.abs(xaxis - 10.5))
-            y_value = counts[idx] / volume * hubble_h**3 / binwidth
-            ax.text(
-                10.7,
-                y_value,
-                f"z={redshift:.1f}",
-                color=color,
-                fontsize=IN_FIGURE_TEXT_SIZE,
-            )
+        # Store redshift values for labels in the top right corner
+        if i == 0:
+            # Initialize list of redshifts for the legend
+            redshift_labels = []
+        # Add this redshift to the list
+        redshift_labels.append((redshift, color))
 
     # Customize the plot
     ax.set_yscale("log")
@@ -256,6 +270,26 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
 
     ax.set_ylabel(get_mass_function_labels(), fontsize=AXIS_LABEL_SIZE)
     ax.set_xlabel(get_stellar_mass_label(), fontsize=AXIS_LABEL_SIZE)
+
+    # Add redshift labels in the top right corner
+    if 'redshift_labels' in locals():
+        # Sort labels by redshift
+        redshift_labels.sort(key=lambda x: x[0])
+        # Position for the first label
+        x_pos = 12.3
+        y_pos = 6e-2  # Near the top of the plot (log scale)
+        for z, color in redshift_labels:
+            ax.text(
+                x_pos, 
+                y_pos, 
+                f"z = {z:.1f}", 
+                color=color,
+                fontsize=IN_FIGURE_TEXT_SIZE,
+                ha='right',
+                va='top'
+            )
+            # Move down for the next label
+            y_pos *= 0.6  # Reduces y-position by 30% each time (works well with log scale)
 
     # Add consistently styled legend
     setup_legend(ax, loc="lower left")

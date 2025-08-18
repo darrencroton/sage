@@ -18,12 +18,44 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 - **Cross-Platform I/O**: Improved error checking and platform compatibility
 - **Extensive Documentation**: Detailed inline documentation of algorithms and implementation
 
+## Quick Start
+
+For new users who want to get SAGE up and running immediately:
+
+```bash
+# Clone the repository
+git clone https://github.com/darrencroton/sage.git
+cd sage
+
+# Run the automated setup script
+./first_run.sh
+
+# Compile SAGE
+make
+
+# Run SAGE with the mini-Millennium simulation
+./sage input/millennium.par
+
+# Generate plots (using virtual environment)
+source sage-env/bin/activate
+cd output/sage-plot
+python sage-plot.py --param-file=../../input/millennium.par
+deactivate
+```
+
+The `first_run.sh` script will automatically:
+- Create necessary directories (`input/data/millennium`, `output/results/millennium`)
+- Download the mini-Millennium simulation trees
+- Set up a Python virtual environment (`sage-env`) with plotting dependencies
+- Configure the parameter file with correct paths
+
 ## Installation
 
 ### Requirements
 
 - C compiler (gcc or compatible)
 - GNU Make
+- Python 3.x (for plotting)
 - (Optional) HDF5 libraries for HDF5 tree format support
 - (Optional) clang-format for code formatting
 - (Optional) black and isort for Python code formatting
@@ -40,6 +72,71 @@ make
 
 # With HDF5 support (optional)
 make USE-HDF5=yes
+```
+
+### Manual Setup (Alternative to first_run.sh)
+
+If you prefer to set up SAGE manually or the automated script doesn't work for your system:
+
+#### 1. Create Directory Structure
+```bash
+mkdir -p input/data/millennium
+mkdir -p output/results/millennium
+```
+
+#### 2. Download Simulation Data
+Download the mini-Millennium simulation trees:
+```bash
+cd input/data/millennium
+
+# Using wget
+wget "https://www.dropbox.com/s/l5ukpo7ar3rgxo4/mini-millennium-treefiles.tar?dl=0" -O mini-millennium-treefiles.tar
+
+# Or using curl
+curl -L -o mini-millennium-treefiles.tar "https://www.dropbox.com/s/l5ukpo7ar3rgxo4/mini-millennium-treefiles.tar?dl=0"
+
+# Extract the files
+tar -xf mini-millennium-treefiles.tar
+rm mini-millennium-treefiles.tar
+
+cd ../../..
+```
+
+#### 3. Set Up Python Environment
+Install required Python packages for plotting using the provided `requirements.txt`. Due to modern Python environment management, you have several options:
+
+**Option 1 (Recommended): Use a virtual environment:**
+```bash
+python3 -m venv sage-env
+source sage-env/bin/activate
+pip install -r requirements.txt
+```
+
+**Option 2: Use --user flag:**
+```bash
+pip3 install --user -r requirements.txt
+```
+
+**Option 3: Use system package manager (macOS with Homebrew):**
+```bash
+brew install python-numpy python-matplotlib python-tqdm
+```
+
+**Option 4: Override system protection (not recommended):**
+```bash
+pip3 install --break-system-packages -r requirements.txt
+```
+
+#### 4. Configure Parameter File
+Update `input/millennium.par` with the correct absolute paths:
+- Set `OutputDir` to your full path + `/output/results/millennium/`
+- Set `SimulationDir` to your full path + `/input/data/millennium/`
+- Set `FileWithSnapList` to your full path + `/input/data/millennium/millennium.a_list`
+
+#### 5. Compile and Run
+```bash
+make
+./sage input/millennium.par
 ```
 
 ## Basic Usage
@@ -185,17 +282,23 @@ For detailed usage instructions, see the [sage-plot README](output/sage-plot/REA
 
 Basic usage:
 ```bash
+# Activate the virtual environment first
+source sage-env/bin/activate
+
 # Generate all plots
 cd output/sage-plot
 python sage-plot.py --param-file=/path/to/sage_params.par
 
 # Generate specific plots
 python sage-plot.py --param-file=/path/to/sage_params.par --plots=stellar_mass_function,gas_fraction
+
+# Deactivate when done
+deactivate
 ```
 
 ## Sample Data
 
-For testing purposes, treefiles for the [mini-Millennium Simulation](http://arxiv.org/abs/astro-ph/0504097) are available [here](https://data-portal.hpc.swin.edu.au/dataset/mini-millennium-simulation).
+For testing purposes, treefiles for the [mini-Millennium Simulation](http://arxiv.org/abs/astro-ph/0504097) are automatically downloaded and configured by the `first_run.sh` script. You can also manually download them from [here](https://data-portal.hpc.swin.edu.au/dataset/mini-millennium-simulation).
 
 ## Citations
 

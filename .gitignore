@@ -1,5 +1,5 @@
 sage
-input/treefiles
+input/data
 output/results
 ignore/
 *.o
@@ -8,3 +8,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 code/git_version.h
+
+# Claude Code session data
+.claude/
+
+# Python virtual environment
+sage-env/

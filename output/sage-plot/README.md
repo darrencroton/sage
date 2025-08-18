@@ -18,7 +18,12 @@ This tool provides a single, comprehensive entry point for generating plots from
 
 ### Basic Usage
 
+**Important**: Always activate the Python environment before running plots:
+
 ```bash
+# Activate virtual environment (if using one)
+source ../../sage-env/bin/activate  # or source plotting-env/bin/activate
+
 # Generate all snapshot plots using parameter file
 python sage-plot.py --param-file=/path/to/sage_params.par
 
@@ -33,6 +38,9 @@ python sage-plot.py --param-file=/path/to/sage_params.par --first-file=0 --last-
 
 # Specify snapshot number and don't use LaTeX
 python sage-plot.py --param-file=/path/to/sage_params.par --snapshot=63 --no-tex
+
+# Deactivate virtual environment when done
+deactivate
 ```
 
 ### Command-Line Options
@@ -156,6 +164,8 @@ To add a new plot type, follow these steps:
 
 6. **Test your plot** with the central script:
    ```bash
+   # Activate environment first
+   source ../../sage-env/bin/activate
    python sage-plot.py --param-file=params.par --plots=new_plot_type --verbose
    ```
 
@@ -226,13 +236,62 @@ The plotting system is organized around these key components:
    - All have consistent interfaces
    - Can be easily extended with new types
 
-## Requirements
+## Setup and Requirements
 
+### Quick Setup
+
+If you used the main SAGE setup script (`../../first_run.sh`), the Python environment is already configured. Simply activate it:
+
+```bash
+# From the main SAGE directory
+source sage-env/bin/activate
+cd output/sage-plot
+python sage-plot.py --param-file=../../input/millennium.par
+```
+
+### Manual Setup
+
+If you need to set up the plotting environment manually:
+
+#### Requirements
 - Python 3.x
 - NumPy
 - Matplotlib (>=3.0.0)
 - tqdm (for progress bars)
 - (Optional) LaTeX installation for high-quality text rendering in plots
+
+#### Installation Options
+
+**Option 1 (Recommended): Use the main SAGE requirements.txt:**
+```bash
+# From the main SAGE directory
+cd ../..
+python3 -m venv sage-env
+source sage-env/bin/activate
+pip install -r requirements.txt
+cd output/sage-plot
+```
+
+**Option 2: Install packages directly:**
+```bash
+# Using virtual environment (recommended)
+python3 -m venv plotting-env
+source plotting-env/bin/activate
+pip install "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0"
+
+# Or using --user flag
+pip3 install --user "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0"
+
+# Or using system package manager (macOS with Homebrew)
+brew install python-numpy python-matplotlib python-tqdm
+```
+
+#### Verification
+
+Test your setup:
+```bash
+python -c "import numpy, matplotlib, tqdm; print('All packages available!')"
+```
 
 ## License
 

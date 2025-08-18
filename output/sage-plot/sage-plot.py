@@ -110,7 +110,8 @@ class SAGEParameters:
 
     def __init__(self, param_file):
         """Initialize with parameter file path."""
-        self.param_file = param_file
+        self.param_file = os.path.abspath(param_file)
+        self.param_dir = os.path.dirname(self.param_file)
         self.params = {}
         self.parse_param_file()
 
@@ -172,14 +173,14 @@ class SAGEParameters:
                 elif self._is_float(value):
                     value = float(value)
                 elif key in ["OutputDir", "SimulationDir"]:
-                    # Ensure directory paths are properly formatted
-                    value = value.strip('"').strip("'")
+                    # Resolve path relative to parameter file directory
+                    value = self._resolve_path(value)
                     # Make sure directory paths have a trailing slash
                     if value and not value.endswith("/"):
                         value = value + "/"
                 elif key in ["FileWithSnapList"]:
-                    # Ensure file paths are properly formatted
-                    value = value.strip('"').strip("'")
+                    # Resolve path relative to parameter file directory
+                    value = self._resolve_path(value)
                     # Don't add trailing slash to file paths
 
                 self.params[key] = value
@@ -191,6 +192,52 @@ class SAGEParameters:
             return True
         except ValueError:
             return False
+    
+    def _resolve_path(self, path):
+        """
+        Resolve a path from the parameter file relative to the SAGE root directory.
+        
+        For SAGE parameter files, relative paths are typically relative to the
+        directory containing the SAGE executable and source code (the root project directory),
+        not relative to the parameter file itself.
+        
+        Args:
+            path: Path string from parameter file
+            
+        Returns:
+            Absolute path
+        """
+        if not path:
+            return path
+            
+        # Clean the path first
+        path = path.strip().strip('"').strip("'")
+        
+        # If it's already absolute, return as-is
+        if os.path.isabs(path):
+            return path
+            
+        # For relative paths, we need to find the SAGE root directory
+        # Look for common indicators (SAGE executable, Makefile, code/ directory)
+        current_dir = self.param_dir
+        sage_root = None
+        
+        # Search up from the parameter file directory to find SAGE root
+        while current_dir != "/" and current_dir != os.path.dirname(current_dir):
+            if (os.path.exists(os.path.join(current_dir, "Makefile")) and 
+                os.path.exists(os.path.join(current_dir, "code")) and
+                (os.path.exists(os.path.join(current_dir, "sage")) or 
+                 os.path.exists(os.path.join(current_dir, "first_run.sh")))):
+                sage_root = current_dir
+                break
+            current_dir = os.path.dirname(current_dir)
+        
+        # If we couldn't find SAGE root, fall back to parameter file directory
+        if sage_root is None:
+            sage_root = self.param_dir
+            
+        # Make the path relative to SAGE root
+        return os.path.abspath(os.path.join(sage_root, path))
 
     def get(self, key, default=None):
         """Get a parameter value."""
@@ -596,14 +643,7 @@ def main():
         print(f"Error: OutputDir '{output_dir}' from parameter file does not exist.")
         sys.exit(1)
         
-    # Check if FileWithSnapList exists
-    file_with_snap_list = file_with_snap_list.strip().strip("'").strip('"')
-    if not os.path.isabs(file_with_snap_list) and simulation_dir:
-        # Try relative to simulation directory if it's not absolute
-        full_path = os.path.join(simulation_dir, file_with_snap_list)
-        if os.path.exists(full_path):
-            file_with_snap_list = full_path
-    
+    # Check if FileWithSnapList exists (path is already resolved by SAGEParameters)
     if not os.path.exists(file_with_snap_list):
         print(f"Error: FileWithSnapList '{file_with_snap_list}' not found.")
         print("Please verify the path is correct in the parameter file.")
@@ -617,10 +657,8 @@ def main():
         print("Error: OutputDir parameter is required in the parameter file.")
         sys.exit(1)
     
-    # Get and clean the output directory path
+    # Get the output directory path (already resolved by SAGEParameters)
     model_output_dir = params["OutputDir"]
-    model_output_dir = model_output_dir.strip().strip("'").strip('"')
-    model_output_dir = os.path.expanduser(model_output_dir)
     
     if args.verbose:
         print(f"\nOutput directory handling:")
@@ -684,17 +722,13 @@ def main():
             print("Error: FileNameGalaxies parameter is required in the parameter file.")
             sys.exit(1)
             
-        # Get output model path and snapshot number
+        # Get output model path and snapshot number (path already resolved by SAGEParameters)
         model_path = params["OutputDir"]
         snapshot = args.snapshot or params.get("LastSnapShotNr")
         
         if not snapshot:
             print("Error: LastSnapShotNr not found in parameter file and no snapshot specified.")
             sys.exit(1)
-        
-        # Clean up the path
-        model_path = model_path.strip().strip("'").strip('"')
-        model_path = os.path.expanduser(model_path)
         
         # File name from parameter file
         file_name_galaxies = params["FileNameGalaxies"]

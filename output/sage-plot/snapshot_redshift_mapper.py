@@ -91,11 +91,8 @@ class SnapshotRedshiftMapper:
         a_list_file = self.params["FileWithSnapList"]
         last_snapshot_nr = self.params["LastSnapShotNr"]
 
-        # Clean up the file path - remove quotes and trailing slashes if present
-        a_list_file = a_list_file.strip().strip("'").strip('"')
-        # If it's a relative path and we have an output directory, make it absolute
-        if self.output_dir and not os.path.isabs(a_list_file):
-            a_list_file = os.path.join(self.output_dir, a_list_file)
+        # The a_list_file path is already resolved by SAGEParameters class
+        # No need for additional path manipulation
 
         if self.params.get("verbose", False):
             print(f"Using a_list file: {a_list_file}")

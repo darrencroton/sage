@@ -146,8 +146,17 @@ Uses custom allocator with categorized tracking:
 Call `print_allocated()` to check for memory leaks.
 
 ### Documentation Standards
-Follow the documentation template in `code/doc_standards.md`:
+Follow the documentation template in `docs/doc_standards.md`:
 - Function headers with @brief, @param, @return
 - File headers explaining purpose and key functions
 - Inline comments for complex calculations
 - Units explicitly stated for physical quantities
+
+## Development Guidelines
+- All work to highest professional coding standards
+- Debug with lldb using a command file (must end with "quit"): `lldb --batch -s debug_commands.txt ./sage`
+- Never simplify tests - failing tests indicate real problems
+- Use logs for continuity - assume no persistent memory
+- Report progress in `log/progress.md` with all changed files
+- Ask before committing to git
+- Archive files to `scrap/` instead of deleting

@@ -1,7 +1,7 @@
 # SAGE Master Implementation Plan v2.1
-**Version**: 2.1 (Architecturally-Aligned for sage)  
+**Version**: 2.1
 **Date**: September 2024  
-**Legacy Baseline**: `sage` codebase
+**Target Baseline**: `sage` codebase  
 
 ---
 
@@ -23,7 +23,7 @@ This implementation plan has been restructured to strictly adhere to the **8 Cor
 
 ## Executive Summary
 
-This Master Implementation Plan guides the transformation of SAGE from a monolithic galaxy evolution model into a modern, modular architecture with a **physics-agnostic core and runtime-configurable physics modules**, while strictly maintaining architectural principle compliance throughout development.
+This Master Implementation Plan guides the transformation of the `sage` codebase into a modern, modular architecture with a **physics-agnostic core and runtime-configurable physics modules**, while strictly maintaining architectural principle compliance throughout development.
 
 ### Key Transformation Goals
 1. **Physics-Agnostic Core** (Principle 1): Core infrastructure with zero physics knowledge
@@ -43,15 +43,15 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 
 | Phase | Name | Principles | Duration | Entry Criteria | Exit Criteria |
 |-------|------|------------|----------|----------------|---------------|
-| 1 | Infrastructure & Modernization Foundation | 6,7 | 3 weeks | `sage` codebase | CMake build, abstraction layers |
+| 1 | Infrastructure Foundation | 6,7 | 3 weeks | `sage` codebase | CMake build, abstraction layers |
 | 2A | Core/Physics Separation | 1,5 | 3 weeks | Phase 1 complete | Physics-agnostic core operational |
 | 2B | Property System Integration | 3,4,8 | 4 weeks | Phase 2A complete | Properties applied in modular context |
-| 3 | Memory Management | 6 | 3 weeks | Phase 2B complete | Module-aware, bounded memory |
-| 4 | Configuration & Module System | 2 | 4 weeks | Phase 3 complete | Runtime module configuration |
+| 3 | Memory Management | 6 | 3 weeks | Phase 2B complete | Module-aware memory management |
+| 4 | Configuration & Module System | 2,8 | 4 weeks | Phase 3 complete | Runtime module configuration |
 | 5 | I/O Modernization | 7 | 3 weeks | Phase 4 complete | Property-based, module-aware I/O |
 | 6 | Validation & Polish | All | 2 weeks | Phase 5 complete | Full validation, documentation |
 
-**Total Duration**: ~20 weeks (5 months)
+**Total Duration**: ~19 weeks (4.5 months)
 
 ---
 
@@ -85,9 +85,10 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 #### Task 1.2: Directory Reorganization
 - **Objective**: Implement a modern project structure to prepare for modularization.
 - **Implementation**:
-  - Create the `src/core`, `src/physics`, `src/io`, and `src/utils` directories.
+  - Create the `src/core`, `src/core/auxdata`, `src/physics`, `src/io`, `src/scripts`, and `src/utils` directories.
   - Use `git mv` to move source files into the appropriate subdirectories.
     - **core**: `core_*.c`, `main.c`, `globals.h`, `types.h`, etc.
+    - **auxdata**: move `extra/CoolFunctions` here.
     - **physics**: `model_*.c` files.
     - **io**: `io_*.c` files.
     - **utils**: `util_*.c` files.
@@ -106,12 +107,15 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Effort**: 1 session (low complexity)
 
 #### Task 1.4: Configuration Abstraction Layer
-- **Objective**: Create a unified interface for accessing configuration parameters, decoupling the code from the global `SageConfig` struct.
+- **Objective**: Create unified config reading interface.
 - **Implementation**:
-  - Design a `config_manager.h` interface with functions like `config_get_int(param_name)`, `config_get_double(param_name)`, etc.
-  - The initial implementation of this interface will simply read from the populated global `SageConfig` struct.
-  - Replace direct access to `SageConfig` fields throughout the codebase with calls to this new interface.
-- **Testing**: The simulation runs and produces identical results, confirming that all parameters are accessed correctly through the new abstraction layer.
+  - Design `config_t` structure for unified access.
+  - Create `config_reader.c` with JSON support (using a library like `cJSON`).
+  - Add legacy `.par` file reading to the same interface, populating the `config_t` struct.
+  - Implement a configuration validation framework.
+- **Testing**: Both JSON and `.par` files can be read correctly into the `config_t` struct.
+- **Documentation**: Configuration format specification.
+- **Risk**: JSON library selection - use a proven, simple solution.
 - **Effort**: 2 sessions (moderate complexity)
 
 #### Task 1.5: I/O Abstraction Layer
@@ -243,67 +247,68 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Principle 8**: Type Safety and Validation
 
 ### Objectives
-- **Primary**: Apply property system within modular architecture
-- **Secondary**: Enable type-safe property access throughout codebase
-- **Foundation**: Property migration occurs in architecturally compliant context
+- **Primary**: Implement and apply the metadata-driven property system within the new modular architecture.
+- **Secondary**: Enable type-safe, compile-time validated property access throughout the entire codebase.
+- **Foundation**: Ensure all property migration occurs in an architecturally compliant context.
 
 ### Entry Criteria
 - ✅ Core/physics separation complete (Phase 2A)
-- ✅ Physics modules use interface, not direct coupling
-- ✅ Property system infrastructure ready (Tasks 2.1-2.2 from original plan, now assumed complete)
+- ✅ Physics modules use the new interface, not direct coupling.
 
 ### Tasks
 
-#### Task 2B.1: Core Property Migration
-- **Objective**: Migrate core properties using property system
+#### Task 2B.1: Property Metadata Design (YAML Schema)
+- **Objective**: Create the YAML schema that will define all galaxy properties.
 - **Implementation**:
-  - Apply property macros to core files only
-  - Core properties: `SnapNum`, `Type`, `Pos`, `Mvir`, `Rvir`, etc.
-  - Update core_build_model.c, core_save.c using property access
-  - Maintain physics-agnostic property boundaries
-- **Principles**: Principle 4 - unified core property access
-- **Testing**: Core functionality identical with property macros
+  - Design a `properties.yaml` file structure.
+  - Define categories for properties (e.g., `core`, `cooling`, `star_formation`).
+  - Specify data types, array sizes, units, descriptions, and output flags for each property.
+- **Testing**: The YAML file validates against a defined schema (e.g., using a Python linter).
+- **Effort**: 2 sessions (moderate complexity)
+
+#### Task 2B.2: Code Generation Framework
+- **Objective**: Build a Python script that reads `properties.yaml` and generates C header files.
+- **Implementation**:
+  - Create `src/scripts/generate_property_headers.py`.
+  - The script will generate `galaxy_properties.h` containing:
+    - The `GALAXY` struct definition.
+    - Type-safe getter/setter macros for each property (e.g., `GALAXY_GET_StellarMass(g)`).
+    - An enumeration of all properties for indexing.
+- **Testing**: The generated C header file compiles without warnings.
+- **Effort**: 3 sessions (high complexity)
+
+#### Task 2B.3: CMake Integration for Code Generation
+- **Objective**: Integrate the code generation script into the build system.
+- **Implementation**:
+  - Add a custom command in CMake to run `generate_property_headers.py`.
+  - Set up dependencies so that the headers are automatically regenerated whenever `properties.yaml` is modified.
+- **Testing**: Modifying `properties.yaml` and running the build correctly triggers regeneration.
+- **Effort**: 1 session (low complexity)
+
+#### Task 2B.4: Core Property Migration
+- **Objective**: Migrate core galaxy properties to use the new property system.
+- **Implementation**:
+  - Update core files (`core_build_model.c`, `io_save_binary.c`, etc.) to use the new getter/setter macros for core properties (`SnapNum`, `Type`, `Pos`, `Mvir`, etc.).
+  - Remove direct struct member access (e.g., `g->Mvir`).
+- **Principles**: Principle 4 - unified core property access.
+- **Testing**: Core functionality remains identical after migration.
 - **Effort**: 2 sessions
 
-#### Task 2B.2: Physics Property Integration
-- **Objective**: Migrate physics properties within modular context
+#### Task 2B.5: Physics Property Integration
+- **Objective**: Migrate physics-specific properties within their respective modules.
 - **Implementation**:
-  - Physics modules use property macros for physics properties
-  - Properties: `ColdGas`, `StellarMass`, `HotGas`, etc.
-  - Property access only within appropriate modules
-  - Core never accesses physics properties directly
-- **Principles**: Maintains Principle 1 compliance during property migration
-- **Testing**: Physics calculations unchanged with property access
+  - Update each wrapped physics module to use the new property macros for physics properties (`ColdGas`, `StellarMass`, `HotGas`, etc.).
+  - Ensure the core code *never* directly accesses physics properties.
+- **Principles**: Maintains Principle 1 compliance during property migration.
+- **Testing**: Physics calculations produce identical results after migration.
 - **Effort**: 3 sessions
 
-#### Task 2B.3: Property Availability System
-- **Objective**: Runtime property availability based on loaded modules
-- **Implementation**:
-  - Property system adapts to loaded module set
-  - Core properties always available
-  - Physics properties conditional on module loading
-  - Type-safe access with compile-time checking
-- **Principles**: Principle 2 - runtime modularity for properties
-- **Testing**: Property access reflects loaded modules correctly
-- **Effort**: 2 sessions
-
-#### Task 2B.4: CMake Integration Enhancement
-- **Objective**: Integrate property generation with modular build
-- **Implementation**:
-  - Property generation considers module configurations
-  - Different property sets for different build modes
-  - Automatic regeneration on YAML changes
-  - IDE support for generated property access
-- **Principles**: Principle 3 - build-time metadata processing
-- **Testing**: Build system regenerates properties correctly
-- **Effort**: 1 session
-
 ### Exit Criteria
-- ✅ All galaxy properties accessed via type-safe macros
-- ✅ Property availability adapts to loaded modules
-- ✅ Core uses core properties, physics modules use physics properties
-- ✅ Build system integrated with property generation
-- ✅ Scientific results unchanged from Phase 2A
+- ✅ All galaxy properties are defined in `properties.yaml`.
+- ✅ All direct member access (`g->...`) is replaced by type-safe macros.
+- ✅ Code generation is fully integrated into the CMake build process.
+- ✅ Core code only accesses core properties; physics modules access physics properties.
+- ✅ Scientific results are unchanged from Phase 2A.
 
 ---
 
@@ -365,57 +370,53 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 
 ### Architectural Principles Addressed
 - **Principle 2**: Runtime Modularity ⭐ **PRIMARY**
+- **Principle 8**: Type Safety and Validation
 
 ### Objectives
-- **Primary**: Runtime module configuration without recompilation
-- **Secondary**: Complete unified configuration system
-- **Foundation**: Full runtime modularity achieved
+- **Primary**: Enable runtime configuration of physics modules without recompilation.
+- **Secondary**: Complete the unified configuration system, making it module-aware.
+- **Foundation**: Achieve full runtime modularity for the SAGE model.
 
 ### Entry Criteria
-- ✅ Module interface mature from Phase 2A
-- ✅ Property system supports module-aware configurations
-- ✅ Memory management supports dynamic module loading
+- ✅ Module interface is mature from Phase 2A.
+- ✅ Property system supports module-aware configurations.
+- ✅ Memory management supports dynamic module loading.
+- ✅ `config_t` object and reader available from Phase 1.
 
 ### Tasks
 
 #### Task 4.1: Runtime Module Configuration
-- **Objective**: Load/configure modules based on configuration files
+- **Objective**: Load and configure modules based on the `config_t` object.
 - **Implementation**:
-  - JSON-based module selection
-  - Module parameter configuration
-  - Runtime module loading/unloading
-  - Module combination validation
-- **Principles**: Achieves Principle 2 fully
-- **Testing**: Different module combinations work correctly
-- **Effort**: 3 sessions
+  - Extend the JSON configuration schema to include a `modules` section for selecting and parameterizing modules.
+  - The configuration reader will populate the `config_t` struct with this information.
+  - At startup, the main application will read the `config_t` object and load only the specified modules into the pipeline.
+- **Principles**: Achieves Principle 2 fully.
+- **Testing**: Different module combinations specified in the JSON config are loaded correctly at runtime.
 
 #### Task 4.2: Module Dependency Resolution
-- **Objective**: Automatic dependency handling with validation
+- **Objective**: Automatic dependency handling with validation at runtime.
 - **Implementation**:
-  - Enhanced dependency graph processing
-  - Circular dependency detection
-  - Missing dependency error handling
-  - Optimal execution order determination
-- **Principles**: Supports Principle 2 robustness
-- **Testing**: Complex dependency graphs resolved correctly
-- **Effort**: 2 sessions
+  - Enhance the module registry to build a dependency graph of all registered modules.
+  - When modules are loaded from the config, perform a topological sort to determine the correct execution order.
+  - Detect and report circular dependencies or missing dependencies at startup.
+- **Principles**: Supports Principle 2 robustness.
+- **Testing**: Complex dependency graphs are resolved correctly; invalid configurations are rejected with clear error messages.
 
 #### Task 4.3: Configuration Validation Framework
-- **Objective**: Validate configurations against available modules
+- **Objective**: Validate module-specific parameters from the configuration file.
 - **Implementation**:
-  - Schema validation for module configurations
-  - Parameter bounds checking
-  - Module compatibility validation
-  - Clear error reporting
-- **Principles**: Principle 8 - validation for modules
-- **Testing**: Invalid configurations caught with clear errors
-- **Effort**: 2 sessions
+  - Each module will declare its required parameters (name, type, valid range).
+  - The configuration system will validate the parameters provided in the JSON file against these declarations.
+  - Provide clear error messages for missing, misspelled, or out-of-range parameters.
+- **Principles**: Principle 8 - validation for modules.
+- **Testing**: Invalid module configurations are caught at startup with clear, user-friendly errors.
 
 ### Exit Criteria
-- ✅ Module combinations configurable at runtime
-- ✅ No recompilation needed for different physics
-- ✅ Dependency resolution robust and automatic
-- ✅ Configuration validation comprehensive
+- ✅ Module combinations are fully configurable at runtime via the JSON file.
+- ✅ No recompilation is needed to run with different physics modules.
+- ✅ Dependency resolution is robust and automatic.
+- ✅ Configuration validation is comprehensive for both core and module parameters.
 
 ---
 
@@ -486,7 +487,7 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 ### Entry Criteria
 - ✅ All implementation phases complete
 - ✅ Basic testing passing
-- ✅ Documentation framework in place (from Phase 1)
+- ✅ Documentation framework in place from Phase 1
 
 ### Tasks
 

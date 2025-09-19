@@ -9,6 +9,8 @@ __pycache__/
 *$py.class
 code/git_version.h
 .DS_Store
+scrap/
+obsidian-inbox
 
 # Claude Code session data
 .claude/

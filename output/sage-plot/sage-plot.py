@@ -224,9 +224,10 @@ class SAGEParameters:
         
         # Search up from the parameter file directory to find SAGE root
         while current_dir != "/" and current_dir != os.path.dirname(current_dir):
-            if (os.path.exists(os.path.join(current_dir, "Makefile")) and 
+            if ((os.path.exists(os.path.join(current_dir, "CMakeLists.txt")) or
+                 os.path.exists(os.path.join(current_dir, "Makefile"))) and
                 os.path.exists(os.path.join(current_dir, "code")) and
-                (os.path.exists(os.path.join(current_dir, "sage")) or 
+                (os.path.exists(os.path.join(current_dir, "sage")) or
                  os.path.exists(os.path.join(current_dir, "first_run.sh")))):
                 sage_root = current_dir
                 break

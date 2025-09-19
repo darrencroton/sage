@@ -7,7 +7,7 @@
 
 ## ⚠️ CRITICAL ARCHITECTURAL COMPLIANCE
 
-This implementation plan has been restructured to strictly adhere to the **8 Core Architectural Principles** defined in `logs/sage-architecture-vision.md`. Each phase explicitly states which principles it addresses and ensures no violations occur.
+This implementation plan has been restructured to strictly adhere to the **8 Core Architectural Principles** defined in `log/sage-architecture-vision.md`. Each phase explicitly states which principles it addresses and ensures no violations occur.
 
 ### 🎯 Core Architectural Principles
 1. **Physics-Agnostic Core Infrastructure** - Core has zero physics knowledge

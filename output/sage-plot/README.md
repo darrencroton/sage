@@ -22,7 +22,7 @@ This tool provides a single, comprehensive entry point for generating plots from
 
 ```bash
 # Activate virtual environment (if using one)
-source ../../sage-env/bin/activate  # or source plotting-env/bin/activate
+source ../../sage_venv/bin/activate  # or source plotting-env/bin/activate
 
 # Generate all snapshot plots using parameter file
 python sage-plot.py --param-file=/path/to/sage_params.par
@@ -165,7 +165,7 @@ To add a new plot type, follow these steps:
 6. **Test your plot** with the central script:
    ```bash
    # Activate environment first
-   source ../../sage-env/bin/activate
+   source ../../sage_venv/bin/activate
    python sage-plot.py --param-file=params.par --plots=new_plot_type --verbose
    ```
 
@@ -244,7 +244,7 @@ If you used the main SAGE setup script (`../../first_run.sh`), the Python enviro
 
 ```bash
 # From the main SAGE directory
-source sage-env/bin/activate
+source sage_venv/bin/activate
 cd output/sage-plot
 python sage-plot.py --param-file=../../input/millennium.par
 ```
@@ -266,8 +266,8 @@ If you need to set up the plotting environment manually:
 ```bash
 # From the main SAGE directory
 cd ../..
-python3 -m venv sage-env
-source sage-env/bin/activate
+python3 -m venv sage_venv
+source sage_venv/bin/activate
 pip install -r requirements.txt
 cd output/sage-plot
 ```

@@ -158,7 +158,7 @@ make
 
 - `--verbose`: Show debug messages
 - `--quiet`: Show only warnings and errors
-- `--overwrite`: Overwrite existing output files
+- `--skip`: Skip existing output files
 - `--help`: Display help message
 
 ### Parameter File Example

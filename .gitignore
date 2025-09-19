@@ -8,6 +8,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 code/git_version.h
+.DS_Store
 
 # Claude Code session data
 .claude/

@@ -1,14 +1,13 @@
-# SAGE Master Implementation Plan v2.0
-**Version**: 2.0 (Architecturally-Aligned)  
+# SAGE Master Implementation Plan v2.1
+**Version**: 2.1 (Architecturally-Aligned for sage)  
 **Date**: September 2024  
-**Legacy Baseline**: commit ba652705a48b80eae3b6a07675f8c7c938bc1ff6  
-**Current State**: commit 2395ab2 (Property system infrastructure complete)
+**Legacy Baseline**: `sage` codebase
 
 ---
 
 ## ⚠️ CRITICAL ARCHITECTURAL COMPLIANCE
 
-This implementation plan has been restructured to strictly adhere to the **8 Core Architectural Principles** defined in `log/sage-architecture-vision.md`. Each phase explicitly states which principles it addresses and ensures no violations occur.
+This implementation plan has been restructured to strictly adhere to the **8 Core Architectural Principles** defined in `logs/sage-architecture-vision.md`. Each phase explicitly states which principles it addresses and ensures no violations occur.
 
 ### 🎯 Core Architectural Principles
 1. **Physics-Agnostic Core Infrastructure** - Core has zero physics knowledge
@@ -44,15 +43,104 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 
 | Phase | Name | Principles | Duration | Entry Criteria | Exit Criteria |
 |-------|------|------------|----------|----------------|---------------|
-| 1 | Infrastructure Foundation | 6,7,8 | ✅ COMPLETE | Legacy analysis | CMake build, abstractions |
+| 1 | Infrastructure & Modernization Foundation | 6,7 | 3 weeks | `sage` codebase | CMake build, abstraction layers |
 | 2A | Core/Physics Separation | 1,5 | 3 weeks | Phase 1 complete | Physics-agnostic core operational |
 | 2B | Property System Integration | 3,4,8 | 4 weeks | Phase 2A complete | Properties applied in modular context |
-| 3 | Memory Management | 6 | 3 weeks | Phase 2B complete | RAII patterns, bounded memory |
+| 3 | Memory Management | 6 | 3 weeks | Phase 2B complete | Module-aware, bounded memory |
 | 4 | Configuration & Module System | 2 | 4 weeks | Phase 3 complete | Runtime module configuration |
 | 5 | I/O Modernization | 7 | 3 weeks | Phase 4 complete | Property-based, module-aware I/O |
 | 6 | Validation & Polish | All | 2 weeks | Phase 5 complete | Full validation, documentation |
 
-**Total Duration**: ~19 weeks (4.5 months)
+**Total Duration**: ~20 weeks (5 months)
+
+---
+
+## Phase 1: Infrastructure and Modernization Foundation
+
+### Architectural Principles Addressed
+- This phase prepares the ground for all 8 principles by establishing a modern build environment and creating crucial abstraction layers. It directly contributes to **Principle 6 (Memory Safety)** and **Principle 7 (Format-Agnostic I/O)** by creating the necessary interfaces.
+
+### Objectives
+- **Primary**: Replace the legacy Makefile with a modern CMake build system.
+- **Secondary**: Reorganize the codebase into a logical directory structure that anticipates the core/physics split.
+- **Critical**: Create abstraction layers for Memory, Configuration, and I/O to decouple core logic from specific implementations, enabling a smooth, incremental refactoring in later phases.
+
+### Entry Criteria
+- `sage` codebase selected as the starting point.
+- Development environment (C compiler, Git, Python for scripting) is set up.
+
+### Tasks
+
+#### Task 1.1: CMake Build System Setup
+- **Objective**: Replace the existing Makefile with a modern CMake configuration.
+- **Implementation**:
+  - Create a root `CMakeLists.txt` with project configuration (e.g., `project(SAGE)`).
+  - Set up source file discovery and define compilation flags (e.g., `-Wall`, `-g`).
+  - Configure detection for optional dependencies like HDF5 and MPI using `find_package`.
+  - Enable out-of-tree builds to keep the source directory clean.
+- **Testing**: The CMake build produces a binary that is scientifically identical to the one produced by the Makefile.
+- **Documentation**: Update `README.md` with clear, step-by-step instructions for configuring and building the project with CMake.
+- **Effort**: 2 sessions (moderate complexity)
+
+#### Task 1.2: Directory Reorganization
+- **Objective**: Implement a modern project structure to prepare for modularization.
+- **Implementation**:
+  - Create the `src/core`, `src/physics`, `src/io`, and `src/utils` directories.
+  - Use `git mv` to move source files into the appropriate subdirectories.
+    - **core**: `core_*.c`, `main.c`, `globals.h`, `types.h`, etc.
+    - **physics**: `model_*.c` files.
+    - **io**: `io_*.c` files.
+    - **utils**: `util_*.c` files.
+  - Create `docs/` for documentation and `tests/` for future tests.
+- **Testing**: The project builds successfully with the new directory structure. All `#include` paths are updated and correct.
+- **Documentation**: Create a `docs/directory-structure.md` file explaining the layout.
+- **Effort**: 1 session (low complexity)
+
+#### Task 1.3: Memory Management Centralization
+- **Objective**: Centralize all memory allocations through the existing `util_memory.c` system to prepare for module-aware tracking.
+- **Implementation**:
+  - Create a new header `src/core/memory.h` that includes `util_memory.h`.
+  - Perform a codebase-wide replacement of `malloc`, `calloc`, `realloc`, and `free` with the corresponding functions from `util_memory.c` (`mymalloc`, `myrealloc`, `myfree`). Ensure `mycalloc` is implemented if needed.
+  - All memory allocations must go through this centralized system.
+- **Testing**: The code compiles and runs with no new memory errors. Valgrind reports no leaks, and the memory tracking system functions as before.
+- **Effort**: 1 session (low complexity)
+
+#### Task 1.4: Configuration Abstraction Layer
+- **Objective**: Create a unified interface for accessing configuration parameters, decoupling the code from the global `SageConfig` struct.
+- **Implementation**:
+  - Design a `config_manager.h` interface with functions like `config_get_int(param_name)`, `config_get_double(param_name)`, etc.
+  - The initial implementation of this interface will simply read from the populated global `SageConfig` struct.
+  - Replace direct access to `SageConfig` fields throughout the codebase with calls to this new interface.
+- **Testing**: The simulation runs and produces identical results, confirming that all parameters are accessed correctly through the new abstraction layer.
+- **Effort**: 2 sessions (moderate complexity)
+
+#### Task 1.5: I/O Abstraction Layer
+- **Objective**: Create an abstraction layer for tree input and galaxy output to prepare for a unified, format-agnostic I/O system.
+- **Implementation**:
+  - Create a new `io_manager.h` header.
+  - Define a generic `io_manager_t` struct containing function pointers for key I/O operations (e.g., `load_tree_table`, `load_tree`, `save_galaxies`, `finalize_galaxy_files`).
+  - In `main.c`, create an `io_manager_t` instance and initialize its function pointers to point to the existing functions in `io_tree.c` and `io_save_binary.c`/`io_save_hdf5.c`.
+  - Replace direct calls to these I/O functions in the main loop with calls through the `io_manager_t` function pointers.
+- **Testing**: The code compiles and runs, producing identical output files. Both binary and HDF5 I/O function correctly through the abstraction layer.
+- **Effort**: 2 sessions (moderate complexity)
+
+#### Task 1.6: Development and Documentation Infrastructure
+- **Objective**: Establish the foundational documentation structure for the project.
+- **Implementation**:
+  - Create the `docs/` directory.
+  - Create `docs/physics-module-guide.md` as a placeholder for the guide that will be written in Phase 2A.
+  - Create `docs/user-guide.md` as a placeholder for the end-user guide that will be written in Phase 6.
+  - Create a `docs/quick-reference.md` to serve as a central index for all documentation.
+  - Create `docs/testing-guide.md` that describes the sage testing framework, including a unit test template.
+- **Testing**: The directory structure is in place and files are correctly linked.
+- **Effort**: 1 session (low complexity)
+
+### Exit Criteria
+- ✅ The project builds successfully using CMake.
+- ✅ The codebase is organized into the new directory structure.
+- ✅ Abstraction layers for Memory, Configuration, and I/O are in place and used throughout the code.
+- ✅ The simulation produces scientifically identical results to the original `sage` baseline.
+- ✅ The foundational documentation structure is established.
 
 ---
 
@@ -132,17 +220,6 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Testing**: Module dependencies resolved correctly
 - **Effort**: 2 sessions
 
-#### Task 2A.6: Create Physics Module Developer Guide
-- **Objective**: Create a developer guide for the new physics module system
-- **Implementation**:
-  - Create `docs/physics-module-guide.md`
-  - Document the module interface, lifecycle, and best practices
-  - Provide a tutorial for creating new modules using wrapped legacy physics as examples
-  - Update `docs/quick-reference.md` to link to the new guide for discoverability
-- **Principles**: Principle 1 (Physics-Agnostic Core), Principle 2 (Runtime Modularity)
-- **Testing**: Documentation review for clarity and accuracy
-- **Effort**: 1 session (low complexity)
-
 ### Exit Criteria
 - ✅ Core compiles and runs without physics modules loaded
 - ✅ Physics modules wrapped in interface, calculations unchanged
@@ -173,7 +250,7 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 ### Entry Criteria
 - ✅ Core/physics separation complete (Phase 2A)
 - ✅ Physics modules use interface, not direct coupling
-- ✅ Property system infrastructure ready (Tasks 2.1-2.2)
+- ✅ Property system infrastructure ready (Tasks 2.1-2.2 from original plan, now assumed complete)
 
 ### Tasks
 
@@ -238,7 +315,7 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 ### Objectives
 - **Primary**: Adapt and enhance the existing `util_memory.c` system to be fully module-aware.
 - **Secondary**: Ensure memory usage is bounded and predictable within the new modular architecture.
-- **Foundation**: Leverage the robust memory tracking of `sage-vanilla` to build a safe, modular memory environment.
+- **Foundation**: Leverage the robust memory tracking of `sage` to build a safe, modular memory environment.
 
 ### Entry Criteria
 - ✅ Modular architecture established (Phase 2A complete)
@@ -348,7 +425,7 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Principle 7**: Format-Agnostic I/O ⭐ **PRIMARY**
 
 ### Objectives
-- **Primary**: Replace the direct file I/O functions in `sage-vanilla` with a new, unified, module-aware I/O system.
+- **Primary**: Replace the direct file I/O functions in `sage` with a new, unified, module-aware I/O system.
 - **Secondary**: Create a single, format-agnostic interface for all tree input and galaxy output.
 - **Foundation**: The I/O system will adapt automatically to the properties made available by loaded modules.
 
@@ -406,6 +483,11 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Secondary**: Performance optimization and documentation
 - **Foundation**: System ready for production use
 
+### Entry Criteria
+- ✅ All implementation phases complete
+- ✅ Basic testing passing
+- ✅ Documentation framework in place (from Phase 1)
+
 ### Tasks
 
 #### Task 6.1: Scientific Validation Suite
@@ -440,16 +522,6 @@ This Master Implementation Plan guides the transformation of SAGE from a monolit
 - **Principles**: Maintain performance while achieving modularity
 - **Testing**: Performance within 10% of legacy
 - **Effort**: 2 sessions
-
-#### Task 6.4: Create End-User Scientific Guide
-- **Objective**: Create comprehensive end-user documentation for the scientific application of SAGE, covering the full workflow from configuration to output analysis.
-- **Implementation**:
-  - Create `docs/user-guide.md` targeted at scientists and researchers.
-  - Include a quick-start tutorial, a user-friendly parameter reference, and examples for running SAGE in different configurations (serial, MPI, modules).
-  - Document the HDF5 output format and provide common scientific use cases.
-- **Principles**: Principle 2 (Runtime Modularity), Principle 7 (Format-Agnostic I/O).
-- **Testing**: Documentation review for clarity and accuracy. Verify all examples and tutorials are correct and functional.
-- **Effort**: 2 sessions (moderate complexity).
 
 ### Exit Criteria
 - ✅ All 8 architectural principles fully validated

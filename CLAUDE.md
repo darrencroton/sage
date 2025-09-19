@@ -158,5 +158,6 @@ Follow the documentation template in `docs/doc_standards.md`:
 - Never simplify tests - failing tests indicate real problems
 - Use logs for continuity - assume no persistent memory
 - Report progress in `log/progress.md` with all changed files
+- Documentation-as-you-go always
 - Ask before committing to git
-- Archive files to `scrap/` instead of deleting
+- Never delete! Archive to `scrap/` instead

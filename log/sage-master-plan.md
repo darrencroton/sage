@@ -132,17 +132,26 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Objective**: Establish the foundational documentation structure for the project.
 - **Implementation**:
   - Create the `docs/` directory.
-  - Create `docs/physics-module-guide.md` as a placeholder for the guide that will be written in Phase 2A.
-  - Create `docs/user-guide.md` as a placeholder for the end-user guide that will be written in Phase 6.
+  - Create `docs/physics-module-guide.md` as a placeholder to be fully written in Phase 2A.
+  - Create `docs/user-guide.md` as a placeholder to be written iteratively and finalized in Phase 6.
   - Create a `docs/quick-reference.md` to serve as a central index for all documentation.
-  - Create `docs/testing-guide.md` that describes the sage testing framework, including a unit test template.
 - **Testing**: The directory structure is in place and files are correctly linked.
 - **Effort**: 1 session (low complexity)
+
+#### Task 1.7: Testing and Automation Framework (NEW)
+- **Objective**: Establish a modern, automated testing and integration framework.
+- **Implementation**:
+  - **Unit Testing**: Integrate CTest with the CMake build system. Create a `tests/` directory and implement initial unit tests for a utility function (e.g., `util_numeric.c`) to establish the testing pattern.
+  - **Continuous Integration (CI)**: Create a `.github/workflows/ci.yml` file to set up a GitHub Actions workflow. This workflow will trigger on every push, build the project using CMake, and run all CTest unit tests.
+- **Testing**: Pushing a commit to the GitHub repository successfully triggers the CI workflow, which compiles the code and runs the tests.
+- **Documentation**: Create `docs/testing-guide.md` that describes the SAGE testing framework, including a unit test template and instructions for adding new tests.
+- **Effort**: 2 sessions (moderate complexity)
 
 ### Exit Criteria
 - ✅ The project builds successfully using CMake.
 - ✅ The codebase is organized into the new directory structure.
 - ✅ Abstraction layers for Memory, Configuration, and I/O are in place and used throughout the code.
+- ✅ A unit testing framework is in place and integrated with a CI pipeline.
 - ✅ The simulation produces scientifically identical results to the original `sage` baseline.
 - ✅ The foundational documentation structure is established.
 
@@ -224,12 +233,23 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Testing**: Module dependencies resolved correctly
 - **Effort**: 2 sessions
 
+#### Task 2A.6: Write Physics Module Developer Guide (NEW)
+- **Objective**: Document the new module system for future developers.
+- **Implementation**:
+  - Fully write the `docs/physics-module-guide.md` based on the final implementation from this phase.
+  - Document the module lifecycle, the `physics_module_t` interface, and best practices for creating new modules.
+  - Provide a step-by-step tutorial for creating a new module, using the wrapped legacy modules as examples.
+  - Update `docs/quick-reference.md` to link to the new guide.
+- **Testing**: A developer can follow the guide to create a simple, new physics module.
+- **Effort**: 1 session
+
 ### Exit Criteria
 - ✅ Core compiles and runs without physics modules loaded
 - ✅ Physics modules wrapped in interface, calculations unchanged
 - ✅ Module interface enables conditional physics execution  
 - ✅ Physics-free mode processes merger trees successfully
 - ✅ All existing tests pass with wrapped physics modules
+- ✅ The physics module developer guide is complete.
 
 ### Validation
 - **Architecture Compliance**: Core has zero physics knowledge
@@ -603,7 +623,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Architecture First**: No shortcuts that violate principles
 - **Scientific Rigor**: Results must match legacy when configuration identical
 - **Performance Aware**: Modular architecture shouldn't sacrifice performance
-- **Documentation**: Principle compliance and usage clearly documented
+- **Documentation-as-you-go**: Documentation for new components is written in the phase they are created.
 
 ---
 

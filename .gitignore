@@ -13,4 +13,4 @@ code/git_version.h
 .claude/
 
 # Python virtual environment
-sage-env/
+sage_venv/

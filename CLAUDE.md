@@ -11,7 +11,7 @@ For new repository clones, use the automated setup script:
 ./first_run.sh
 
 # This creates directories, downloads data, sets up Python environment
-# Creates sage-env/ virtual environment with plotting dependencies
+# Creates sage_venv/ virtual environment with plotting dependencies
 ```
 
 ## Build Commands
@@ -62,7 +62,7 @@ make tidy
 
 ```bash
 # Test the plotting system (activate virtual environment first)
-source sage-env/bin/activate
+source sage_venv/bin/activate
 cd output/sage-plot
 ./test_plotting.sh
 

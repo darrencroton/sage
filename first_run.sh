@@ -147,7 +147,7 @@ if [[ ! -f "requirements.txt" ]]; then
     exit 1
 fi
 
-VENV_DIR="sage-env"
+VENV_DIR="sage_venv"
 
 # Check if virtual environment already exists
 if [[ -d "$VENV_DIR" ]]; then
@@ -318,14 +318,14 @@ echo "2. Run SAGE:"
 echo "   ./sage input/millennium.par"
 echo ""
 echo "3. Generate plots (using the virtual environment):"
-echo "   source sage-env/bin/activate"
+echo "   source sage_venv/bin/activate"
 echo "   cd output/sage-plot"
 echo "   python sage-plot.py --param-file=../../input/millennium.par"
 echo "   deactivate  # when done with plotting"
 echo ""
 echo "Virtual Environment Info:"
-echo "- Python packages are installed in: sage-env/"
-echo "- Activate with: source sage-env/bin/activate"
+echo "- Python packages are installed in: sage_venv/"
+echo "- Activate with: source sage_venv/bin/activate"
 echo "- Deactivate with: deactivate"
 echo "- Always activate before running plotting scripts"
 echo ""

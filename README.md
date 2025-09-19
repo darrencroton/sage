@@ -37,7 +37,7 @@ make
 ./sage input/millennium.par
 
 # Generate plots (using virtual environment)
-source sage-env/bin/activate
+source sage_venv/bin/activate
 cd output/sage-plot
 python sage-plot.py --param-file=../../input/millennium.par
 deactivate
@@ -46,7 +46,7 @@ deactivate
 The `first_run.sh` script will automatically:
 - Create necessary directories (`input/data/millennium`, `output/results/millennium`)
 - Download the mini-Millennium simulation trees
-- Set up a Python virtual environment (`sage-env`) with plotting dependencies
+- Set up a Python virtual environment (`sage_venv`) with plotting dependencies
 - Configure the parameter file with correct paths
 
 ## Installation
@@ -107,8 +107,8 @@ Install required Python packages for plotting using the provided `requirements.t
 
 **Option 1 (Recommended): Use a virtual environment:**
 ```bash
-python3 -m venv sage-env
-source sage-env/bin/activate
+python3 -m venv sage_venv
+source sage_venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -283,7 +283,7 @@ For detailed usage instructions, see the [sage-plot README](output/sage-plot/REA
 Basic usage:
 ```bash
 # Activate the virtual environment first
-source sage-env/bin/activate
+source sage_venv/bin/activate
 
 # Generate all plots
 cd output/sage-plot

@@ -1,7 +1,6 @@
 sage
 input/data
 output/results
-ignore/
 *.o
 *.*~
 __pycache__/

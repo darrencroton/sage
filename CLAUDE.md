@@ -17,20 +17,29 @@ For new repository clones, use the automated setup script:
 ## Build Commands
 
 ```bash
-# Basic compilation
-make
+# Out-of-tree build (recommended)
+mkdir build
+cd build
+cmake .. && make -j$(nproc)
+cd ..  # Always return to source directory
 
-# With HDF5 support for HDF5 tree format
-make USE-HDF5=yes
+# Or single command alternative
+mkdir build && cd build && cmake --build . --parallel $(nproc) && cd ..
 
-# With MPI support for parallel processing
-make USE-MPI=yes
+# With optional dependencies
+cd build
+cmake .. -DUSE_HDF5=ON -DUSE_MPI=ON
+make -j$(nproc)
+cd ..  # Return to source directory
 
-# Clean build artifacts
-make clean
+# Clean and rebuild
+cd build && make clean && make -j$(nproc) && cd ..
 
-# Remove object files but keep executable
-make tidy
+# Different build types
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release  # Optimized build
+cmake .. -DCMAKE_BUILD_TYPE=Debug    # Debug build (default)
+make -j$(nproc) && cd ..
 ```
 
 ## Code Formatting
@@ -48,14 +57,17 @@ make tidy
 
 ## Running SAGE
 
+**IMPORTANT**: SAGE must always be run from the source directory where parameter files expect relative paths.
+
 ```bash
-# Basic execution
+# SAGE executable is automatically moved to source directory after CMake build
 ./sage input/millennium.par
 
 # With command-line options
 ./sage --verbose input/millennium.par
 ./sage --quiet input/millennium.par
 ./sage --skip input/millennium.par
+
 ```
 
 ## Testing

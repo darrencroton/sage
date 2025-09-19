@@ -14,7 +14,7 @@
 
 *Recent critical decisions - historical decisions archived in `archive/decisions-phase*.md`*
 
-2025-XX-XX: [Phase 1.X] Decision Title Example
-- **Decision**: Brief description of the decision made
-- **Rationale**: Why this decision was made (technical/scientific reasons)
-- **Impact**: Effect on current and future development
+2025-09-19: [Phase 1.1] CMake Executable Placement Strategy
+- **Decision**: Move compiled executable to source directory rather than implementing complex path resolution
+- **Rationale**: SAGE parameter files contain relative paths expecting execution from source directory; moving executable maintains compatibility without code changes
+- **Impact**: Preserves scientific accuracy, eliminates path configuration complexity, enables immediate user adoption of CMake build system

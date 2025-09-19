@@ -62,17 +62,49 @@ The `first_run.sh` script will automatically:
 
 ### Building SAGE
 
+SAGE uses a modern CMake build system with automatic dependency detection, out-of-tree builds, and cross-platform compatibility:
+
 ```bash
 # Clone the repository
 git clone https://github.com/darrencroton/sage.git
 cd sage
 
-# Basic compilation
-make
+# Configure and build (out-of-tree build)
+mkdir build
+cd build
+cmake .. && make -j$(nproc)
+cd ..  # Return to source directory
 
-# With HDF5 support (optional)
-make USE-HDF5=yes
+# Or single command alternative
+mkdir build && cd build && cmake --build . --parallel $(nproc) && cd ..
+
+# Or configure with optional dependencies
+cd build
+cmake .. -DUSE_HDF5=ON         # Enable HDF5 support
+cmake .. -DUSE_MPI=ON          # Enable MPI support
+cmake .. -DUSE_HDF5=ON -DUSE_MPI=ON  # Enable both
+make -j$(nproc) && cd ..
+
+# SAGE executable is automatically moved to source directory
+# Always run SAGE from the source directory (parameter files contain relative paths):
+./sage input/millennium.par
 ```
+
+#### Build Configuration Options
+
+**CMake Build Types:**
+- `Debug` (default): `-g -O0 -Wall` for development and debugging
+- `Release`: `-O3 -DNDEBUG -Wall` for optimized production builds
+
+```bash
+# Configure for release build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
+**Dependency Requirements:**
+- **HDF5**: Required for HDF5 tree format support (Genesis format)
+- **MPI**: Required for parallel processing across multiple files
+- **Git**: Automatically detected for version tracking in builds
 
 ### Manual Setup (Alternative to first_run.sh)
 

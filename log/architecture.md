@@ -154,20 +154,21 @@ Current I/O supports multiple formats but lacks abstraction:
 - **Needs unified interface**
 
 ## Build System
-Traditional Makefile-based build:
-- Monolithic compilation
-- Optional HDF5/MPI support
-- No modular compilation support
-- **Ready for CMake modernization**
+Modern CMake-based build:
+- Out-of-tree compilation with clean source/build separation
+- Automatic dependency detection (HDF5/MPI)
+- Cross-platform compatibility and modern standards
+- Git version tracking integrated
+- **Ready for modular compilation support**
 
 ## Current Development Status
 
-**Legacy Architecture State:**
+**Current Architecture State:**
 1. **Monolithic Structure**: All physics directly coupled to core
 2. **Direct Data Access**: Galaxy properties accessed via direct struct members
 3. **Hardcoded Physics**: Core cannot run without physics modules
 4. **Limited Modularity**: No runtime configuration capability
-5. **Legacy Build**: Makefile-based with limited flexibility
+5. **Modern Build**: CMake-based with dependency detection and out-of-tree builds
 
 **Immediate Violations to Address:**
 - `core_build_model.c` includes all physics headers directly
@@ -178,7 +179,7 @@ Traditional Makefile-based build:
 ## Required Architectural Transformation
 
 **Phase 1 Goals** (Infrastructure Foundation):
-- CMake build system replacing Makefile
+- ✅ CMake build system replacing Makefile
 - Directory reorganization preparing for modularization
 - Abstraction layers for Memory, Configuration, I/O
 

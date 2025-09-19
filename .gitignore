@@ -10,6 +10,7 @@ code/git_version.h
 .DS_Store
 scrap/
 obsidian-inbox
+build/
 
 # Claude Code session data
 .claude/

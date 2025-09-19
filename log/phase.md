@@ -23,13 +23,13 @@
 
 ## Current Progress
 
-### Task 1.1: CMake Build System Setup
-- [ ] Create root `CMakeLists.txt` with project configuration
-- [ ] Set up source file discovery and compilation flags
-- [ ] Configure detection for optional dependencies (HDF5, MPI)
-- [ ] Enable out-of-tree builds
-- [ ] Test CMake build produces scientifically identical binary to Makefile
-- [ ] Update `README.md` with CMake build instructions
+### Task 1.1: CMake Build System Setup ✅ COMPLETE
+- [x] Create root `CMakeLists.txt` with project configuration
+- [x] Set up source file discovery and compilation flags
+- [x] Configure detection for optional dependencies (HDF5, MPI)
+- [x] Enable out-of-tree builds
+- [x] Test CMake build produces scientifically identical binary to Makefile
+- [x] Update `README.md` with CMake build instructions
 
 ### Task 1.2: Directory Reorganization
 - [ ] Create `src/core`, `src/physics`, `src/io`, `src/utils` directories
@@ -80,7 +80,7 @@
 - Simulation produces scientifically identical results to original baseline
 - Foundational documentation structure established
 
-**Phase 1 Status**: 0/7 tasks started
+**Phase 1 Status**: 1/7 tasks complete
 
 ## Validation Requirements
 - **Build System**: CMake produces identical binary to Makefile

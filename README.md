@@ -38,8 +38,7 @@ make
 
 # Generate plots (using virtual environment)
 source sage_venv/bin/activate
-cd output/sage-plot
-python sage-plot.py --param-file=../../input/millennium.par
+python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par
 deactivate
 ```
 

@@ -26,11 +26,11 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
+#include "../core/core_allvars.h"
+#include "../core/core_proto.h"
 #include "io_save_binary.h"
 #include "io_util.h"
-#include "util_error.h"
+#include "../utils/util_error.h"
 
 #define TREE_MUL_FAC (1000000000LL)
 #define FILENR_MUL_FAC (1000000000000000LL)

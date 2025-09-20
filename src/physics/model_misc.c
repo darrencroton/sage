@@ -25,8 +25,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
+#include "../core/core_allvars.h"
+#include "../core/core_proto.h"
 
 /**
  * @brief   Initializes a new galaxy with default properties

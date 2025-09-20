@@ -19,58 +19,58 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type" FORCE)
 endif()
 
-# Source files - core compilation units from Makefile OBJS
+# Source files - reorganized into logical directory structure
 set(SAGE_CORE_SOURCES
-    code/main.c
-    code/util_parameters.c
-    code/util_error.c
-    code/util_integration.c
-    code/util_numeric.c
-    code/util_version.c
-    code/io_util.c
-    code/core_read_parameter_file.c
-    code/core_init.c
-    code/io_tree.c
-    code/core_cool_func.c
-    code/core_build_model.c
-    code/io_save_binary.c
-    code/util_memory.c
-    code/core_allvars.c
-    code/core_simulation_state.c
-    code/model_infall.c
-    code/model_cooling_heating.c
-    code/model_starformation_and_feedback.c
-    code/model_disk_instability.c
-    code/model_reincorporation.c
-    code/model_mergers.c
-    code/model_misc.c
-    code/io_tree_binary.c
+    src/core/main.c
+    src/utils/util_parameters.c
+    src/utils/util_error.c
+    src/utils/util_integration.c
+    src/utils/util_numeric.c
+    src/utils/util_version.c
+    src/io/io_util.c
+    src/core/core_read_parameter_file.c
+    src/core/core_init.c
+    src/io/io_tree.c
+    src/core/core_cool_func.c
+    src/core/core_build_model.c
+    src/io/io_save_binary.c
+    src/utils/util_memory.c
+    src/core/core_allvars.c
+    src/core/core_simulation_state.c
+    src/physics/model_infall.c
+    src/physics/model_cooling_heating.c
+    src/physics/model_starformation_and_feedback.c
+    src/physics/model_disk_instability.c
+    src/physics/model_reincorporation.c
+    src/physics/model_mergers.c
+    src/physics/model_misc.c
+    src/io/io_tree_binary.c
 )
 
-# Header files - from Makefile INCL
+# Header files - reorganized into logical directory structure
 set(SAGE_HEADERS
-    code/core_allvars.h
-    code/io_tree.h
-    code/io_save_binary.h
-    code/util_memory.h
-    code/util_integration.h
-    code/util_numeric.h
-    code/util_version.h
-    code/io_util.h
-    code/core_proto.h
-    code/core_simulation.h
-    code/util_parameters.h
-    code/util_error.h
-    code/config.h
-    code/constants.h
-    code/globals.h
-    code/types.h
-    code/io_tree_binary.h
+    src/core/core_allvars.h
+    src/io/io_tree.h
+    src/io/io_save_binary.h
+    src/utils/util_memory.h
+    src/utils/util_integration.h
+    src/utils/util_numeric.h
+    src/utils/util_version.h
+    src/io/io_util.h
+    src/core/core_proto.h
+    src/core/core_simulation.h
+    src/utils/util_parameters.h
+    src/utils/util_error.h
+    src/core/config.h
+    src/core/constants.h
+    src/core/globals.h
+    src/core/types.h
+    src/io/io_tree_binary.h
 )
 
 # Git version tracking - replaces Makefile git version generation
-set(GIT_VERSION_IN "${CMAKE_SOURCE_DIR}/code/git_version.h.in")
-set(GIT_VERSION_H "${CMAKE_SOURCE_DIR}/code/git_version.h")
+set(GIT_VERSION_IN "${CMAKE_SOURCE_DIR}/src/core/git_version.h.in")
+set(GIT_VERSION_H "${CMAKE_SOURCE_DIR}/src/core/git_version.h")
 
 # Generate git version header
 find_package(Git QUIET)
@@ -125,11 +125,11 @@ if(USE_HDF5)
         add_compile_definitions(HDF5)
         # Add HDF5-specific sources (from Makefile conditional OBJS)
         list(APPEND SAGE_CORE_SOURCES
-            code/io_tree_hdf5.c
-            code/io_save_hdf5.c)
+            src/io/io_tree_hdf5.c
+            src/io/io_save_hdf5.c)
         list(APPEND SAGE_HEADERS
-            code/io_tree_hdf5.h
-            code/io_save_hdf5.h)
+            src/io/io_tree_hdf5.h
+            src/io/io_save_hdf5.h)
         message(STATUS "HDF5 support enabled")
         message(STATUS "HDF5 version: ${HDF5_VERSION}")
         message(STATUS "HDF5 libraries: ${HDF5_C_LIBRARIES}")
@@ -166,8 +166,8 @@ if(USE_HDF5 AND HDF5_FOUND)
     target_compile_definitions(sage PRIVATE ${HDF5_C_DEFINITIONS})
 endif()
 
-# Include directories
-target_include_directories(sage PRIVATE code)
+# Include directories - updated for new structure
+target_include_directories(sage PRIVATE src/core src/io src/physics src/utils)
 
 # Ensure git version header is treated as dependency
 add_custom_target(git_version_header ALL

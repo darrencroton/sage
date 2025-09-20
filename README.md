@@ -28,10 +28,10 @@ git clone https://github.com/darrencroton/sage.git
 cd sage
 
 # Run the automated setup script
-./first_run.sh
+./src/scripts/first_run.sh
 
-# Compile SAGE
-make
+# Compile SAGE using CMake
+mkdir build && cd build && cmake .. && make -j$(nproc) && cd ..
 
 # Run SAGE with the mini-Millennium simulation
 ./sage input/millennium.par
@@ -42,7 +42,7 @@ python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par
 deactivate
 ```
 
-The `first_run.sh` script will automatically:
+The `src/scripts/first_run.sh` script will automatically:
 - Create necessary directories (`input/data/millennium`, `output/results/millennium`)
 - Download the mini-Millennium simulation trees
 - Set up a Python virtual environment (`sage_venv`) with plotting dependencies
@@ -105,7 +105,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 - **MPI**: Required for parallel processing across multiple files
 - **Git**: Automatically detected for version tracking in builds
 
-### Manual Setup (Alternative to first_run.sh)
+### Manual Setup (Alternative to src/scripts/first_run.sh)
 
 If you prefer to set up SAGE manually or the automated script doesn't work for your system:
 
@@ -288,16 +288,16 @@ SAGE includes a code formatting script to maintain consistent coding style:
 
 ```bash
 # Format all code (C and Python)
-./beautify.sh
+./src/scripts/beautify.sh
 
 # Format only C code
-./beautify.sh --c-only
+./src/scripts/beautify.sh --c-only
 
 # Format only Python code
-./beautify.sh --py-only
+./src/scripts/beautify.sh --py-only
 
 # See more options
-./beautify.sh --help
+./src/scripts/beautify.sh --help
 ```
 
 ## Visualization System
@@ -329,7 +329,7 @@ deactivate
 
 ## Sample Data
 
-For testing purposes, treefiles for the [mini-Millennium Simulation](http://arxiv.org/abs/astro-ph/0504097) are automatically downloaded and configured by the `first_run.sh` script. You can also manually download them from [here](https://data-portal.hpc.swin.edu.au/dataset/mini-millennium-simulation).
+For testing purposes, treefiles for the [mini-Millennium Simulation](http://arxiv.org/abs/astro-ph/0504097) are automatically downloaded and configured by the `src/scripts/first_run.sh` script. You can also manually download them from [here](https://data-portal.hpc.swin.edu.au/dataset/mini-millennium-simulation).
 
 ## Citations
 

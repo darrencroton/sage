@@ -29,11 +29,11 @@
 #include <string.h>
 #include <time.h>
 
-#include "config.h"
-#include "core_proto.h"
-#include "globals.h"
-#include "types.h"
-#include "util_numeric.h"
+#include "../core/config.h"
+#include "../core/core_proto.h"
+#include "../core/globals.h"
+#include "../core/types.h"
+#include "../utils/util_numeric.h"
 
 /**
  * @brief   Implements star formation and feedback processes for a galaxy

@@ -6,7 +6,7 @@ output/results
 __pycache__/
 *.py[cod]
 *$py.class
-code/git_version.h
+git_version.*
 .DS_Store
 scrap/
 obsidian-inbox

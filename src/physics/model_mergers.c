@@ -31,9 +31,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
-#include "util_numeric.h"
+#include "../core/core_allvars.h"
+#include "../core/core_proto.h"
+#include "../utils/util_numeric.h"
 
 /**
  * @brief   Estimates the dynamical friction timescale for satellite galaxies

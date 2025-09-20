@@ -28,9 +28,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_proto.h"
+#include "../core/core_proto.h"
 #include "io_save_hdf5.h"
-#include "util_error.h"
+#include "../utils/util_error.h"
 
 #define TRUE 1
 #define FALSE 0

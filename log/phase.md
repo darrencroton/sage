@@ -11,6 +11,16 @@
 
 # Current Phase: 1/6 (Infrastructure Foundation) - Preparing for Modularization
 
+## 🟢 Current Task in Progress
+#### Task 1.3: Memory Management Centralization
+- **Objective**: Centralize all memory allocations through the existing `util_memory.c` system to prepare for module-aware tracking.
+- **Implementation**:
+  - Create a new header `src/core/memory.h` that includes `util_memory.h`.
+  - Perform a codebase-wide replacement of `malloc`, `calloc`, `realloc`, and `free` with the corresponding functions from `util_memory.c` (`mymalloc`, `myrealloc`, `myfree`). Ensure `mycalloc` is implemented if needed.
+  - All memory allocations must go through this centralized system.
+- **Testing**: The code compiles and runs with no new memory errors. Valgrind reports no leaks, and the memory tracking system functions as before.
+- **Effort**: 1 session (low complexity)
+
 ## 🎯 Architectural Principles Addressed
 - **Principle 6**: Memory Efficiency and Safety (preparation)
 - **Principle 7**: Format-Agnostic I/O (preparation)
@@ -31,13 +41,15 @@
 - [x] Test CMake build produces scientifically identical binary to Makefile
 - [x] Update `README.md` with CMake build instructions
 
-### Task 1.2: Directory Reorganization
-- [ ] Create `src/core`, `src/physics`, `src/io`, `src/utils` directories
-- [ ] Use `git mv` to move source files into appropriate subdirectories
-- [ ] Update all `#include` paths for new directory structure
-- [ ] Create `docs/` and `tests/` directories
-- [ ] Test project builds successfully with new structure
-- [ ] Create `docs/directory-structure.md` explaining layout
+### Task 1.2: Directory Reorganization ✅ COMPLETE
+- [x] Create `src/core`, `src/physics`, `src/io`, `src/utils` directories
+- [x] Use `git mv` to move source files into appropriate subdirectories
+- [x] Update all `#include` paths for new directory structure
+- [x] Create `docs/` and `tests/` directories
+- [x] Test project builds successfully with new structure
+- [x] Create `docs/directory-structure.md` explaining layout
+- [x] Update plotting system path resolution for new structure
+- [x] Update all documentation (README.md, CLAUDE.md, docs/) for new paths
 
 ### Task 1.3: Memory Management Centralization
 - [ ] Create `src/core/memory.h` that includes `util_memory.h`
@@ -80,7 +92,7 @@
 - Simulation produces scientifically identical results to original baseline
 - Foundational documentation structure established
 
-**Phase 1 Status**: 1/7 tasks complete
+**Phase 1 Status**: 2/7 tasks complete
 
 ## Validation Requirements
 - **Build System**: CMake produces identical binary to Makefile

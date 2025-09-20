@@ -28,14 +28,14 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "config.h"
-#include "core_proto.h"
-#include "globals.h"
+#include "../core/config.h"
+#include "../core/core_proto.h"
+#include "../core/globals.h"
 #include "io_tree.h"
 #include "io_tree_binary.h"
 #include "io_util.h"
-#include "types.h"
-#include "util_error.h"
+#include "../core/types.h"
+#include "../utils/util_error.h"
 
 // Local Variables //
 

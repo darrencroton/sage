@@ -11,15 +11,28 @@
 ## Directory Structure
 ```
 sage/
-├── code/                     # Monolithic legacy structure
-│   ├── core_*.c/.h          # Core infrastructure components
-│   ├── model_*.c/.h         # Physics implementations
-│   ├── io_*.c/.h            # Input/output handlers
-│   ├── util_*.c/.h          # Utility functions
-│   └── types.h              # Central data structures
+├── src/                      # Modern modular structure (NEW - Task 1.2 Complete)
+│   ├── core/                # Core infrastructure and coordination
+│   │   ├── auxdata/         # Auxiliary data (CoolFunctions moved from extra/)
+│   │   ├── main.c           # Program entry point
+│   │   ├── core_*.c/.h      # Core infrastructure components
+│   │   ├── globals.h        # Global declarations
+│   │   ├── types.h          # Central data structures
+│   │   └── config.h         # Compile-time configuration
+│   ├── physics/             # Physical process implementations
+│   │   └── model_*.c        # Physics model files
+│   ├── io/                  # Input/output operations
+│   │   ├── io_*.c/.h        # I/O handlers
+│   │   └── format support   # Binary, HDF5 formats
+│   ├── utils/               # Utility functions and system management
+│   │   └── util_*.c/.h      # Utility functions
+│   └── scripts/             # Build and utility scripts
+│       ├── beautify.sh      # Code formatting
+│       └── first_run.sh     # Environment setup
 ├── input/                   # Input parameter files
 ├── output/                  # Output files and plotting system
 ├── docs/                    # Documentation
+├── tests/                   # Testing framework (NEW)
 └── log/                     # Project tracking logs
 ```
 
@@ -164,14 +177,19 @@ Modern CMake-based build:
 ## Current Development Status
 
 **Current Architecture State:**
-1. **Monolithic Structure**: All physics directly coupled to core
+1. ✅ **Modern Directory Structure**: Completed Task 1.2 - organized into logical src/ subdirectories
 2. **Direct Data Access**: Galaxy properties accessed via direct struct members
 3. **Hardcoded Physics**: Core cannot run without physics modules
 4. **Limited Modularity**: No runtime configuration capability
-5. **Modern Build**: CMake-based with dependency detection and out-of-tree builds
+5. ✅ **Modern Build**: CMake-based with dependency detection and out-of-tree builds
 
-**Immediate Violations to Address:**
-- `core_build_model.c` includes all physics headers directly
+**Phase 1 Progress (Infrastructure Foundation):**
+- ✅ **Task 1.1**: CMake build system operational
+- ✅ **Task 1.2**: Directory reorganization complete - src/core, src/physics, src/io, src/utils structure
+- **Tasks 1.3-1.7**: Memory management, Configuration, I/O abstraction, Testing framework
+
+**Immediate Violations to Address in Phase 2A:**
+- `src/core/core_build_model.c` includes all physics headers directly
 - Core makes direct physics function calls
 - No physics-agnostic mode possible
 - Fixed galaxy structure regardless of physics needs

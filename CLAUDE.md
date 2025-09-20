@@ -8,7 +8,7 @@ For new repository clones, use the automated setup script:
 
 ```bash
 # Complete setup from fresh clone
-./first_run.sh
+./src/scripts/first_run.sh
 
 # This creates directories, downloads data, sets up Python environment
 # Creates sage_venv/ virtual environment with plotting dependencies
@@ -46,13 +46,13 @@ make -j$(nproc) && cd ..
 
 ```bash
 # Format all C and Python code
-./beautify.sh
+./src/scripts/beautify.sh
 
 # Format only C code (requires clang-format)
-./beautify.sh --c-only
+./src/scripts/beautify.sh --c-only
 
 # Format only Python code (requires black and isort)
-./beautify.sh --py-only
+./src/scripts/beautify.sh --py-only
 ```
 
 ## Running SAGE
@@ -87,13 +87,25 @@ deactivate
 
 ## Code Architecture
 
-### Core Execution Flow
+SAGE follows a modern, modular directory structure that organizes source code by functionality:
+
+```
+src/
+├── core/           # Core infrastructure and coordination
+├── physics/        # Physical process implementations
+├── io/            # Input/output operations
+├── utils/         # Utility functions and system management
+└── scripts/       # Build and utility scripts
+```
+
+### Core Infrastructure (src/core/)
 - **main.c**: Program entry point, handles initialization, file processing loop, and cleanup
 - **core_init.c**: System initialization, memory setup, parameter validation
 - **core_read_parameter_file.c**: Parameter file parsing and configuration setup
 - **core_build_model.c**: Galaxy construction and evolution coordination
+- **auxdata/CoolFunctions/**: Cooling function lookup tables
 
-### Physical Models (model_*.c files)
+### Physical Models (src/physics/)
 - **model_cooling_heating.c**: Gas cooling and heating processes
 - **model_starformation_and_feedback.c**: Star formation and supernova feedback
 - **model_mergers.c**: Galaxy merger handling and black hole growth
@@ -102,25 +114,29 @@ deactivate
 - **model_disk_instability.c**: Disk instability and bulge formation
 - **model_misc.c**: Miscellaneous processes (stripping, disruption)
 
-### I/O System
+### I/O System (src/io/)
 - **io_tree.c**: Master tree loading interface
 - **io_tree_binary.c**: Binary format tree reader (LHalo format)
 - **io_tree_hdf5.c**: HDF5 format tree reader (Genesis format)
 - **io_save_binary.c**: Binary output format writer
 - **io_save_hdf5.c**: HDF5 output format writer
 
-### Utilities
+### Utilities (src/utils/)
 - **util_memory.c**: Custom memory management with leak detection and categorization
 - **util_error.c**: Comprehensive error handling and logging system
 - **util_numeric.c**: Numerical stability functions and safe math operations
 - **util_parameters.c**: Parameter processing and validation
 - **util_integration.c**: Numerical integration routines
 
-### Data Structures
+### Data Structures (src/core/)
 - **types.h**: Core data structures including `struct GALAXY`, `struct SageConfig`, and `struct GALAXY_OUTPUT`
 - **globals.h**: Global variable declarations and simulation state
 - **constants.h**: Physical constants and numerical parameters
 - **config.h**: Compile-time configuration options
+
+### Scripts (src/scripts/)
+- **beautify.sh**: Code formatting script (clang-format + black)
+- **first_run.sh**: Automated setup script for new repository clones
 
 ### Key Design Patterns
 1. **Modular Physics**: Each physical process is isolated in its own module with clear interfaces
@@ -168,6 +184,7 @@ Follow the documentation template in `docs/doc_standards.md`:
 - All work to highest professional coding standards
 - Debug with lldb using a command file (must end with "quit"): `lldb --batch -s debug_commands.txt ./sage`
 - Never simplify tests - failing tests indicate real problems
+- When running sage always check the exit code for success or failure
 - Use logs for continuity - assume no persistent memory
 - Report progress in `log/progress.md` with all changed files
 - Documentation-as-you-go always

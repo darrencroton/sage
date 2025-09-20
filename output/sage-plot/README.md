@@ -240,7 +240,7 @@ The plotting system is organized around these key components:
 
 ### Quick Setup
 
-If you used the main SAGE setup script (`../../first_run.sh`), the Python environment is already configured. Simply activate it:
+If you used the main SAGE setup script (`../../src/scripts/first_run.sh`), the Python environment is already configured. Simply activate it:
 
 ```bash
 # From the main SAGE directory

@@ -17,3 +17,13 @@
 - **Files Modified**: README.md, CLAUDE.md, log/phase.md, log/architecture.md, CMakeLists.txt
 - **Files Created**: CMakeLists.txt
 - **Files Archived**: Makefile → scrap/Makefile.legacy
+
+2025-09-20: [Phase 1.2] Directory Reorganization Complete
+- Successfully reorganized monolithic code/ structure into modern src/core, src/physics, src/io, src/utils directories using git mv
+- Updated all include paths, CMakeLists.txt, and plotting system path resolution for new structure  
+- Validated build system, scientific accuracy (identical results), and plotting functionality
+- Created comprehensive docs/directory-structure.md and updated all documentation
+- **Files Moved**: All 40+ source files relocated preserving git history
+- **Files Modified**: CMakeLists.txt, sage-plot.py, README.md, CLAUDE.md, docs/quick-reference.md, log/phase.md, log/architecture.md
+- **Files Created**: docs/directory-structure.md, tests/ directory
+

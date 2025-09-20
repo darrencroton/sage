@@ -70,12 +70,12 @@ void read_cooling_functions(void) {
     metallicities[i] += log10(0.02); // add solar metallicity
 
   for (i = 0; i < 8; i++) {
-    sprintf(buf, "extra/CoolFunctions/%s", name[i]);
+    sprintf(buf, "src/core/auxdata/CoolFunctions/%s", name[i]);
 
     if (!(fd = fopen(buf, "r"))) {
       fprintf(stderr,
               "Error: Cooling function file '%s' not found. Please ensure the "
-              "extra/CoolFunctions directory contains all required cooling "
+              "src/core/auxdata/CoolFunctions directory contains all required cooling "
               "tables.\n",
               buf);
       ABORT(0);

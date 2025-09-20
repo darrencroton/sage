@@ -78,8 +78,21 @@ source sage_venv/bin/activate
 cd output/sage-plot
 ./test_plotting.sh
 
+# Generate all plots (both snapshot and evolution - new default behavior)
+python sage-plot.py --param-file=../../input/millennium.par
+
 # Generate specific plots
-python sage-plot.py --param-file=../../input/millennium.par --plots=stellar_mass_function
+python sage-plot.py --param-file=../../input/millennium.par --plots=stellar_mass_function,sfr_density_evolution
+
+# Generate only snapshot plots
+python sage-plot.py --param-file=../../input/millennium.par --snapshot-plots
+
+# Generate only evolution plots
+python sage-plot.py --param-file=../../input/millennium.par --evolution-plots
+
+# Cross-directory execution now works from anywhere
+cd ../..
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=stellar_mass_function
 
 # Deactivate when done
 deactivate
@@ -146,9 +159,14 @@ src/
 5. **State Management**: Simulation state cleanly separated from galaxy data
 
 ### Plotting System (output/sage-plot/)
-- **sage-plot.py**: Central plotting script with command-line interface
+- **sage-plot.py**: Central plotting script with enhanced command-line interface
 - **figures/**: Modular plot implementations (19 different plot types)
-- **snapshot_redshift_mapper.py**: Handles snapshot-redshift conversions
+- **snapshot_redshift_mapper.py**: Handles snapshot-redshift conversions with robust path resolution
+- **Enhanced Features**:
+  - Default behavior generates both snapshot and evolution plots
+  - Cross-directory execution with automatic path resolution
+  - Robust parameter file parsing (handles comments, arrow notation)
+  - Consistent flag naming (`--evolution-plots`, `--snapshot-plots`)
 - Each plot module follows consistent interface: `plot(galaxies, volume, metadata, params, output_dir, output_format)`
 
 ### Parameter File Structure

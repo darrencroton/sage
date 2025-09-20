@@ -14,6 +14,37 @@ from collections import OrderedDict
 import numpy as np
 
 
+def resolve_relative_path(path, param_file_path):
+    """
+    Resolve a path relative to the SAGE root directory (parent of parameter file directory).
+
+    Args:
+        path: Path to resolve (can be relative or absolute)
+        param_file_path: Path to the parameter file
+
+    Returns:
+        Resolved absolute path
+    """
+    if os.path.isabs(path):
+        return path
+
+    # Get the directory containing the parameter file, then go up one level to get SAGE root
+    param_file_abs = os.path.abspath(param_file_path)
+    param_dir = os.path.dirname(param_file_abs)
+    sage_root_dir = os.path.dirname(param_dir)  # Go up one level from input/ to sage-model/
+
+    # For paths starting with './', resolve relative to SAGE root directory
+    if path.startswith('./'):
+        # Remove the './' prefix and join with SAGE root directory
+        relative_part = path[2:]
+        resolved_path = os.path.join(sage_root_dir, relative_part)
+    else:
+        # For other relative paths, also resolve relative to SAGE root directory
+        resolved_path = os.path.join(sage_root_dir, path)
+
+    return os.path.abspath(resolved_path)
+
+
 class SnapshotRedshiftMapper:
     """Maps between snapshot numbers and redshifts using various data sources."""
 
@@ -82,14 +113,14 @@ class SnapshotRedshiftMapper:
             return False
 
         # Check if required parameters exist
-        required_params = ["FileWithSnapList", "LastSnapShotNr"]
+        required_params = ["FileWithSnapList", "LastSnapshotNr"]
         missing_params = [p for p in required_params if p not in self.params]
         if missing_params:
             print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
             return False
             
         a_list_file = self.params["FileWithSnapList"]
-        last_snapshot_nr = self.params["LastSnapShotNr"]
+        last_snapshot_nr = self.params["LastSnapshotNr"]
 
         # The a_list_file path is already resolved by SAGEParameters class
         # No need for additional path manipulation
@@ -150,7 +181,7 @@ class SnapshotRedshiftMapper:
                 return False
 
             # Create the mapping - need to match snapshot numbers to redshifts
-            # Typically, the last expansion factor (largest) corresponds to the LastSnapShotNr
+            # Typically, the last expansion factor (largest) corresponds to the LastSnapshotNr
             # The first expansion factor (smallest) corresponds to snapshot 0
             num_snapshots = len(expansion_factors)
             
@@ -159,11 +190,11 @@ class SnapshotRedshiftMapper:
                 self.snapshots = [last_snapshot_nr]
             else:
                 # Handle case where we have multiple snapshots
-                # In typical format, snapshots run from 0 to LastSnapShotNr
+                # In typical format, snapshots run from 0 to LastSnapshotNr
                 snapshot_step = last_snapshot_nr / (num_snapshots - 1)
                 self.snapshots = [round(i * snapshot_step) for i in range(num_snapshots)]
                 
-                # Ensure last snapshot is exactly LastSnapShotNr
+                # Ensure last snapshot is exactly LastSnapshotNr
                 if self.snapshots[-1] != last_snapshot_nr:
                     self.snapshots[-1] = last_snapshot_nr
                     

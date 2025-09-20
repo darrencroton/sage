@@ -24,14 +24,17 @@ This tool provides a single, comprehensive entry point for generating plots from
 # Activate virtual environment (if using one)
 source ../../sage_venv/bin/activate  # or source plotting-env/bin/activate
 
-# Generate all snapshot plots using parameter file
+# Generate both snapshot and evolution plots (default behavior)
 python sage-plot.py --param-file=/path/to/sage_params.par
 
-# Generate specific snapshot plots
-python sage-plot.py --param-file=/path/to/sage_params.par --plots=stellar_mass_function,gas_mass_function
+# Generate specific plots from both types
+python sage-plot.py --param-file=/path/to/sage_params.par --plots=stellar_mass_function,sfr_density_evolution
 
-# Generate evolution plots
-python sage-plot.py --param-file=/path/to/sage_params.par --evolution
+# Generate only snapshot plots
+python sage-plot.py --param-file=/path/to/sage_params.par --snapshot-plots
+
+# Generate only evolution plots
+python sage-plot.py --param-file=/path/to/sage_params.par --evolution-plots
 
 # Specify file range and output options
 python sage-plot.py --param-file=/path/to/sage_params.par --first-file=0 --last-file=7 --output-dir=my_plots --format=.pdf
@@ -51,8 +54,8 @@ deactivate
 --last-file=<num>      Last file to read [default: use MaxFileNum from param file]
 --snapshot=<num>       Process only this snapshot number
 --all-snapshots        Process all available snapshots
---evolution            Generate evolution plots
---snapshot-plots       Generate snapshot plots [default]
+--evolution-plots      Generate evolution plots only
+--snapshot-plots       Generate snapshot plots only
 --output-dir=<dir>     Output directory for plots [default: ./plots]
 --format=<format>      Output format (.png, .pdf) [default: .png]
 --plots=<list>         Comma-separated list of plots to generate [default: all]
@@ -60,6 +63,8 @@ deactivate
 --verbose              Show detailed output
 --help                 Show this help message
 ```
+
+**Note:** By default, both snapshot and evolution plots are generated if neither `--evolution-plots` nor `--snapshot-plots` is specified.
 
 ## Available Plots
 

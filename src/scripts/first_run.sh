@@ -40,12 +40,20 @@ echo "Step 1: Creating directory structure..."
 echo "----------------------------------------"
 
 echo "Creating ./input/data/millennium directory..."
-mkdir -p input/data/millennium
-echo "✓ Created input/data/millennium"
+if [[ -d "input/data/millennium" ]]; then
+    echo "✓ Already exists"
+else
+    mkdir -p input/data/millennium
+    echo "✓ Created input/data/millennium"
+fi
 
 echo "Creating ./output/results/millennium directory..."
-mkdir -p output/results/millennium
-echo "✓ Created output/results/millennium"
+if [[ -d "output/results/millennium" ]]; then
+    echo "✓ Already exists"
+else
+    mkdir -p output/results/millennium
+    echo "✓ Created output/results/millennium"
+fi
 echo ""
 
 # Step 2: Download mini-Millennium simulation trees
@@ -320,8 +328,7 @@ echo "   ./sage input/millennium.par"
 echo ""
 echo "3. Generate plots (using the virtual environment):"
 echo "   source sage_venv/bin/activate"
-echo "   cd output/sage-plot"
-echo "   python sage-plot.py --param-file=../../input/millennium.par"
+echo "   python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par"
 echo "   deactivate  # when done with plotting"
 echo ""
 echo "Virtual Environment Info:"

@@ -21,15 +21,18 @@ echo ""
 
 # Ensure we're in the correct directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-cd "$SCRIPT_DIR"
 
-if [[ ! -f "README.md" ]] || [[ ! -f "Makefile" ]] || [[ ! -d "code" ]]; then
+# Navigate to SAGE root directory (two levels up from src/scripts/)
+ROOT_DIR="$( cd "$SCRIPT_DIR/../.." &> /dev/null && pwd )"
+cd "$ROOT_DIR"
+
+if [[ ! -f "README.md" ]] || [[ ! -f "CMakeLists.txt" ]] || [[ ! -d "src" ]]; then
     echo "ERROR: This script must be run from the root SAGE directory."
     echo "Please ensure you're in the correct directory and try again."
     exit 1
 fi
 
-echo "✓ Confirmed we're in the SAGE root directory: $SCRIPT_DIR"
+echo "✓ Confirmed we're in the SAGE root directory: $ROOT_DIR"
 echo ""
 
 # Step 1: Create directory structure
@@ -105,7 +108,7 @@ echo ""
 echo "Step 3: Setting up Python plotting environment..."
 echo "--------------------------------------------------"
 
-cd "$SCRIPT_DIR"
+cd "$ROOT_DIR"
 
 # Check Python version
 if command -v python3 &> /dev/null; then
@@ -232,7 +235,7 @@ echo ""
 echo "Step 4: Configuring parameter file..."
 echo "--------------------------------------"
 
-cd "$SCRIPT_DIR"
+cd "$ROOT_DIR"
 
 if [[ ! -f "input/millennium.par" ]]; then
     echo "ERROR: Parameter file input/millennium.par not found."
@@ -246,9 +249,9 @@ cp input/millennium.par input/millennium.par.backup
 echo "✓ Created backup: input/millennium.par.backup"
 
 # Update paths to absolute paths
-NEW_OUTPUT_DIR="OutputDir              $SCRIPT_DIR/output/results/millennium/"
-NEW_SIMULATION_DIR="SimulationDir               $SCRIPT_DIR/input/data/millennium/"
-NEW_SNAP_LIST="FileWithSnapList            $SCRIPT_DIR/input/data/millennium/millennium.a_list"
+NEW_OUTPUT_DIR="OutputDir              $ROOT_DIR/output/results/millennium/"
+NEW_SIMULATION_DIR="SimulationDir               $ROOT_DIR/input/data/millennium/"
+NEW_SNAP_LIST="FileWithSnapList            $ROOT_DIR/input/data/millennium/millennium.a_list"
 
 # Use sed to update the paths (compatible with both macOS and Linux)
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -290,10 +293,8 @@ fi
 # Check if SAGE binary exists (optional)
 if [[ -f "sage" ]]; then
     echo "✓ SAGE binary found"
-elif [[ -f "code/sage" ]]; then
-    echo "✓ SAGE binary found in code/"
 else
-    echo "ℹ SAGE binary not found - you'll need to compile it with 'make'"
+    echo "ℹ SAGE binary not found - you'll need to compile it with CMake"
 fi
 
 if [[ ${#VALIDATION_ERRORS[@]} -eq 0 ]]; then
@@ -312,7 +313,7 @@ echo "=========================================="
 echo ""
 echo "Next steps:"
 echo "1. Compile SAGE:"
-echo "   make"
+echo "   mkdir build && cd build && cmake .. && make -j\$(nproc) && cd .."
 echo ""
 echo "2. Run SAGE:"
 echo "   ./sage input/millennium.par"

@@ -47,7 +47,7 @@ static ParameterDefinition ParameterTable[] = {
      &SageConfig.FileWithSnapList, 1, 0.0, 0.0},
 
     // Simulation parameters
-    {"LastSnapShotNr", "Last snapshot number", INT, &SageConfig.LastSnapShotNr,
+    {"LastSnapshotNr", "Last snapshot number", INT, &SageConfig.LastSnapshotNr,
      1, 0.0, ABSOLUTEMAXSNAPS - 1},
     {"FirstFile", "First file to process", INT, &SageConfig.FirstFile, 1, 0.0,
      0.0},

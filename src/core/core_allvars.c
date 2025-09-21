@@ -63,7 +63,7 @@ int TotHalos;
 int TotGalaxies[ABSOLUTEMAXSNAPS];
 int *TreeNgals[ABSOLUTEMAXSNAPS];
 
-int LastSnapShotNr;
+int LastSnapshotNr;
 double BoxSize;
 
 int *FirstHaloInSnap;

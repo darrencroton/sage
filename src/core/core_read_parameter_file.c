@@ -182,15 +182,15 @@ void read_parameter_file(char *fname) {
     strcat(SageConfig.OutputDir, "/");
 
   // Special handling for MAXSNAPS
-  if (!(SageConfig.LastSnapShotNr + 1 > 0 &&
-        SageConfig.LastSnapShotNr + 1 < ABSOLUTEMAXSNAPS)) {
+  if (!(SageConfig.LastSnapshotNr + 1 > 0 &&
+        SageConfig.LastSnapshotNr + 1 < ABSOLUTEMAXSNAPS)) {
     ERROR_LOG("LastSnapshotNr = %d should be in range [0, %d)",
-              SageConfig.LastSnapShotNr, ABSOLUTEMAXSNAPS);
+              SageConfig.LastSnapshotNr, ABSOLUTEMAXSNAPS);
     errorFlag = 1;
   }
 
   // Set MAXSNAPS in both SageConfig and global variable
-  SageConfig.MAXSNAPS = SageConfig.LastSnapShotNr + 1;
+  SageConfig.MAXSNAPS = SageConfig.LastSnapshotNr + 1;
   MAXSNAPS =
       SageConfig.MAXSNAPS; // Synchronize with global for backward compatibility
 

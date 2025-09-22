@@ -29,13 +29,13 @@
 #include <unistd.h>
 
 #include "../core/config.h"
-#include "../core/core_proto.h"
+#include "../core/prototypes.h"
 #include "../core/globals.h"
-#include "io_tree.h"
-#include "io_tree_binary.h"
-#include "io_util.h"
+#include "tree.h"
+#include "tree_binary.h"
+#include "util.h"
 #include "../core/types.h"
-#include "../utils/util_error.h"
+#include "../utils/error.h"
 
 // Local Variables //
 

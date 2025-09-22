@@ -1,5 +1,5 @@
 /**
- * @file    core_simulation_state.c
+ * @file    simulation_state.c
  * @brief   Functions for managing the simulation state structure
  *
  * This file implements functionality for managing the SAGE simulation state.
@@ -24,10 +24,10 @@
 
 #include "config.h"
 #include "constants.h"
-#include "core_proto.h"
+#include "prototypes.h"
 #include "globals.h"
 #include "types.h"
-#include "util_error.h"
+#include "error.h"
 
 /**
  * @brief   Updates global variables from the SimState structure

@@ -1,5 +1,5 @@
 /**
- * @file    util_version.c
+ * @file    version.c
  * @brief   Implementation of SAGE version tracking functionality
  *
  * This file implements the functions for gathering version information and
@@ -22,8 +22,8 @@
 #include "git_version.h"
 #include "globals.h"
 #include "types.h"
-#include "util_error.h"
-#include "util_version.h"
+#include "error.h"
+#include "version.h"
 
 /* No version number is defined for SAGE */
 

@@ -1,5 +1,5 @@
 /**
- * @file    util_integration.c
+ * @file    integration.c
  * @brief   Numerical integration utilities for SAGE
  *
  * This file implements high-accuracy numerical integration functions.
@@ -7,8 +7,8 @@
  * calculation of definite integrals.
  */
 
-#include "util_integration.h"
-#include "util_error.h"
+#include "integration.h"
+#include "error.h"
 #include "../core/memory.h"
 #include <float.h>
 #include <math.h>

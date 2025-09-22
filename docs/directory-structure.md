@@ -15,35 +15,35 @@ sage/
 │   │   ├── auxdata/            # Auxiliary data files
 │   │   │   └── CoolFunctions/  # Cooling function lookup tables (moved from extra/)
 │   │   ├── main.c              # Program entry point and execution loop
-│   │   ├── core_*.c/.h         # Core initialization, parameter reading, galaxy construction
+│   │   ├── initialization.c, parameters.c, evolution.c, etc. # Core initialization, parameter reading, galaxy construction
 │   │   ├── globals.h           # Global variable declarations
 │   │   ├── types.h             # Core data structures (GALAXY, SageConfig, etc.)
 │   │   ├── constants.h         # Physical constants and numerical parameters
 │   │   ├── config.h            # Compile-time configuration options
 │   │   └── git_version.h.in    # Git version tracking template
 │   ├── physics/                # Physical process implementations
-│   │   ├── model_cooling_heating.c         # Gas cooling and heating processes
-│   │   ├── model_starformation_and_feedback.c  # Star formation and supernova feedback
-│   │   ├── model_mergers.c                 # Galaxy merger handling and black hole growth
-│   │   ├── model_infall.c                  # Gas infall calculations
-│   │   ├── model_reincorporation.c         # Gas reincorporation from hot to cold phase
-│   │   ├── model_disk_instability.c        # Disk instability and bulge formation
-│   │   └── model_misc.c                    # Miscellaneous processes (stripping, disruption)
+│   │   ├── cooling_heating.c         # Gas cooling and heating processes
+│   │   ├── starformation_feedback.c  # Star formation and supernova feedback
+│   │   ├── mergers.c                 # Galaxy merger handling and black hole growth
+│   │   ├── infall.c                  # Gas infall calculations
+│   │   ├── reincorporation.c         # Gas reincorporation from hot to cold phase
+│   │   ├── disk_instability.c        # Disk instability and bulge formation
+│   │   └── misc.c                    # Miscellaneous processes (stripping, disruption)
 │   ├── io/                     # Input/output operations
-│   │   ├── io_tree.c           # Master tree loading interface
-│   │   ├── io_tree_binary.c    # Binary format tree reader (LHalo format)
-│   │   ├── io_tree_hdf5.c      # HDF5 format tree reader (Genesis format)
-│   │   ├── io_save_binary.c    # Binary output format writer
-│   │   ├── io_save_hdf5.c      # HDF5 output format writer
-│   │   ├── io_util.c           # I/O utility functions and error handling
+│   │   ├── tree.c           # Master tree loading interface
+│   │   ├── tree_binary.c    # Binary format tree reader (LHalo format)
+│   │   ├── tree_hdf5.c      # HDF5 format tree reader (Genesis format)
+│   │   ├── save_binary.c    # Binary output format writer
+│   │   ├── save_hdf5.c      # HDF5 output format writer
+│   │   ├── util.c           # I/O utility functions and error handling
 │   │   └── *.h                 # Corresponding header files
 │   ├── utils/                  # Utility functions and system management
-│   │   ├── util_memory.c       # Memory management with leak detection and categorization
-│   │   ├── util_error.c        # Comprehensive error handling and logging system
-│   │   ├── util_numeric.c      # Numerical stability functions and safe math operations
-│   │   ├── util_parameters.c   # Parameter processing and validation
-│   │   ├── util_integration.c  # Numerical integration routines
-│   │   ├── util_version.c      # Version tracking and build information
+│   │   ├── memory.c       # Memory management with leak detection and categorization
+│   │   ├── error.c        # Comprehensive error handling and logging system
+│   │   ├── numeric.c      # Numerical stability functions and safe math operations
+│   │   ├── parameters.c   # Parameter processing and validation
+│   │   ├── integration.c  # Numerical integration routines
+│   │   ├── version.c      # Version tracking and build information
 │   │   └── *.h                 # Corresponding header files
 │   └── scripts/                # Build and utility scripts
 │       ├── beautify.sh         # Code formatting script (clang-format + black)
@@ -63,9 +63,9 @@ sage/
 ### Core Infrastructure (`src/core/`)
 Contains the fundamental SAGE infrastructure that coordinates galaxy evolution:
 - **Program entry and flow control**: `main.c` handles initialization, file processing loops, and cleanup
-- **Core evolution logic**: `core_build_model.c` coordinates galaxy construction and evolution
-- **System initialization**: `core_init.c` sets up memory, validates parameters
-- **Configuration management**: `core_read_parameter_file.c` handles parameter file parsing
+- **Core evolution logic**: `evolution.c` coordinates galaxy construction and evolution
+- **System initialization**: `initialization.c` sets up memory, validates parameters
+- **Configuration management**: `parameters.c` handles parameter file parsing
 - **Data structures**: `types.h` defines core structures like `GALAXY` and `SageConfig`
 - **Auxiliary data**: `auxdata/CoolFunctions/` contains cooling function lookup tables
 
@@ -121,13 +121,13 @@ Build and development tools:
 All source files have been updated to use relative include paths:
 ```c
 // Physics files include core and utils
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 // I/O files include core and utils
-#include "../core/core_proto.h"
-#include "../utils/util_error.h"
+#include "../core/prototypes.h"
+#include "../utils/error.h"
 ```
 
 ### CMake Configuration

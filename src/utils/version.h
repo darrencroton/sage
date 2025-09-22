@@ -1,5 +1,5 @@
 /**
- * @file    util_version.h
+ * @file    version.h
  * @brief   Functionality for tracking SAGE version information
  *
  * This file provides function declarations for generating and saving version

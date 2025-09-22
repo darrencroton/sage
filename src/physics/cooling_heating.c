@@ -1,5 +1,5 @@
 /**
- * @file    model_cooling_heating.c
+ * @file    cooling_heating.c
  * @brief   Gas cooling and AGN heating processes for galaxy evolution
  *
  * This file implements the physical processes governing gas cooling from the
@@ -27,9 +27,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 /**
  * @brief   Calculates gas cooling based on halo properties and cooling

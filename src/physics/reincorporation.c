@@ -1,5 +1,5 @@
 /**
- * @file    model_reincorporation.c
+ * @file    reincorporation.c
  * @brief   Implementation of gas reincorporation from ejected reservoir
  *
  * This file implements the physical model for the reincorporation of gas
@@ -20,9 +20,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 /**
  * @brief   Reincorporates gas from the ejected reservoir back into the hot halo

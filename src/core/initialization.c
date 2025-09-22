@@ -1,5 +1,5 @@
 /**
- * @file    core_init.c
+ * @file    initialization.c
  * @brief   Initialization functions for the SAGE model
  *
  * This file contains functions responsible for initializing the SAGE model.
@@ -25,10 +25,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
-#include "util_error.h"
-#include "util_integration.h"
+#include "globals.h"
+#include "prototypes.h"
+#include "error.h"
+#include "integration.h"
 
 /**
  * @brief   Main initialization function for the SAGE model

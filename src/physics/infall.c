@@ -1,5 +1,5 @@
 /**
- * @file    model_infall.c
+ * @file    infall.c
  * @brief   Implementation of gas infall and stripping processes
  *
  * This file contains the physical models for baryonic matter accretion
@@ -26,9 +26,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 /* Macro to suppress unused parameter warnings */
 #define UNUSED(foo) (void)(foo)

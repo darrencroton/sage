@@ -253,28 +253,28 @@ The SAGE codebase is organized around these key components:
 
 - **Core Files**: Main model framework and execution flow
   - `main.c`: Program entry point and core execution
-  - `core_build_model.c`: Galaxy construction and evolution
-  - `core_init.c`: Initialization routines
-  - `core_read_parameter_file.c`: Parameter handling
+  - `evolution.c`: Galaxy construction and evolution
+  - `initialization.c`: Initialization routines
+  - `parameters.c`: Parameter handling
   
 - **Model Files**: Physical processes implementation
-  - `model_cooling_heating.c`: Gas cooling and heating processes
-  - `model_disk_instability.c`: Disk instability model
-  - `model_infall.c`: Gas infall calculations
-  - `model_mergers.c`: Galaxy mergers handling
-  - `model_reincorporation.c`: Gas reincorporation
-  - `model_starformation_and_feedback.c`: Star formation and feedback
+  - `cooling_heating.c`: Gas cooling and heating processes
+  - `disk_instability.c`: Disk instability model
+  - `infall.c`: Gas infall calculations
+  - `mergers.c`: Galaxy mergers handling
+  - `reincorporation.c`: Gas reincorporation
+  - `starformation_feedback.c`: Star formation and feedback
   
 - **I/O Files**: Input/output operations
-  - `io_tree.c`: Tree loading and management
-  - `io_save_binary.c`: Binary output format
-  - `io_save_hdf5.c`: HDF5 output format (if enabled)
+  - `tree.c`: Tree loading and management
+  - `save_binary.c`: Binary output format
+  - `save_hdf5.c`: HDF5 output format (if enabled)
   
 - **Utility Files**: Helper functions
-  - `util_numeric.c`: Numerical stability utilities
-  - `util_error.c`: Error handling system
-  - `util_memory.c`: Memory management
-  - `util_parameters.c`: Parameter processing
+  - `numeric.c`: Numerical stability utilities
+  - `error.c`: Error handling system
+  - `memory.c`: Memory management
+  - `parameters.c`: Parameter processing
   
 - **Header Files**: Declarations and configurations
   - `constants.h`: Physical and numerical constants

@@ -1,5 +1,5 @@
 /**
- * @file    model_misc.c
+ * @file    misc.c
  * @brief   Miscellaneous utility functions for galaxy evolution modeling
  *
  * This file contains various utility functions used throughout the SAGE code
@@ -25,8 +25,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
 
 /**
  * @brief   Initializes a new galaxy with default properties

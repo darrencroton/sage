@@ -1,5 +1,5 @@
 /**
- * @file    core_cool_func.c
+ * @file    cooling_tables.c
  * @brief   Cooling function implementation for gas in dark matter halos
  *
  * This file implements the cooling rate calculations for hot gas in dark matter
@@ -27,8 +27,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
+#include "globals.h"
+#include "prototypes.h"
 
 #define TABSIZE 91
 

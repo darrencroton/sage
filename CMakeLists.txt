@@ -22,50 +22,49 @@ endif()
 # Source files - reorganized into logical directory structure
 set(SAGE_CORE_SOURCES
     src/core/main.c
-    src/utils/util_parameters.c
-    src/utils/util_error.c
-    src/utils/util_integration.c
-    src/utils/util_numeric.c
-    src/utils/util_version.c
-    src/io/io_util.c
-    src/core/core_read_parameter_file.c
-    src/core/core_init.c
-    src/io/io_tree.c
-    src/core/core_cool_func.c
-    src/core/core_build_model.c
-    src/io/io_save_binary.c
-    src/utils/util_memory.c
-    src/core/core_allvars.c
-    src/core/core_simulation_state.c
-    src/physics/model_infall.c
-    src/physics/model_cooling_heating.c
-    src/physics/model_starformation_and_feedback.c
-    src/physics/model_disk_instability.c
-    src/physics/model_reincorporation.c
-    src/physics/model_mergers.c
-    src/physics/model_misc.c
-    src/io/io_tree_binary.c
+    src/utils/parameters.c
+    src/utils/error.c
+    src/utils/integration.c
+    src/utils/numeric.c
+    src/utils/version.c
+    src/io/util.c
+    src/core/parameters.c
+    src/core/initialization.c
+    src/io/tree.c
+    src/core/cooling_tables.c
+    src/core/evolution.c
+    src/io/save_binary.c
+    src/utils/memory.c
+    src/core/globals.c
+    src/core/simulation_state.c
+    src/physics/infall.c
+    src/physics/cooling_heating.c
+    src/physics/starformation_feedback.c
+    src/physics/disk_instability.c
+    src/physics/reincorporation.c
+    src/physics/mergers.c
+    src/physics/misc.c
+    src/io/tree_binary.c
 )
 
 # Header files - reorganized into logical directory structure
 set(SAGE_HEADERS
-    src/core/core_allvars.h
-    src/io/io_tree.h
-    src/io/io_save_binary.h
-    src/utils/util_memory.h
-    src/utils/util_integration.h
-    src/utils/util_numeric.h
-    src/utils/util_version.h
-    src/io/io_util.h
-    src/core/core_proto.h
-    src/core/core_simulation.h
-    src/utils/util_parameters.h
-    src/utils/util_error.h
+    src/io/tree.h
+    src/io/save_binary.h
+    src/utils/memory.h
+    src/utils/integration.h
+    src/utils/numeric.h
+    src/utils/version.h
+    src/io/util.h
+    src/core/prototypes.h
+    src/core/simulation.h
+    src/utils/parameters.h
+    src/utils/error.h
     src/core/config.h
     src/core/constants.h
     src/core/globals.h
     src/core/types.h
-    src/io/io_tree_binary.h
+    src/io/tree_binary.h
 )
 
 # Git version tracking - replaces Makefile git version generation
@@ -125,11 +124,11 @@ if(USE_HDF5)
         add_compile_definitions(HDF5)
         # Add HDF5-specific sources (from Makefile conditional OBJS)
         list(APPEND SAGE_CORE_SOURCES
-            src/io/io_tree_hdf5.c
-            src/io/io_save_hdf5.c)
+            src/io/tree_hdf5.c
+            src/io/save_hdf5.c)
         list(APPEND SAGE_HEADERS
-            src/io/io_tree_hdf5.h
-            src/io/io_save_hdf5.h)
+            src/io/tree_hdf5.h
+            src/io/save_hdf5.h)
         message(STATUS "HDF5 support enabled")
         message(STATUS "HDF5 version: ${HDF5_VERSION}")
         message(STATUS "HDF5 libraries: ${HDF5_C_LIBRARIES}")

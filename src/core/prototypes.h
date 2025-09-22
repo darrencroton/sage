@@ -4,7 +4,7 @@
 #include "config.h"
 #include "globals.h"
 #include "types.h"
-#include "util_memory.h"
+#include "memory.h"
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE *stream);

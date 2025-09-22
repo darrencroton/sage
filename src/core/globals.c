@@ -1,5 +1,5 @@
 /**
- * @file    core_allvars.c
+ * @file    globals.c
  * @brief   Defines global variables used throughout the SAGE model
  *
  * This file contains the definitions of all global variables used by the

@@ -1,5 +1,5 @@
 /**
- * @file    io_util.c
+ * @file    util.c
  * @brief   Implementation of I/O utility functions
  *
  * This file implements utilities for handling input/output operations,
@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "io_util.h"
-#include "util_error.h"
+#include "util.h"
+#include "error.h"
 #include "../core/memory.h"
 
 /* Buffer management system - declare all functions before use */

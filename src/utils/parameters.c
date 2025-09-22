@@ -8,7 +8,7 @@
  *
  * The parameter system provides a table-driven approach to parameter handling,
  * which allows for consistent parameter reading, validation, and documentation.
- * The core_read_parameter_file.c module uses this table to read parameters
+ * The read_parameter_file.c module uses this table to read parameters
  * from configuration files.
  *
  * Key functions:
@@ -19,7 +19,7 @@
  * - get_parameter_type_string(): Converts parameter type enum to string
  */
 
-#include "util_parameters.h"
+#include "parameters.h"
 #include "config.h"
 #include "constants.h"
 #include "globals.h"

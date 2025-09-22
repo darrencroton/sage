@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 /**
- * @file    util_numeric.h
+ * @file    numeric.h
  * @brief   Utility functions for numerical stability and safer floating-point
  * operations
  *

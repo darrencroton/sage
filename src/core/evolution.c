@@ -1,5 +1,5 @@
 /**
- * @file    core_build_model.c
+ * @file    evolution.c
  * @brief   Core functions for building and evolving the galaxy formation model
  *
  * This file contains the core algorithms for constructing galaxies from merger
@@ -34,10 +34,10 @@
 #include <unistd.h>
 
 #include "config.h"
-#include "core_proto.h"
+#include "prototypes.h"
 #include "globals.h"
 #include "types.h"
-#include "util_numeric.h"
+#include "numeric.h"
 
 /**
  * @brief   Recursively constructs galaxies by traversing the merger tree

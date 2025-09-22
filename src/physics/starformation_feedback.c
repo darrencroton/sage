@@ -1,5 +1,5 @@
 /**
- * @file    model_starformation_and_feedback.c
+ * @file    starformation_feedback.c
  * @brief   Star formation and supernova feedback processes
  *
  * This file implements the physical processes governing star formation in
@@ -30,10 +30,10 @@
 #include <time.h>
 
 #include "../core/config.h"
-#include "../core/core_proto.h"
+#include "../core/prototypes.h"
 #include "../core/globals.h"
 #include "../core/types.h"
-#include "../utils/util_numeric.h"
+#include "../utils/numeric.h"
 
 /**
  * @brief   Implements star formation and feedback processes for a galaxy

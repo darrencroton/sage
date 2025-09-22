@@ -113,33 +113,33 @@ src/
 
 ### Core Infrastructure (src/core/)
 - **main.c**: Program entry point, handles initialization, file processing loop, and cleanup
-- **core_init.c**: System initialization, memory setup, parameter validation
-- **core_read_parameter_file.c**: Parameter file parsing and configuration setup
-- **core_build_model.c**: Galaxy construction and evolution coordination
+- **initialization.c**: System initialization, memory setup, parameter validation
+- **parameters.c**: Parameter file parsing and configuration setup
+- **evolution.c**: Galaxy construction and evolution coordination
 - **auxdata/CoolFunctions/**: Cooling function lookup tables
 
 ### Physical Models (src/physics/)
-- **model_cooling_heating.c**: Gas cooling and heating processes
-- **model_starformation_and_feedback.c**: Star formation and supernova feedback
-- **model_mergers.c**: Galaxy merger handling and black hole growth
-- **model_infall.c**: Gas infall calculations
-- **model_reincorporation.c**: Gas reincorporation from hot to cold phase
-- **model_disk_instability.c**: Disk instability and bulge formation
-- **model_misc.c**: Miscellaneous processes (stripping, disruption)
+- **cooling_heating.c**: Gas cooling and heating processes
+- **starformation_feedback.c**: Star formation and supernova feedback
+- **mergers.c**: Galaxy merger handling and black hole growth
+- **infall.c**: Gas infall calculations
+- **reincorporation.c**: Gas reincorporation from hot to cold phase
+- **disk_instability.c**: Disk instability and bulge formation
+- **misc.c**: Miscellaneous processes (stripping, disruption)
 
 ### I/O System (src/io/)
-- **io_tree.c**: Master tree loading interface
-- **io_tree_binary.c**: Binary format tree reader (LHalo format)
-- **io_tree_hdf5.c**: HDF5 format tree reader (Genesis format)
-- **io_save_binary.c**: Binary output format writer
-- **io_save_hdf5.c**: HDF5 output format writer
+- **tree.c**: Master tree loading interface
+- **tree_binary.c**: Binary format tree reader (LHalo format)
+- **tree_hdf5.c**: HDF5 format tree reader (Genesis format)
+- **save_binary.c**: Binary output format writer
+- **save_hdf5.c**: HDF5 output format writer
 
 ### Utilities (src/utils/)
-- **util_memory.c**: Custom memory management with leak detection and categorization
-- **util_error.c**: Comprehensive error handling and logging system
-- **util_numeric.c**: Numerical stability functions and safe math operations
-- **util_parameters.c**: Parameter processing and validation
-- **util_integration.c**: Numerical integration routines
+- **memory.c**: Custom memory management with leak detection and categorization
+- **error.c**: Comprehensive error handling and logging system
+- **numeric.c**: Numerical stability functions and safe math operations
+- **parameters.c**: Parameter processing and validation
+- **integration.c**: Numerical integration routines
 
 ### Data Structures (src/core/)
 - **types.h**: Core data structures including `struct GALAXY`, `struct SageConfig`, and `struct GALAXY_OUTPUT`

@@ -15,17 +15,17 @@ sage/
 │   ├── core/                # Core infrastructure and coordination
 │   │   ├── auxdata/         # Auxiliary data (CoolFunctions moved from extra/)
 │   │   ├── main.c           # Program entry point
-│   │   ├── core_*.c/.h      # Core infrastructure components
+│   │   ├── initialization.c, parameters.c, evolution.c # Core infrastructure components
 │   │   ├── globals.h        # Global declarations
 │   │   ├── types.h          # Central data structures
 │   │   └── config.h         # Compile-time configuration
 │   ├── physics/             # Physical process implementations
-│   │   └── model_*.c        # Physics model files
+│   │   └── cooling_heating.c, mergers.c, etc. # Physics model files
 │   ├── io/                  # Input/output operations
-│   │   ├── io_*.c/.h        # I/O handlers
+│   │   ├── tree.c, save_binary.c, etc. # I/O handlers
 │   │   └── format support   # Binary, HDF5 formats
 │   ├── utils/               # Utility functions and system management
-│   │   └── util_*.c/.h      # Utility functions
+│   │   └── memory.c, error.c, numeric.c # Utility functions
 │   └── scripts/             # Build and utility scripts
 │       ├── beautify.sh      # Code formatting
 │       └── first_run.sh     # Environment setup
@@ -47,7 +47,7 @@ The current SAGE uses a traditional monolithic architecture with tightly coupled
 └─────────┬───────────┘
           │
           ├─▶┌─────────────────┐
-          │  │ core_init.c     │
+          │  │ initialization.c│
           │  │ - Memory setup  │
           │  └─────────────────┘
           │
@@ -73,24 +73,24 @@ The core evolution pipeline has direct physics coupling - **violates Principle 1
 
 ```
 ┌─────────────────────────────┐
-│ core_build_model.c          │◄─ ARCHITECTURAL VIOLATION
+│ evolution.c                 │◄─ ARCHITECTURAL VIOLATION
 │ - Direct physics includes   │
 │ - Hardcoded physics calls   │
 │ - Cannot run physics-free   │
 └─────────┬───────────────────┘
           │
           ├─▶┌─────────────────┐
-          │  │ model_cooling_  │
+          │  │ cooling_        │
           │  │ heating.c       │
           │  └─────────────────┘
           │
           ├─▶┌─────────────────┐
-          │  │ model_star      │
-          │  │ formation.c     │
+          │  │ starformation_  │
+          │  │ feedback.c      │
           │  └─────────────────┘
           │
           ├─▶┌─────────────────┐
-          │  │ model_mergers.c │
+          │  │ mergers.c       │
           │  └─────────────────┘
           │
           └─▶┌─────────────────┐
@@ -100,7 +100,7 @@ The core evolution pipeline has direct physics coupling - **violates Principle 1
 ```
 
 ### Memory Management System ✅ CENTRALIZED
-Centralized memory management system through `util_memory.c`:
+Centralized memory management system through `memory.c`:
 - **All allocations centralized**: mycalloc*, mymalloc*, myrealloc*, myfree
 - **Category tracking**: MEM_GALAXIES, MEM_HALOS, MEM_TREES, MEM_IO, MEM_UTILITY, MEM_UNKNOWN
 - **Leak detection and reporting**: Built-in check_memory_leaks()
@@ -110,7 +110,7 @@ Centralized memory management system through `util_memory.c`:
 
 ```
 ┌─────────────────────┐      ┌─────────────────────┐
-│ util_memory.c       │      │ Memory Categories   │
+│ memory.c            │      │ Memory Categories   │
 │ - mycalloc/mymalloc │─────▶│ - MEM_GALAXIES      │
 │ - myrealloc/myfree  │      │ - MEM_HALOS         │
 │ - Category tracking │      │ - MEM_TREES         │
@@ -159,8 +159,8 @@ Current I/O supports multiple formats but lacks abstraction:
 ```
 ┌─────────────────────┐      ┌─────────────────────┐
 │ Tree Input          │      │ Galaxy Output       │
-│ - io_tree_binary.c  │      │ - io_save_binary.c  │
-│ - io_tree_hdf5.c    │      │ - io_save_hdf5.c    │
+│ - tree_binary.c     │      │ - save_binary.c     │
+│ - tree_hdf5.c       │      │ - save_hdf5.c       │
 └─────────────────────┘      └─────────────────────┘
 ```
 
@@ -195,7 +195,7 @@ Modern CMake-based build:
 - **Tasks 1.4-1.7**: Configuration, I/O abstraction, Testing framework
 
 **Immediate Violations to Address in Phase 2A:**
-- `src/core/core_build_model.c` includes all physics headers directly
+- `src/core/evolution.c` includes all physics headers directly
 - Core makes direct physics function calls
 - No physics-agnostic mode possible
 - Fixed galaxy structure regardless of physics needs

@@ -1,5 +1,5 @@
 /**
- * @file    util_memory.c
+ * @file    memory.c
  * @brief   Flexible memory management system with tracking
  *
  * This file implements a memory allocation and tracking system that:
@@ -29,8 +29,8 @@
 #include <string.h>
 
 #include "config.h"
-#include "core_proto.h"
-#include "util_memory.h"
+#include "prototypes.h"
+#include "memory.h"
 
 /* Memory category names for reporting */
 static const char *CategoryNames[] = {"Unknown", "Galaxies", "Halos",

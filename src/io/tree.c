@@ -1,5 +1,5 @@
 /**
- * @file    core_io_tree.c
+ * @file    tree.c
  * @brief   Functions for loading and managing merger trees
  *
  * This file contains the core functionality for loading merger trees from
@@ -28,15 +28,15 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "core_allvars.h"
-#include "core_proto.h"
-#include "io_tree.h"
-#include "io_util.h"
-#include "util_error.h"
+#include "globals.h"
+#include "prototypes.h"
+#include "tree.h"
+#include "util.h"
+#include "error.h"
 
-#include "io_tree_binary.h"
+#include "tree_binary.h"
 #ifdef HDF5
-#include "io_tree_hdf5.h"
+#include "tree_hdf5.h"
 #endif
 
 /* Global file endianness variable - initialized to host endianness by default
@@ -86,7 +86,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType) {
 
   default:
     FATAL_ERROR("Unsupported tree type %d in load_tree_table(). Please add "
-                "support in core_io_tree.c",
+                "support in tree.c",
                 my_TreeType);
   }
 
@@ -164,7 +164,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType) {
 
   default:
     FATAL_ERROR("Unsupported tree type %d in free_tree_table(). Please add "
-                "support in core_io_tree.c",
+                "support in tree.c",
                 my_TreeType);
   }
 }
@@ -205,7 +205,7 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
 
   default:
     FATAL_ERROR("Unsupported tree type %d in load_tree(). Please add support "
-                "in core_io_tree.c",
+                "in tree.c",
                 my_TreeType);
   }
 

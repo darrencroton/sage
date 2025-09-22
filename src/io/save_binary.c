@@ -1,5 +1,5 @@
 /**
- * @file    core_save.c
+ * @file    save_binary.c
  * @brief   Functions for saving galaxy data to output files
  *
  * This file contains the functionality for writing simulated galaxies to output
@@ -26,11 +26,11 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "io_save_binary.h"
-#include "io_util.h"
-#include "../utils/util_error.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "save_binary.h"
+#include "util.h"
+#include "../utils/error.h"
 
 #define TREE_MUL_FAC (1000000000LL)
 #define FILENR_MUL_FAC (1000000000000000LL)

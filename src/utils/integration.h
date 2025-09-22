@@ -1,5 +1,5 @@
 /**
- * @file    util_integration.h
+ * @file    integration.h
  * @brief   Numerical integration utilities for SAGE
  *
  * This file provides highly accurate numerical integration functions used

@@ -87,21 +87,21 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Implementation**:
   - Create the `src/core`, `src/core/auxdata`, `src/physics`, `src/io`, `src/scripts`, and `src/utils` directories.
   - Use `git mv` to move source files into the appropriate subdirectories.
-    - **core**: `core_*.c`, `main.c`, `globals.h`, `types.h`, etc.
+    - **core**: `core_*.c → initialization.c, parameters.c, evolution.c`, `main.c`, `globals.h`, `types.h`, etc.
     - **auxdata**: move `extra/CoolFunctions` here.
-    - **physics**: `model_*.c` files.
-    - **io**: `io_*.c` files.
-    - **utils**: `util_*.c` files.
+    - **physics**: `model_*.c → cooling_heating.c, mergers.c, infall.c, etc.` files.
+    - **io**: `io_*.c → tree.c, save_binary.c, save_hdf5.c, etc.` files.
+    - **utils**: `util_*.c → memory.c, error.c, numeric.c, etc.` files.
   - Create `docs/` for documentation and `tests/` for future tests.
 - **Testing**: The project builds successfully with the new directory structure. All `#include` paths are updated and correct.
 - **Documentation**: Create a `docs/directory-structure.md` file explaining the layout.
 - **Effort**: 1 session (low complexity)
 
 #### Task 1.3: Memory Management Centralization
-- **Objective**: Centralize all memory allocations through the existing `util_memory.c` system to prepare for module-aware tracking.
+- **Objective**: Centralize all memory allocations through the existing `util_memory.c → memory.c` system to prepare for module-aware tracking.
 - **Implementation**:
-  - Create a new header `src/core/memory.h` that includes `util_memory.h`.
-  - Perform a codebase-wide replacement of `malloc`, `calloc`, `realloc`, and `free` with the corresponding functions from `util_memory.c` (`mymalloc`, `myrealloc`, `myfree`). Ensure `mycalloc` is implemented if needed.
+  - Create a new header `src/core/memory.h` that includes `util_memory.h → memory.h`.
+  - Perform a codebase-wide replacement of `malloc`, `calloc`, `realloc`, and `free` with the corresponding functions from `util_memory.c → memory.c` (`mymalloc`, `myrealloc`, `myfree`). Ensure `mycalloc` is implemented if needed.
   - All memory allocations must go through this centralized system.
 - **Testing**: The code compiles and runs with no new memory errors. Valgrind reports no leaks, and the memory tracking system functions as before.
 - **Effort**: 1 session (low complexity)
@@ -123,7 +123,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Implementation**:
   - Create a new `io_manager.h` header.
   - Define a generic `io_manager_t` struct containing function pointers for key I/O operations (e.g., `load_tree_table`, `load_tree`, `save_galaxies`, `finalize_galaxy_files`).
-  - In `main.c`, create an `io_manager_t` instance and initialize its function pointers to point to the existing functions in `io_tree.c` and `io_save_binary.c`/`io_save_hdf5.c`.
+  - In `main.c`, create an `io_manager_t` instance and initialize its function pointers to point to the existing functions in `tree.c` and `save_binary.c`/`save_hdf5.c`.
   - Replace direct calls to these I/O functions in the main loop with calls through the `io_manager_t` function pointers.
 - **Testing**: The code compiles and runs, producing identical output files. Both binary and HDF5 I/O function correctly through the abstraction layer.
 - **Effort**: 2 sessions (moderate complexity)
@@ -141,7 +141,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 #### Task 1.7: Testing and Automation Framework (NEW)
 - **Objective**: Establish a modern, automated testing and integration framework.
 - **Implementation**:
-  - **Unit Testing**: Integrate CTest with the CMake build system. Create a `tests/` directory and implement initial unit tests for a utility function (e.g., `util_numeric.c`) to establish the testing pattern.
+  - **Unit Testing**: Integrate CTest with the CMake build system. Create a `tests/` directory and implement initial unit tests for a utility function (e.g., `numeric.c`) to establish the testing pattern.
   - **Continuous Integration (CI)**: Create a `.github/workflows/ci.yml` file to set up a GitHub Actions workflow. This workflow will trigger on every push, build the project using CMake, and run all CTest unit tests.
 - **Testing**: Pushing a commit to the GitHub repository successfully triggers the CI workflow, which compiles the code and runs the tests.
 - **Documentation**: Create `docs/testing-guide.md` that describes the SAGE testing framework, including a unit test template and instructions for adding new tests.
@@ -308,7 +308,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 #### Task 2B.4: Core Property Migration
 - **Objective**: Migrate core galaxy properties to use the new property system.
 - **Implementation**:
-  - Update core files (`core_build_model.c`, `io_save_binary.c`, etc.) to use the new getter/setter macros for core properties (`SnapNum`, `Type`, `Pos`, `Mvir`, etc.).
+  - Update core files (`evolution.c`, `save_binary.c`, etc.) to use the new getter/setter macros for core properties (`SnapNum`, `Type`, `Pos`, `Mvir`, etc.).
   - Remove direct struct member access (e.g., `g->Mvir`).
 - **Principles**: Principle 4 - unified core property access.
 - **Testing**: Core functionality remains identical after migration.
@@ -338,7 +338,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Principle 6**: Memory Efficiency and Safety ⭐ **PRIMARY**
 
 ### Objectives
-- **Primary**: Adapt and enhance the existing `util_memory.c` system to be fully module-aware.
+- **Primary**: Adapt and enhance the existing `memory.c` system to be fully module-aware.
 - **Secondary**: Ensure memory usage is bounded and predictable within the new modular architecture.
 - **Foundation**: Leverage the robust memory tracking of `sage` to build a safe, modular memory environment.
 
@@ -350,9 +350,9 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 ### Tasks
 
 #### Task 3.1: Integrate Memory System with Module Lifecycle
-- **Objective**: Make the existing memory tracker in `util_memory.c` aware of module scopes.
+- **Objective**: Make the existing memory tracker in `memory.c` aware of module scopes.
 - **Implementation**:
-  - Introduce memory categories (`MemoryCategory` enum in `util_memory.h`) for each physics module.
+  - Introduce memory categories (`MemoryCategory` enum in `memory.h`) for each physics module.
   - Update `mymalloc_cat` and `myrealloc_cat` to be the primary allocation functions used by modules, ensuring all allocations are tagged by category.
   - Implement functions to report memory usage per module (`print_allocated_by_category`).
   - Ensure `check_memory_leaks` can report leaks on a per-module basis.
@@ -362,7 +362,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 #### Task 3.2: Property-Based Memory Allocation
 - **Objective**: Memory allocation for galaxy properties is driven by the set of loaded modules.
 - **Implementation**:
-  - The core `GALAXY` struct will be split into a `core_galaxy_properties` struct and multiple `physics_galaxy_properties` structs (one per module).
+  - The core `GALAXY` struct will be split into a `galaxy_properties` struct and multiple `physics_galaxy_properties` structs (one per module).
   - The main galaxy object will contain pointers to these physics property structs.
   - Memory for a module's properties is only allocated if that module is loaded at runtime.
   - The memory system will track these allocations under the appropriate module category.
@@ -379,7 +379,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Testing**: The memory high-water mark remains stable over a long run processing many forests.
 
 ### Exit Criteria
-- ✅ The `util_memory.c` system is fully integrated with the module lifecycle.
+- ✅ The `memory.c` system is fully integrated with the module lifecycle.
 - ✅ Memory for galaxy properties is allocated dynamically based on loaded modules.
 - ✅ Memory usage is confirmed to be bounded on a per-forest basis.
 - ✅ Standard debugging tools (e.g., Valgrind) report no leaks for a full run.
@@ -470,8 +470,8 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Objective**: Create a common interface to replace the separate tree input and galaxy output functions.
 - **Implementation**:
   - Design a generic `io_manager_t` struct with function pointers for `open`, `read_forest`, `write_galaxies`, `close`.
-  - Create concrete implementations of this interface for HDF5 (`io_hdf5.c`) and binary (`io_binary.c`) formats.
-  - Refactor `main.c` and `core_build_model.c` to use the `io_manager_t` interface, removing direct calls to functions in `io_tree_hdf5.c`, `io_save_binary.c`, etc.
+  - Create concrete implementations of this interface for HDF5 (`hdf5.c`) and binary (`binary.c`) formats.
+  - Refactor `main.c` and `evolution.c` to use the `io_manager_t` interface, removing direct calls to functions in `tree_hdf5.c`, `save_binary.c`, etc.
   - The specific implementation (HDF5 or binary) will be chosen at runtime based on the parameter file.
 - **Principles**: Principle 7 - format agnostic.
 - **Testing**: Both HDF5 and binary formats for input and output work correctly through the unified interface.
@@ -489,7 +489,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 ### Exit Criteria
 - ✅ The I/O system automatically adapts its output to the set of loaded modules.
 - ✅ All I/O operations are handled through the unified `io_manager_t` interface.
-- ✅ The monolithic functions in `io_tree_*.c` and `io_save_*.c` have been replaced.
+- ✅ The monolithic functions in `tree_*.c` and `save_*.c` have been replaced.
 - ✅ Analysis tool compatibility is maintained for the new HDF5 output format.
 
 ---

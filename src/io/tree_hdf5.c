@@ -32,9 +32,9 @@
 #include <unistd.h>
 
 #include "config.h"
-#include "core_proto.h"
+#include "prototypes.h"
 #include "globals.h"
-#include "io_tree_hdf5.h"
+#include "tree_hdf5.h"
 #include "types.h"
 
 // Local Variables //

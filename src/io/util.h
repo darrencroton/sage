@@ -1,5 +1,5 @@
 /**
- * @file    io_util.h
+ * @file    util.h
  * @brief   Utility functions for I/O operations
  *
  * This file provides utilities for handling input/output operations,
@@ -56,7 +56,7 @@ typedef struct {
 #elif defined(__BIG_ENDIAN__)
 #define SAGE_HOST_ENDIAN SAGE_BIG_ENDIAN
 #else
-/* Runtime detection as fallback - implemented in io_util.c */
+/* Runtime detection as fallback - implemented in util.c */
 int detect_host_endian(void);
 #define SAGE_HOST_ENDIAN detect_host_endian()
 #endif

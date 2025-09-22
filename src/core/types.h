@@ -2,7 +2,7 @@
 #define TYPES_H
 
 #include "constants.h"
-#include "core_simulation.h"
+#include "simulation.h"
 
 /* Enum for tree types */
 enum Valid_TreeTypes {

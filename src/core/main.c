@@ -32,12 +32,12 @@
 #endif
 
 #include "config.h"
-#include "core_proto.h"
+#include "prototypes.h"
 #include "globals.h"
-#include "io_tree.h"
+#include "tree.h"
 
-#include "io_save_hdf5.h"
-#include "util_version.h"
+#include "save_hdf5.h"
+#include "version.h"
 
 #define MAX_BUFZ0_SIZE (3 * MAX_STRING_LEN + 25)
 static char

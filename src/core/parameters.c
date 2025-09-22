@@ -1,5 +1,5 @@
 /**
- * @file    core_read_parameter_file.c
+ * @file    parameters.c
  * @brief   Functions for reading and validating model parameter files
  *
  * This file contains the functionality for reading model parameters from
@@ -31,11 +31,11 @@
 
 #include "config.h"
 #include "constants.h"
-#include "core_proto.h"
+#include "prototypes.h"
 #include "globals.h"
 #include "types.h"
-#include "util_error.h"
-#include "util_parameters.h"
+#include "error.h"
+#include "parameters.h"
 
 /**
  * @brief   Reads and validates parameters from a configuration file

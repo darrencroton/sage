@@ -30,8 +30,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "core_proto.h"
-#include "util_error.h"
+#include "prototypes.h"
+#include "error.h"
 
 // Default log level: show everything except debug messages
 static LogLevel current_log_level = LOG_LEVEL_INFO;

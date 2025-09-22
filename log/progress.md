@@ -28,10 +28,19 @@
 - **Files Created**: docs/directory-structure.md, tests/ directory
 
 2025-09-22: [Phase 1.3] Memory Management Centralization Complete
-- Successfully centralized all memory allocations through existing util_memory.c system with comprehensive tracking
+- Successfully centralized all memory allocations through existing util_memory.c (now memory.c) system with comprehensive tracking
 - Implemented missing mycalloc functions, created centralized src/core/memory.h header, replaced all malloc/calloc/realloc/free calls
 - Applied appropriate memory categories (MEM_IO, MEM_UTILITY) and validated with Address Sanitizer testing
 - Verified no memory leaks, proper tracking, and scientific accuracy maintained
-- **Files Modified**: src/utils/util_memory.h, src/utils/util_memory.c, src/core/core_proto.h, src/core/main.c, src/io/io_tree.c, src/io/io_tree_hdf5.c, src/io/io_save_binary.c, src/io/io_util.c, src/utils/util_integration.c, CLAUDE.md, log/phase.md
+- **Files Modified**: src/utils/util_memory.h (now memory.h), src/utils/util_memory.c (now memory.c), src/core/core_proto.h (now proto.h), src/core/main.c, src/io/io_tree.c (now tree.c), src/io/io_tree_hdf5.c (now tree_hdf5.c), src/io/io_save_binary.c (now save_binary.c), src/io/io_util.c (now util.c), src/utils/util_integration.c (now integration.c), CLAUDE.md, log/phase.md
 - **Files Created**: src/core/memory.h
+
+2025-09-22: [Phase 1.2 - update] File Naming Convention Modernization Complete
+- Successfully removed legacy functional prefixes (core_, io_, util_, model_) from all 39 source files using git mv
+- Updated 45+ #include statements, CMakeLists.txt, and all documentation to new naming convention
+- Leverages modular directory structure - prefixes redundant when location provides context
+- Validated clean compilation, scientific accuracy, and comprehensive testing
+- **Files Renamed**: 39 files (8 core/, 7 physics/, 12 io/, 12 utils/) preserving git history
+- **Files Modified**: CMakeLists.txt, 31 source files, README.md, CLAUDE.md, docs/directory-structure.md, log/architecture.md
+- **Files Archived**: core_allvars.h → scrap/core_allvars.h
 

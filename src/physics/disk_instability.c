@@ -1,5 +1,5 @@
 /**
- * @file    model_disk_instability.c
+ * @file    disk_instability.c
  * @brief   Implementation of disk instability detection and response
  *
  * This file implements the model for disk instability in galaxies, which occurs
@@ -23,9 +23,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 /**
  * @brief   Checks for disk instability and transfers mass to restore stability

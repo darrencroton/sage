@@ -1,5 +1,5 @@
 /**
- * @file    model_mergers.c
+ * @file    mergers.c
  * @brief   Galaxy merger processes and transformations
  *
  * This file implements the physical processes related to galaxy mergers,
@@ -31,9 +31,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_allvars.h"
-#include "../core/core_proto.h"
-#include "../utils/util_numeric.h"
+#include "../core/globals.h"
+#include "../core/prototypes.h"
+#include "../utils/numeric.h"
 
 /**
  * @brief   Estimates the dynamical friction timescale for satellite galaxies

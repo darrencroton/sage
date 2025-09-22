@@ -7,7 +7,7 @@
  *
  * This header provides a centralized interface to the SAGE memory management
  * system, ensuring all memory allocations go through the tracking and
- * categorization system in util_memory.c.
+ * categorization system in memory.c.
  *
  * Key features:
  * - All allocations tracked with leak detection
@@ -16,11 +16,11 @@
  * - Memory integrity validation (when compiled with DEBUG_MEMORY)
  *
  * Usage:
- * Include this header instead of directly including util_memory.h to ensure
+ * Include this header instead of directly including memory.h to ensure
  * consistent memory management throughout the SAGE codebase.
  */
 
-#include "util_memory.h"
+#include "../utils/memory.h"
 
 /*
  * Centralized memory management functions

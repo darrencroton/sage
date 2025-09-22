@@ -1,5 +1,5 @@
 /**
- * @file    io/io_save_hdf5.c
+ * @file    save_hdf5.c
  * @brief   Functions for saving galaxy data to HDF5 output files
  *
  * This file implements functionality for writing galaxy data to HDF5 format
@@ -28,9 +28,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "../core/core_proto.h"
-#include "io_save_hdf5.h"
-#include "../utils/util_error.h"
+#include "../core/prototypes.h"
+#include "save_hdf5.h"
+#include "../utils/error.h"
 
 #define TRUE 1
 #define FALSE 0

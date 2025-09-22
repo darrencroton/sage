@@ -1,5 +1,5 @@
 /**
- * @file    util_numeric.c
+ * @file    numeric.c
  * @brief   Implementation of utility functions for numerical stability
  *
  * This file implements utility functions to improve numerical stability in
@@ -8,9 +8,9 @@
  * value bounds checking.
  */
 
-#include "util_numeric.h"
+#include "numeric.h"
 #include "constants.h"
-#include "util_error.h"
+#include "error.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>

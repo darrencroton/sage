@@ -29,6 +29,7 @@ set(SAGE_CORE_SOURCES
     src/core/parameters.c
     src/core/initialization.c
     src/io/tree.c
+    src/io/io_manager.c
     src/core/cooling_tables.c
     src/core/evolution.c
     src/io/save_binary.c
@@ -48,6 +49,7 @@ set(SAGE_CORE_SOURCES
 # Header files - reorganized into logical directory structure
 set(SAGE_HEADERS
     src/io/tree.h
+    src/io/io_manager.h
     src/io/save_binary.h
     src/utils/memory.h
     src/utils/integration.h

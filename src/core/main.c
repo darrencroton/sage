@@ -191,6 +191,9 @@ int main(int argc, char **argv) {
   struct stat filestatus;
   FILE *fd;
 
+  /* I/O manager for format-agnostic I/O operations */
+  io_manager_t io_manager;
+
 #ifdef MPI
   /* Initialize MPI environment */
   MPI_Init(&argc, &argv);
@@ -305,6 +308,12 @@ int main(int argc, char **argv) {
   init();
   initialize_sim_state(); /* Initialize simulation state */
 
+  /* Initialize I/O manager with the configured tree type */
+  if (io_manager_init(&io_manager, SageConfig.TreeType) != 0) {
+    FATAL_ERROR("Failed to initialize I/O manager with tree type %d",
+                (int)SageConfig.TreeType);
+  }
+
   /* Main loop to process merger tree files */
 #ifdef MPI
   /* In MPI mode, distribute files across processors using stride of NTask */
@@ -340,7 +349,9 @@ int main(int argc, char **argv) {
     /* Load the tree table and process each tree */
     SimState.FileNum = filenr;
     sync_sim_state_to_globals(); /* Update FileNum global */
-    load_tree_table(filenr, SageConfig.TreeType);
+    if (io_manager.load_tree_table(filenr, SageConfig.TreeType) != 0) {
+      FATAL_ERROR("Failed to load tree table for file %d", filenr);
+    }
 
     for (treenr = 0; treenr < Ntrees; treenr++) {
       /* Check if we've received a CPU time limit signal */
@@ -359,7 +370,9 @@ int main(int argc, char **argv) {
       /* Set the current tree ID and load the tree */
       SimState.TreeID = treenr;
       sync_sim_state_to_globals(); /* Update TreeID global */
-      load_tree(filenr, treenr, SageConfig.TreeType);
+      if (io_manager.load_tree(filenr, treenr, SageConfig.TreeType) != 0) {
+        FATAL_ERROR("Failed to load tree %d from file %d", treenr, filenr);
+      }
 
       /* Random seed setting removed - not actually used in computation */
 
@@ -374,16 +387,23 @@ int main(int argc, char **argv) {
           construct_galaxies(halonr, treenr);
 
       /* Save the processed galaxies and free memory */
-      save_galaxies(filenr, treenr);
+      if (io_manager.save_galaxies(filenr, treenr) != 0) {
+        FATAL_ERROR("Failed to save galaxies for tree %d, file %d", treenr, filenr);
+      }
       free_galaxies_and_tree();
     }
 
     /* Finalize output files and free memory */
-    finalize_galaxy_file(filenr);
+    if (io_manager.finalize_output(filenr) != 0) {
+      FATAL_ERROR("Failed to finalize output for file %d", filenr);
+    }
     free_tree_table(SageConfig.TreeType);
 
     INFO_LOG("Completed processing file %d", filenr);
   }
+
+  /* Clean up I/O manager */
+  io_manager_cleanup(&io_manager);
 
   /* Clean up allocated memory */
 

@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "types.h"
 #include "memory.h"
+#include "../io/io_manager.h"
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE *stream);
@@ -54,6 +55,10 @@ void cleanup_memory_system(void);
 void myexit(int signum);
 
 void finalize_galaxy_file(int filenr);
+
+/* I/O Manager functions */
+int io_manager_init(io_manager_t *manager, enum Valid_TreeTypes tree_type);
+void io_manager_cleanup(io_manager_t *manager);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt,
                                 int halonr, int step);

@@ -176,12 +176,19 @@ src/
 - **disk_instability.c**: Disk instability and bulge formation
 - **misc.c**: Miscellaneous processes (stripping, disruption)
 
-### I/O System (src/io/)
+### I/O System (src/io/) ✅ ABSTRACTION LAYER COMPLETE
+- **io_manager.h/.c**: Format-agnostic I/O abstraction layer with function pointer interface
 - **tree.c**: Master tree loading interface
 - **tree_binary.c**: Binary format tree reader (LHalo format)
 - **tree_hdf5.c**: HDF5 format tree reader (Genesis format)
 - **save_binary.c**: Binary output format writer
 - **save_hdf5.c**: HDF5 output format writer
+
+**I/O Manager Features:**
+- Runtime format selection (binary/HDF5) through unified interface
+- Foundation for Phase 5 module-aware, hierarchical output
+- Enhanced error handling and logging
+- Context pointer for future module awareness
 
 ### Utilities (src/utils/)
 - **memory.c**: Custom memory management with leak detection and categorization
@@ -225,12 +232,18 @@ Parameter files use a YAML format with structured sections for:
 - Physics configuration (`physics:` - star_formation, agn, feedback, etc.)
 - Units and options (`units:`, `options:`)
 
-### Tree Processing Flow
-1. **load_tree_table()**: Load tree metadata and structure
+### Tree Processing Flow ✅ NOW USING I/O ABSTRACTION LAYER
+1. **io_manager.load_tree_table()**: Load tree metadata and structure (through abstraction)
 2. **construct_galaxies()**: Build initial galaxy populations from halos
 3. **evolve_galaxies()**: Apply physics models across cosmic time
-4. **save_galaxies()**: Write results to output files
-5. **free_galaxies_and_tree()**: Clean up memory
+4. **io_manager.save_galaxies()**: Write results to output files (through abstraction)
+5. **io_manager.finalize_output()**: Finalize output files (through abstraction)
+6. **free_galaxies_and_tree()**: Clean up memory
+
+**I/O Abstraction Benefits:**
+- Format-agnostic processing (binary/HDF5 handled transparently)
+- Enhanced error handling with descriptive messages
+- Foundation ready for Phase 5 module-aware output
 
 ### Memory Management
 SAGE uses a centralized memory management system with comprehensive tracking:

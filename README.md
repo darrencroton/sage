@@ -9,8 +9,8 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 - **Comprehensive Physics**: Implements state-of-the-art models for galaxy formation processes
 - **Modern Configuration**: YAML-based configuration system with structured, readable format
 - **Computational Efficiency**: Processes large cosmological simulations on modest hardware
-- **Flexible Input**: Works with multiple N-body simulation formats (binary, HDF5)
-- **Modular Design**: Easily extensible for implementing new physical models
+- **Format-Agnostic I/O**: Unified I/O abstraction layer supporting multiple formats (binary, HDF5)
+- **Modular Design**: Modern abstraction layers preparing for physics-agnostic core architecture
 - **Robust Memory Management**: Optimized for handling large merger trees
 - **Consistent Error Handling**: Comprehensive logging and error reporting
 - **Integrated Visualization**: Dedicated plotting system for analyzing model outputs

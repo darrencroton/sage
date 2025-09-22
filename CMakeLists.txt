@@ -1,6 +1,4 @@
 # SAGE CMake Build System
-# Replaces legacy Makefile with modern CMake infrastructure
-# Maintains full compatibility with existing build configurations
 
 cmake_minimum_required(VERSION 3.12)
 project(SAGE LANGUAGES C)
@@ -130,11 +128,77 @@ if(USE_HDF5)
             src/io/tree_hdf5.h
             src/io/save_hdf5.h)
         message(STATUS "HDF5 support enabled")
-        message(STATUS "HDF5 version: ${HDF5_VERSION}")
-        message(STATUS "HDF5 libraries: ${HDF5_C_LIBRARIES}")
     else()
         message(FATAL_ERROR "HDF5 requested but not found")
     endif()
+endif()
+
+# Find PkgConfig for libyaml detection
+find_package(PkgConfig QUIET)
+
+if(PKG_CONFIG_FOUND)
+        # Try to find libyaml using pkg-config
+        pkg_check_modules(YAML yaml-0.1)
+
+        if(YAML_FOUND)
+                        # Add YAML-specific sources
+            list(APPEND SAGE_CORE_SOURCES
+                src/utils/yaml_parser.c
+                src/utils/config_reader.c)
+            list(APPEND SAGE_HEADERS
+                src/utils/yaml_parser.h
+                src/utils/config_reader.h)
+        else()
+            # Fallback to manual search if pkg-config fails
+            find_path(YAML_INCLUDE_DIR yaml.h
+                PATHS /usr/include /usr/local/include
+                PATH_SUFFIXES yaml)
+            find_library(YAML_LIBRARY yaml
+                PATHS /usr/lib /usr/local/lib)
+
+            if(YAML_INCLUDE_DIR AND YAML_LIBRARY)
+                set(YAML_FOUND TRUE)
+                set(YAML_INCLUDE_DIRS ${YAML_INCLUDE_DIR})
+                set(YAML_LIBRARIES ${YAML_LIBRARY})
+                                # Add YAML-specific sources
+                list(APPEND SAGE_CORE_SOURCES
+                    src/utils/yaml_parser.c
+                    src/utils/config_reader.c)
+                list(APPEND SAGE_HEADERS
+                    src/utils/yaml_parser.h
+                    src/utils/config_reader.h)
+            else()
+                message(FATAL_ERROR "YAML configuration system requires libyaml library but it was not found via pkg-config. Please install libyaml-dev or libyaml-devel package.")
+            endif()
+        endif()
+    else()
+        message(WARNING "pkg-config not found. Trying manual YAML detection...")
+        # Manual search without pkg-config
+        find_path(YAML_INCLUDE_DIR yaml.h
+            PATHS /usr/include /usr/local/include
+            PATH_SUFFIXES yaml)
+        find_library(YAML_LIBRARY yaml
+            PATHS /usr/lib /usr/local/lib)
+
+        if(YAML_INCLUDE_DIR AND YAML_LIBRARY)
+            set(YAML_FOUND TRUE)
+            set(YAML_INCLUDE_DIRS ${YAML_INCLUDE_DIR})
+            set(YAML_LIBRARIES ${YAML_LIBRARY})
+                        # Add YAML-specific sources
+            list(APPEND SAGE_CORE_SOURCES
+                src/utils/yaml_parser.c
+                src/utils/config_reader.c)
+            list(APPEND SAGE_HEADERS
+                src/utils/yaml_parser.h
+                src/utils/config_reader.h)
+        else()
+            message(FATAL_ERROR "YAML configuration system requires libyaml library but it was not found. Please install libyaml library and development headers.")
+        endif()
+    endif()
+
+# Ensure YAML was found
+if(NOT YAML_FOUND)
+    message(FATAL_ERROR "YAML support is mandatory for SAGE but libyaml library was not found.")
 endif()
 
 # Create executable target
@@ -165,6 +229,16 @@ if(USE_HDF5 AND HDF5_FOUND)
     target_compile_definitions(sage PRIVATE ${HDF5_C_DEFINITIONS})
 endif()
 
+# Link YAML libraries
+if(YAML_FOUND)
+    target_link_directories(sage PRIVATE ${YAML_LIBRARY_DIRS})
+    target_link_libraries(sage ${YAML_LIBRARIES})
+    target_include_directories(sage PRIVATE ${YAML_INCLUDE_DIRS})
+    if(YAML_CFLAGS_OTHER)
+        target_compile_options(sage PRIVATE ${YAML_CFLAGS_OTHER})
+    endif()
+endif()
+
 # Include directories - updated for new structure
 target_include_directories(sage PRIVATE src/core src/io src/physics src/utils)
 
@@ -189,13 +263,19 @@ add_custom_target(git_version_always
 add_dependencies(sage git_version_always)
 
 
+# Add tests subdirectory if it exists
+# if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
+#     enable_testing()
+#     add_subdirectory(tests)
+#     message(STATUS "Testing framework enabled")
+# endif()
+
 # Print configuration summary
-message(STATUS "")
 message(STATUS "SAGE Build Configuration:")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  C Compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "  C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "  MPI Support: ${USE_MPI}")
 message(STATUS "  HDF5 Support: ${USE_HDF5}")
+message(STATUS "  YAML Version: ${YAML_VERSION}")
 message(STATUS "  Source files: ${SAGE_CORE_SOURCES}")
-message(STATUS "")

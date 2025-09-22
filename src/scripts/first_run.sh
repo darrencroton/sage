@@ -245,16 +245,16 @@ echo "--------------------------------------"
 
 cd "$ROOT_DIR"
 
-if [[ ! -f "input/millennium.par" ]]; then
-    echo "ERROR: Parameter file input/millennium.par not found."
+if [[ ! -f "input/milennium.yaml" ]]; then
+    echo "ERROR: Parameter file input/milennium.yaml not found."
     exit 1
 fi
 
-echo "Updating paths in millennium.par..."
+echo "Updating paths in milennium.yaml..."
 
 # Create backup
-cp input/millennium.par input/millennium.par.backup
-echo "✓ Created backup: input/millennium.par.backup"
+cp input/milennium.yaml input/milennium.yaml.backup
+echo "✓ Created backup: input/milennium.yaml.backup"
 
 # Update paths to absolute paths
 NEW_OUTPUT_DIR="OutputDir              $ROOT_DIR/output/results/millennium/"
@@ -264,14 +264,14 @@ NEW_SNAP_LIST="FileWithSnapList            $ROOT_DIR/input/data/millennium/mille
 # Use sed to update the paths (compatible with both macOS and Linux)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
-    sed -i "" "s|^OutputDir.*|$NEW_OUTPUT_DIR|g" input/millennium.par
-    sed -i "" "s|^SimulationDir.*|$NEW_SIMULATION_DIR|g" input/millennium.par
-    sed -i "" "s|^FileWithSnapList.*|$NEW_SNAP_LIST|g" input/millennium.par
+    sed -i "" "s|^OutputDir.*|$NEW_OUTPUT_DIR|g" input/milennium.yaml
+    sed -i "" "s|^SimulationDir.*|$NEW_SIMULATION_DIR|g" input/milennium.yaml
+    sed -i "" "s|^FileWithSnapList.*|$NEW_SNAP_LIST|g" input/milennium.yaml
 else
     # Linux
-    sed -i "s|^OutputDir.*|$NEW_OUTPUT_DIR|g" input/millennium.par
-    sed -i "s|^SimulationDir.*|$NEW_SIMULATION_DIR|g" input/millennium.par
-    sed -i "s|^FileWithSnapList.*|$NEW_SNAP_LIST|g" input/millennium.par
+    sed -i "s|^OutputDir.*|$NEW_OUTPUT_DIR|g" input/milennium.yaml
+    sed -i "s|^SimulationDir.*|$NEW_SIMULATION_DIR|g" input/milennium.yaml
+    sed -i "s|^FileWithSnapList.*|$NEW_SNAP_LIST|g" input/milennium.yaml
 fi
 
 echo "✓ Updated parameter file with absolute paths"
@@ -324,11 +324,11 @@ echo "1. Compile SAGE:"
 echo "   mkdir build && cd build && cmake .. && make -j\$(nproc) && cd .."
 echo ""
 echo "2. Run SAGE:"
-echo "   ./sage input/millennium.par"
+echo "   ./sage input/milennium.yaml"
 echo ""
 echo "3. Generate plots (using the virtual environment):"
 echo "   source sage_venv/bin/activate"
-echo "   python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par"
+echo "   python ./output/sage-plot/sage-plot.py --param-file=./input/milennium.yaml"
 echo "   deactivate  # when done with plotting"
 echo ""
 echo "Virtual Environment Info:"

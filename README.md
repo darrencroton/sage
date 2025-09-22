@@ -7,6 +7,7 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 ## Features
 
 - **Comprehensive Physics**: Implements state-of-the-art models for galaxy formation processes
+- **Modern Configuration**: YAML-based configuration system with structured, readable format
 - **Computational Efficiency**: Processes large cosmological simulations on modest hardware
 - **Flexible Input**: Works with multiple N-body simulation formats (binary, HDF5)
 - **Modular Design**: Easily extensible for implementing new physical models
@@ -34,11 +35,11 @@ cd sage
 mkdir build && cd build && cmake .. && make -j$(nproc) && cd ..
 
 # Run SAGE with the mini-Millennium simulation
-./sage input/millennium.par
+./sage input/millennium.yaml
 
 # Generate plots (using virtual environment)
 source sage_venv/bin/activate
-python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par
+python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.yaml
 deactivate
 ```
 
@@ -46,7 +47,7 @@ The `src/scripts/first_run.sh` script will automatically:
 - Create necessary directories (`input/data/millennium`, `output/results/millennium`)
 - Download the mini-Millennium simulation trees
 - Set up a Python virtual environment (`sage_venv`) with plotting dependencies
-- Configure the parameter file with correct paths
+- Configure the configuration file with correct paths
 
 ## Installation
 
@@ -85,8 +86,8 @@ cmake .. -DUSE_HDF5=ON -DUSE_MPI=ON  # Enable both
 make -j$(nproc) && cd ..
 
 # SAGE executable is automatically moved to source directory
-# Always run SAGE from the source directory (parameter files contain relative paths):
-./sage input/millennium.par
+# Always run SAGE from the source directory (configuration files contain relative paths):
+./sage input/millennium.yaml
 ```
 
 #### Build Configuration Options
@@ -159,7 +160,7 @@ pip3 install --break-system-packages -r requirements.txt
 ```
 
 #### 4. Configure Parameter File
-Update `input/millennium.par` with the correct absolute paths:
+Update `input/millennium.yaml` with the correct absolute paths:
 - Set `OutputDir` to your full path + `/output/results/millennium/`
 - Set `SimulationDir` to your full path + `/input/data/millennium/`
 - Set `FileWithSnapList` to your full path + `/input/data/millennium/millennium.a_list`
@@ -167,7 +168,7 @@ Update `input/millennium.par` with the correct absolute paths:
 #### 5. Compile and Run
 ```bash
 make
-./sage input/millennium.par
+./sage input/millennium.yaml
 ```
 
 ## Basic Usage
@@ -176,10 +177,10 @@ make
 
 ```bash
 # Basic execution
-./sage <parameter_file>
+./sage <configuration_file>
 
 # With command-line options
-./sage --verbose <parameter_file>
+./sage --verbose <configuration_file>
 
 # Show help
 ./sage --help
@@ -245,7 +246,7 @@ DiskInstabilityOn      1
 % ... (additional parameters)
 ```
 
-Note: A full example parameter file can be found in the `input` directory.
+Note: A full example configuration file can be found in the `input` directory.
 
 ## Code Structure
 
@@ -319,20 +320,20 @@ Basic usage:
 source sage_venv/bin/activate
 
 # Generate all plots (both snapshot and evolution - new default!)
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par
+python output/sage-plot/sage-plot.py --param-file=input/millennium.yaml
 
 # Generate only snapshot plots
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par --snapshot-plots
+python output/sage-plot/sage-plot.py --param-file=input/millennium.yaml --snapshot-plots
 
 # Generate only evolution plots
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par --evolution-plots
+python output/sage-plot/sage-plot.py --param-file=input/millennium.yaml --evolution-plots
 
 # Generate specific plots
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=stellar_mass_function,sfr_density_evolution
+python output/sage-plot/sage-plot.py --param-file=input/millennium.yaml --plots=stellar_mass_function,sfr_density_evolution
 
 # Works from any directory!
 cd /tmp
-python /path/to/sage/output/sage-plot/sage-plot.py --param-file=/path/to/sage/input/millennium.par
+python /path/to/sage/output/sage-plot/sage-plot.py --param-file=/path/to/sage/input/millennium.yaml
 
 # Deactivate when done
 deactivate

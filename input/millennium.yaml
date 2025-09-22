@@ -1,0 +1,81 @@
+# SAGE Configuration File (YAML format)
+# Millennium Simulation configuration
+
+# File information
+files:
+  galaxy_file_name: "model"
+  output_dir: "./output/results/millennium/"
+  tree_name: "trees_063"
+  tree_type: "lhalo_binary"  # either 'genesis_lhalo_hdf5' or 'lhalo_binary'
+  simulation_dir: "./input/data/millennium/"
+  snapshot_list: "./input/data/millennium/millennium.a_list"
+
+# Simulation parameters
+simulation:
+  first_file: 0
+  last_file: 7
+  last_snapshot: 63
+  num_outputs: 8  # sets the desired number of galaxy outputs; use -1 for all outputs
+  # List your output snapshots (highest to lowest, ignored when num_outputs=-1)
+  output_snapshots: "[63, 37, 32, 27, 23, 20, 18, 16]"
+
+  # Simulation information
+  num_tree_files: 8       # not used but needed for plotting
+  box_size: 62.5          # in Mpc/h - not used but needed for plotting
+
+  # Cosmological parameters
+  omega: 0.25
+  omega_lambda: 0.75
+  baryon_fraction: 0.17
+  hubble_h: 0.73
+  particle_mass: 0.0860657
+
+# Physics configuration
+physics:
+  # Recipe options
+  star_formation:
+    prescription: 0         # 0: original Croton et al. 2006
+    efficiency: 0.05        # efficiency of SF (prescription=0)
+
+  agn:
+    recipe: 2               # 0: switch off; 1: empirical; 2: Bondi-Hoyle; 3: cold cloud accretion
+    radio_mode_efficiency: 0.08      # AGN radio mode efficiency (recipe=2)
+    quasar_mode_efficiency: 0.005    # AGN quasar mode wind heating efficiency (recipe>0)
+    black_hole_growth_rate: 0.015    # fraction of cold gas added to BH during mergers (recipe>0)
+
+  supernova:
+    recipe: 1               # 0: switch off; 1: enabled
+    energy: 1.0e51          # energy per supernova
+    efficiency: 5.0e-3      # supernova efficiency
+
+  feedback:
+    reheating_epsilon: 3.0        # mass of cold gas reheated due to SF (see Martin 1999)
+    ejection_efficiency: 0.3      # mixing efficiency of SN energy with hot gas to unbind and eject some
+
+  reionization:
+    enabled: 1              # 0: switch off; 1: enabled
+    z0: 8.0                 # these parameter choices give the best fit to Genedin (2000)...
+    zr: 7.0                 # using the analytic fit of Kravtsov et al. 2004
+
+  disk_instability:
+    enabled: 1              # 0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
+
+  # Physical process parameters
+  reincorporation_factor: 0.15      # fraction of ejected mass reincorporated per dynamical time to hot
+  threshold_major_merger: 0.3       # major merger when mass ratio greater than this
+  threshold_sat_disruption: 1.0     # Mvir-to-baryonic mass ratio threshold for satellite merger or disruption
+
+  # Chemical evolution
+  yield: 0.025                      # fraction of SF mass produced as metals
+  recycle_fraction: 0.43            # fraction of SF mass instantaneously recycled back to cold
+  frac_z_leave_disk: 0.0            # fraction of metals produced directly to hot component
+
+# Units and constants
+units:
+  length_cm: 3.08568e+24            # WATCH OUT: Mpc/h
+  mass_g: 1.989e+43                 # WATCH OUT: 10^10Msun
+  velocity_cm_per_s: 100000         # WATCH OUT: km/s
+
+# Additional configuration options
+options:
+  overwrite_output_files: 1         # 1=overwrite (default), 0=skip existing files

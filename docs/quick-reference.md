@@ -10,6 +10,7 @@ This document serves as a central index for all SAGE documentation.
 ## Architecture and Development
 
 - **[directory-structure.md](directory-structure.md)** - Detailed explanation of the reorganized source code structure
+- **[yaml-configuration-guide.md](yaml-configuration-guide.md)** - Complete YAML configuration documentation
 - **[doc_standards.md](doc_standards.md)** - Documentation standards and templates
 - **[error_handling_guidelines.md](error_handling_guidelines.md)** - Error handling best practices
 
@@ -54,11 +55,11 @@ See [directory-structure.md](directory-structure.md) for complete details.
 mkdir build && cd build && cmake .. && make -j$(nproc) && cd ..
 
 # Run simulation
-./sage input/millennium.par
+./sage input/millennium.yaml
 
 # Generate plots
 source sage_venv/bin/activate
-python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.par
+python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.yaml
 deactivate
 
 # Format code

@@ -61,12 +61,12 @@ make -j$(nproc) && cd ..
 
 ```bash
 # SAGE executable is automatically moved to source directory after CMake build
-./sage input/millennium.par
+./sage input/millennium.yaml
 
 # With command-line options
-./sage --verbose input/millennium.par
-./sage --quiet input/millennium.par
-./sage --skip input/millennium.par
+./sage --verbose input/millennium.yaml
+./sage --quiet input/millennium.yaml
+./sage --skip input/millennium.yaml
 
 ```
 
@@ -79,24 +79,48 @@ cd output/sage-plot
 ./test_plotting.sh
 
 # Generate all plots (both snapshot and evolution - new default behavior)
-python sage-plot.py --param-file=../../input/millennium.par
+python sage-plot.py --param-file=../../input/millennium.yaml
 
 # Generate specific plots
-python sage-plot.py --param-file=../../input/millennium.par --plots=stellar_mass_function,sfr_density_evolution
+python sage-plot.py --param-file=../../input/millennium.yaml --plots=stellar_mass_function,sfr_density_evolution
 
 # Generate only snapshot plots
-python sage-plot.py --param-file=../../input/millennium.par --snapshot-plots
+python sage-plot.py --param-file=../../input/millennium.yaml --snapshot-plots
 
 # Generate only evolution plots
-python sage-plot.py --param-file=../../input/millennium.par --evolution-plots
+python sage-plot.py --param-file=../../input/millennium.yaml --evolution-plots
 
 # Cross-directory execution now works from anywhere
 cd ../..
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=stellar_mass_function
+python output/sage-plot/sage-plot.py --param-file=input/millennium.yaml --plots=stellar_mass_function
 
 # Deactivate when done
 deactivate
 ```
+
+## Configuration
+
+SAGE uses modern YAML-based configuration files that replace the legacy .par format:
+
+```bash
+# Run SAGE with YAML configuration
+./sage input/millennium.yaml
+
+# YAML configuration provides structured, readable format:
+# - Nested sections for different parameter types
+# - Enhanced validation and error reporting
+# - Support for comments and documentation
+# - Preparation for future module-aware configuration
+```
+
+**Key YAML sections:**
+- `files:` - Input/output file locations and formats
+- `simulation:` - Cosmological parameters and simulation setup
+- `physics:` - Physical process parameters and recipe selections
+- `units:` - Unit definitions and conversions
+- `options:` - Additional configuration flags
+
+See `docs/yaml-configuration-guide.md` for complete documentation.
 
 ## Code Architecture
 

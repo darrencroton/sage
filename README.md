@@ -386,7 +386,7 @@ SAGE includes a comprehensive plotting system (`sage-plot`) for analyzing model 
 - **Enhanced default behavior**: Generates both snapshot and evolution plots automatically
 - **Cross-directory execution**: Works from any directory with robust path resolution
 - **Consistent styling** and interfaces across all visualizations
-- **Robust parameter parsing**: Handles comments, arrow notation, and various file formats
+- **Robust parameter parsing**: Modern YAML format with comprehensive validation
 - **Single entry point** for generating all plots with minimal configuration
 
 For detailed usage instructions, see the [sage-plot README](output/sage-plot/README.md).

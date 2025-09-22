@@ -263,6 +263,7 @@ If you need to set up the plotting environment manually:
 - NumPy
 - Matplotlib (>=3.0.0)
 - tqdm (for progress bars)
+- PyYAML (>=5.0.0) (for YAML configuration parsing)
 - (Optional) LaTeX installation for high-quality text rendering in plots
 
 #### Installation Options
@@ -282,20 +283,20 @@ cd output/sage-plot
 # Using virtual environment (recommended)
 python3 -m venv plotting-env
 source plotting-env/bin/activate
-pip install "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0"
+pip install "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0" "PyYAML>=5.0.0"
 
 # Or using --user flag
-pip3 install --user "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0"
+pip3 install --user "numpy>=1.20.0" "matplotlib>=3.0.0" "tqdm>=4.0.0" "PyYAML>=5.0.0"
 
 # Or using system package manager (macOS with Homebrew)
-brew install python-numpy python-matplotlib python-tqdm
+brew install python-numpy python-matplotlib python-tqdm python-yaml
 ```
 
 #### Verification
 
 Test your setup:
 ```bash
-python -c "import numpy, matplotlib, tqdm; print('All packages available!')"
+python -c "import numpy, matplotlib, tqdm, yaml; print('All packages available')"
 ```
 
 ## License

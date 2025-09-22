@@ -4,10 +4,10 @@
 SAGE Plotting Tool - Master plotting script for SAGE galaxy formation model output
 
 Usage:
-  python sage-plot-fixed.py --param-file=<param_file> [options]
+  python sage-plot.py --param-file=<yaml_file> [options]
 
 Options:
-  --param-file=<file>    SAGE parameter file (required)
+  --param-file=<file>    SAGE YAML configuration file (required)
   --first-file=<num>     First file to read [default: 0]
   --last-file=<num>      Last file to read [default: use MaxFileNum from param file]
   --snapshot=<num>       Process only this snapshot number
@@ -37,6 +37,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+import yaml
 
 random.seed(42)  # For reproducibility with sample data
 
@@ -136,101 +137,144 @@ def resolve_relative_path(path, param_file_path):
     return os.path.abspath(resolved_path)
 
 
-class SAGEParameters:
-    """Class to parse and store SAGE parameter file settings."""
+class SAGEYAMLParameters:
+    """Class to parse and store SAGE YAML configuration file settings."""
 
     def __init__(self, param_file):
         """Initialize with parameter file path."""
         self.param_file = os.path.abspath(param_file)
         self.params = {}
-        self.parse_param_file()
+        self.yaml_data = {}
+        self.parse_yaml_file()
 
-    def parse_param_file(self):
-        """Parse the SAGE parameter file."""
+    def parse_yaml_file(self):
+        """Parse the SAGE YAML configuration file."""
         if not os.path.exists(self.param_file):
             raise FileNotFoundError(f"Parameter file not found: {self.param_file}")
 
-        # Check for snapshot output list line
-        output_snapshots = []
+        # Validate file extension
+        if not (self.param_file.endswith('.yaml') or self.param_file.endswith('.yml')):
+            raise ValueError(f"Expected YAML file (.yaml or .yml), got: {self.param_file}")
 
-        # Parse the parameter file
-        with open(self.param_file, "r") as f:
-            for line in f:
-                # Skip empty lines and full comment lines
-                if (
-                    line.strip() == ""
-                    or line.strip().startswith("#")
-                    or line.strip().startswith("%")
-                ):
-                    continue
-
-                # Check for arrow notation for snapshots (e.g., "-> 63 37 32 27 23 20 18 16")
-                # Only process arrow notation if line starts with arrow (not in comments)
-                if line.strip().startswith("->"):
-                    snapshot_list = line.split("->")[1].strip().split()
-                    output_snapshots = [int(snap) for snap in snapshot_list]
-                    self.params["OutputSnapshots"] = output_snapshots
-                    continue
-
-                # Parse key-value pairs
-                if "=" in line:
-                    # Standard equals-separated key-value
-                    parts = line.split("=")
-                    key = parts[0].strip()
-                    value_part = parts[1].strip()
-                else:
-                    # Handle space-separated key-value pairs (common in parameter files)
-                    parts = line.split(None, 1)  # Split on whitespace, max 1 split
-                    if len(parts) >= 2:
-                        key = parts[0].strip()
-                        value_part = parts[1].strip()
-                    else:
-                        continue  # Skip lines that don't match our format
-
-                # Handle inline comments - crucial to remove them before type conversion
-                # Check for comment markers and take the earliest one
-                comment_positions = []
-                for marker in ["%", "#", ";"]:
-                    pos = value_part.find(marker)
-                    if pos != -1:
-                        comment_positions.append(pos)
-
-                if comment_positions:
-                    # Take everything before the first comment marker
-                    first_comment_pos = min(comment_positions)
-                    value = value_part[:first_comment_pos].strip()
-                else:
-                    value = value_part
-
-                # Clean the value - especially important for paths
-                value = value.strip()
-
-                # Convert to appropriate type
-                if value.lstrip('-').isdigit():
-                    value = int(value)
-                elif self._is_float(value):
-                    value = float(value)
-                elif key in ["OutputDir", "SimulationDir"]:
-                    # Ensure directory paths are properly formatted
-                    value = value.strip('"').strip("'")
-                    # Make sure directory paths have a trailing slash
-                    if value and not value.endswith("/"):
-                        value = value + "/"
-                elif key in ["FileWithSnapList"]:
-                    # Ensure file paths are properly formatted
-                    value = value.strip('"').strip("'")
-                    # Don't add trailing slash to file paths
-
-                self.params[key] = value
-
-    def _is_float(self, value):
-        """Check if a string can be converted to float."""
+        # Load YAML file
         try:
-            float(value)
-            return True
-        except ValueError:
-            return False
-    
+            with open(self.param_file, "r") as f:
+                self.yaml_data = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error parsing YAML file: {e}")
+        except Exception as e:
+            raise ValueError(f"Error reading YAML file: {e}")
+
+        if not isinstance(self.yaml_data, dict):
+            raise ValueError("YAML file must contain a dictionary at the root level")
+
+        # Map YAML hierarchical structure to flat parameter names for backward compatibility
+        self._map_yaml_to_params()
+
+    def _map_yaml_to_params(self):
+        """Map YAML hierarchical keys to flat parameter names for backward compatibility."""
+
+        # File information mappings
+        files = self.yaml_data.get('files', {})
+        if 'output_dir' in files:
+            value = files['output_dir'].strip()
+            # Ensure directory paths have a trailing slash
+            if value and not value.endswith("/"):
+                value = value + "/"
+            self.params['OutputDir'] = value
+
+        if 'galaxy_file_name' in files:
+            self.params['FileNameGalaxies'] = files['galaxy_file_name']
+
+        if 'snapshot_list' in files:
+            self.params['FileWithSnapList'] = files['snapshot_list']
+
+        if 'tree_name' in files:
+            self.params['TreeName'] = files['tree_name']
+
+        if 'simulation_dir' in files:
+            value = files['simulation_dir'].strip()
+            # Ensure directory paths have a trailing slash
+            if value and not value.endswith("/"):
+                value = value + "/"
+            self.params['SimulationDir'] = value
+
+        # Simulation parameters mappings
+        simulation = self.yaml_data.get('simulation', {})
+        if 'first_file' in simulation:
+            self.params['FirstFile'] = int(simulation['first_file'])
+
+        if 'last_file' in simulation:
+            self.params['LastFile'] = int(simulation['last_file'])
+
+        if 'last_snapshot' in simulation:
+            self.params['LastSnapshotNr'] = int(simulation['last_snapshot'])
+
+        if 'num_tree_files' in simulation:
+            self.params['NumSimulationTreeFiles'] = int(simulation['num_tree_files'])
+
+        if 'box_size' in simulation:
+            self.params['BoxSize'] = float(simulation['box_size'])
+
+        if 'hubble_h' in simulation:
+            self.params['Hubble_h'] = float(simulation['hubble_h'])
+
+        if 'omega' in simulation:
+            self.params['Omega'] = float(simulation['omega'])
+
+        if 'omega_lambda' in simulation:
+            self.params['OmegaLambda'] = float(simulation['omega_lambda'])
+
+        if 'baryon_fraction' in simulation:
+            self.params['BaryonFrac'] = float(simulation['baryon_fraction'])
+
+        if 'particle_mass' in simulation:
+            self.params['PartMass'] = float(simulation['particle_mass'])
+
+        # Parse output snapshots array
+        if 'output_snapshots' in simulation:
+            output_snaps = simulation['output_snapshots']
+            # Handle string representation of list (e.g., "[63, 37, 32]")
+            if isinstance(output_snaps, str):
+                # Remove brackets and split by comma
+                output_snaps = output_snaps.strip('[]').split(',')
+                output_snaps = [int(snap.strip()) for snap in output_snaps if snap.strip()]
+            elif isinstance(output_snaps, list):
+                output_snaps = [int(snap) for snap in output_snaps]
+            else:
+                output_snaps = []
+            self.params['OutputSnapshots'] = output_snaps
+
+        # Physics parameters mappings (commonly used ones for plotting)
+        physics = self.yaml_data.get('physics', {})
+
+        # Star formation
+        sf = physics.get('star_formation', {})
+        if 'prescription' in sf:
+            self.params['SFprescription'] = int(sf['prescription'])
+        if 'efficiency' in sf:
+            self.params['SfrEfficiency'] = float(sf['efficiency'])
+
+        # AGN
+        agn = physics.get('agn', {})
+        if 'recipe' in agn:
+            self.params['AGNrecipeOn'] = int(agn['recipe'])
+
+        # Reionization
+        reion = physics.get('reionization', {})
+        if 'enabled' in reion:
+            self.params['ReionizationOn'] = int(reion['enabled'])
+
+        # Disk instability
+        disk = physics.get('disk_instability', {})
+        if 'enabled' in disk:
+            self.params['DiskInstabilityOn'] = int(disk['enabled'])
+
+        # Options
+        options = self.yaml_data.get('options', {})
+        if 'overwrite_output_files' in options:
+            self.params['OverwriteOutputFiles'] = int(options['overwrite_output_files'])
+
     def get(self, key, default=None):
         """Get a parameter value."""
         return self.params.get(key, default)
@@ -481,7 +525,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
 def parse_arguments():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="SAGE Plotting Tool")
-    parser.add_argument("--param-file", required=True, help="SAGE parameter file (required)")
+    parser.add_argument("--param-file", required=True, help="SAGE YAML configuration file (required)")
     parser.add_argument("--first-file", type=int, help="First file to read (overrides parameter file)")
     parser.add_argument("--last-file", type=int, help="Last file to read (overrides parameter file)")
     parser.add_argument(
@@ -566,9 +610,9 @@ def main():
 
     # Parse the parameter file
     try:
-        params = SAGEParameters(args.param_file)
+        params = SAGEYAMLParameters(args.param_file)
         if args.verbose:
-            print(f"Loaded parameters from {args.param_file}")
+            print(f"Loaded YAML parameters from {args.param_file}")
 
             # Print important parameters
             important_params = [

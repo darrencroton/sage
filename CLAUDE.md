@@ -214,16 +214,16 @@ src/
 - **Enhanced Features**:
   - Default behavior generates both snapshot and evolution plots
   - Cross-directory execution with automatic path resolution
-  - Robust parameter file parsing (handles comments, arrow notation)
+  - Modern YAML configuration parsing (replaces legacy .par format)
   - Consistent flag naming (`--evolution-plots`, `--snapshot-plots`)
 - Each plot module follows consistent interface: `plot(galaxies, volume, metadata, params, output_dir, output_format)`
 
 ### Parameter File Structure
-Parameter files use a key-value format with sections for:
-- File information (FirstFile, LastFile, OutputDir)
-- Simulation parameters (BoxSize, Hubble_h, Omega)
-- Recipe flags (SFprescription, AGNrecipeOn, ReionizationOn)
-- Physical parameters (SfrEfficiency, FeedbackReheatingEpsilon)
+Parameter files use a YAML format with structured sections for:
+- File information (`files:` - output_dir, galaxy_file_name, etc.)
+- Simulation parameters (`simulation:` - box_size, hubble_h, omega, etc.)
+- Physics configuration (`physics:` - star_formation, agn, feedback, etc.)
+- Units and options (`units:`, `options:`)
 
 ### Tree Processing Flow
 1. **load_tree_table()**: Load tree metadata and structure

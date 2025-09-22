@@ -336,6 +336,30 @@ All changes are automatically validated through GitHub Actions CI, which:
 - Runs code formatting and warning checks
 - Executes the complete test suite
 
+## Documentation
+
+SAGE includes comprehensive documentation to support both users and developers:
+
+### User Documentation
+- **[README.md](README.md)** - Main project overview, installation, and usage guide
+- **[User Guide](docs/user-guide.md)** - Comprehensive end-user documentation (under development)
+- **[YAML Configuration Guide](docs/yaml-configuration-guide.md)** - Complete parameter file documentation
+
+### Developer Documentation
+- **[CLAUDE.md](CLAUDE.md)** - Development guidelines and Claude Code integration
+- **[Physics Module Guide](docs/physics-module-guide.md)** - Module development guide (available in Phase 2A)
+- **[Testing Guide](docs/testing-guide.md)** - Complete testing framework documentation
+- **[Directory Structure](docs/directory-structure.md)** - Code organization and architecture
+- **[Documentation Standards](docs/doc_standards.md)** - Documentation templates and guidelines
+
+### Project Documentation
+- **[Quick Reference](docs/quick-reference.md)** - Central documentation index
+- **[Architecture Documentation](log/architecture.md)** - Current system architecture
+- **[Master Plan](log/sage-master-plan.md)** - Complete transformation roadmap
+- **[Phase Progress](log/phase.md)** - Current development status
+
+The documentation system provides comprehensive coverage for installation, usage, development, testing, and architectural understanding of SAGE.
+
 ## Code Formatting
 
 SAGE includes a code formatting script to maintain consistent coding style:

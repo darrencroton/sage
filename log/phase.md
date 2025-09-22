@@ -11,16 +11,16 @@
 
 # Current Phase: 1/6 (Infrastructure Foundation) - Preparing for Modularization
 
-## 🟢 Current Task in Progress
-#### Task 1.6: Development and Documentation Infrastructure
-- **Objective**: Establish the foundational documentation structure for the project.
+## 🟡 Next Task Ready for Implementation
+#### Task 1.5: I/O Abstraction Layer
+- **Objective**: Create an abstraction layer for tree input and galaxy output to prepare for a unified, format-agnostic I/O system.
 - **Implementation**:
-  - Create the `docs/` directory.
-  - Create `docs/physics-module-guide.md` as a placeholder to be fully written in Phase 2A.
-  - Create `docs/user-guide.md` as a placeholder to be written iteratively and finalized in Phase 6.
-  - Create a `docs/quick-reference.md` to serve as a central index for all documentation.
-- **Testing**: The directory structure is in place and files are correctly linked.
-- **Effort**: 1 session (low complexity)
+  - Create a new `io_manager.h` header.
+  - Define a generic `io_manager_t` struct containing function pointers for key I/O operations (e.g., `load_tree_table`, `load_tree`, `save_galaxies`, `finalize_galaxy_files`).
+  - In `main.c`, create an `io_manager_t` instance and initialize its function pointers to point to the existing functions in `tree.c` and `save_binary.c`/`save_hdf5.c`.
+  - Replace direct calls to these I/O functions in the main loop with calls through the `io_manager_t` function pointers.
+- **Testing**: The code compiles and runs, producing identical output files. Both binary and HDF5 I/O function correctly through the abstraction layer.
+- **Effort**: 2 sessions (moderate complexity)
 
 ## 🎯 Architectural Principles Addressed
 - **Principle 6**: Memory Efficiency and Safety (preparation)
@@ -72,10 +72,12 @@
 - [ ] Replace direct I/O function calls with abstraction layer calls
 - [ ] Test both binary and HDF5 I/O work through abstraction
 
-### Task 1.6: Development Infrastructure
-- [ ] Create `docs/` directory structure
-- [ ] Create placeholder documentation files
-- [ ] Create `docs/quick-reference.md` as central index
+### Task 1.6: Development Infrastructure ✅ COMPLETE
+- [x] Create `docs/` directory structure
+- [x] Create `docs/physics-module-guide.md` placeholder (for Phase 2A)
+- [x] Create `docs/user-guide.md` placeholder (iterative development, final in Phase 6)
+- [x] Create `docs/quick-reference.md` as central index
+- [x] Comprehensive documentation system with professional standards
 
 ### Task 1.7: Testing and Automation Framework ✅ COMPLETE
 - [x] Integrate CTest with CMake build system

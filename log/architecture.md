@@ -11,9 +11,9 @@
 ## Directory Structure
 ```
 sage/
-├── src/                      # Modern modular structure (NEW - Task 1.2 Complete)
+├── src/                     # Modern modular structure
 │   ├── core/                # Core infrastructure and coordination
-│   │   ├── auxdata/         # Auxiliary data (CoolFunctions moved from extra/)
+│   │   ├── auxdata/         # Auxiliary data
 │   │   ├── main.c           # Program entry point
 │   │   ├── initialization.c, parameters.c, evolution.c # Core infrastructure components
 │   │   ├── globals.h        # Global declarations
@@ -32,8 +32,8 @@ sage/
 ├── input/                   # Input parameter files
 ├── output/                  # Output files and plotting system
 ├── docs/                    # Documentation
-├── tests/                   # Testing framework (Task 1.7 Complete)
-├── .github/workflows/       # CI/CD pipeline (Task 1.7 Complete)
+├── tests/                   # Testing framework
+├── .github/workflows/       # CI/CD pipeline
 └── log/                     # Project tracking logs
 ```
 
@@ -194,8 +194,9 @@ Modern CMake-based build with integrated testing:
 - ✅ **Task 1.2**: Directory reorganization complete
 - ✅ **Task 1.3**: Memory management centralization complete
 - ✅ **Task 1.4**: Configuration abstraction layer complete (YAML)
+- ✅ **Task 1.6**: Development infrastructure complete (comprehensive documentation system)
 - ✅ **Task 1.7**: Testing and automation framework complete (CTest + CI)
-- **Tasks 1.5-1.6**: I/O abstraction, Development infrastructure (remaining)
+- **Task 1.5**: I/O abstraction layer (remaining)
 
 **Immediate Violations to Address in Phase 2A:**
 - `src/core/evolution.c` includes all physics headers directly

@@ -122,6 +122,12 @@ void io_manager_cleanup(io_manager_t *manager) {
  * These functions wrap the existing binary I/O functions to provide the
  * int-returning interface required by the abstraction layer while maintaining
  * compatibility with the current void-returning implementations.
+ *
+ * KNOWN LIMITATION: Error propagation is currently limited because the
+ * underlying legacy I/O functions return void and do not provide error codes.
+ * These wrappers assume success and return 0. This limitation will be addressed
+ * in Phase 5 when the legacy I/O functions are refactored to support proper
+ * error reporting through the abstraction layer.
  */
 
 /**

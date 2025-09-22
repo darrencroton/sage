@@ -20,13 +20,13 @@ endif()
 # Source files - reorganized into logical directory structure
 set(SAGE_CORE_SOURCES
     src/core/main.c
-    src/utils/parameters.c
+    src/utils/parameters.c           # Parameter table definitions (utility functions)
     src/utils/error.c
     src/utils/integration.c
     src/utils/numeric.c
     src/utils/version.c
     src/io/util.c
-    src/core/parameters.c
+    src/core/parameters.c            # Parameter file reading logic (core functionality)
     src/core/initialization.c
     src/io/tree.c
     src/io/io_manager.c
@@ -115,9 +115,16 @@ if(USE_HDF5)
     find_package(HDF5 COMPONENTS C)
 
     if(NOT HDF5_FOUND)
-        # Fallback to Makefile's hardcoded path if system HDF5 not found
-        set(HDF5_ROOT "/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm")
-        find_package(HDF5 COMPONENTS C)
+        # Try environment variable HDF5_ROOT if system HDF5 not found
+        if(DEFINED ENV{HDF5_ROOT} AND NOT "$ENV{HDF5_ROOT}" STREQUAL "")
+            set(HDF5_ROOT "$ENV{HDF5_ROOT}")
+            message(STATUS "Using HDF5_ROOT from environment: ${HDF5_ROOT}")
+            find_package(HDF5 COMPONENTS C)
+        endif()
+
+        if(NOT HDF5_FOUND)
+            message(FATAL_ERROR "HDF5 library not found. Please install HDF5 or set HDF5_ROOT environment variable")
+        endif()
     endif()
 
     if(HDF5_FOUND)

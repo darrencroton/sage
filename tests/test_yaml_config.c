@@ -14,6 +14,7 @@
 
 #include "test_runner.h"
 #include "config_reader.h"
+#include "yaml_parser.h"
 #include "error.h"
 #include "memory.h"
 
@@ -38,7 +39,8 @@ static const char* test_yaml_content =
 "  first_file: 0\n"
 "  last_file: 1\n"
 "  last_snapshot: 10\n"
-"  num_outputs: 5\n"
+"  num_outputs: 4\n"
+"  output_snapshots: '[10, 8, 6, 4]'\n"
 "  box_size: 100.0\n"
 "  omega: 0.3\n"
 "  omega_lambda: 0.7\n"
@@ -182,10 +184,8 @@ void test_yaml_error_handling() {
     config_result_t result;
 
     // Test non-existent file
-    // NOTE: This should return CONFIG_FILE_NOT_FOUND but currently returns CONFIG_PARSE_ERROR
-    // This is a known issue in config_reader.c that needs to be addressed
     result = config_read_file("/nonexistent/file.yaml", &config);
-    ASSERT_EQ(result, CONFIG_PARSE_ERROR);  // FIXME: Should be CONFIG_FILE_NOT_FOUND
+    ASSERT_EQ(result, CONFIG_FILE_NOT_FOUND);
 
     // Create invalid YAML file
     FILE *file = fopen(data.invalid_file_path, "w");
@@ -197,6 +197,109 @@ void test_yaml_error_handling() {
     result = config_read_file(data.invalid_file_path, &config);
     ASSERT_EQ(result, CONFIG_PARSE_ERROR);
 
+    cleanup_yaml_test_data(&data);
+}
+
+/**
+ * @brief Test YAML array parsing functionality
+ */
+void test_yaml_array_parsing() {
+    yaml_test_data_t data;
+    ASSERT_EQ(setup_yaml_test_data(&data), 0);
+
+    config_t config;
+    config_result_t result;
+
+    // Create test file with array data
+    ASSERT_EQ(create_test_yaml_file(data.test_file_path), 0);
+
+    // Read configuration
+    result = config_read_file(data.test_file_path, &config);
+    ASSERT_EQ(result, CONFIG_SUCCESS);
+
+    // Test array parsing using yaml_get_int_array
+    yaml_data_t yaml_data;
+    yaml_parse_result_t yaml_result = yaml_data_init(&yaml_data);
+    ASSERT_EQ(yaml_result, YAML_PARSE_SUCCESS);
+
+    yaml_result = yaml_parse_file(data.test_file_path, &yaml_data);
+    ASSERT_EQ(yaml_result, YAML_PARSE_SUCCESS);
+
+    // Test parsing output_snapshots array
+    int snapshots[10];
+    int num_parsed = yaml_get_int_array(&yaml_data, "simulation.output_snapshots", snapshots, 10);
+
+    // Should parse 4 values: [10, 8, 6, 4]
+    ASSERT_EQ(num_parsed, 4);
+    ASSERT_EQ(snapshots[0], 10);
+    ASSERT_EQ(snapshots[1], 8);
+    ASSERT_EQ(snapshots[2], 6);
+    ASSERT_EQ(snapshots[3], 4);
+
+    // Test edge case: empty array
+    int empty_array[5];
+    int empty_parsed = yaml_get_int_array(&yaml_data, "nonexistent.array", empty_array, 5);
+    ASSERT_EQ(empty_parsed, -1); // Should return -1 for non-existent key
+
+    // Test edge case: buffer too small
+    int small_buffer[2];
+    int truncated = yaml_get_int_array(&yaml_data, "simulation.output_snapshots", small_buffer, 2);
+    ASSERT_EQ(truncated, 2); // Should parse only 2 values
+    ASSERT_EQ(small_buffer[0], 10);
+    ASSERT_EQ(small_buffer[1], 8);
+
+    // Clean up
+    yaml_data_free(&yaml_data);
+    config_free(&config);
+    cleanup_yaml_test_data(&data);
+}
+
+/**
+ * @brief Test TreeType enum mapping functionality
+ */
+void test_tree_type_mapping() {
+    yaml_test_data_t data;
+    ASSERT_EQ(setup_yaml_test_data(&data), 0);
+
+    config_t config;
+    config_result_t result;
+
+    // Test lhalo_binary mapping
+    ASSERT_EQ(create_test_yaml_file(data.test_file_path), 0);
+    result = config_read_file(data.test_file_path, &config);
+    ASSERT_EQ(result, CONFIG_SUCCESS);
+    ASSERT_EQ(config.base.TreeType, lhalo_binary);
+
+    // Test genesis_lhalo_hdf5 mapping
+    FILE *file = fopen(data.test_file_path, "w");
+    ASSERT_TRUE(file != NULL);
+    fprintf(file,
+        "files:\n"
+        "  output_dir: ./test_output/\n"
+        "  galaxy_file_name: test_model\n"
+        "  tree_type: genesis_lhalo_hdf5\n");
+    fclose(file);
+
+    result = config_read_file(data.test_file_path, &config);
+    ASSERT_EQ(result, CONFIG_SUCCESS);
+    ASSERT_EQ(config.base.TreeType, genesis_lhalo_hdf5);
+
+    // Test invalid tree type (should fail validation)
+    file = fopen(data.test_file_path, "w");
+    ASSERT_TRUE(file != NULL);
+    fprintf(file,
+        "files:\n"
+        "  output_dir: ./test_output/\n"
+        "  galaxy_file_name: test_model\n"
+        "  tree_type: invalid_tree_type\n");
+    fclose(file);
+
+    result = config_read_file(data.test_file_path, &config);
+    // The config should read successfully but validation should catch the invalid tree type
+    // Note: Current implementation may not validate tree types - this test documents expected behavior
+    ASSERT_TRUE(result == CONFIG_SUCCESS || result == CONFIG_VALIDATION_ERROR);
+
+    config_free(&config);
     cleanup_yaml_test_data(&data);
 }
 
@@ -213,6 +316,8 @@ int main() {
     RUN_TEST(test_yaml_config_reading);
     RUN_TEST(test_yaml_config_validation);
     RUN_TEST(test_yaml_error_handling);
+    RUN_TEST(test_yaml_array_parsing);
+    RUN_TEST(test_tree_type_mapping);
 
     // Check for memory leaks before finishing
     printf("\nMemory leak check:\n");

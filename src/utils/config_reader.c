@@ -117,7 +117,19 @@ config_result_t config_read_file(const char *filename, config_t *config) {
         ERROR_LOG("Failed to parse YAML file '%s': %s",
                  filename, yaml_parse_result_string(yaml_result));
         yaml_data_free(&yaml_data);
-        return CONFIG_PARSE_ERROR;
+
+        // Map YAML errors to config errors
+        switch (yaml_result) {
+            case YAML_PARSE_FILE_NOT_FOUND:
+                return CONFIG_FILE_NOT_FOUND;
+            case YAML_PARSE_MEMORY_ERROR:
+                return CONFIG_MEMORY_ERROR;
+            case YAML_PARSE_INVALID_SYNTAX:
+            case YAML_PARSE_DEPTH_EXCEEDED:
+            case YAML_PARSE_UNKNOWN_ERROR:
+            default:
+                return CONFIG_PARSE_ERROR;
+        }
     }
 
     // Map YAML values to configuration structure

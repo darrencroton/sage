@@ -162,7 +162,18 @@ int main() {
 }
 ```
 
-### 3. Update CMakeLists.txt
+### 3. Follow the Template
+
+**Important**: All new tests must use the standardized template:
+
+```bash
+# Copy the template
+cp docs/templates/test_template.c tests/test_mymodule.c
+
+# Implement your specific tests following the template structure
+```
+
+### 4. Update CMakeLists.txt
 
 The test will be automatically detected if the file exists. The `tests/CMakeLists.txt` includes conditional compilation:
 
@@ -347,63 +358,41 @@ make test_numeric VERBOSE=1
 
 ## Test Template
 
-Use this template for new test files:
+SAGE provides a standardized test template to ensure consistency across all tests. **All new tests must follow this template.**
 
-```c
-/**
- * @file    test_template.c
- * @brief   Unit tests for [module name]
- *
- * This file contains unit tests for [description of what is being tested].
- * Tests verify [key functionality being validated].
- */
+### Using the Template
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+```bash
+# Copy the template to create a new test
+cp docs/templates/test_template.c tests/test_your_module.c
 
-#include "test_runner.h"
-#include "module_to_test.h"
-
-/**
- * @brief Test [specific functionality]
- */
-void test_functionality_name() {
-    // Arrange - set up test data
-
-    // Act - perform the operation being tested
-
-    // Assert - verify the results
-    ASSERT_EQ(result, expected);
-}
-
-/**
- * @brief Test error conditions
- */
-void test_error_conditions() {
-    // Test invalid inputs, edge cases, etc.
-}
-
-/**
- * @brief Main test runner
- */
-int main() {
-    // Initialize systems if needed
-    initialize_error_handling(2, stdout);
-    init_memory_system(1024);
-
-    TEST_SUITE_START();
-
-    RUN_TEST(test_functionality_name);
-    RUN_TEST(test_error_conditions);
-
-    // Check for memory leaks
-    printf("\nMemory leak check:\n");
-    check_memory_leaks();
-
-    TEST_SUITE_END();
-}
+# Edit the new file and implement your specific tests
+# Build and run: cmake .. && make && ctest -R test_your_module
 ```
+
+The template includes:
+- **Standardized structure** with proper documentation
+- **Required test categories** (basic functionality, error conditions, edge cases)
+- **Memory management integration** with leak detection
+- **Numerical stability testing** patterns
+- **Proper SAGE system initialization**
+- **Comprehensive commenting** and usage instructions
+
+### Template Requirements
+
+All tests must include these components:
+
+1. **File header** with @file, @brief, and test coverage description
+2. **System initialization** (error handling and memory management)
+3. **Memory leak checking** before test completion
+4. **Standard test categories**:
+   - Basic functionality tests
+   - Error condition tests
+   - Edge case tests
+   - Memory integration tests
+   - Numerical stability tests (where applicable)
+
+For the complete template with detailed instructions, see: [`docs/templates/test_template.c`](templates/test_template.c)
 
 ## Future Enhancements
 
@@ -419,9 +408,11 @@ Planned improvements to the testing framework:
 
 When adding new functionality to SAGE:
 
-1. **Write tests first**: Consider test-driven development
-2. **Maintain test coverage**: Ensure new code is tested
-3. **Run full test suite**: Verify no regressions before committing
-4. **Update documentation**: Keep this guide current with changes
+1. **Use the template**: Always start new tests with `docs/templates/test_template.c`
+2. **Write tests first**: Consider test-driven development
+3. **Maintain test coverage**: Ensure new code is tested
+4. **Follow standards**: All tests must include the required components listed in the template
+5. **Run full test suite**: Verify no regressions before committing
+6. **Update documentation**: Keep this guide current with changes
 
 For questions or issues with the testing framework, refer to the project documentation or create an issue in the repository.

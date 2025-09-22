@@ -81,7 +81,7 @@ ctest -R test_numeric
 
 - Follow documentation standards in [doc_standards.md](doc_standards.md)
 - Use error handling patterns from [error_handling_guidelines.md](error_handling_guidelines.md)
-- Write unit tests using patterns from [testing-guide.md](testing-guide.md)
+- Write unit tests using the standardized template in [templates/test_template.c](templates/test_template.c)
 - Run `ctest` before committing to ensure no regressions
 - Always check exit codes when running SAGE
 - Update progress in [log/progress.md](../log/progress.md) for significant changes

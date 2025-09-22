@@ -251,7 +251,7 @@ Follow the documentation template in `docs/doc_standards.md`:
 
 ## Development Guidelines
 - All work to highest professional coding standards
-- Write unit tests for new functionality using the patterns in `tests/test_numeric.c`
+- Write unit tests for new functionality using the standardized template in `docs/templates/test_template.c`
 - Run `ctest --output-on-failure` before committing changes
 - Debug with lldb using a command file (must end with "quit"): `lldb --batch -s debug_commands.txt ./sage`
 - Never simplify tests - failing tests indicate real problems

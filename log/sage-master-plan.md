@@ -138,7 +138,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Testing**: The directory structure is in place and files are correctly linked.
 - **Effort**: 1 session (low complexity)
 
-#### Task 1.7: Testing and Automation Framework (NEW)
+#### Task 1.7: Testing and Automation Framework
 - **Objective**: Establish a modern, automated testing and integration framework.
 - **Implementation**:
   - **Unit Testing**: Integrate CTest with the CMake build system. Create a `tests/` directory and implement initial unit tests for a utility function (e.g., `numeric.c`) to establish the testing pattern.
@@ -158,7 +158,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 
 ---
 
-## 🚨 Phase 2A: Core/Physics Separation (NEW PHASE)
+## 🚨 Phase 2A: Core/Physics Separation
 
 ### Architectural Principles Addressed
 - **Principle 1**: Physics-Agnostic Core Infrastructure ⭐ **PRIMARY**
@@ -234,7 +234,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Testing**: Module dependencies resolved correctly
 - **Effort**: 2 sessions
 
-#### Task 2A.6: Write Physics Module Developer Guide (NEW)
+#### Task 2A.6: Write Physics Module Developer Guide
 - **Objective**: Document the new module system for future developers.
 - **Implementation**:
   - Fully write the `docs/physics-module-guide.md` based on the final implementation from this phase.
@@ -260,7 +260,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 
 ---
 
-## Phase 2B: Property System Integration (REVISED)
+## Phase 2B: Property System Integration
 
 ### Architectural Principles Addressed
 - **Principle 3**: Metadata-Driven Architecture ⭐ **PRIMARY**

@@ -13,6 +13,8 @@
 
 #include "test_runner.h"
 #include "numeric.h"
+#include "error.h"
+#include "memory.h"
 
 /**
  * @brief Test the safe division function
@@ -129,6 +131,10 @@ void test_utilities() {
  * @brief Main test runner
  */
 int main() {
+    // Initialize SAGE systems for testing
+    initialize_error_handling(2, stdout); // INFO level to stdout
+    init_memory_system(1024);              // Standard capacity
+
     TEST_SUITE_START();
 
     RUN_TEST(test_safe_div);
@@ -136,6 +142,10 @@ int main() {
     RUN_TEST(test_is_equal);
     RUN_TEST(test_comparisons);
     RUN_TEST(test_utilities);
+
+    // Check for memory leaks before finishing
+    printf("\nMemory leak check:\n");
+    check_memory_leaks();
 
     TEST_SUITE_END();
 }

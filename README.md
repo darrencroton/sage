@@ -324,7 +324,7 @@ The testing framework includes:
 - **Cross-Platform CI**: Automated testing on Ubuntu and macOS via GitHub Actions
 - **Professional Test Framework**: CTest integration with detailed assertion macros
 
-For detailed information on writing tests, see [docs/testing-guide.md](docs/testing-guide.md).
+For detailed information on writing tests, see [docs/testing-guide.md](docs/testing-guide.md). All new tests must use the standardized template in [`docs/templates/test_template.c`](docs/templates/test_template.c).
 
 ### Continuous Integration
 

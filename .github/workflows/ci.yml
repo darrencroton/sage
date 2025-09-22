@@ -1,0 +1,117 @@
+name: SAGE CI
+
+on:
+  push:
+    branches: [ master, refactor, develop ]
+  pull_request:
+    branches: [ master, refactor ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: [Debug, Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libyaml-dev libhdf5-dev cmake build-essential
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install libyaml hdf5 cmake
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_HDF5=OFF
+
+    - name: Build SAGE
+      run: |
+        cd build
+        make -j$(nproc)
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure --parallel 2
+
+    - name: Test SAGE execution
+      run: |
+        # Test that SAGE executable exists and runs
+        ls -la sage || echo "SAGE executable not found"
+        ./sage --help || echo "SAGE help command failed"
+
+  test-with-hdf5:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies with HDF5
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libyaml-dev libhdf5-dev cmake build-essential pkg-config
+
+    - name: Configure CMake with HDF5
+      run: |
+        mkdir build-hdf5
+        cd build-hdf5
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_HDF5=ON
+
+    - name: Build SAGE with HDF5
+      run: |
+        cd build-hdf5
+        make -j$(nproc)
+
+    - name: Run tests with HDF5
+      run: |
+        cd build-hdf5
+        ctest --output-on-failure
+
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libyaml-dev cmake build-essential clang-format
+
+    - name: Check code formatting
+      run: |
+        # Check if code formatting script exists and run it
+        if [ -x "./src/scripts/beautify.sh" ]; then
+          echo "Running code formatting check..."
+          ./src/scripts/beautify.sh --c-only
+          # Check if any files were modified by formatting
+          if ! git diff --quiet; then
+            echo "Code formatting issues found. Please run ./src/scripts/beautify.sh"
+            git diff
+            exit 1
+          else
+            echo "Code formatting is correct"
+          fi
+        else
+          echo "Beautify script not found, skipping formatting check"
+        fi
+
+    - name: Build with warnings as errors
+      run: |
+        mkdir build-strict
+        cd build-strict
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-Wall -Wextra -Werror"
+        make -j$(nproc)

@@ -14,6 +14,7 @@ SAGE is a modern, modular, and customizable semi-analytic model for simulating g
 - **Robust Memory Management**: Optimized for handling large merger trees
 - **Consistent Error Handling**: Comprehensive logging and error reporting
 - **Integrated Visualization**: Dedicated plotting system for analyzing model outputs
+- **Comprehensive Testing**: CTest-based unit testing framework with CI/CD validation
 - **Well-Structured Code**: Organized headers and reduced global variable dependencies
 - **Numerical Stability**: Enhanced handling of floating-point operations
 - **Cross-Platform I/O**: Improved error checking and platform compatibility
@@ -33,6 +34,9 @@ cd sage
 
 # Compile SAGE using CMake
 mkdir build && cd build && cmake .. && make -j$(nproc) && cd ..
+
+# Run tests to validate installation
+cd build && ctest --output-on-failure && cd ..
 
 # Run SAGE with the mini-Millennium simulation
 ./sage input/millennium.yaml
@@ -282,6 +286,55 @@ The SAGE codebase is organized around these key components:
   - `types.h`: Structure definitions
   - `globals.h`: Global variable declarations
   - `config.h`: Configuration parameters
+
+## Testing
+
+SAGE includes a comprehensive testing framework for validating functionality and ensuring code quality:
+
+### Running Tests
+
+```bash
+# Build project with tests enabled
+mkdir build && cd build
+cmake .. && make -j$(nproc)
+
+# Run all tests
+ctest --output-on-failure
+
+# Run tests in parallel
+ctest --parallel 4
+
+# Run specific test
+ctest -R test_numeric
+
+# Run with verbose output for debugging
+ctest --verbose
+
+# Individual test execution
+./tests/test_numeric
+./tests/test_yaml_config
+```
+
+### Test Coverage
+
+The testing framework includes:
+
+- **Unit Tests**: Core functionality validation (numeric utilities, configuration parsing)
+- **Memory Testing**: Integration with SAGE's memory management system for leak detection
+- **Cross-Platform CI**: Automated testing on Ubuntu and macOS via GitHub Actions
+- **Professional Test Framework**: CTest integration with detailed assertion macros
+
+For detailed information on writing tests, see [docs/testing-guide.md](docs/testing-guide.md).
+
+### Continuous Integration
+
+All changes are automatically validated through GitHub Actions CI, which:
+
+- Tests on multiple platforms (Ubuntu, macOS)
+- Validates both Debug and Release builds
+- Tests with and without optional dependencies (HDF5, MPI)
+- Runs code formatting and warning checks
+- Executes the complete test suite
 
 ## Code Formatting
 

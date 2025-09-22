@@ -264,11 +264,11 @@ add_dependencies(sage git_version_always)
 
 
 # Add tests subdirectory if it exists
-# if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
-#     enable_testing()
-#     add_subdirectory(tests)
-#     message(STATUS "Testing framework enabled")
-# endif()
+if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
+    enable_testing()
+    add_subdirectory(tests)
+    message(STATUS "Testing framework enabled")
+endif()
 
 # Print configuration summary
 message(STATUS "SAGE Build Configuration:")

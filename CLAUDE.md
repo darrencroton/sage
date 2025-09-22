@@ -72,6 +72,31 @@ make -j$(nproc) && cd ..
 
 ## Testing
 
+### Unit Tests
+
+SAGE includes a comprehensive testing framework built on CTest:
+
+```bash
+# Build and run all tests
+mkdir build && cd build && cmake .. && make -j$(nproc)
+ctest --output-on-failure
+
+# Run tests in parallel
+ctest --parallel 4
+
+# Run specific test
+ctest -R test_numeric
+
+# Run with verbose output
+ctest --verbose
+
+# Individual test execution
+./tests/test_numeric
+./tests/test_yaml_config
+```
+
+### Plotting System Tests
+
 ```bash
 # Test the plotting system (activate virtual environment first)
 source sage_venv/bin/activate
@@ -226,6 +251,8 @@ Follow the documentation template in `docs/doc_standards.md`:
 
 ## Development Guidelines
 - All work to highest professional coding standards
+- Write unit tests for new functionality using the patterns in `tests/test_numeric.c`
+- Run `ctest --output-on-failure` before committing changes
 - Debug with lldb using a command file (must end with "quit"): `lldb --batch -s debug_commands.txt ./sage`
 - Never simplify tests - failing tests indicate real problems
 - When running sage always check the exit code for success or failure

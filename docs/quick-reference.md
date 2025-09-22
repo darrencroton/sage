@@ -11,6 +11,7 @@ This document serves as a central index for all SAGE documentation.
 
 - **[directory-structure.md](directory-structure.md)** - Detailed explanation of the reorganized source code structure
 - **[yaml-configuration-guide.md](yaml-configuration-guide.md)** - Complete YAML configuration documentation
+- **[testing-guide.md](testing-guide.md)** - Complete testing framework guide with examples and best practices
 - **[doc_standards.md](doc_standards.md)** - Documentation standards and templates
 - **[error_handling_guidelines.md](error_handling_guidelines.md)** - Error handling best practices
 
@@ -40,7 +41,9 @@ See [directory-structure.md](directory-structure.md) for complete details.
 
 ## Build and Development Tools
 
-- **CMake build system** - Modern, cross-platform build configuration
+- **CMake build system** - Modern, cross-platform build configuration with integrated testing
+- **CTest framework** - Automated unit testing with `ctest` command
+- **GitHub Actions CI** - Multi-platform continuous integration testing
 - **src/scripts/beautify.sh** - Code formatting (C and Python)
 - **src/scripts/first_run.sh** - Automated environment setup
 - **output/sage-plot/** - Integrated plotting and visualization system
@@ -62,6 +65,12 @@ source sage_venv/bin/activate
 python ./output/sage-plot/sage-plot.py --param-file=./input/millennium.yaml
 deactivate
 
+# Run tests
+cd build && ctest --output-on-failure
+
+# Run specific test
+ctest -R test_numeric
+
 # Format code
 ./src/scripts/beautify.sh
 ```
@@ -70,6 +79,8 @@ deactivate
 
 - Follow documentation standards in [doc_standards.md](doc_standards.md)
 - Use error handling patterns from [error_handling_guidelines.md](error_handling_guidelines.md)
+- Write unit tests using patterns from [testing-guide.md](testing-guide.md)
+- Run `ctest` before committing to ensure no regressions
 - Always check exit codes when running SAGE
 - Update progress in [log/progress.md](../log/progress.md) for significant changes
 - Archive outdated files to `scrap/` rather than deleting

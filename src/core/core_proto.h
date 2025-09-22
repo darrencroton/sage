@@ -38,6 +38,8 @@ void read_parameter_file(char *fname);
 void init_memory_system(unsigned long max_blocks);
 void *mymalloc(size_t n);
 void *mymalloc_cat(size_t size, MemoryCategory category);
+void *mycalloc(size_t nmemb, size_t size);
+void *mycalloc_cat(size_t nmemb, size_t size, MemoryCategory category);
 void *myrealloc(void *p, size_t n);
 void *myrealloc_cat(void *p, size_t size, MemoryCategory category);
 void myfree(void *p);

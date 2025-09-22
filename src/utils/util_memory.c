@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -240,6 +241,48 @@ void *mymalloc_cat(size_t size, MemoryCategory category) {
  * default UNKNOWN category for backward compatibility.
  */
 void *mymalloc(size_t size) { return mymalloc_cat(size, MEM_UNKNOWN); }
+
+/**
+ * @brief   Allocates zero-initialized memory with category tracking
+ *
+ * @param   nmemb     Number of elements to allocate
+ * @param   size      Size of each element in bytes
+ * @param   category  Memory category for tracking
+ * @return  Pointer to the allocated memory block
+ *
+ * This function allocates memory for an array of nmemb elements of size bytes
+ * each and initializes all bytes to zero. It uses the existing mymalloc_cat
+ * infrastructure for tracking and memory management.
+ */
+void *mycalloc_cat(size_t nmemb, size_t size, MemoryCategory category) {
+  /* Check for overflow in multiplication */
+  if (nmemb != 0 && size > SIZE_MAX / nmemb) {
+    FATAL_ERROR("Memory allocation overflow: nmemb (%zu) * size (%zu) exceeds maximum", nmemb, size);
+  }
+
+  size_t total_size = nmemb * size;
+  void *ptr = mymalloc_cat(total_size, category);
+
+  if (ptr != NULL) {
+    memset(ptr, 0, total_size);
+  }
+
+  return ptr;
+}
+
+/**
+ * @brief   Allocates zero-initialized memory with tracking (backward compatibility wrapper)
+ *
+ * @param   nmemb   Number of elements to allocate
+ * @param   size    Size of each element in bytes
+ * @return  Pointer to the allocated memory block
+ *
+ * This function is a wrapper around mycalloc_cat() that uses the
+ * default UNKNOWN category for backward compatibility.
+ */
+void *mycalloc(size_t nmemb, size_t size) {
+  return mycalloc_cat(nmemb, size, MEM_UNKNOWN);
+}
 
 /**
  * @brief   Reallocates memory with category tracking

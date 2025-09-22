@@ -96,7 +96,7 @@ void myexit(int signum) {
 void bye() {
 #ifdef MPI
   MPI_Finalize();
-  free(ThisNode);
+  myfree(ThisNode);
 #endif
 
   if (exitfail) {
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &NTask);    /* Get total number of processors */
 
   /* Get the name of this processor's node */
-  ThisNode = malloc(MPI_MAX_PROCESSOR_NAME * sizeof(char));
+  ThisNode = mymalloc_cat(MPI_MAX_PROCESSOR_NAME * sizeof(char), MEM_UTILITY);
   MPI_Get_processor_name(ThisNode, &nodeNameLen);
   if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME) {
     printf("Node name string not long enough!...\n");

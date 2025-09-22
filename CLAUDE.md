@@ -184,12 +184,14 @@ Parameter files use a key-value format with sections for:
 5. **free_galaxies_and_tree()**: Clean up memory
 
 ### Memory Management
-Uses custom allocator with categorized tracking:
-- MEMORY_GALAXY: Galaxy data structures
-- MEMORY_TREE: Merger tree data
-- MEMORY_PARAMETER: Configuration data
-- MEMORY_UTIL: Utility arrays and buffers
-Call `print_allocated()` to check for memory leaks.
+SAGE uses a centralized memory management system with comprehensive tracking:
+- **Centralized Allocation**: All memory goes through `mymalloc*`, `mycalloc*`, `myrealloc*`, `myfree`
+- **Category Tracking**: MEM_GALAXIES, MEM_HALOS, MEM_TREES, MEM_IO, MEM_UTILITY, MEM_UNKNOWN
+- **Leak Detection**: Built-in leak detection with `check_memory_leaks()`
+- **High-Water Marking**: Peak memory usage tracking and reporting
+- **Memory Validation**: Optional guard bytes for corruption detection (DEBUG_MEMORY)
+- **Centralized Header**: Include `src/core/memory.h` for unified memory interface
+Call `print_allocated()` to check current usage, `check_memory_leaks()` for leak detection.
 
 ### Documentation Standards
 Follow the documentation template in `docs/doc_standards.md`:

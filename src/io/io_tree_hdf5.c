@@ -210,7 +210,7 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
 
   Halo = mymalloc(sizeof(struct halo_data) * NHalos_ThisTree);
 
-  buffer = calloc(NHalos_ThisTree, sizeof(*(buffer)));
+  buffer = mycalloc_cat(NHalos_ThisTree, sizeof(*(buffer)), MEM_IO);
   if (buffer == NULL) {
     char err_msg[MAX_STRING_LEN + 1];
     snprintf(err_msg, MAX_STRING_LEN,
@@ -222,7 +222,7 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
   }
 
   buffer_multipledim =
-      calloc(NHalos_ThisTree * NDIM, sizeof(*(buffer_multipledim)));
+      mycalloc_cat(NHalos_ThisTree * NDIM, sizeof(*(buffer_multipledim)), MEM_IO);
   if (buffer_multipledim == NULL) {
     char err_msg[MAX_STRING_LEN + 1];
     snprintf(err_msg, MAX_STRING_LEN,
@@ -263,8 +263,8 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
   READ_TREE_PROPERTY(SubhaloIndex, SubHaloIndex, 0, int);
   READ_TREE_PROPERTY(SubHalfMass, SubHalfMass, 0, int);
 
-  free(buffer);
-  free(buffer_multipledim);
+  myfree(buffer);
+  myfree(buffer_multipledim);
 
 #ifdef DEBUG_HDF5_READER
   int32_t i;

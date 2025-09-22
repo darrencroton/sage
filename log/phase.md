@@ -12,14 +12,17 @@
 # Current Phase: 1/6 (Infrastructure Foundation) - Preparing for Modularization
 
 ## 🟢 Current Task in Progress
-#### Task 1.3: Memory Management Centralization
-- **Objective**: Centralize all memory allocations through the existing `util_memory.c` system to prepare for module-aware tracking.
+#### Task 1.4: Configuration Abstraction Layer
+- **Objective**: Create unified config reading interface.
 - **Implementation**:
-  - Create a new header `src/core/memory.h` that includes `util_memory.h`.
-  - Perform a codebase-wide replacement of `malloc`, `calloc`, `realloc`, and `free` with the corresponding functions from `util_memory.c` (`mymalloc`, `myrealloc`, `myfree`). Ensure `mycalloc` is implemented if needed.
-  - All memory allocations must go through this centralized system.
-- **Testing**: The code compiles and runs with no new memory errors. Valgrind reports no leaks, and the memory tracking system functions as before.
-- **Effort**: 1 session (low complexity)
+  - Design `config_t` structure for unified access.
+  - Create `config_reader.c` with JSON support (using a library like `cJSON`).
+  - Add legacy `.par` file reading to the same interface, populating the `config_t` struct.
+  - Implement a configuration validation framework.
+- **Testing**: Both JSON and `.par` files can be read correctly into the `config_t` struct.
+- **Documentation**: Configuration format specification.
+- **Risk**: JSON library selection - use a proven, simple solution.
+- **Effort**: 2 sessions (moderate complexity)
 
 ## 🎯 Architectural Principles Addressed
 - **Principle 6**: Memory Efficiency and Safety (preparation)
@@ -51,11 +54,11 @@
 - [x] Update plotting system path resolution for new structure
 - [x] Update all documentation (README.md, CLAUDE.md, docs/) for new paths
 
-### Task 1.3: Memory Management Centralization
-- [ ] Create `src/core/memory.h` that includes `util_memory.h`
-- [ ] Replace all `malloc/calloc/realloc/free` with `mymalloc/mycalloc/myrealloc/myfree`
-- [ ] Ensure all memory allocations go through centralized system
-- [ ] Test memory usage with `leaks`, compile with Address Sanitizer (`-fsanitize=address`) - no memory errors or leaks
+### Task 1.3: Memory Management Centralization ✅ COMPLETE
+- [x] Create `src/core/memory.h` that includes `util_memory.h`
+- [x] Replace all `malloc/calloc/realloc/free` with `mymalloc/mycalloc/myrealloc/myfree`
+- [x] Ensure all memory allocations go through centralized system
+- [x] Test memory usage with Address Sanitizer (`-fsanitize=address`) - no memory errors or leaks
 
 ### Task 1.4: Configuration Abstraction Layer
 - [ ] Design `config_t` structure for unified access
@@ -92,7 +95,7 @@
 - Simulation produces scientifically identical results to original baseline
 - Foundational documentation structure established
 
-**Phase 1 Status**: 2/7 tasks complete
+**Phase 1 Status**: 3/7 tasks complete
 
 ## Validation Requirements
 - **Build System**: CMake produces identical binary to Makefile

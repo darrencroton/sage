@@ -24,7 +24,7 @@ This document serves as a central index for all SAGE documentation.
 
 ## Source Code Organization
 
-With the completion of Task 1.2: Directory Reorganization, SAGE now follows a modern, modular structure:
+With the completion of Tasks 1.2 and 1.3, SAGE now follows a modern, modular structure with centralized memory management:
 
 ```
 src/

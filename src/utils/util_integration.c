@@ -9,6 +9,7 @@
 
 #include "util_integration.h"
 #include "util_error.h"
+#include "../core/memory.h"
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
@@ -95,7 +96,7 @@ integration_workspace_t *integration_workspace_alloc(size_t size) {
   integration_workspace_t *workspace;
 
   workspace =
-      (integration_workspace_t *)malloc(sizeof(integration_workspace_t));
+      (integration_workspace_t *)mymalloc_cat(sizeof(integration_workspace_t), MEM_UTILITY);
   if (workspace == NULL) {
     ERROR_LOG("Failed to allocate integration workspace");
     return NULL;
@@ -111,7 +112,7 @@ integration_workspace_t *integration_workspace_alloc(size_t size) {
  */
 void integration_workspace_free(integration_workspace_t *workspace) {
   if (workspace) {
-    free(workspace);
+    myfree(workspace);
   }
 }
 

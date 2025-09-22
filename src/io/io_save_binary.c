@@ -71,7 +71,7 @@ void save_galaxies(int filenr, int tree) {
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
 
-  OutputGalOrder = (int *)malloc(NumGals * sizeof(int));
+  OutputGalOrder = (int *)mymalloc_cat(NumGals * sizeof(int), MEM_IO);
   if (OutputGalOrder == NULL) {
     FATAL_ERROR("Memory allocation failed for OutputGalOrder array (%d "
                 "elements, %zu bytes)",
@@ -123,7 +123,7 @@ void save_galaxies(int filenr, int tree) {
           (Ntrees + 2) *
           sizeof(int); /* Extra two integers are for saving the total number of
                           trees and total number of galaxies in this file */
-      int *tmp_buf = (int *)malloc(size);
+      int *tmp_buf = (int *)mymalloc_cat(size, MEM_IO);
       if (tmp_buf == NULL) {
         FATAL_ERROR("Memory allocation failed for header buffer (%zu bytes) "
                     "for snapshot %d (filenr %d)",
@@ -144,7 +144,7 @@ void save_galaxies(int filenr, int tree) {
       /* Make sure data is actually written to disk */
       fflush(save_fd[n]);
 
-      free(tmp_buf);
+      myfree(tmp_buf);
     }
 
     for (i = 0; i < NumGals; i++) {
@@ -174,7 +174,7 @@ void save_galaxies(int filenr, int tree) {
   }
 
   // don't forget to free the workspace.
-  free(OutputGalOrder);
+  myfree(OutputGalOrder);
 }
 
 /**

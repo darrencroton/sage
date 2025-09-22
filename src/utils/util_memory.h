@@ -28,6 +28,8 @@ typedef enum {
 void init_memory_system(unsigned long max_blocks);
 void *mymalloc(size_t size);
 void *mymalloc_cat(size_t size, MemoryCategory category);
+void *mycalloc(size_t nmemb, size_t size);
+void *mycalloc_cat(size_t nmemb, size_t size, MemoryCategory category);
 void *myrealloc(void *ptr, size_t size);
 void *myrealloc_cat(void *ptr, size_t size, MemoryCategory category);
 void myfree(void *ptr);

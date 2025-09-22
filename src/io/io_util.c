@@ -12,6 +12,7 @@
 
 #include "io_util.h"
 #include "util_error.h"
+#include "../core/memory.h"
 
 /* Buffer management system - declare all functions before use */
 #define MAX_BUFFERED_FILES 16
@@ -565,7 +566,7 @@ IOBuffer *create_buffer(size_t size, IOBufferMode mode, FILE *file) {
   }
 
   /* Allocate the buffer structure */
-  buffer = (IOBuffer *)malloc(sizeof(IOBuffer));
+  buffer = (IOBuffer *)mymalloc_cat(sizeof(IOBuffer), MEM_IO);
   if (buffer == NULL) {
     IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
                  "Failed to allocate IOBuffer structure");
@@ -573,11 +574,11 @@ IOBuffer *create_buffer(size_t size, IOBufferMode mode, FILE *file) {
   }
 
   /* Allocate the buffer memory */
-  buffer->buffer = malloc(size);
+  buffer->buffer = mymalloc_cat(size, MEM_IO);
   if (buffer->buffer == NULL) {
     IO_ERROR_LOG(IO_ERROR_BUFFER, "create_buffer", NULL,
                  "Failed to allocate buffer memory (%zu bytes)", size);
-    free(buffer);
+    myfree(buffer);
     return NULL;
   }
 
@@ -614,12 +615,12 @@ void free_buffer(IOBuffer *buffer) {
 
   /* Free the buffer memory */
   if (buffer->buffer != NULL) {
-    free(buffer->buffer);
+    myfree(buffer->buffer);
     buffer->buffer = NULL;
   }
 
   /* Free the buffer structure */
-  free(buffer);
+  myfree(buffer);
 }
 
 /**
@@ -1218,8 +1219,8 @@ int buffered_fclose(FILE *file) {
     fflush(file);
 
     /* Free buffer and unregister */
-    free(buffer->buffer);
-    free(buffer);
+    myfree(buffer->buffer);
+    myfree(buffer);
     unregister_buffer(file);
   }
 

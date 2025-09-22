@@ -107,15 +107,15 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Effort**: 1 session (low complexity)
 
 #### Task 1.4: Configuration Abstraction Layer
-- **Objective**: Create unified config reading interface.
+- **Objective**: Create modern YAML-based configuration system replacing legacy `.par` files.
 - **Implementation**:
   - Design `config_t` structure for unified access.
-  - Create `config_reader.c` with JSON support (using a library like `cJSON`).
-  - Add legacy `.par` file reading to the same interface, populating the `config_t` struct.
-  - Implement a configuration validation framework.
-- **Testing**: Both JSON and `.par` files can be read correctly into the `config_t` struct.
-- **Documentation**: Configuration format specification.
-- **Risk**: JSON library selection - use a proven, simple solution.
+  - Create `config_reader.c` with YAML support (using `libyaml`).
+  - Convert existing `.par` parameter files to modern YAML format.
+  - Implement comprehensive configuration validation framework.
+- **Testing**: YAML configuration files load correctly into the `config_t` struct with full validation.
+- **Documentation**: YAML configuration format specification and migration guide.
+- **Risk**: YAML library integration - use proven `libyaml` library.
 - **Effort**: 2 sessions (moderate complexity)
 
 #### Task 1.5: I/O Abstraction Layer
@@ -151,6 +151,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - ✅ The project builds successfully using CMake.
 - ✅ The codebase is organized into the new directory structure.
 - ✅ Abstraction layers for Memory, Configuration, and I/O are in place and used throughout the code.
+- ✅ YAML-based configuration system replaces legacy `.par` files completely.
 - ✅ A unit testing framework is in place and integrated with a CI pipeline.
 - ✅ The simulation produces scientifically identical results to the original `sage` baseline.
 - ✅ The foundational documentation structure is established.
@@ -211,7 +212,7 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 #### Task 2A.4: Legacy Physics Module Wrapping
 - **Objective**: Wrap existing physics modules in new interface + create shared physics utilities
 - **Implementation**:
-  - Create `src/physics/physics_essential_functions.c/h` for shared physics utilities
+  - Create `src/physics/essential_physics_functions.c/h` for shared physics utilities
   - Move `get_disk_radius()`, `estimate_merging_time()` to essential functions
   - Create adapter modules for each physics function
   - Modules handle all physics property initialization and normalization
@@ -408,11 +409,11 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 #### Task 4.1: Runtime Module Configuration
 - **Objective**: Load and configure modules based on the `config_t` object.
 - **Implementation**:
-  - Extend the JSON configuration schema to include a `modules` section for selecting and parameterizing modules.
+  - Extend the YAML configuration schema to include a `modules` section for selecting and parameterizing modules.
   - The configuration reader will populate the `config_t` struct with this information.
   - At startup, the main application will read the `config_t` object and load only the specified modules into the pipeline.
 - **Principles**: Achieves Principle 2 fully.
-- **Testing**: Different module combinations specified in the JSON config are loaded correctly at runtime.
+- **Testing**: Different module combinations specified in the YAML config are loaded correctly at runtime.
 
 #### Task 4.2: Module Dependency Resolution
 - **Objective**: Automatic dependency handling with validation at runtime.
@@ -427,13 +428,13 @@ This Master Implementation Plan guides the transformation of the `sage` codebase
 - **Objective**: Validate module-specific parameters from the configuration file.
 - **Implementation**:
   - Each module will declare its required parameters (name, type, valid range).
-  - The configuration system will validate the parameters provided in the JSON file against these declarations.
+  - The configuration system will validate the parameters provided in the YAML file against these declarations.
   - Provide clear error messages for missing, misspelled, or out-of-range parameters.
 - **Principles**: Principle 8 - validation for modules.
 - **Testing**: Invalid module configurations are caught at startup with clear, user-friendly errors.
 
 ### Exit Criteria
-- ✅ Module combinations are fully configurable at runtime via the JSON file.
+- ✅ Module combinations are fully configurable at runtime via the YAML file.
 - ✅ No recompilation is needed to run with different physics modules.
 - ✅ Dependency resolution is robust and automatic.
 - ✅ Configuration validation is comprehensive for both core and module parameters.

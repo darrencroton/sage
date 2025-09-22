@@ -13,15 +13,15 @@
 
 ## 🟢 Current Task in Progress
 #### Task 1.4: Configuration Abstraction Layer
-- **Objective**: Create unified config reading interface.
+- **Objective**: Create modern YAML-based configuration system replacing legacy `.par` files.
 - **Implementation**:
   - Design `config_t` structure for unified access.
-  - Create `config_reader.c` with JSON support (using a library like `cJSON`).
-  - Add legacy `.par` file reading to the same interface, populating the `config_t` struct.
-  - Implement a configuration validation framework.
-- **Testing**: Both JSON and `.par` files can be read correctly into the `config_t` struct.
-- **Documentation**: Configuration format specification.
-- **Risk**: JSON library selection - use a proven, simple solution.
+  - Create `config_reader.c` with YAML support (using `libyaml`).
+  - Convert existing `.par` parameter files to modern YAML format.
+  - Implement comprehensive configuration validation framework.
+- **Testing**: YAML configuration files load correctly into the `config_t` struct with full validation.
+- **Documentation**: YAML configuration format specification and migration guide.
+- **Risk**: YAML library integration - use proven `libyaml` library.
 - **Effort**: 2 sessions (moderate complexity)
 
 ## 🎯 Architectural Principles Addressed
@@ -62,10 +62,10 @@
 
 ### Task 1.4: Configuration Abstraction Layer
 - [ ] Design `config_t` structure for unified access
-- [ ] Create `config_reader.c` with JSON support (using cJSON library)
-- [ ] Add legacy `.par` file reading to same interface
-- [ ] Implement configuration validation framework
-- [ ] Test both JSON and `.par` files read correctly into `config_t`
+- [ ] Create `config_reader.c` with YAML support (using libyaml library)
+- [ ] Convert existing `.par` files to YAML format
+- [ ] Implement comprehensive configuration validation framework
+- [ ] Test YAML configuration files load correctly into `config_t`
 
 ### Task 1.5: I/O Abstraction Layer
 - [ ] Create `io_manager.h` header with generic interface
@@ -91,6 +91,7 @@
 - Project builds successfully using CMake
 - Codebase organized into new directory structure
 - Abstraction layers for Memory, Configuration, and I/O are in place and used
+- YAML-based configuration system replaces legacy `.par` files completely
 - Unit testing framework integrated with CI pipeline
 - Simulation produces scientifically identical results to original baseline
 - Foundational documentation structure established
@@ -118,7 +119,7 @@ This phase establishes the **foundation infrastructure** required for all subseq
 - **To Phase 2A**: Memory abstraction enables module-aware memory management
 - **To Phase 2B**: Directory structure prepares for property system integration
 - **To Phase 3**: Memory centralization enables module-aware tracking
-- **To Phase 4**: Configuration abstraction enables JSON-based module configuration
+- **To Phase 4**: Configuration abstraction enables YAML-based module configuration
 - **To Phase 5**: I/O abstraction enables unified, modular I/O system
 
 ## Critical Success Factors

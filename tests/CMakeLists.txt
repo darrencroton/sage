@@ -73,6 +73,12 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_memory.c")
     message(STATUS "Memory management tests enabled")
 endif()
 
+# Physics Module Interface Tests
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_physics_module.c")
+    add_sage_test(test_physics_module test_physics_module.c ../src/core/physics_module.c)
+    message(STATUS "Physics module interface tests enabled")
+endif()
+
 # Print test summary
 get_property(all_tests DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
 if(all_tests)

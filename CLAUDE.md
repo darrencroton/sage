@@ -86,6 +86,7 @@ ctest --parallel 4
 
 # Run specific test
 ctest -R test_numeric
+ctest -R test_physics_module
 
 # Run with verbose output
 ctest --verbose
@@ -93,6 +94,7 @@ ctest --verbose
 # Individual test execution
 ./tests/test_numeric
 ./tests/test_yaml_config
+./tests/test_physics_module
 ```
 
 ### Plotting System Tests
@@ -165,6 +167,7 @@ src/
 - **initialization.c**: System initialization, memory setup, parameter validation
 - **parameters.c**: Parameter file parsing and configuration setup
 - **evolution.c**: Galaxy construction and evolution coordination
+- **physics_module.h/.c**: Physics module interface system with lifecycle management ✅ NEW
 - **auxdata/CoolFunctions/**: Cooling function lookup tables
 
 ### Physical Models (src/physics/)

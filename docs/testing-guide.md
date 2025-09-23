@@ -199,7 +199,7 @@ add_sage_test(test_mymodule test_mymodule.c
 - **Purpose**: Test individual functions in isolation
 - **Location**: `tests/test_*.c`
 - **Scope**: Single module or utility functions
-- **Example**: `test_numeric.c`, `test_memory.c`
+- **Example**: `test_numeric.c`, `test_memory.c`, `test_physics_module.c`
 
 ### Integration Tests
 - **Purpose**: Test interaction between components

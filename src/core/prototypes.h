@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "types.h"
 #include "memory.h"
+#include "physics_module.h"
 #include "../io/io_manager.h"
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream);

@@ -11,17 +11,18 @@
 
 # Current Phase: 2A/6 (Core/Physics Separation) - Physics-Agnostic Architecture
 
-## 🟡 Next Task Ready for Implementation
-#### Task 2A.1: Physics Module Interface Design
-- **Objective**: Create minimal interface for physics module communication
+## 🟢 Next Task Ready for Implementation
+#### Task 2A.2: Core Evolution Pipeline Abstraction
+- **Objective**: Replace hardcoded physics calls with module interface
 - **Implementation**:
-  - Design `physics_module_t` structure with execution phases
-  - Define standard module lifecycle (init, execute, cleanup)
-  - Create module registration and lookup functions
-  - Add module capability declarations
-- **Principles**: Establishes foundation for Principle 1 compliance
-- **Testing**: Interface compiles and supports basic module operations
-- **Effort**: 2 sessions
+  - Remove direct `#include` of physics headers from core
+  - Replace physics function calls with module interface calls
+  - **CRITICAL**: Use `CORE_PROP_*` naming for core property access (NOT `GALAXY_PROP_*`)
+  - Create conditional execution based on loaded modules
+  - Maintain identical execution order and logic
+- **Principles**: Achieves Principle 1 compliance in core
+- **Testing**: Core compiles without physics dependencies
+- **Effort**: 3 sessions
 
 ## 🎯 Architectural Principles Addressed
 - **Principle 1**: Physics-Agnostic Core Infrastructure ⭐ **PRIMARY**
@@ -34,12 +35,12 @@
 
 ## Current Progress
 
-### Task 2A.1: Physics Module Interface Design ⏳ PENDING
-- [ ] Design `physics_module_t` structure with execution phases
-- [ ] Define standard module lifecycle (init, execute, cleanup)
-- [ ] Create module registration and lookup functions
-- [ ] Add module capability declarations
-- [ ] Test interface compiles and supports basic module operations
+### Task 2A.1: Physics Module Interface Design ✅ COMPLETE
+- [x] Design `physics_module_t` structure with execution phases
+- [x] Define standard module lifecycle (init, execute, cleanup)
+- [x] Create module registration and lookup functions
+- [x] Add module capability declarations
+- [x] Test interface compiles and supports basic module operations
 
 ### Task 2A.2: Core Evolution Pipeline Abstraction ⏳ PENDING
 - [ ] Remove direct `#include` of physics headers from core

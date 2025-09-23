@@ -16,6 +16,7 @@ sage/
 │   │   ├── auxdata/         # Auxiliary data
 │   │   ├── main.c           # Program entry point
 │   │   ├── initialization.c, parameters.c, evolution.c # Core infrastructure components
+│   │   ├── physics_module.h/.c # Physics module interface system ✅ NEW
 │   │   ├── globals.h        # Global declarations
 │   │   ├── types.h          # Central data structures
 │   │   └── config.h         # Compile-time configuration
@@ -212,23 +213,31 @@ Modern CMake-based build with integrated testing:
 - ✅ **Task 1.6**: Development infrastructure complete (comprehensive documentation system)
 - ✅ **Task 1.7**: Testing and automation framework complete (CTest + CI)
 
-**Immediate Violations to Address in Phase 2A:**
+**✅ Phase 2A.1 - PHYSICS MODULE INTERFACE COMPLETE:**
+- ✅ **Task 2A.1**: Physics module interface design complete
+  - Created `physics_module_t` structure with lifecycle management
+  - Implemented comprehensive registration and lookup system
+  - Added capability declarations and dependency validation
+  - Built extensive unit test suite with memory management integration
+  - Established foundation for Principle 1 compliance
+
+**Remaining Violations to Address in Phase 2A.2+:**
 - `src/core/evolution.c` includes all physics headers directly
 - Core makes direct physics function calls
 - No physics-agnostic mode possible
 - Fixed galaxy structure regardless of physics needs
 
-## 🚀 Ready for Phase 2A: Core/Physics Separation
+## 🚀 In Progress: Phase 2A: Core/Physics Separation
 
 **Phase 1 Foundation Complete - Ready for Next Phase:**
 
 With all infrastructure abstraction layers now in place, SAGE is ready for the critical Phase 2A transformation that will establish the physics-agnostic core architecture.
 
-**Next: Phase 2A** (Core/Physics Separation - CRITICAL):
-- Remove all physics knowledge from core
-- Create physics module interface
-- Enable physics-free mode operation
-- Wrap legacy physics in new interface
+**Next: Phase 2A.2** (Core Evolution Pipeline Abstraction - CRITICAL):
+- Replace hardcoded physics calls with module interface
+- Remove direct physics includes from core
+- Enable conditional physics execution based on loaded modules
+- Maintain identical execution order and scientific results
 
 **✅ Infrastructure Foundation Achieved:**
 1. **Modern Build System**: CMake with testing and CI/CD

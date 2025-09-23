@@ -12,7 +12,7 @@ This document serves as a central index for all SAGE documentation.
 - **[directory-structure.md](directory-structure.md)** - Detailed explanation of the reorganized source code structure
 - **[yaml-configuration-guide.md](yaml-configuration-guide.md)** - Complete YAML configuration documentation
 - **[testing-guide.md](testing-guide.md)** - Complete testing framework guide with examples and best practices
-- **[physics-module-guide.md](physics-module-guide.md)** - Physics module development guide (placeholder for Phase 2A)
+- **[physics-module-guide.md](physics-module-guide.md)** - Physics module development guide (Task 2A.1 interface complete)
 - **[user-guide.md](user-guide.md)** - Comprehensive end-user guide (iterative development, final in Phase 6)
 - **[doc_standards.md](doc_standards.md)** - Documentation standards and templates
 - **[error_handling_guidelines.md](error_handling_guidelines.md)** - Error handling best practices

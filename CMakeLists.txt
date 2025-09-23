@@ -28,6 +28,7 @@ set(SAGE_CORE_SOURCES
     src/io/util.c
     src/core/parameters.c            # Parameter file reading logic (core functionality)
     src/core/initialization.c
+    src/core/physics_module.c        # Physics module interface system
     src/io/tree.c
     src/io/io_manager.c
     src/core/cooling_tables.c
@@ -57,6 +58,7 @@ set(SAGE_HEADERS
     src/utils/version.h
     src/io/util.h
     src/core/prototypes.h
+    src/core/physics_module.h        # Physics module interface system
     src/core/simulation.h
     src/utils/parameters.h
     src/utils/error.h

@@ -16,20 +16,17 @@ OBJS := ./code/main.o \
 	./code/core_read_parameter_file.o \
 	./code/core_init.o \
 	./code/io_tree.o \
-	./code/core_cool_func.o \
 	./code/core_build_model.o \
 	./code/io_save_binary.o \
 	./code/util_memory.o \
 	./code/core_allvars.o \
 	./code/core_simulation_state.o \
-	./code/model_infall.o \
-	./code/model_cooling_heating.o \
-	./code/model_starformation_and_feedback.o \
-	./code/model_disk_instability.o \
-	./code/model_reincorporation.o \
-	./code/model_mergers.o \
 	./code/model_misc.o \
 	./code/io_tree_binary.o
+# PHYSICS DISABLED: Removed physics model object files:
+# core_cool_func.o, model_infall.o, model_cooling_heating.o,
+# model_starformation_and_feedback.o, model_disk_instability.o,
+# model_reincorporation.o, model_mergers.o
 
 INCL := ./code/core_allvars.h  \
         ./code/io_tree.h \

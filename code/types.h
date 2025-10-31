@@ -32,32 +32,12 @@ struct SageConfig {
   double OmegaLambda;
   double PartMass;
   double Hubble_h;
-  double EnergySN;
-  double EtaSN;
+  /* PHYSICS DISABLED: EnergySN and EtaSN removed */
 
-  /* recipe parameters */
-  double RecycleFraction;
-  double Yield;
-  double FracZleaveDisk;
-  double ReIncorporationFactor;
-  double ThreshMajorMerger;
-  double BaryonFrac;
-  double SfrEfficiency;
-  double FeedbackReheatingEpsilon;
-  double FeedbackEjectionEfficiency;
-  double RadioModeEfficiency;
-  double QuasarModeEfficiency;
-  double BlackHoleGrowthRate;
-  double Reionization_z0;
-  double Reionization_zr;
-  double ThresholdSatDisruption;
+  /* PHYSICS DISABLED: All recipe parameters removed */
 
   /* flags */
-  int ReionizationOn;
-  int SupernovaRecipeOn;
-  int DiskInstabilityOn;
-  int AGNrecipeOn;
-  int SFprescription;
+  /* PHYSICS DISABLED: Physics flag parameters removed */
   int OverwriteOutputFiles; // Flag: 1=overwrite (default), 0=skip existing files
 
   /* output parameters */
@@ -83,9 +63,7 @@ struct SageConfig {
   double RhoCrit;
   double G;
   double Hubble;
-  double a0, ar;
-  double EnergySNcode;
-  double EtaSNcode;
+  /* PHYSICS DISABLED: a0, ar, EnergySNcode, EtaSNcode removed */
 
   /* Tree type */
   enum Valid_TreeTypes TreeType;

@@ -149,51 +149,7 @@ double get_disk_radius(int halonr, int p) {
     return 0.1 * Gal[p].Rvir;
 }
 
-/**
- * @brief   Calculates the metallicity of a gas or stellar component
- *
- * @param   gas     Total mass of the gas or stellar component
- * @param   metals  Total mass of metals in the component
- * @return  Metallicity as a mass fraction (0.0 to 1.0)
- *
- * This function calculates the metallicity as the ratio of metal mass
- * to total mass. It ensures the result is between 0 and 1, handling
- * edge cases where gas or metal mass might be zero or very small.
- *
- * Metallicity is expressed as a mass fraction rather than relative to
- * solar (Z/Z_sun), so a value of 0.02 would correspond to approximately
- * solar metallicity.
- */
-double get_metallicity(double gas, double metals) {
-  double metallicity;
-
-  if (gas > 0.0 && metals > 0.0) {
-    metallicity = metals / gas;
-    if (metallicity < 1.0)
-      return metallicity;
-    else
-      return 1.0;
-  } else
-    return 0.0;
-}
-
-/**
- * @brief   Returns the maximum of two double values
- *
- * @param   x   First value
- * @param   y   Second value
- * @return  The larger of x and y
- *
- * A simple utility function that returns the maximum of two double values.
- * Used in various calculations throughout the code where the maximum of
- * two quantities is needed.
- */
-double dmax(double x, double y) {
-  if (x > y)
-    return x;
-  else
-    return y;
-}
+/* PHYSICS DISABLED: get_metallicity() and dmax() functions removed - only used by physics code */
 
 /**
  * @brief   Returns the virial mass of a halo

@@ -58,19 +58,14 @@ static ParameterDefinition ParameterTable[] = {
     {"NumOutputs", "Number of outputs (-1 for all snapshots)", INT,
      &SageConfig.NOUT, 1, -1.0, ABSOLUTEMAXSNAPS},
 
-    // Merger parameters
-    {"ThreshMajorMerger", "Threshold for major merger classification", DOUBLE,
-     &SageConfig.ThreshMajorMerger, 1, 0.0, 1.0},
-    {"ThresholdSatDisruption", "Mass ratio threshold for satellite disruption",
-     DOUBLE, &SageConfig.ThresholdSatDisruption, 1, 0.0, 0.0},
+    /* PHYSICS DISABLED: Merger parameter declarations removed */
 
     // Cosmology parameters
     {"Omega", "Matter density parameter", DOUBLE, &SageConfig.Omega, 1, 0.0,
      1.0},
     {"OmegaLambda", "Dark energy density parameter", DOUBLE,
      &SageConfig.OmegaLambda, 1, 0.0, 1.0},
-    {"BaryonFrac", "Baryon fraction", DOUBLE, &SageConfig.BaryonFrac, 1, 0.0,
-     1.0},
+    /* PHYSICS DISABLED: BaryonFrac removed - only used in infall_recipe */
     {"Hubble_h", "Hubble parameter (H0/100)", DOUBLE, &SageConfig.Hubble_h, 1,
      0.0, 0.0},
     {"PartMass", "Particle mass in simulation", DOUBLE, &SageConfig.PartMass, 1,
@@ -84,46 +79,7 @@ static ParameterDefinition ParameterTable[] = {
     {"UnitMass_in_g", "Mass unit in g", DOUBLE, &SageConfig.UnitMass_in_g, 1,
      0.0, 0.0},
 
-    // Flags (switches)
-    {"ReionizationOn", "Reionization modeling switch (0=off, 1=on)", INT,
-     &SageConfig.ReionizationOn, 1, 0.0, 1.0},
-    {"SupernovaRecipeOn", "Supernova recipe switch (0=off, 1=on)", INT,
-     &SageConfig.SupernovaRecipeOn, 1, 0.0, 1.0},
-    {"DiskInstabilityOn", "Disk instability switch (0=off, 1=on)", INT,
-     &SageConfig.DiskInstabilityOn, 1, 0.0, 1.0},
-    {"SFprescription", "Star formation prescription (0=original)", INT,
-     &SageConfig.SFprescription, 1, 0.0, 0.0},
-    {"AGNrecipeOn", "AGN feedback switch (0=off, 1/2/3=different models)", INT,
-     &SageConfig.AGNrecipeOn, 1, 0.0, 3.0},
-
-    // Model parameters
-    {"RecycleFraction", "Mass recycled fraction from stars", DOUBLE,
-     &SageConfig.RecycleFraction, 1, 0.0, 1.0},
-    {"ReIncorporationFactor", "Gas reincorporation factor", DOUBLE,
-     &SageConfig.ReIncorporationFactor, 1, 0.0, 0.0},
-    {"EnergySN", "Energy per supernova (erg)", DOUBLE, &SageConfig.EnergySN, 1,
-     0.0, 0.0},
-    {"EtaSN", "Supernova efficiency", DOUBLE, &SageConfig.EtaSN, 1, 0.0, 0.0},
-    {"Yield", "Chemical yield fraction", DOUBLE, &SageConfig.Yield, 1, 0.0,
-     1.0},
-    {"FracZleaveDisk", "Fraction of metals directly ejected", DOUBLE,
-     &SageConfig.FracZleaveDisk, 1, 0.0, 1.0},
-    {"SfrEfficiency", "Star formation efficiency", DOUBLE,
-     &SageConfig.SfrEfficiency, 1, 0.0, 0.0},
-    {"FeedbackReheatingEpsilon", "SN feedback reheating efficiency", DOUBLE,
-     &SageConfig.FeedbackReheatingEpsilon, 1, 0.0, 0.0},
-    {"FeedbackEjectionEfficiency", "SN feedback ejection efficiency", DOUBLE,
-     &SageConfig.FeedbackEjectionEfficiency, 1, 0.0, 0.0},
-    {"BlackHoleGrowthRate", "Black hole growth rate during mergers", DOUBLE,
-     &SageConfig.BlackHoleGrowthRate, 1, 0.0, 0.0},
-    {"RadioModeEfficiency", "Radio mode AGN efficiency", DOUBLE,
-     &SageConfig.RadioModeEfficiency, 1, 0.0, 0.0},
-    {"QuasarModeEfficiency", "Quasar mode AGN efficiency", DOUBLE,
-     &SageConfig.QuasarModeEfficiency, 1, 0.0, 0.0},
-    {"Reionization_z0", "Reionization redshift parameter z0", DOUBLE,
-     &SageConfig.Reionization_z0, 1, 0.0, 0.0},
-    {"Reionization_zr", "Reionization redshift parameter zr", DOUBLE,
-     &SageConfig.Reionization_zr, 1, 0.0, 0.0},
+    /* PHYSICS DISABLED: All physics flags and model parameters removed */
 };
 
 static int NParameters = sizeof(ParameterTable) / sizeof(ParameterDefinition);

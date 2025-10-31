@@ -291,8 +291,8 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
             if (Gal[ngal].Type == 0 || is_greater(Gal[ngal].MergTime, 999.0))
               // here the galaxy has gone from type 1 to type 2 or otherwise
               // doesn't have a merging time.
-              Gal[ngal].MergTime = estimate_merging_time(
-                  halonr, Halo[halonr].FirstHaloInFOFgroup, ngal);
+              /* PHYSICS DISABLED: estimate_merging_time() removed */
+              Gal[ngal].MergTime = 999.9; /* No merging without physics */
 
             Gal[ngal].Type = 1;
           }
@@ -395,158 +395,9 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart) {
   return ngal;
 }
 
-/**
- * @brief   Applies physical processes to all galaxies for a single timestep
- *
- * @param   ngal          Total number of galaxies in this halo
- * @param   centralgal    Index of the central galaxy
- * @param   halonr        Index of the current halo
- * @param   infallingGas  Amount of infalling gas for this timestep
- * @param   step          Current substep in the time integration
- *
- * This function implements the core physical processes that drive galaxy
- * evolution during a single timestep. For each galaxy, it:
- *
- * 1. Calculates the appropriate time step
- * 2. For central galaxies:
- *    - Adds gas from cosmological infall
- *    - Reincorporates previously ejected gas (if enabled)
- * 3. For satellites with subhalos:
- *    - Strips hot gas through environmental effects
- * 4. For all galaxies:
- *    - Calculates gas cooling
- *    - Applies star formation and feedback
- *
- * The implementation follows the standard semi-analytic prescription where
- * physical processes occur in a specific order during each timestep.
- */
-void apply_physical_processes(int ngal, int centralgal, int halonr,
-                              double infallingGas, int step) {
-  int p;
-  double coolingGas, deltaT, time;
+/* PHYSICS DISABLED: apply_physical_processes() function removed */
 
-  /* Loop over all galaxies in the halo */
-  for (p = 0; p < ngal; p++) {
-    /* Skip galaxies that have already merged */
-    if (Gal[p].mergeType > 0)
-      continue;
-
-    /* Calculate deltaT (time interval) and time (current cosmic time) for this
-     * galaxy */
-    deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-    time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
-
-    /* Set time step for galaxies that don't have it yet */
-    if (is_less(Gal[p].dT, 0.0))
-      Gal[p].dT = deltaT;
-
-    /* Special processes for the central galaxy */
-    if (p == centralgal) {
-      /* Add cosmological gas infall for this step */
-      add_infall_to_hot(centralgal, infallingGas / STEPS);
-
-      /* Reincorporate previously ejected gas if enabled */
-      if (SageConfig.ReIncorporationFactor > 0.0)
-        reincorporate_gas(centralgal, deltaT / STEPS);
-    } else
-      /* For satellite galaxies with subhalos and hot gas, apply environmental
-       * stripping */
-      if (Gal[p].Type == 1 && is_greater(Gal[p].HotGas, 0.0))
-        strip_from_satellite(halonr, centralgal, p);
-
-    /* Calculate cooling gas based on halo properties */
-    coolingGas = cooling_recipe(p, deltaT / STEPS);
-    cool_gas_onto_galaxy(p, coolingGas);
-
-    /* Apply star formation and feedback processes */
-    starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr,
-                               step);
-  }
-}
-
-/**
- * @brief   Handles merger and disruption events for satellite galaxies
- *
- * @param   ngal          Total number of galaxies in this halo
- * @param   centralgal    Index of the central galaxy
- * @param   halonr        Index of the current halo
- * @param   step          Current substep in the time integration
- *
- * This function processes potential merger and disruption events for satellite
- * galaxies. For each satellite galaxy, it:
- *
- * 1. Updates the remaining time until merging
- * 2. Checks if the satellite meets the criteria for disruption or merging:
- *    - Satellites with no baryonic mass
- *    - Satellites with low dark matter to baryonic mass ratios
- * 3. Handles galaxy disruption (stars added to intracluster stars)
- * 4. Processes galaxy mergers with the appropriate central galaxy
- *
- * The function implements the dynamical friction timescale approach to galaxy
- * mergers and includes environmental effects that can lead to satellite
- * disruption.
- */
-void handle_mergers(int ngal, int centralgal, int halonr, int step) {
-  int p, merger_centralgal;
-  double time, galaxyBaryons, currentMvir, deltaT;
-
-  /* Check for satellite disruption and merger events */
-  for (p = 0; p < ngal; p++) {
-    /* Only process satellite galaxies that haven't already been marked for
-     * merging */
-    if ((Gal[p].Type == 1 || Gal[p].Type == 2) && Gal[p].mergeType == 0) {
-      /* All satellites should have a valid merger time */
-      assert(is_less(Gal[p].MergTime, 999.0));
-
-      /* Update remaining time until merging */
-      deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-      Gal[p].MergTime -= deltaT / STEPS;
-
-      /* Calculate current halo mass accounting for linear mass loss during the
-       * step */
-      currentMvir =
-          Gal[p].Mvir -
-          Gal[p].deltaMvir * (1.0 - safe_div((double)step + 1.0, (double)STEPS,
-                                             EPSILON_SMALL));
-      galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
-
-      /* Check if satellite meets disruption/merger criteria:
-       * 1. Has no baryonic mass (will never grow)
-       * 2. Has a dark matter to baryonic mass ratio below threshold */
-      if (is_zero(galaxyBaryons) ||
-          (is_greater(galaxyBaryons, 0.0) &&
-           is_less_or_equal(safe_div(currentMvir, galaxyBaryons, EPSILON_SMALL),
-                            SageConfig.ThresholdSatDisruption))) {
-        /* Determine which galaxy this satellite will merge into */
-        if (Gal[p].Type == 1)
-          merger_centralgal =
-              centralgal; /* Type 1 satellites merge with halo central */
-        else
-          merger_centralgal = Gal[p].CentralGal; /* Type 2 orphans merge with
-                                                    their designated central */
-
-        /* If target has also merged, redirect to its merger target */
-        if (Gal[merger_centralgal].mergeType > 0)
-          merger_centralgal = Gal[merger_centralgal].CentralGal;
-
-        /* Set the ID that this galaxy will merge into (in the output array) */
-        Gal[p].mergeIntoID = NumGals + merger_centralgal;
-
-        /* Handle satellite disruption if merger time hasn't expired */
-        if (is_greater(Gal[p].MergTime, 0.0)) {
-          disrupt_satellite_to_ICS(merger_centralgal, p);
-        } else if (is_less_or_equal(Gal[p].MergTime,
-                                    0.0)) /* Handle galaxy merger */
-        {
-          /* Calculate the cosmic time for this merger event */
-          time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
-          deal_with_galaxy_merger(p, merger_centralgal, centralgal, time,
-                                  deltaT / STEPS, halonr, step);
-        }
-      }
-    }
-  }
-}
+/* PHYSICS DISABLED: handle_mergers() function removed */
 
 /**
  * @brief   Updates final galaxy properties and attaches galaxies to halos
@@ -674,22 +525,21 @@ void evolve_galaxies(int halonr, int ngal,
   int step;
   double deltaT;
   int centralgal;
-  double infallingGas;
+  /* PHYSICS DISABLED: double infallingGas; - no longer needed */
 
   /* Identify the central galaxy for this halo */
   centralgal = Gal[0].CentralGal;
   assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
 
-  /* Calculate infalling gas once, outside the time step loop */
-  infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum]);
+  /* PHYSICS DISABLED: Infalling gas calculation removed */
 
   /* Integrate forward in time using STEPS intervals */
   for (step = 0; step < STEPS; step++) {
     /* Apply physical processes (infall, cooling, star formation) */
-    apply_physical_processes(ngal, centralgal, halonr, infallingGas, step);
+    /* PHYSICS DISABLED: apply_physical_processes(ngal, centralgal, halonr, infallingGas, step); */
 
     /* Handle mergers and disruption events */
-    handle_mergers(ngal, centralgal, halonr, step);
+    /* PHYSICS DISABLED: handle_mergers(ngal, centralgal, halonr, step); */
   }
 
   /* Update final galaxy properties and attach them to halos */

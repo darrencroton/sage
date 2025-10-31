@@ -68,14 +68,8 @@ void init(void) {
     ZZ[i] = SageConfig.ZZ[i]; // Sync with global for backward compatibility
   }
 
-  SageConfig.a0 = 1.0 / (1.0 + SageConfig.Reionization_z0);
-  SageConfig.ar = 1.0 / (1.0 + SageConfig.Reionization_zr);
-
-  // Sync with globals for backward compatibility
-  a0 = SageConfig.a0;
-  ar = SageConfig.ar;
-
-  read_cooling_functions();
+  /* PHYSICS DISABLED: Reionization parameter initialization removed */
+  /* PHYSICS DISABLED: read_cooling_functions() removed */
 }
 
 /**
@@ -114,11 +108,7 @@ void set_units(void) {
                                  pow(SageConfig.UnitLength_in_cm, 2) /
                                  pow(SageConfig.UnitTime_in_s, 2);
 
-  SageConfig.EnergySNcode =
-      SageConfig.EnergySN / SageConfig.UnitEnergy_in_cgs * SageConfig.Hubble_h;
-  SageConfig.EtaSNcode = SageConfig.EtaSN *
-                         (SageConfig.UnitMass_in_g / SOLAR_MASS) /
-                         SageConfig.Hubble_h;
+  /* PHYSICS DISABLED: Supernova energy parameter calculation removed */
 
   // Convert some physical input parameters to internal units
   SageConfig.Hubble = HUBBLE * SageConfig.UnitTime_in_s;
@@ -138,8 +128,7 @@ void set_units(void) {
   UnitPressure_in_cgs = SageConfig.UnitPressure_in_cgs;
   UnitCoolingRate_in_cgs = SageConfig.UnitCoolingRate_in_cgs;
   UnitEnergy_in_cgs = SageConfig.UnitEnergy_in_cgs;
-  EnergySNcode = SageConfig.EnergySNcode;
-  EtaSNcode = SageConfig.EtaSNcode;
+  /* PHYSICS DISABLED: EnergySNcode and EtaSNcode sync removed */
   Hubble = SageConfig.Hubble;
   RhoCrit = SageConfig.RhoCrit;
 }

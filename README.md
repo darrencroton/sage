@@ -191,7 +191,7 @@ TreeName               trees_063
 TreeType               lhalo_binary
 SimulationDir          /path/to/simulation/data/
 FileWithSnapList       /path/to/snapshot/list
-LastSnapShotNr         63
+LastSnapshotNr         63
 NumSimulationTreeFiles 8
 BoxSize                62.5  
 
@@ -271,12 +271,14 @@ SAGE includes a code formatting script to maintain consistent coding style:
 
 ## Visualization System
 
-SAGE includes a comprehensive plotting system (`sage-plot`) for analyzing model outputs. Located in `output/sage-plot/`, this tool provides:
+SAGE includes a comprehensive plotting system (`sage-plot`) for analyzing model outputs. Located in `output/sage-plot/`, this enhanced tool provides:
 
-- 19 different plot types covering galaxy properties and evolution metrics
-- Consistent styling and interfaces across all visualizations
-- A single entry point for generating all plots
-- Robust error handling and fallback mechanisms
+- **19 different plot types** covering galaxy properties and evolution metrics
+- **Enhanced default behavior**: Generates both snapshot and evolution plots automatically
+- **Cross-directory execution**: Works from any directory with robust path resolution
+- **Consistent styling** and interfaces across all visualizations
+- **Robust parameter parsing**: Handles comments, arrow notation, and various file formats
+- **Single entry point** for generating all plots with minimal configuration
 
 For detailed usage instructions, see the [sage-plot README](output/sage-plot/README.md).
 
@@ -285,12 +287,21 @@ Basic usage:
 # Activate the virtual environment first
 source sage_venv/bin/activate
 
-# Generate all plots
-cd output/sage-plot
-python sage-plot.py --param-file=/path/to/sage_params.par
+# Generate all plots (both snapshot and evolution - new default!)
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par
+
+# Generate only snapshot plots
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par --snapshot-plots
+
+# Generate only evolution plots
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par --evolution-plots
 
 # Generate specific plots
-python sage-plot.py --param-file=/path/to/sage_params.par --plots=stellar_mass_function,gas_fraction
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=stellar_mass_function,sfr_density_evolution
+
+# Works from any directory!
+cd /tmp
+python /path/to/sage/output/sage-plot/sage-plot.py --param-file=/path/to/sage/input/millennium.par
 
 # Deactivate when done
 deactivate

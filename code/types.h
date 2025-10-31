@@ -16,7 +16,7 @@ struct SageConfig {
   /* file information */
   int FirstFile; /* first and last file for processing */
   int LastFile;
-  int LastSnapShotNr;
+  int LastSnapshotNr;
   double BoxSize;
 
   /* paths */

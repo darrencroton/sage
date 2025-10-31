@@ -4,7 +4,7 @@
 SAGE Plotting Tool - Master plotting script for SAGE galaxy formation model output
 
 Usage:
-  python sage-plot-fixed.py --param-file=<param_file> [options]
+  python sage-plot.py --param-file=<param_file> [options]
 
 Options:
   --param-file=<file>    SAGE parameter file (required)
@@ -12,8 +12,8 @@ Options:
   --last-file=<num>      Last file to read [default: use MaxFileNum from param file]
   --snapshot=<num>       Process only this snapshot number
   --all-snapshots        Process all available snapshots
-  --evolution            Generate evolution plots
-  --snapshot-plots       Generate snapshot plots [default]
+  --evolution-plots      Generate evolution plots only
+  --snapshot-plots       Generate snapshot plots only
   --output-dir=<dir>     Output directory for plots [default: ./plots]
   --format=<format>      Output format (.png, .pdf) [default: .png]
   --plots=<list>         Comma-separated list of plots to generate
@@ -21,6 +21,9 @@ Options:
   --use-tex              Use LaTeX for text rendering (not recommended)
   --verbose              Show detailed output
   --help                 Show this help message
+
+Note: By default, both snapshot and evolution plots are generated if neither
+      --evolution-plots nor --snapshot-plots is specified.
 """
 
 import argparse
@@ -28,10 +31,7 @@ import glob
 import importlib
 import os
 import random
-import re  # Required for regular expressions in file pattern matching
 import sys
-import time
-from collections import OrderedDict
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -105,13 +105,65 @@ def get_galaxy_dtype():
     return np.dtype({"names": names, "formats": formats}, align=True)
 
 
+def resolve_relative_path(path, param_file_path):
+    """
+    Resolve a path relative to the SAGE root directory (parent of parameter file directory).
+
+    Args:
+        path: Path to resolve (can be relative or absolute)
+        param_file_path: Path to the parameter file
+
+    Returns:
+        Resolved absolute path
+    """
+    if os.path.isabs(path):
+        return path
+
+    # Get the directory containing the parameter file, then go up one level to get SAGE root
+    param_file_abs = os.path.abspath(param_file_path)
+    param_dir = os.path.dirname(param_file_abs)
+    sage_root_dir = os.path.dirname(param_dir)  # Go up one level from input/ to sage-model/
+
+    # For paths starting with './', resolve relative to SAGE root directory
+    if path.startswith('./'):
+        # Remove the './' prefix and join with SAGE root directory
+        relative_part = path[2:]
+        resolved_path = os.path.join(sage_root_dir, relative_part)
+    else:
+        # For other relative paths, also resolve relative to SAGE root directory
+        resolved_path = os.path.join(sage_root_dir, path)
+
+    return os.path.abspath(resolved_path)
+
+
+def validate_required_params(params, required_params, context=""):
+    """
+    Validate that required parameters are present.
+
+    Args:
+        params: Dictionary of parameters to validate
+        required_params: List of required parameter names
+        context: Optional context string for error message
+
+    Returns:
+        List of missing parameter names (empty if all present)
+    """
+    missing = [p for p in required_params if p not in params]
+    if missing:
+        context_str = f" for {context}" if context else ""
+        print(f"Error: Required parameters missing from parameter file{context_str}: {', '.join(missing)}")
+    return missing
+
+
 class SAGEParameters:
     """Class to parse and store SAGE parameter file settings."""
+
+    # Comment markers used in SAGE parameter files
+    COMMENT_MARKERS = ("%", "#", ";")
 
     def __init__(self, param_file):
         """Initialize with parameter file path."""
         self.param_file = os.path.abspath(param_file)
-        self.param_dir = os.path.dirname(self.param_file)
         self.params = {}
         self.parse_param_file()
 
@@ -127,16 +179,14 @@ class SAGEParameters:
         with open(self.param_file, "r") as f:
             for line in f:
                 # Skip empty lines and full comment lines
-                if (
-                    line.strip() == ""
-                    or line.strip().startswith("#")
-                    or line.strip().startswith("%")
-                ):
+                stripped_line = line.strip()
+                if not stripped_line or any(stripped_line.startswith(marker) for marker in self.COMMENT_MARKERS[:2]):
                     continue
 
                 # Check for arrow notation for snapshots (e.g., "-> 63 37 32 27 23 20 18 16")
-                if "->" in line:
-                    snapshot_list = line.split("->")[1].strip().split()
+                # Only process arrow notation if line starts with arrow (not in comments)
+                if stripped_line.startswith("->"):
+                    snapshot_list = stripped_line.split("->")[1].strip().split()
                     output_snapshots = [int(snap) for snap in snapshot_list]
                     self.params["OutputSnapshots"] = output_snapshots
                     continue
@@ -156,11 +206,17 @@ class SAGEParameters:
                     else:
                         continue  # Skip lines that don't match our format
 
-                # Handle inline comments
-                if ";" in value_part:
-                    value = value_part.split(";")[0].strip()
-                elif "#" in value_part:
-                    value = value_part.split("#")[0].strip()
+                # Handle inline comments - crucial to remove them before type conversion
+                # Check for comment markers and take the earliest one
+                comment_positions = [
+                    pos for marker in self.COMMENT_MARKERS
+                    if (pos := value_part.find(marker)) != -1
+                ]
+
+                if comment_positions:
+                    # Take everything before the first comment marker
+                    first_comment_pos = min(comment_positions)
+                    value = value_part[:first_comment_pos].strip()
                 else:
                     value = value_part
 
@@ -168,19 +224,19 @@ class SAGEParameters:
                 value = value.strip()
 
                 # Convert to appropriate type
-                if value.isdigit():
+                if value.lstrip('-').isdigit():
                     value = int(value)
                 elif self._is_float(value):
                     value = float(value)
                 elif key in ["OutputDir", "SimulationDir"]:
-                    # Resolve path relative to parameter file directory
-                    value = self._resolve_path(value)
+                    # Ensure directory paths are properly formatted
+                    value = value.strip('"').strip("'")
                     # Make sure directory paths have a trailing slash
                     if value and not value.endswith("/"):
                         value = value + "/"
                 elif key in ["FileWithSnapList"]:
-                    # Resolve path relative to parameter file directory
-                    value = self._resolve_path(value)
+                    # Ensure file paths are properly formatted
+                    value = value.strip('"').strip("'")
                     # Don't add trailing slash to file paths
 
                 self.params[key] = value
@@ -192,52 +248,6 @@ class SAGEParameters:
             return True
         except ValueError:
             return False
-    
-    def _resolve_path(self, path):
-        """
-        Resolve a path from the parameter file relative to the SAGE root directory.
-        
-        For SAGE parameter files, relative paths are typically relative to the
-        directory containing the SAGE executable and source code (the root project directory),
-        not relative to the parameter file itself.
-        
-        Args:
-            path: Path string from parameter file
-            
-        Returns:
-            Absolute path
-        """
-        if not path:
-            return path
-            
-        # Clean the path first
-        path = path.strip().strip('"').strip("'")
-        
-        # If it's already absolute, return as-is
-        if os.path.isabs(path):
-            return path
-            
-        # For relative paths, we need to find the SAGE root directory
-        # Look for common indicators (SAGE executable, Makefile, code/ directory)
-        current_dir = self.param_dir
-        sage_root = None
-        
-        # Search up from the parameter file directory to find SAGE root
-        while current_dir != "/" and current_dir != os.path.dirname(current_dir):
-            if (os.path.exists(os.path.join(current_dir, "Makefile")) and 
-                os.path.exists(os.path.join(current_dir, "code")) and
-                (os.path.exists(os.path.join(current_dir, "sage")) or 
-                 os.path.exists(os.path.join(current_dir, "first_run.sh")))):
-                sage_root = current_dir
-                break
-            current_dir = os.path.dirname(current_dir)
-        
-        # If we couldn't find SAGE root, fall back to parameter file directory
-        if sage_root is None:
-            sage_root = self.param_dir
-            
-        # Make the path relative to SAGE root
-        return os.path.abspath(os.path.join(sage_root, path))
 
     def get(self, key, default=None):
         """Get a parameter value."""
@@ -315,12 +325,9 @@ def read_galaxies(model_path, first_file, last_file, params=None):
     if not params:
         print("Error: Parameter dictionary is required.")
         sys.exit(1)
-        
+
     # Ensure required parameters exist
-    required_params = ["Hubble_h", "BoxSize"]
-    missing_params = [p for p in required_params if p not in params]
-    if missing_params:
-        print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+    if validate_required_params(params, ["Hubble_h", "BoxSize"], "galaxy data reading"):
         sys.exit(1)
         
     hubble_h = params["Hubble_h"]
@@ -499,10 +506,10 @@ def parse_arguments():
         "--all-snapshots", action="store_true", help="Process all available snapshots"
     )
     parser.add_argument(
-        "--evolution", action="store_true", help="Generate evolution plots"
+        "--evolution-plots", action="store_true", help="Generate evolution plots only"
     )
     parser.add_argument(
-        "--snapshot-plots", action="store_true", help="Generate snapshot plots"
+        "--snapshot-plots", action="store_true", help="Generate snapshot plots only"
     )
     parser.add_argument(
         "--output-dir",
@@ -521,10 +528,11 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    # Default to snapshot plots if neither is specified
-    if not args.evolution and not args.snapshot_plots:
+    # Default to both snapshot and evolution plots if neither is specified
+    if not args.evolution_plots and not args.snapshot_plots:
         args.snapshot_plots = True
-        
+        args.evolution_plots = True
+
     # Default to all plots if not specified
     if args.plots is None:
         args.plots = "all"
@@ -581,7 +589,7 @@ def main():
             important_params = [
                 "OutputDir",
                 "FileNameGalaxies",
-                "LastSnapShotNr",
+                "LastSnapshotNr",
                 "FirstFile",
                 "LastFile",
                 "Hubble_h",
@@ -602,30 +610,32 @@ def main():
 
     # Verify all required parameters exist
     required_params = [
-        "OutputDir", 
-        "FileNameGalaxies", 
-        "FirstFile", 
+        "OutputDir",
+        "FileNameGalaxies",
+        "FirstFile",
         "LastFile",
         "BoxSize",
         "Hubble_h",
         "FileWithSnapList",
         "NumSimulationTreeFiles"
     ]
-    
-    missing_params = []
-    for param in required_params:
-        if param not in params.params:
-            missing_params.append(param)
-    
-    if missing_params:
-        print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+
+    if validate_required_params(params.params, required_params):
         sys.exit(1)
-    
-    # Verify paths from parameter file exist
-    output_dir = params["OutputDir"]
+
+    # Resolve and update paths from parameter file
+    output_dir = resolve_relative_path(params["OutputDir"], args.param_file)
+    params.params["OutputDir"] = output_dir  # Update the params dictionary
+
     simulation_dir = params.get("SimulationDir")  # May not be used directly
+    if simulation_dir:
+        simulation_dir = resolve_relative_path(simulation_dir, args.param_file)
+        params.params["SimulationDir"] = simulation_dir  # Update the params dictionary
+
     file_name_galaxies = params["FileNameGalaxies"]
-    file_with_snap_list = params["FileWithSnapList"]
+
+    file_with_snap_list = resolve_relative_path(params["FileWithSnapList"], args.param_file)
+    params.params["FileWithSnapList"] = file_with_snap_list  # Update the params dictionary
 
     if args.verbose:
         print(f"Parameter file details:")
@@ -643,7 +653,7 @@ def main():
         print(f"Error: OutputDir '{output_dir}' from parameter file does not exist.")
         sys.exit(1)
         
-    # Check if FileWithSnapList exists (path is already resolved by SAGEParameters)
+    # Check if FileWithSnapList exists (path already resolved)
     if not os.path.exists(file_with_snap_list):
         print(f"Error: FileWithSnapList '{file_with_snap_list}' not found.")
         print("Please verify the path is correct in the parameter file.")
@@ -657,7 +667,7 @@ def main():
         print("Error: OutputDir parameter is required in the parameter file.")
         sys.exit(1)
     
-    # Get the output directory path (already resolved by SAGEParameters)
+    # Get the output directory path (already resolved)
     model_output_dir = params["OutputDir"]
     
     if args.verbose:
@@ -699,17 +709,6 @@ def main():
     else:
         selected_plots = [p.strip() for p in args.plots.split(",")]
 
-        # Check if any evolution plots are specifically requested but --evolution flag is not set
-        requested_evolution_plots = [p for p in selected_plots if p in EVOLUTION_PLOTS]
-        if requested_evolution_plots and not args.evolution:
-            print(
-                f"Warning: Evolution plots requested ({', '.join(requested_evolution_plots)}) but --evolution flag not set."
-            )
-            print(
-                f"These plots require data from multiple snapshots to work correctly."
-            )
-            print(f"Adding --evolution flag automatically.")
-            args.evolution = True
 
     # Generate snapshot plots
     if args.snapshot_plots:
@@ -722,12 +721,12 @@ def main():
             print("Error: FileNameGalaxies parameter is required in the parameter file.")
             sys.exit(1)
             
-        # Get output model path and snapshot number (path already resolved by SAGEParameters)
+        # Get output model path and snapshot number (already resolved)
         model_path = params["OutputDir"]
-        snapshot = args.snapshot or params.get("LastSnapShotNr")
-        
+        snapshot = args.snapshot or params.get("LastSnapshotNr")
+
         if not snapshot:
-            print("Error: LastSnapShotNr not found in parameter file and no snapshot specified.")
+            print("Error: LastSnapshotNr not found in parameter file and no snapshot specified.")
             sys.exit(1)
         
         # File name from parameter file
@@ -758,10 +757,7 @@ def main():
             print(f"  Using model file base: {base_model_file}")
 
         # Required parameters check
-        required_params = ["FirstFile", "LastFile"]
-        missing_params = [p for p in required_params if p not in params.params]
-        if missing_params:
-            print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+        if validate_required_params(params.params, ["FirstFile", "LastFile"], "snapshot plots"):
             sys.exit(1)
             
         # Get first and last file numbers, prioritizing command-line arguments
@@ -847,7 +843,7 @@ def main():
             print(f"Generated {len(generated_plots)} snapshot plots.")
 
     # Generate evolution plots
-    if args.evolution:
+    if args.evolution_plots:
         # Get available evolution plot modules
         plot_modules = get_available_plot_modules("evolution")
 
@@ -867,7 +863,7 @@ def main():
         if args.verbose:
             print(mapper.debug_info())
 
-        # Create the mapper from parameter file
+        # Create the mapper from parameter file (paths already resolved)
         mapper = SnapshotRedshiftMapper(args.param_file, params.params, params["OutputDir"])
         
         # Determine which snapshots to process
@@ -940,10 +936,7 @@ def main():
                 print(f"Using model file pattern: {model_file_base}")
 
             # Required parameters check
-            required_params = ["FirstFile", "LastFile", "NumSimulationTreeFiles"]
-            missing_params = [p for p in required_params if p not in params.params]
-            if missing_params:
-                print(f"Error: Required parameters missing from parameter file: {', '.join(missing_params)}")
+            if validate_required_params(params.params, ["FirstFile", "LastFile", "NumSimulationTreeFiles"], "evolution plots"):
                 sys.exit(1)
                 
             # Get first and last file numbers, prioritizing command-line arguments

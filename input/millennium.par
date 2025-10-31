@@ -28,7 +28,7 @@ TreeType                    lhalo_binary ; either 'genesis_lhalo_hdf5' or 'lhalo
 
 SimulationDir               ./input/data/millennium/
 FileWithSnapList            ./input/data/millennium/millennium.a_list
-LastSnapShotNr              63
+LastSnapshotNr              63
 NumSimulationTreeFiles      8     ; not used but needed for plotting
 BoxSize                     62.5  ; in Mpc/h - not used but needed for plotting
 

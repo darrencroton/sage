@@ -200,7 +200,7 @@ def plot(
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
 
     # Set axis limits
-    ax.set_xlim(11.0, 15.0)
+    ax.set_xlim(10.0, 15.0)
     ax.set_ylim(0.1, 100.0)
 
     # Add consistently styled legend

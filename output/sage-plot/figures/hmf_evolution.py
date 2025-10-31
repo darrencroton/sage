@@ -157,7 +157,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
 
     # Customize the plot
     ax.set_yscale("log")
-    ax.set_xlim(10.0, 15.5)
+    ax.set_xlim(10.0, 15.0)
     ax.set_ylim(1.0e-6, 1.0e-1)
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
 

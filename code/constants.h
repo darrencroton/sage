@@ -9,7 +9,7 @@
 /* Numerical constants for the simulation */
 #define NDIM 3
 #define STEPS 10 /* Number of integration intervals between two snapshots */
-#define MAXGALFAC 1
+#define MAXGALFAC 5
 #define ALLOCPARAMETER 10.0
 #define MAX_NODE_NAME_LEN 50
 #define ABSOLUTEMAXSNAPS                                                       \

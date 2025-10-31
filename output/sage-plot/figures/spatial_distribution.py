@@ -61,18 +61,18 @@ def plot(
     hubble_h = metadata["hubble_h"]
     box_size = metadata.get("box_size", 62.5)  # Default to Mini-Millennium
 
-    # Filter for galaxies with non-zero halo mass and significant stellar mass
-    w = np.where((galaxies.Mvir > 0.0) & (galaxies.StellarMass > 0.1))[0]
+    # Filter for galaxies with non-zero halo mass
+    w = np.where(galaxies.Mvir > 0.0)[0]
 
     # Check if we have any galaxies to plot
     if len(w) == 0:
-        print("No galaxies found with Mvir > 0 and StellarMass > 0.1")
+        print("No galaxies found with Mvir > 0")
         # Create an empty plot with a message
         for ax in axes[:3]:
             ax.text(
                 0.5,
                 0.5,
-                "No galaxies found with Mvir > 0 and StellarMass > 0.1",
+                "No galaxies found with Mvir > 0",
                 horizontalalignment="center",
                 verticalalignment="center",
                 transform=ax.transAxes,

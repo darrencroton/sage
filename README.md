@@ -273,7 +273,7 @@ SAGE includes a code formatting script to maintain consistent coding style:
 
 SAGE includes a comprehensive plotting system (`sage-plot`) for analyzing model outputs. Located in `output/sage-plot/`, this enhanced tool provides:
 
-- **19 different plot types** covering galaxy properties and evolution metrics
+- **21 different plot types** covering galaxy properties, halo properties, and evolution metrics
 - **Enhanced default behavior**: Generates both snapshot and evolution plots automatically
 - **Cross-directory execution**: Works from any directory with robust path resolution
 - **Consistent styling** and interfaces across all visualizations

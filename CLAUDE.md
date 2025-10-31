@@ -132,7 +132,9 @@ deactivate
 
 ### Plotting System (output/sage-plot/)
 - **sage-plot.py**: Central plotting script with enhanced command-line interface
-- **figures/**: Modular plot implementations (19 different plot types)
+- **figures/**: Modular plot implementations (21 different plot types)
+  - 17 snapshot plots (including stellar/halo mass functions, galaxy properties, halo properties, kinematics, spatial distributions)
+  - 4 evolution plots (stellar mass function, halo mass function, SFR density, stellar mass density)
 - **snapshot_redshift_mapper.py**: Handles snapshot-redshift conversions with robust path resolution
 - **Enhanced Features**:
   - Default behavior generates both snapshot and evolution plots

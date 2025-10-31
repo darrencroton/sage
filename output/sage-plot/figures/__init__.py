@@ -127,7 +127,9 @@ from . import (
     bulge_mass_fraction,
     gas_fraction,
     gas_mass_function,
+    halo_mass_function,
     halo_occupation,
+    hmf_evolution,
     mass_reservoir_scatter,
     metallicity,
     quiescent_fraction,
@@ -147,6 +149,7 @@ SNAPSHOT_PLOTS = [
     "stellar_mass_function",
     "baryonic_mass_function",
     "gas_mass_function",
+    "halo_mass_function",
     "baryonic_tully_fisher",
     "specific_sfr",
     "black_hole_bulge_relation",
@@ -165,6 +168,7 @@ SNAPSHOT_PLOTS = [
 """List of all available evolution plot modules."""
 EVOLUTION_PLOTS = [
     "smf_evolution",
+    "hmf_evolution",
     "sfr_density_evolution",
     "stellar_mass_density_evolution",
 ]
@@ -176,9 +180,11 @@ PLOT_FUNCS = {
     "stellar_mass_function": stellar_mass_function.plot,
     "baryonic_mass_function": baryonic_mass_function.plot,
     "gas_mass_function": gas_mass_function.plot,
+    "halo_mass_function": halo_mass_function.plot,
     "baryonic_tully_fisher": baryonic_tully_fisher.plot,
     "specific_sfr": specific_sfr.plot,
     "smf_evolution": smf_evolution.plot,
+    "hmf_evolution": hmf_evolution.plot,
     "sfr_density_evolution": sfr_density_evolution.plot,
     "stellar_mass_density_evolution": stellar_mass_density_evolution.plot,
     "black_hole_bulge_relation": black_hole_bulge_relation.plot,

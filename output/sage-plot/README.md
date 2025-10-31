@@ -80,6 +80,7 @@ deactivate
 - `quiescent_fraction`: Fraction of quiescent galaxies vs. stellar mass
 
 #### Halo Properties:
+- `halo_mass_function`: Halo mass function showing the abundance of halos vs. mass
 - `halo_occupation`: Halo occupation distribution
 - `baryon_fraction`: Baryon fraction vs. halo mass
 - `mass_reservoir_scatter`: Mass in different components vs. halo mass
@@ -94,6 +95,7 @@ deactivate
 ### Evolution Plots (Multiple Redshifts)
 
 - `smf_evolution`: Evolution of the stellar mass function
+- `hmf_evolution`: Evolution of the halo mass function
 - `sfr_density_evolution`: Cosmic star formation rate density vs. redshift
 - `stellar_mass_density_evolution`: Stellar mass density vs. redshift
 

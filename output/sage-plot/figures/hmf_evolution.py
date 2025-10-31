@@ -169,7 +169,7 @@ def plot(snapshots, params, output_dir="plots", output_format=".png", verbose=Fa
         # Sort labels by redshift
         redshift_labels.sort(key=lambda x: x[0])
         # Position for the first label
-        x_pos = 15.3
+        x_pos = 14.8
         y_pos = 6e-2  # Near the top of the plot (log scale)
         for z, color in redshift_labels:
             ax.text(

@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
   LogLevel log_level = LOG_LEVEL_INFO;
 
   /* Set default value for overwrite flag */
-  SageConfig.OverwriteOutputFiles = 0;
+  SageConfig.OverwriteOutputFiles = 1;
 
   /* Parse command-line arguments for special flags like help, verbosity */
   int i;
@@ -228,8 +228,8 @@ int main(int argc, char **argv) {
       printf("  -v, --verbose    Show debug messages (most verbose)\n");
       printf(
           "  -q, --quiet      Show only warnings and errors (least verbose)\n");
-      printf("  --overwrite      Overwrite existing output files instead of "
-             "skipping\n\n");
+      printf("  --skip           Skip existing output files instead of "
+             "overwriting\n\n");
       exit(0);
     } else if (strcmp(argv[i], "-v") == 0 ||
                strcmp(argv[i], "--verbose") == 0) {
@@ -251,8 +251,8 @@ int main(int argc, char **argv) {
       }
       argc--;
       i--;
-    } else if (strcmp(argv[i], "--overwrite") == 0) {
-      SageConfig.OverwriteOutputFiles = 1;
+    } else if (strcmp(argv[i], "--skip") == 0) {
+      SageConfig.OverwriteOutputFiles = 0;
       /* Remove the argument from argv */
       int k;
       for (k = i; k < argc - 1; k++) {

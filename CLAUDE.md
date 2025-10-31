@@ -55,7 +55,7 @@ make tidy
 # With command-line options
 ./sage --verbose input/millennium.par
 ./sage --quiet input/millennium.par
-./sage --overwrite input/millennium.par
+./sage --skip input/millennium.par
 ```
 
 ## Testing

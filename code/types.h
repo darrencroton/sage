@@ -3,7 +3,7 @@
 
 #include "constants.h"
 
-/* Raw merger tree input structure (archived from core_simulation.h) */
+/* Raw merger tree input structure read from treefiles */
 struct RawHalo {
   /* merger tree pointers */
   int Descendant;

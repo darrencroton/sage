@@ -233,8 +233,8 @@ The SAGE codebase is organized around these key components:
 
 - **Header Files**: Declarations and configurations
   - `constants.h`: Numerical constants
-  - `types.h`: Structure definitions for halo properties
-  - `globals.h`: Global variable declarations
+  - `types.h`: Structure definitions (RawHalo, Halo, HaloOutput, HaloAuxData)
+  - `globals.h`: Global variable declarations (TreeHalos, WorkingHalos, CurrentTreeHalos)
   - `config.h`: Configuration parameters
 
 ## Code Formatting

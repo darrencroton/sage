@@ -111,15 +111,22 @@ deactivate
 - **util_integration.c**: Numerical integration routines
 
 ### Data Structures
-- **types.h**: Core data structures (halo properties only, physics fields removed)
-  - `struct GALAXY`: Halo tracking structure (24 fields)
-  - `struct GALAXY_OUTPUT`: Output structure (24 fields)
+- **types.h**: Core data structures - three-tier halo tracking architecture
+  - `struct RawHalo`: Immutable merger tree input data (from simulation files)
+  - `struct Halo`: Mutable halo tracking structure (24 fields, core processing)
+  - `struct HaloOutput`: Output format structure (24 fields, file writing)
+  - `struct HaloAuxData`: Auxiliary processing metadata
   - `struct SageConfig`: Configuration parameters
-- **globals.h**: Global variable declarations and simulation state
-- **constants.h**: Numerical constants (physics constants removed)
+  - `struct SimulationState`: Runtime simulation state
+- **globals.h**: Global variable declarations for halo arrays
+  - `TreeHalos`: Raw merger tree input (RawHalo*)
+  - `WorkingHalos`: Temporary FoF processing workspace (Halo*)
+  - `CurrentTreeHalos`: Permanent storage for current tree (Halo*)
+- **constants.h**: Numerical constants
 - **config.h**: Compile-time configuration options
 
 ### Key Design Patterns
+1. **Three-Tier Halo Architecture**: Clear separation between input (TreeHalos), processing (WorkingHalos), and storage (CurrentTreeHalos)
 2. **Memory Categories**: Memory allocation is tracked by category (halos, trees, parameters, etc.)
 3. **Error Propagation**: Consistent error handling with context preservation throughout the call stack
 4. **Format Abstraction**: I/O operations abstracted to support multiple tree and output formats
@@ -137,7 +144,7 @@ deactivate
   - Cross-directory execution with automatic path resolution
   - Robust parameter file parsing (handles comments, arrow notation)
   - Consistent flag naming (`--evolution-plots`, `--snapshot-plots`)
-- Each plot module follows consistent interface: `plot(galaxies, volume, metadata, params, output_dir, output_format)`
+- Each plot module follows consistent interface: `plot(halos, volume, metadata, params, output_dir, output_format)`
 
 ### Parameter File Structure
 Parameter files use a key-value format with sections for:
@@ -152,11 +159,16 @@ Parameter files use a key-value format with sections for:
 
 ### Memory Management
 Uses custom allocator with categorized tracking:
-- MEMORY_GALAXY: Halo tracking data structures (still named "GALAXY" in code)
-- MEMORY_TREE: Merger tree data
+- MEMORY_GALAXY: Halo tracking data structures (historical name, refers to Halo structs)
+- MEMORY_TREE: Merger tree data (RawHalo structs)
 - MEMORY_PARAMETER: Configuration data
 - MEMORY_UTIL: Utility arrays and buffers
 Call `print_allocated()` to check for memory leaks.
+
+**Key Arrays:**
+- `TreeHalos[]`: Input halos from merger trees (allocated per tree, freed after processing)
+- `WorkingHalos[]`: Temporary workspace (grows dynamically during FoF processing)
+- `CurrentTreeHalos[]`: Accumulates all processed halos for current tree (written to output)
 
 ### Documentation Standards
 Follow the documentation template in `code/doc_standards.md`:

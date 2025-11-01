@@ -608,7 +608,7 @@ def main():
         simulation_dir = resolve_relative_path(simulation_dir, args.param_file)
         params.params["SimulationDir"] = simulation_dir  # Update the params dictionary
 
-    file_name_galaxies = params["FileNameGalaxies"]
+    file_name_base = params["FileNameGalaxies"]
 
     file_with_snap_list = resolve_relative_path(params["FileWithSnapList"], args.param_file)
     params.params["FileWithSnapList"] = file_with_snap_list  # Update the params dictionary
@@ -617,7 +617,7 @@ def main():
         print(f"Parameter file details:")
         print(f"  OutputDir: {output_dir}")
         print(f"  SimulationDir: {simulation_dir if simulation_dir else 'Not specified'}")
-        print(f"  FileNameGalaxies: {file_name_galaxies}")
+        print(f"  FileNameGalaxies: {file_name_base}")
         print(f"  FirstFile: {params['FirstFile']}")
         print(f"  LastFile: {params['LastFile']}")
         print(f"  FileWithSnapList: {file_with_snap_list}")
@@ -706,12 +706,12 @@ def main():
             sys.exit(1)
         
         # File name from parameter file
-        file_name_galaxies = params["FileNameGalaxies"]
+        file_name_base = params["FileNameGalaxies"]
         
         if args.verbose:
             print(f"\nModel file discovery:")
             print(f"  model_path from params: '{model_path}'")
-            print(f"  file_name_galaxies: '{file_name_galaxies}'")
+            print(f"  file_name_base: '{file_name_base}'")
             print(f"  Using snapshot: {snapshot}")
         
         # Check if model_path exists
@@ -727,7 +727,7 @@ def main():
             print(f"  Redshift string for snapshot {snapshot}: {redshift_str}")
         
         # Construct the base model file path directly
-        base_model_file = os.path.join(model_path, f"{file_name_galaxies}{redshift_str}")
+        base_model_file = os.path.join(model_path, f"{file_name_base}{redshift_str}")
         
         if args.verbose:
             print(f"  Using model file base: {base_model_file}")

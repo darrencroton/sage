@@ -301,7 +301,7 @@ int copy_progenitor_halos(int halonr, int ngalstart, int first_occupied) {
     // We have no progenitors with galaxies. This means we create a new galaxy.
     // init_galaxy requires halonr to be the main subhalo
     if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
-      init_halo_tracker(ngal, halonr);
+      init_halo(ngal, halonr);
       ngal++;
     }
     // If not the main subhalo, we don't create a galaxy - this seems to be

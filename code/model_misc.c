@@ -8,7 +8,7 @@
  * radius) and initializing halo tracking structures.
  *
  * Key functions:
- * - init_halo_tracker(): Initializes a new halo tracking object
+ * - init_halo): Initializes a new halo tracking object
  * - get_virial_mass/velocity/radius(): Calculate halo virial properties
  */
 
@@ -36,7 +36,7 @@
  * Note: The array is still called "Gal" and objects "galaxies" for code
  * compatibility, but these now track dark matter halos only.
  */
-void init_halo_tracker(int p, int halonr) {
+void init_halo(int p, int halonr) {
   int j;
 
   assert(halonr == Halo[halonr].FirstHaloInFOFgroup);

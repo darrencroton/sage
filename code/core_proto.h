@@ -50,7 +50,7 @@ void myexit(int signum);
 
 void finalize_halo_file(int filenr);
 
-void init_halo_tracker(int p, int halonr);
+void init_halo(int p, int halonr);
 
 double get_virial_velocity(int halonr);
 double get_virial_radius(int halonr);

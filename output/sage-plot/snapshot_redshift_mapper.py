@@ -43,7 +43,7 @@ class SnapshotRedshiftMapper:
             
         # Set up the mapper
         self.output_dir = output_dir
-        self.file_name_galaxies = params["FileNameGalaxies"]
+        self.file_name_base = params["FileNameGalaxies"]
         self.snapshots = []  # Snapshot indices (0 to n-1)
         self.redshifts = []  # Corresponding redshift values
         self.redshift_strs = []  # Formatted strings for filenames (e.g., "_z0.000")
@@ -179,7 +179,7 @@ class SnapshotRedshiftMapper:
 
             # Create file patterns
             self.redshift_file_patterns = [
-                f"{self.file_name_galaxies}{self.redshift_strs[i]}"
+                f"{self.file_name_base}{self.redshift_strs[i]}"
                 for i in range(len(self.snapshots))
             ]
 
@@ -255,10 +255,10 @@ class SnapshotRedshiftMapper:
         # Check if we have an output directory
         if self.output_dir:
             return os.path.join(
-                self.output_dir, f"{self.file_name_galaxies}{redshift_str}_{file_num}"
+                self.output_dir, f"{self.file_name_base}{redshift_str}_{file_num}"
             )
         else:
-            return f"{self.file_name_galaxies}{redshift_str}_{file_num}"
+            return f"{self.file_name_base}{redshift_str}_{file_num}"
 
     def select_snapshots_for_evolution(self, num_snapshots=8, redshift_max=8.0):
         """
@@ -428,7 +428,7 @@ class SnapshotRedshiftMapper:
             f"SnapshotRedshiftMapper Debug Info:",
             f"  Mapping source: {self.mapping_source}",
             f"  Number of snapshots: {len(self.snapshots)}",
-            f"  File name base: {self.file_name_galaxies}",
+            f"  File name base: {self.file_name_base}",
             f"  Output directory: {self.output_dir}",
             f"\nSnapshot-Redshift Mapping (showing first 10):",
         ]

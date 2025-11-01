@@ -4,6 +4,7 @@ output/results
 ignore/
 archive/
 *.o
+*.d
 *.*~
 __pycache__/
 *.py[cod]

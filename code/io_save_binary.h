@@ -4,6 +4,5 @@
 /* Functions for binary file saving */
 void save_halos(int filenr, int tree);
 void finalize_halo_file(int filenr);
-void close_galaxy_files(void);
 
 #endif /* IO_SAVE_BINARY_H */

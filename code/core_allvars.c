@@ -5,7 +5,7 @@
  * This file contains the definitions of all global variables used by the
  * SAGE model. These variables fall into several categories:
  *
- * 1. Core data structures (galaxies, halos, and auxiliary data)
+ * 1. Core data structures (e.g. halos, auxiliary data)
  * 2. Configuration parameters and derived values
  * 3. Simulation state variables (counts, indices, etc.)
  * 4. Physical constants and units

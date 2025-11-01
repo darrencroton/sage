@@ -179,8 +179,8 @@ int copy_file(const char *source, const char *dest) {
  * 6. Process merger tree files in parallel (MPI) or serially
  * 7. For each tree:
  *    a. Load the merger tree
- *    b. Construct galaxies by walking the tree
- *    c. Save the resulting galaxies
+ *    b. Construct objects by walking the tree
+ *    c. Save the resulting objects
  * 8. Perform cleanup and exit
  */
 
@@ -363,17 +363,17 @@ int main(int argc, char **argv) {
 
       /* Random seed setting removed - not actually used in computation */
 
-      /* Reset galaxy counters */
+      /* Reset halo counters */
       SimState.NumCurrentTreeHalos = 0;
       SimState.HaloCounter = 0;
-      sync_sim_state_to_globals(); /* Update galaxy counter globals */
+      sync_sim_state_to_globals(); /* Update halo counter globals */
 
-      /* Construct galaxies for each unprocessed halo in the tree */
+      /* Construct objects for each unprocessed halo in the tree */
       for (halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
         if (HaloAux[halonr].DoneFlag == 0)
           build_halo_tree(halonr, treenr);
 
-      /* Save the processed galaxies and free memory */
+      /* Save the processed objects and free memory */
       save_halos(filenr, treenr);
       free_halos_and_tree();
     }

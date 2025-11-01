@@ -221,7 +221,7 @@ void calc_hdf5_props(void) {
  * 3. Creates a table within each group to store halo data
  * 4. Configures table properties like chunking for optimal performance
  *
- * The created file structure allows easy organization of galaxies by snapshot,
+ * The created file structure allows easy organization of objects by snapshot,
  * and efficient appending of new halo records as they are processed.
  */
 void prep_hdf5_file(char *fname) {
@@ -272,7 +272,7 @@ void prep_hdf5_file(char *fname) {
  *
  * The function is designed to be called for each individual halo
  * as it is processed, enabling incremental output without requiring
- * all galaxies to be held in memory.
+ * all objects to be held in memory.
  */
 void write_hdf5_halo(struct HaloOutput *halo_output, int n, int filenr) {
 
@@ -311,7 +311,7 @@ void write_hdf5_halo(struct HaloOutput *halo_output, int n, int filenr) {
 void write_hdf5_galsnap_data(int n, int filenr) {
 
   /*
-   * Write a batch of galaxies to the output HDF5 table.
+   * Write a batch of objects to the output HDF5 table.
    */
 
   herr_t status;
@@ -329,7 +329,7 @@ void write_hdf5_galsnap_data(int n, int filenr) {
   sprintf(target_group, "Snap%03d", ListOutputSnaps[n]);
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
-  // Write the galaxies.
+  // Write
   if (TotHalosPerSnap[n] > 0) {
     status = H5TBappend_records(
         group_id, "Galaxies", (hsize_t)(TotHalosPerSnap[n]), HDF5_dst_size,
@@ -352,11 +352,11 @@ void write_hdf5_galsnap_data(int n, int filenr) {
  * @param   filenr     File number to write to
  *
  * This function writes metadata attributes to an HDF5 file after all
- * galaxies have been written. It:
+ * have been written. It:
  * 1. Opens the target HDF5 file
  * 2. Navigates to the correct snapshot group
- * 3. Adds attributes such as number of trees and number of galaxies
- * 4. Creates and writes the TreeHalosPerSnap dataset (galaxies per tree)
+ * 3. Adds attributes such as number of trees and number of objects
+ * 4. Creates and writes the TreeHalosPerSnap dataset (objects per tree)
  *
  * These attributes are essential for readers to understand the file structure
  * and for tools to navigate and process the halo data efficiently.
@@ -395,7 +395,7 @@ void write_hdf5_attrs(int n, int filenr) {
   status = H5Awrite(attribute_id, H5T_NATIVE_INT, &Ntrees);
   status = H5Aclose(attribute_id);
 
-  // Write the total number of galaxies.
+  // Write the total number of objects.
   attribute_id = H5Acreate(dataset_id, "TotHalosPerSnap", H5T_NATIVE_INT,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
   status = H5Awrite(attribute_id, H5T_NATIVE_INT, &TotHalosPerSnap[n]);
@@ -407,7 +407,7 @@ void write_hdf5_attrs(int n, int filenr) {
   // Close to the dataset.
   status = H5Dclose(dataset_id);
 
-  // Create an array dataset to hold the number of galaxies per tree and write
+  // Create an array dataset to hold the number of objects per tree and write
   // it.
   dims = Ntrees;
   if (dims <= 0) {
@@ -603,7 +603,6 @@ void write_master_file(void) {
       sprintf(target_file, "%s_%03d.hdf5", FileNameGalaxies, filenr);
 
       // Create a dataset which will act as the soft link to the output
-      // galaxies.
       sprintf(target_group, "Snap%03d/File%03d/Galaxies", ListOutputSnaps[n],
               filenr);
       sprintf(source_ds, "Snap%03d/Galaxies", ListOutputSnaps[n]);
@@ -612,7 +611,7 @@ void write_master_file(void) {
                                   target_group, H5P_DEFAULT, H5P_DEFAULT);
 
       // Create a dataset which will act as the soft link to the array storing
-      // the number of galaxies per tree for this file.
+      // the number of objects per tree for this file.
       sprintf(target_group, "Snap%03d/File%03d/TreeHalosPerSnap", ListOutputSnaps[n],
               filenr);
       sprintf(source_ds, "Snap%03d/TreeHalosPerSnap", ListOutputSnaps[n]);
@@ -620,7 +619,7 @@ void write_master_file(void) {
       status = H5Lcreate_external(target_file, source_ds, master_file_id,
                                   target_group, H5P_DEFAULT, H5P_DEFAULT);
 
-      // Increment the total number of galaxies for this file.
+      // Increment the total number of objects for this file.
       sprintf(target_file, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies,
               filenr);
       target_file_id = H5Fopen(target_file, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -633,7 +632,7 @@ void write_master_file(void) {
       status = H5Fclose(target_file_id);
       ngal_in_file += ngal_in_core;
 
-      // Save the total number of galaxies in this file.
+      // Save the total number of objects in this file.
       dims = 1;
       dataspace_id = H5Screate_simple(1, &dims, NULL);
       sprintf(target_group, "Snap%03d/File%03d", ListOutputSnaps[n], filenr);

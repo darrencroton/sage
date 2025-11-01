@@ -32,9 +32,6 @@
  * It sets up the object's position, velocity, and halo properties based on
  * the input merger tree halo data. Each object is assigned a unique
  * number for identification and tracking through cosmic time.
- *
- * Note: The array is still called "Gal" and objects "galaxies" for code
- * compatibility, but these now track dark matter halos only.
  */
 void init_halo(int p, int halonr) {
   int j;

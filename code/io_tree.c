@@ -61,7 +61,7 @@ static IOBuffer *write_buffer = NULL;
  * and initializes data structures for processing these trees. It:
  *
  * 1. Calls the appropriate format-specific loader based on tree type
- * 2. Allocates memory for tracking galaxies per tree for each output snapshot
+ * 2. Allocates memory for tracking objects per tree for each output snapshot
  * 3. Creates empty output files for each requested snapshot
  * 4. Initializes halo counters
  *
@@ -124,7 +124,7 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType) {
  * This function releases all memory allocated for the merger tree metadata.
  * It frees:
  *
- * 1. Arrays tracking galaxies per tree for each output snapshot
+ * 1. Arrays tracking objects per tree for each output snapshot
  * 2. The array of first halo indices for each tree
  * 3. The array of halo counts per tree
  * 4. Format-specific resources (e.g., closing file handles)
@@ -177,17 +177,17 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType) {
  * @param   my_TreeType  Type of merger tree format to load
  *
  * This function loads a single merger tree from the input file and allocates
- * memory for processing its halos and galaxies. It:
+ * memory for processing its halos. It:
  *
  * 1. Calls the appropriate format-specific loader based on tree type
- * 2. Calculates the maximum number of galaxies for this tree
+ * 2. Calculates the maximum number of objects for this tree
  * 3. Allocates memory for halo auxiliary data
  * 4. Allocates memory for halo data structures
  * 5. Initializes the halo auxiliary data
  *
  * The memory allocation is proportional to the number of halos in the tree,
- * ensuring efficient memory usage while providing sufficient space for
- * galaxies that will be created during processing.
+ * ensuring efficient memory usage while providing sufficient space for the
+ * objects that will be created during processing.
  */
 void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
   int32_t i;
@@ -254,7 +254,7 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
 }
 
 /**
- * @brief   Frees memory allocated for galaxies and the current merger tree
+ * @brief   Frees memory allocated for the current merger tree
  *
  * This function releases all memory allocated for halo and halo data
  * structures after a merger tree has been processed. It frees:

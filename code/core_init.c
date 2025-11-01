@@ -45,7 +45,7 @@
  * 7. Reads cooling function tables
  *
  * After this function completes, the model is ready to begin processing
- * merger trees and evolving galaxies.
+ * merger trees and evolving them.
  */
 void init(void) {
   int i;

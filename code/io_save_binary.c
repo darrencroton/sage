@@ -44,23 +44,23 @@ FILE *save_fd[ABSOLUTEMAXSNAPS] = {0};
 #define MAX_OUTFILE_SIZE (MAX_STRING_LEN + 40)
 
 /**
- * @brief   Saves galaxies to output files for all requested snapshots
+ * @brief   Saves output files for all requested snapshots
  *
  * @param   filenr    Current file number being processed
  * @param   tree      Current tree number being processed
  *
- * This function writes all galaxies for the current tree to their respective
+ * This function writes all objects for the current tree to their respective
  * output files. For each output snapshot, it:
  *
  * 1. Opens the output file if not already open
  * 2. Writes placeholder headers to be filled later
- * 3. Processes galaxies belonging to that snapshot
+ * 3. Processes onjects belonging to that snapshot
  * 4. Converts internal halo structures to output format
- * 5. Writes galaxies to the file
+ * 5. Writes objects to the file
  * 6. Updates halo counts for the file and tree
  *
  * The function also handles the indexing system that allows cross-referencing
- * between galaxies (e.g., for tracking merger destinations) across different
+ * between objects (e.g., for tracking merger destinations) across different
  * trees and files.
  */
 void save_halos(int filenr, int tree) {
@@ -98,7 +98,7 @@ void save_halos(int filenr, int tree) {
     if (CurrentTreeHalos[i].mergeIntoID > -1)
       CurrentTreeHalos[i].mergeIntoID = OutputGalOrder[CurrentTreeHalos[i].mergeIntoID];
 
-  // now prepare and write galaxies
+  // now prepare and write
   for (n = 0; n < SageConfig.NOUT; n++) {
     // only open the file if it is not already open.
     if (!save_fd[n]) {
@@ -122,7 +122,7 @@ void save_halos(int filenr, int tree) {
       size_t size =
           (Ntrees + 2) *
           sizeof(int); /* Extra two integers are for saving the total number of
-                          trees and total number of galaxies in this file */
+                          trees and total number of objects in this file */
       int *tmp_buf = (int *)malloc(size);
       if (tmp_buf == NULL) {
         FATAL_ERROR("Memory allocation failed for header buffer (%zu bytes) "
@@ -282,17 +282,17 @@ void prepare_halo_for_output(int filenr, int tree, struct Halo *g,
  *
  * @param   filenr    Current file number being processed
  *
- * This function completes the halo output files after all galaxies have
+ * This function completes the halo output files after all objects have
  * been written. For each output snapshot, it:
  *
  * 1. Seeks to the beginning of the file
  * 2. Writes the total number of trees
- * 3. Writes the total number of galaxies in the file
- * 4. Writes the number of galaxies for each tree
+ * 3. Writes the total number of objects in the file
+ * 4. Writes the number of objects for each tree
  * 5. Closes the file
  *
  * This header information is essential for readers to navigate the file
- * structure and access specific trees or galaxies efficiently.
+ * structure and access specific trees or objects efficiently.
  */
 void finalize_halo_file(int filenr) {
   int n, nwritten;
@@ -319,7 +319,7 @@ void finalize_halo_file(int filenr) {
           filenr);
     }
 
-    // Write the total number of galaxies (second header field)
+    // Write the total number of objects (second header field)
     nwritten = fwrite(&TotHalosPerSnap[n], sizeof(int), 1, save_fd[n]);
     if (nwritten != 1) {
       FATAL_ERROR(
@@ -327,7 +327,7 @@ void finalize_halo_file(int filenr) {
           n, filenr);
     }
 
-    // Write galaxies per tree (array of integers)
+    // Write objects per tree (array of integers)
     nwritten = fwrite(TreeHalosPerSnap[n], sizeof(int), Ntrees, save_fd[n]);
     if (nwritten != Ntrees) {
       FATAL_ERROR("Failed to write halo counts per tree to header of file %d "

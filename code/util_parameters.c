@@ -32,7 +32,7 @@ static ParameterDefinition ParameterTable[] = {
     // max_value}
 
     // File information parameters
-    {"FileNameGalaxies", "Base name of galaxy output files", STRING,
+    {"FileNameGalaxies", "Base name of output files", STRING,
      &SageConfig.FileNameGalaxies, 1, 0.0, 0.0},
     {"OutputDir", "Directory for output files", STRING, &SageConfig.OutputDir,
      1, 0.0, 0.0},

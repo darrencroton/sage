@@ -21,9 +21,9 @@
   1.5 /* Factor to grow arrays by (1.5 = 50% growth) */
 #define MIN_HALO_ARRAY_GROWTH                                                \
   1000 /* Minimum growth increment regardless of factor */
-#define MAX_GALAXY_ARRAY_SIZE                                                  \
+#define MAX_HALO_ARRAY_SIZE                                                  \
   1000000000 /* Upper limit to prevent excessive allocation */
-#define INITIAL_FOF_HALOS 1000 /* Initial size for FOF galaxy arrays */
+#define INITIAL_FOF_HALOS 1000 /* Initial size for FOF halo arrays */
 
 /* Physical constants */
 #define GRAVITY 6.672e-8

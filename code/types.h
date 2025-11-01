@@ -80,8 +80,8 @@ struct GALAXY_OUTPUT {
   int SAGETreeIndex;
   long long SimulationHaloIndex;
 
-  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=disk instability;
-                    4=disrupt to ICS */
+  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=unused (was disk instability);
+                    4=disrupt to ICS (PHYSICS DISABLED) */
   int mergeIntoID;
   int mergeIntoSnapNum;
   float dT;
@@ -98,37 +98,7 @@ struct GALAXY_OUTPUT {
   float Vmax;
   float VelDisp;
 
-  /* baryonic reservoirs */
-  float ColdGas;
-  float StellarMass;
-  float BulgeMass;
-  float HotGas;
-  float EjectedMass;
-  float BlackHoleMass;
-  float ICS;
-
-  /* metals */
-  float MetalsColdGas;
-  float MetalsStellarMass;
-  float MetalsBulgeMass;
-  float MetalsHotGas;
-  float MetalsEjectedMass;
-  float MetalsICS;
-
-  /* to calculate magnitudes */
-  float SfrDisk;
-  float SfrBulge;
-  float SfrDiskZ;
-  float SfrBulgeZ;
-
-  /* misc */
-  float DiskScaleRadius;
-  float Cooling;
-  float Heating;
-  float QuasarModeBHaccretionMass;
-  float TimeOfLastMajorMerger;
-  float TimeOfLastMinorMerger;
-  float OutflowRate;
+  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, heating, and disk fields removed */
 
   /* infall properties */
   float infallMvir;
@@ -146,8 +116,8 @@ struct GALAXY {
   int HaloNr;
   long long MostBoundID;
 
-  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=disk instability;
-                    4=disrupt to ICS */
+  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=unused (was disk instability);
+                    4=disrupt to ICS (PHYSICS DISABLED) */
   int mergeIntoID;
   int mergeIntoSnapNum;
   float dT;
@@ -163,42 +133,10 @@ struct GALAXY {
   float Vvir;
   float Vmax;
 
-  /* baryonic reservoirs */
-  float ColdGas;
-  float StellarMass;
-  float BulgeMass;
-  float HotGas;
-  float EjectedMass;
-  float BlackHoleMass;
-  float ICS;
-
-  /* metals */
-  float MetalsColdGas;
-  float MetalsStellarMass;
-  float MetalsBulgeMass;
-  float MetalsHotGas;
-  float MetalsEjectedMass;
-  float MetalsICS;
-
-  /* to calculate magnitudes */
-  float SfrDisk[STEPS];
-  float SfrBulge[STEPS];
-  float SfrDiskColdGas[STEPS];
-  float SfrDiskColdGasMetals[STEPS];
-  float SfrBulgeColdGas[STEPS];
-  float SfrBulgeColdGasMetals[STEPS];
+  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk fields removed */
 
   /* misc */
-  float DiskScaleRadius;
   float MergTime;
-  double Cooling;
-  double Heating;
-  float r_heat;
-  float QuasarModeBHaccretionMass;
-  float TimeOfLastMajorMerger;
-  float TimeOfLastMinorMerger;
-  float OutflowRate;
-  float TotalSatelliteBaryons;
 
   /* infall properties */
   float infallMvir;

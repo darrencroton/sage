@@ -1,21 +1,15 @@
 /**
  * @file    model_misc.c
- * @brief   Miscellaneous utility functions for galaxy evolution modeling
+ * @brief   Miscellaneous utility functions for halo tracking
  *
  * This file contains various utility functions used throughout the SAGE code
- * for galaxy initialization, property calculation, and basic operations.
+ * for halo initialization, property calculation, and basic operations.
  * It includes functions for calculating halo properties (mass, velocity,
- * radius), galaxy disk properties, metallicities, and various helper functions.
+ * radius) and initializing halo tracking structures.
  *
  * Key functions:
- * - init_galaxy(): Initializes a new galaxy with default properties
- * - get_disk_radius(): Calculates disk scale radius based on halo properties
+ * - init_galaxy(): Initializes a new halo tracking object
  * - get_virial_mass/velocity/radius(): Calculate halo virial properties
- * - get_metallicity(): Calculates metallicity from gas mass and metal content
- *
- * References:
- * - Mo, Mao & White (1998) - Disk radius calculation
- * - Bullock et al. (2001) - Spin parameter definition
  */
 
 #include <assert.h>
@@ -29,23 +23,21 @@
 #include "core_proto.h"
 
 /**
- * @brief   Initializes a new galaxy with default properties
+ * @brief   Initializes a new halo tracking object with default properties
  *
- * @param   p       Index of the galaxy in the Gal array
+ * @param   p       Index in the Gal array (name retained for compatibility)
  * @param   halonr  Index of the halo in the Halo array
  *
- * This function initializes a new galaxy with default values for all
- * properties. It sets up the galaxy's position, velocity, and physical
- * properties based on its host halo. The galaxy is initialized with zero mass
- * in all components (cold gas, stellar mass, bulge, hot gas, etc.) and will
- * accumulate mass through subsequent evolution.
+ * This function initializes a new halo tracking object with default values.
+ * It sets up the object's position, velocity, and halo properties based on
+ * the input merger tree halo data. Each object is assigned a unique
+ * number for identification and tracking through cosmic time.
  *
- * The function also initializes tracking variables for mergers, star formation
- * history, and other galaxy properties. Each new galaxy is assigned a unique
- * galaxy number for identification.
+ * Note: The array is still called "Gal" and objects "galaxies" for code
+ * compatibility, but these now track dark matter halos only.
  */
 void init_galaxy(int p, int halonr) {
-  int j, step;
+  int j;
 
   assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
 
@@ -76,40 +68,9 @@ void init_galaxy(int p, int halonr) {
 
   Gal[p].deltaMvir = 0.0;
 
-  Gal[p].ColdGas = 0.0;
-  Gal[p].StellarMass = 0.0;
-  Gal[p].BulgeMass = 0.0;
-  Gal[p].HotGas = 0.0;
-  Gal[p].EjectedMass = 0.0;
-  Gal[p].BlackHoleMass = 0.0;
-  Gal[p].ICS = 0.0;
+  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk field initializations removed */
 
-  Gal[p].MetalsColdGas = 0.0;
-  Gal[p].MetalsStellarMass = 0.0;
-  Gal[p].MetalsBulgeMass = 0.0;
-  Gal[p].MetalsHotGas = 0.0;
-  Gal[p].MetalsEjectedMass = 0.0;
-  Gal[p].MetalsICS = 0.0;
-
-  for (step = 0; step < STEPS; step++) {
-    Gal[p].SfrDisk[step] = 0.0;
-    Gal[p].SfrBulge[step] = 0.0;
-    Gal[p].SfrDiskColdGas[step] = 0.0;
-    Gal[p].SfrDiskColdGasMetals[step] = 0.0;
-    Gal[p].SfrBulgeColdGas[step] = 0.0;
-    Gal[p].SfrBulgeColdGasMetals[step] = 0.0;
-  }
-
-  Gal[p].DiskScaleRadius = get_disk_radius(halonr, p);
   Gal[p].MergTime = 999.9;
-  Gal[p].Cooling = 0.0;
-  Gal[p].Heating = 0.0;
-  Gal[p].r_heat = 0.0;
-  Gal[p].QuasarModeBHaccretionMass = 0.0;
-  Gal[p].TimeOfLastMajorMerger = -1.0;
-  Gal[p].TimeOfLastMinorMerger = -1.0;
-  Gal[p].OutflowRate = 0.0;
-  Gal[p].TotalSatelliteBaryons = 0.0;
 
   // infall properties
   Gal[p].infallMvir = -1.0;
@@ -117,39 +78,7 @@ void init_galaxy(int p, int halonr) {
   Gal[p].infallVmax = -1.0;
 }
 
-/**
- * @brief   Calculates the disk scale radius for a galaxy
- *
- * @param   halonr  Index of the halo in the Halo array
- * @param   p       Index of the galaxy in the Gal array
- * @return  Disk scale radius in Mpc/h
- *
- * This function calculates the disk scale radius based on the Mo, Mao & White
- * (1998) model, which relates disk size to halo properties. It uses the halo's
- * spin parameter (Bullock definition) and virial radius to determine the disk
- * radius.
- *
- * The disk radius is proportional to the spin parameter and the virial radius:
- * Rd = (λ / √2) * Rvir
- *
- * If virial properties are not available, it defaults to 0.1*Rvir.
- */
-double get_disk_radius(int halonr, int p) {
-  double SpinMagnitude, SpinParameter;
-
-  if (Gal[p].Vvir > 0.0 && Gal[p].Rvir > 0.0) {
-    // See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
-    SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] +
-                         Halo[halonr].Spin[1] * Halo[halonr].Spin[1] +
-                         Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
-
-    SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
-    return (SpinParameter / 1.414) * Gal[p].Rvir;
-  } else
-    return 0.1 * Gal[p].Rvir;
-}
-
-/* PHYSICS DISABLED: get_metallicity() and dmax() functions removed - only used by physics code */
+/* PHYSICS DISABLED: get_disk_radius(), get_metallicity() and dmax() functions removed - only used by physics code */
 
 /**
  * @brief   Returns the virial mass of a halo

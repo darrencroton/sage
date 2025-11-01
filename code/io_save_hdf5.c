@@ -60,9 +60,8 @@ void calc_hdf5_props(void) {
 
   int i; // dummy
 
-  // If we are calculating any magnitudes then increment the number of
-  // output properties appropriately.
-  HDF5_n_props = 36;
+  // PHYSICS DISABLED: Only halo properties are output now
+  HDF5_n_props = 24;  // Reduced from 36 to only halo properties
 
   // Size of a single galaxy entry.
   HDF5_dst_size = sizeof(struct GALAXY_OUTPUT);
@@ -81,7 +80,14 @@ void calc_hdf5_props(void) {
 
   i = 0; // Initialise dummy counter
 
-  // Go through each galaxy property and calculate everything we need...
+  // Go through each halo property and calculate everything we need...
+  // PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk fields removed
+
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SnapNum);
+  HDF5_dst_sizes[i] = sizeof(galout.SnapNum);
+  HDF5_field_names[i] = "SnapNum";
+  HDF5_field_types[i++] = H5T_NATIVE_INT;
+
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Type);
   HDF5_dst_sizes[i] = sizeof(galout.Type);
   HDF5_field_names[i] = "Type";
@@ -92,34 +98,44 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "GalaxyIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, HaloIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.HaloIndex);
-  HDF5_field_names[i] = "HaloIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralGalaxyIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.CentralGalaxyIndex);
+  HDF5_field_names[i] = "CentralGalaxyIndex";
+  HDF5_field_types[i++] = H5T_NATIVE_LLONG;
+
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGEHaloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SAGEHaloIndex);
+  HDF5_field_names[i] = "SAGEHaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, FOFHaloIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.FOFHaloIndex);
-  HDF5_field_names[i] = "FOFHaloIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGETreeIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SAGETreeIndex);
+  HDF5_field_names[i] = "SAGETreeIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, TreeIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.TreeIndex);
-  HDF5_field_names[i] = "TreeIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SimulationHaloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SimulationHaloIndex);
+  HDF5_field_names[i] = "SimulationHaloIndex";
+  HDF5_field_types[i++] = H5T_NATIVE_LLONG;
+
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeType);
+  HDF5_dst_sizes[i] = sizeof(galout.mergeType);
+  HDF5_field_names[i] = "mergeType";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SnapNum);
-  HDF5_dst_sizes[i] = sizeof(galout.SnapNum);
-  HDF5_field_names[i] = "SnapNum";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeIntoID);
+  HDF5_dst_sizes[i] = sizeof(galout.mergeIntoID);
+  HDF5_field_names[i] = "mergeIntoID";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralGal);
-  HDF5_dst_sizes[i] = sizeof(galout.CentralGal);
-  HDF5_field_names[i] = "CentralGal";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeIntoSnapNum);
+  HDF5_dst_sizes[i] = sizeof(galout.mergeIntoSnapNum);
+  HDF5_field_names[i] = "mergeIntoSnapNum";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralMvir);
-  HDF5_dst_sizes[i] = sizeof(galout.CentralMvir);
-  HDF5_field_names[i] = "CentralMvir";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, dT);
+  HDF5_dst_sizes[i] = sizeof(galout.dT);
+  HDF5_field_names[i] = "dT";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Pos);
@@ -147,6 +163,11 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "Mvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralMvir);
+  HDF5_dst_sizes[i] = sizeof(galout.CentralMvir);
+  HDF5_field_names[i] = "CentralMvir";
+  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Rvir);
   HDF5_dst_sizes[i] = sizeof(galout.Rvir);
   HDF5_field_names[i] = "Rvir";
@@ -167,99 +188,19 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "VelDisp";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, ColdGas);
-  HDF5_dst_sizes[i] = sizeof(galout.ColdGas);
-  HDF5_field_names[i] = "ColdGas";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallMvir);
+  HDF5_dst_sizes[i] = sizeof(galout.infallMvir);
+  HDF5_field_names[i] = "infallMvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, StellarMass);
-  HDF5_dst_sizes[i] = sizeof(galout.StellarMass);
-  HDF5_field_names[i] = "StellarMass";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallVvir);
+  HDF5_dst_sizes[i] = sizeof(galout.infallVvir);
+  HDF5_field_names[i] = "infallVvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, BulgeMass);
-  HDF5_dst_sizes[i] = sizeof(galout.BulgeMass);
-  HDF5_field_names[i] = "BulgeMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, HotGas);
-  HDF5_dst_sizes[i] = sizeof(galout.HotGas);
-  HDF5_field_names[i] = "HotGas";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, EjectedMass);
-  HDF5_dst_sizes[i] = sizeof(galout.EjectedMass);
-  HDF5_field_names[i] = "EjectedMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, BlackHoleMass);
-  HDF5_dst_sizes[i] = sizeof(galout.BlackHoleMass);
-  HDF5_field_names[i] = "BlackHoleMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, ICS);
-  HDF5_dst_sizes[i] = sizeof(galout.ICS);
-  HDF5_field_names[i] = "ICS";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsColdGas);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsColdGas);
-  HDF5_field_names[i] = "MetalsColdGas";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsStellarMass);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsStellarMass);
-  HDF5_field_names[i] = "MetalsStellarMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsBulgeMass);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsBulgeMass);
-  HDF5_field_names[i] = "MetalsBulgeMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsHotGas);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsHotGas);
-  HDF5_field_names[i] = "MetalsHotGas";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsEjectedMass);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsEjectedMass);
-  HDF5_field_names[i] = "MetalsEjectedMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MetalsICS);
-  HDF5_dst_sizes[i] = sizeof(galout.MetalsICS);
-  HDF5_field_names[i] = "MetalsICS";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Sfr);
-  HDF5_dst_sizes[i] = sizeof(galout.Sfr);
-  HDF5_field_names[i] = "Sfr";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrBulge);
-  HDF5_dst_sizes[i] = sizeof(galout.SfrBulge);
-  HDF5_field_names[i] = "SfrBulge";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrICS);
-  HDF5_dst_sizes[i] = sizeof(galout.SfrICS);
-  HDF5_field_names[i] = "SfrICS";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, DiskScaleRadius);
-  HDF5_dst_sizes[i] = sizeof(galout.DiskScaleRadius);
-  HDF5_field_names[i] = "DiskScaleRadius";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Cooling);
-  HDF5_dst_sizes[i] = sizeof(galout.Cooling);
-  HDF5_field_names[i] = "Cooling";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
-
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Heating);
-  HDF5_dst_sizes[i] = sizeof(galout.Heating);
-  HDF5_field_names[i] = "Heating";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallVmax);
+  HDF5_dst_sizes[i] = sizeof(galout.infallVmax);
+  HDF5_field_names[i] = "infallVmax";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
   /* Validate property count */

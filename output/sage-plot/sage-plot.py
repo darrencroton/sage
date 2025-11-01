@@ -47,9 +47,9 @@ from figures import *
 from snapshot_redshift_mapper import SnapshotRedshiftMapper
 
 
-# Galaxy data structure definition
+# Halo data structure definition (PHYSICS DISABLED: galaxy properties removed)
 def get_galaxy_dtype():
-    """Return the NumPy dtype for SAGE galaxy data."""
+    """Return the NumPy dtype for SAGE halo data (DM-only tracker)."""
     galdesc_full = [
         ("SnapNum", np.int32),
         ("Type", np.int32),
@@ -72,30 +72,6 @@ def get_galaxy_dtype():
         ("Vvir", np.float32),
         ("Vmax", np.float32),
         ("VelDisp", np.float32),
-        ("ColdGas", np.float32),
-        ("StellarMass", np.float32),
-        ("BulgeMass", np.float32),
-        ("HotGas", np.float32),
-        ("EjectedMass", np.float32),
-        ("BlackHoleMass", np.float32),
-        ("IntraClusterStars", np.float32),
-        ("MetalsColdGas", np.float32),
-        ("MetalsStellarMass", np.float32),
-        ("MetalsBulgeMass", np.float32),
-        ("MetalsHotGas", np.float32),
-        ("MetalsEjectedMass", np.float32),
-        ("MetalsIntraClusterStars", np.float32),
-        ("SfrDisk", np.float32),
-        ("SfrBulge", np.float32),
-        ("SfrDiskZ", np.float32),
-        ("SfrBulgeZ", np.float32),
-        ("DiskRadius", np.float32),
-        ("Cooling", np.float32),
-        ("Heating", np.float32),
-        ("QuasarModeBHaccretionMass", np.float32),
-        ("TimeOfLastMajorMerger", np.float32),
-        ("TimeOfLastMinorMerger", np.float32),
-        ("OutflowRate", np.float32),
         ("infallMvir", np.float32),
         ("infallVvir", np.float32),
         ("infallVmax", np.float32),

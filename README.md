@@ -1,18 +1,20 @@
-# Semi-Analytic Galaxy Evolution (SAGE)
+# Semi-Analytic Galaxy Evolution (SAGE) - Dark Matter Tracker
 
 [![DOI](https://zenodo.org/badge/13542/darrencroton/sage.svg)](https://zenodo.org/badge/latestdoi/13542/darrencroton/sage)
 
-SAGE is a modern, modular, and customizable semi-analytic model for simulating galaxy formation and evolution in a cosmological context. It provides a computationally efficient framework for tracking the hierarchical growth of dark matter halos, gas cooling, star formation, supernova feedback, black hole growth, active galactic nuclei feedback, and other key astrophysical processes.
+**PHYSICS DISABLED**: This version of SAGE has been converted to a **dark matter (DM) halo tracker only**. All baryonic physics, galaxy formation processes, and stellar evolution have been removed. SAGE now provides a computationally efficient framework for tracking the hierarchical growth and properties of dark matter halos from N-body simulation merger trees.
+
+For the full semi-analytic galaxy formation model with baryonic physics, see the main SAGE repository at [github.com/darrencroton/sage](https://github.com/darrencroton/sage).
 
 ## Features
 
-- **Comprehensive Physics**: Implements state-of-the-art models for galaxy formation processes
+- **Dark Matter Halo Tracking**: Processes halo properties from N-body merger trees (mass, position, velocity, spin)
 - **Computational Efficiency**: Processes large cosmological simulations on modest hardware
 - **Flexible Input**: Works with multiple N-body simulation formats (binary, HDF5)
-- **Modular Design**: Easily extensible for implementing new physical models
+- **Modular Design**: Clean separation between halo tracking and physics modules
 - **Robust Memory Management**: Optimized for handling large merger trees
 - **Consistent Error Handling**: Comprehensive logging and error reporting
-- **Integrated Visualization**: Dedicated plotting system for analyzing model outputs
+- **Integrated Visualization**: Dedicated plotting system for halo properties and distributions
 - **Well-Structured Code**: Organized headers and reduced global variable dependencies
 - **Numerical Stability**: Enhanced handling of floating-point operations
 - **Cross-Platform I/O**: Improved error checking and platform compatibility
@@ -195,23 +197,16 @@ LastSnapshotNr         63
 NumSimulationTreeFiles 8
 BoxSize                62.5  
 
-Omega                  0.25 
+Omega                  0.25
 OmegaLambda            0.75
-BaryonFrac             0.17
 Hubble_h               0.73
 PartMass               0.0860657
 
 %------------------------------------------
-%----- SAGE recipe options ----------------
+%----- PHYSICS DISABLED -------------------
 %------------------------------------------
-
-SFprescription         0
-AGNrecipeOn            2
-SupernovaRecipeOn      1
-ReionizationOn         1
-DiskInstabilityOn      1
-
-% ... (additional parameters)
+% All baryonic physics parameters removed.
+% SAGE now operates as a DM-only halo tracker.
 ```
 
 Note: A full example parameter file can be found in the `input` directory.
@@ -222,32 +217,33 @@ The SAGE codebase is organized around these key components:
 
 - **Core Files**: Main model framework and execution flow
   - `main.c`: Program entry point and core execution
-  - `core_build_model.c`: Galaxy construction and evolution
+  - `core_build_model.c`: Halo tracking and property updates (PHYSICS DISABLED)
   - `core_init.c`: Initialization routines
   - `core_read_parameter_file.c`: Parameter handling
-  
-- **Model Files**: Physical processes implementation
-  - `model_cooling_heating.c`: Gas cooling and heating processes
-  - `model_disk_instability.c`: Disk instability model
-  - `model_infall.c`: Gas infall calculations
-  - `model_mergers.c`: Galaxy mergers handling
-  - `model_reincorporation.c`: Gas reincorporation
-  - `model_starformation_and_feedback.c`: Star formation and feedback
-  
+
+- **Model Files**: **PHYSICS DISABLED** - These files remain in the codebase but their physics functions are no longer called
+  - `model_cooling_heating.c`: Gas cooling and heating (disabled)
+  - `model_disk_instability.c`: Disk instability (disabled)
+  - `model_infall.c`: Gas infall (disabled)
+  - `model_mergers.c`: Galaxy mergers (disabled)
+  - `model_reincorporation.c`: Gas reincorporation (disabled)
+  - `model_starformation_and_feedback.c`: Star formation and feedback (disabled)
+  - `model_misc.c`: Halo initialization (active, physics-related functions removed)
+
 - **I/O Files**: Input/output operations
   - `io_tree.c`: Tree loading and management
-  - `io_save_binary.c`: Binary output format
-  - `io_save_hdf5.c`: HDF5 output format (if enabled)
-  
+  - `io_save_binary.c`: Binary output format (halo properties only)
+  - `io_save_hdf5.c`: HDF5 output format (halo properties only)
+
 - **Utility Files**: Helper functions
   - `util_numeric.c`: Numerical stability utilities
   - `util_error.c`: Error handling system
   - `util_memory.c`: Memory management
   - `util_parameters.c`: Parameter processing
-  
+
 - **Header Files**: Declarations and configurations
-  - `constants.h`: Physical and numerical constants
-  - `types.h`: Structure definitions
+  - `constants.h`: Numerical constants (physics constants removed)
+  - `types.h`: Structure definitions (halo properties only, physics fields removed)
   - `globals.h`: Global variable declarations
   - `config.h`: Configuration parameters
 
@@ -271,9 +267,10 @@ SAGE includes a code formatting script to maintain consistent coding style:
 
 ## Visualization System
 
-SAGE includes a comprehensive plotting system (`sage-plot`) for analyzing model outputs. Located in `output/sage-plot/`, this enhanced tool provides:
+SAGE includes a plotting system (`sage-plot`) for analyzing halo properties. Located in `output/sage-plot/`, this tool provides:
 
-- **21 different plot types** covering galaxy properties, halo properties, and evolution metrics
+- **6 halo plot types** covering halo mass functions, occupation statistics, spin/velocity distributions, and spatial distributions
+- **Physics plots archived**: 15 galaxy-physics plots moved to `figures/archive/` for potential future use
 - **Enhanced default behavior**: Generates both snapshot and evolution plots automatically
 - **Cross-directory execution**: Works from any directory with robust path resolution
 - **Consistent styling** and interfaces across all visualizations
@@ -287,17 +284,17 @@ Basic usage:
 # Activate the virtual environment first
 source sage_venv/bin/activate
 
-# Generate all plots (both snapshot and evolution - new default!)
+# Generate all halo plots (both snapshot and evolution - new default!)
 python output/sage-plot/sage-plot.py --param-file=input/millennium.par
 
-# Generate only snapshot plots
+# Generate only snapshot plots (5 plots)
 python output/sage-plot/sage-plot.py --param-file=input/millennium.par --snapshot-plots
 
-# Generate only evolution plots
+# Generate only evolution plots (1 plot)
 python output/sage-plot/sage-plot.py --param-file=input/millennium.par --evolution-plots
 
 # Generate specific plots
-python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=stellar_mass_function,sfr_density_evolution
+python output/sage-plot/sage-plot.py --param-file=input/millennium.par --plots=halo_mass_function,spin_distribution
 
 # Works from any directory!
 cd /tmp

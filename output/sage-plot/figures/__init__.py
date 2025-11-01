@@ -52,60 +52,7 @@ def get_mass_function_labels():
     return y_label
 
 
-def get_stellar_mass_label():
-    """Return consistent x-axis label for stellar mass plots."""
-    x_label = r"log$_{10}$ M$_{\rm stars}$ (M$_{\odot}$)"
-    return x_label
-
-
-def get_baryonic_mass_label():
-    """Return consistent x-axis label for baryonic mass plots."""
-    x_label = r"log$_{10}$ M$_{\rm bar}$ (M$_{\odot}$)"
-    return x_label
-
-
-def get_gas_mass_label():
-    """Return consistent x-axis label for gas mass plots."""
-    x_label = r"log$_{10}$ M$_{\rm X}$ (M$_{\odot}$)"
-    return x_label
-
-
-def get_redshift_label():
-    """Return consistent x-axis label for redshift plots."""
-    x_label = r"redshift"
-    return x_label
-
-
-def get_sfr_density_label():
-    """Return consistent y-axis label for SFR density plots."""
-    y_label = r"log$_{10}$ SFR density (M$_{\odot}$ yr$^{-1}$ Mpc$^{-3}$)"
-    return y_label
-
-
-def get_ssfr_label():
-    """Return consistent y-axis label for specific SFR plots."""
-    y_label = r"log$_{10}$ sSFR (yr$^{-1}$)"
-    return y_label
-
-
-def get_vmax_label():
-    """Return consistent x-axis label for Vmax plots."""
-    x_label = r"log$_{10}$ V$_{\rm max}$ (km/s)"
-    return x_label
-
-
-def get_black_hole_mass_label():
-    """Return consistent x-axis label for black hole mass plots."""
-    x_label = r"log$_{10}$ M$_{\rm BH}$ (M$_{\odot}$)"
-    return x_label
-
-
-def get_bulge_mass_label():
-    """Return consistent x-axis label for bulge mass plots."""
-    x_label = r"log$_{10}$ M$_{\rm bulge}$ (M$_{\odot}$)"
-    return x_label
-
-
+# PHYSICS DISABLED: Halo-only utility functions
 def get_halo_mass_label():
     """Return consistent x-axis label for halo mass plots."""
     x_label = r"log$_{10}$ M$_{\rm halo}$ (M$_{\odot}$)"
@@ -118,84 +65,52 @@ def get_spin_parameter_label():
     return x_label
 
 
+def get_redshift_label():
+    """Return consistent x-axis label for redshift plots."""
+    x_label = r"redshift"
+    return x_label
+
+
+def get_vmax_label():
+    """Return consistent x-axis label for Vmax plots."""
+    x_label = r"log$_{10}$ V$_{\rm max}$ (km/s)"
+    return x_label
+
+
+# PHYSICS DISABLED: Only halo-property plots remain
 # Import all the figure modules so they can be discovered
 from . import (
-    baryon_fraction,
-    baryonic_mass_function,
-    baryonic_tully_fisher,
-    black_hole_bulge_relation,
-    bulge_mass_fraction,
-    gas_fraction,
-    gas_mass_function,
     halo_mass_function,
     halo_occupation,
     hmf_evolution,
-    mass_reservoir_scatter,
-    metallicity,
-    quiescent_fraction,
-    sfr_density_evolution,
-    smf_evolution,
     spatial_distribution,
-    specific_sfr,
     spin_distribution,
-    stellar_mass_density_evolution,
-    stellar_mass_function,
     velocity_distribution,
 )
 
 # Define available plot types
-"""List of all available snapshot plot modules."""
+"""List of all available snapshot plot modules (halo properties only)."""
 SNAPSHOT_PLOTS = [
-    "stellar_mass_function",
-    "baryonic_mass_function",
-    "gas_mass_function",
     "halo_mass_function",
-    "baryonic_tully_fisher",
-    "specific_sfr",
-    "black_hole_bulge_relation",
-    "gas_fraction",
-    "metallicity",
-    "bulge_mass_fraction",
-    "quiescent_fraction",
     "halo_occupation",
-    "baryon_fraction",
     "spin_distribution",
     "velocity_distribution",
-    "mass_reservoir_scatter",
     "spatial_distribution",
 ]
 
-"""List of all available evolution plot modules."""
+"""List of all available evolution plot modules (halo properties only)."""
 EVOLUTION_PLOTS = [
-    "smf_evolution",
     "hmf_evolution",
-    "sfr_density_evolution",
-    "stellar_mass_density_evolution",
 ]
 
 # Make sure this dictionary matches the classifications above
 
-"""Mapping of plot names to their corresponding functions."""
+"""Mapping of plot names to their corresponding functions (halo properties only)."""
 PLOT_FUNCS = {
-    "stellar_mass_function": stellar_mass_function.plot,
-    "baryonic_mass_function": baryonic_mass_function.plot,
-    "gas_mass_function": gas_mass_function.plot,
     "halo_mass_function": halo_mass_function.plot,
-    "baryonic_tully_fisher": baryonic_tully_fisher.plot,
-    "specific_sfr": specific_sfr.plot,
-    "smf_evolution": smf_evolution.plot,
-    "hmf_evolution": hmf_evolution.plot,
-    "sfr_density_evolution": sfr_density_evolution.plot,
-    "stellar_mass_density_evolution": stellar_mass_density_evolution.plot,
-    "black_hole_bulge_relation": black_hole_bulge_relation.plot,
-    "gas_fraction": gas_fraction.plot,
-    "metallicity": metallicity.plot,
-    "bulge_mass_fraction": bulge_mass_fraction.plot,
-    "quiescent_fraction": quiescent_fraction.plot,
     "halo_occupation": halo_occupation.plot,
-    "baryon_fraction": baryon_fraction.plot,
+    "hmf_evolution": hmf_evolution.plot,
     "spin_distribution": spin_distribution.plot,
     "velocity_distribution": velocity_distribution.plot,
-    "mass_reservoir_scatter": mass_reservoir_scatter.plot,
     "spatial_distribution": spatial_distribution.plot,
 }

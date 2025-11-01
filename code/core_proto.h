@@ -57,7 +57,7 @@ void init_galaxy(int p, int halonr);
 double get_virial_velocity(int halonr);
 double get_virial_radius(int halonr);
 double get_virial_mass(int halonr);
-double get_disk_radius(int halonr, int p);
+/* PHYSICS DISABLED: get_disk_radius() removed */
 
 void read_output_snaps(void);
 void read_snap_list(void);

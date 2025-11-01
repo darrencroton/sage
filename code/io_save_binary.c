@@ -178,29 +178,26 @@ void save_galaxies(int filenr, int tree) {
 }
 
 /**
- * @brief   Converts internal galaxy structure to output format
+ * @brief   Converts internal halo structure to output format (PHYSICS DISABLED)
  *
  * @param   filenr    Current file number being processed
  * @param   tree      Current tree number being processed
- * @param   g         Pointer to the internal galaxy structure
- * @param   o         Pointer to the output galaxy structure to be filled
+ * @param   g         Pointer to the internal halo tracking structure
+ * @param   o         Pointer to the output halo structure to be filled
  *
- * This function transforms the internal galaxy representation (GALAXY struct)
+ * This function transforms the internal halo representation (GALAXY struct)
  * to the output format (GALAXY_OUTPUT struct). It:
  *
- * 1. Copies basic galaxy properties (type, position, velocities, masses)
- * 2. Calculates derived properties (star formation rates, metallicities)
- * 3. Creates a unique galaxy index that encodes file, tree, and galaxy number
- * 4. Converts units from internal simulation units to physical units
- * 5. Processes special properties like cooling/heating rates
+ * 1. Copies basic halo properties (type, position, velocities, masses)
+ * 2. Creates a unique halo index that encodes file, tree, and halo number
+ * 3. Converts units from internal simulation units to physical units
  *
- * The unique indexing system allows galaxies to be cross-referenced across
- * different trees and files, which is essential for tracking mergers and
- * other inter-galaxy relationships.
+ * PHYSICS DISABLED: No derived properties like SFR or metallicities computed.
+ * Only halo properties from merger trees are output.
  */
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
                                struct GALAXY_OUTPUT *o) {
-  int j, step;
+  int j;
 
   o->SnapNum = g->SnapNum;
   o->Type = g->Type;
@@ -269,60 +266,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
   o->Vmax = g->Vmax;
   o->VelDisp = Halo[g->HaloNr].VelDisp;
 
-  o->ColdGas = g->ColdGas;
-  o->StellarMass = g->StellarMass;
-  o->BulgeMass = g->BulgeMass;
-  o->HotGas = g->HotGas;
-  o->EjectedMass = g->EjectedMass;
-  o->BlackHoleMass = g->BlackHoleMass;
-  o->ICS = g->ICS;
-
-  o->MetalsColdGas = g->MetalsColdGas;
-  o->MetalsStellarMass = g->MetalsStellarMass;
-  o->MetalsBulgeMass = g->MetalsBulgeMass;
-  o->MetalsHotGas = g->MetalsHotGas;
-  o->MetalsEjectedMass = g->MetalsEjectedMass;
-  o->MetalsICS = g->MetalsICS;
-
-  o->SfrDisk = 0.0;
-  o->SfrBulge = 0.0;
-  o->SfrDiskZ = 0.0;
-  o->SfrBulgeZ = 0.0;
-
-  // NOTE: in Msun/yr
-  for (step = 0; step < STEPS; step++) {
-    o->SfrDisk += g->SfrDisk[step] * UnitMass_in_g / UnitTime_in_s *
-                  SEC_PER_YEAR / SOLAR_MASS / STEPS;
-    o->SfrBulge += g->SfrBulge[step] * UnitMass_in_g / UnitTime_in_s *
-                   SEC_PER_YEAR / SOLAR_MASS / STEPS;
-
-    if (g->SfrDiskColdGas[step] > 0.0)
-      o->SfrDiskZ +=
-          g->SfrDiskColdGasMetals[step] / g->SfrDiskColdGas[step] / STEPS;
-
-    if (g->SfrBulgeColdGas[step] > 0.0)
-      o->SfrBulgeZ +=
-          g->SfrBulgeColdGasMetals[step] / g->SfrBulgeColdGas[step] / STEPS;
-  }
-
-  o->DiskScaleRadius = g->DiskScaleRadius;
-
-  if (g->Cooling > 0.0)
-    o->Cooling = log10(g->Cooling * UnitEnergy_in_cgs / UnitTime_in_s);
-  else
-    o->Cooling = 0.0;
-  if (g->Heating > 0.0)
-    o->Heating = log10(g->Heating * UnitEnergy_in_cgs / UnitTime_in_s);
-  else
-    o->Heating = 0.0;
-
-  o->QuasarModeBHaccretionMass = g->QuasarModeBHaccretionMass;
-
-  o->TimeOfLastMajorMerger = g->TimeOfLastMajorMerger * UnitTime_in_Megayears;
-  o->TimeOfLastMinorMerger = g->TimeOfLastMinorMerger * UnitTime_in_Megayears;
-
-  o->OutflowRate = g->OutflowRate * UnitMass_in_g / UnitTime_in_s *
-                   SEC_PER_YEAR / SOLAR_MASS;
+  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, heating, disk, and merger time field copies removed */
 
   // infall properties
   if (g->Type != 0) {

@@ -1,26 +1,20 @@
 /**
  * @file    core_build_model.c
- * @brief   Core functions for building and evolving the galaxy formation model
+ * @brief   Core functions for dark matter halo tracking (PHYSICS DISABLED)
  *
- * This file contains the core algorithms for constructing galaxies from merger
- * trees and evolving them through time. It implements the main semi-analytic
- * modeling framework including the construction of galaxies from their
- * progenitors, the application of physical processes (cooling, star formation,
- * feedback), handling of mergers, and the time integration scheme.
+ * This file contains the core algorithms for tracking dark matter halos from
+ * merger trees. All baryonic physics has been removed.
  *
  * Key functions:
- * - construct_galaxies(): Recursive function to build galaxies through merger
- * trees
- * - join_galaxies_of_progenitors(): Integrates galaxies from progenitor halos
- * - evolve_galaxies(): Main time integration function for galaxy evolution
- * - apply_physical_processes(): Applies all physical processes to galaxies
- * - handle_mergers(): Processes galaxy mergers and disruption events
+ * - construct_galaxies(): Recursive function to build halo tracking structures
+ * - join_galaxies_of_progenitors(): Integrates halos from progenitor structures
+ * - evolve_galaxies(): Updates halo properties (no physics applied)
+ *
+ * PHYSICS DISABLED: All physical processes removed (cooling, star formation,
+ * feedback, mergers). This code now only tracks dark matter halo properties.
  *
  * References:
- * - Croton et al. (2006) - Main semi-analytic model framework
- * - White & Frenk (1991) - Cooling model
- * - Kauffmann et al. (1999) - Star formation implementation
- * - Somerville et al. (2001) - Merger model
+ * - Croton et al. (2006) - Original semi-analytic model framework
  */
 
 #include <assert.h>
@@ -178,7 +172,7 @@ int find_most_massive_progenitor(int halonr) {
  */
 int copy_galaxies_from_progenitors(int halonr, int ngalstart,
                                    int first_occupied) {
-  int ngal, prog, i, j, step;
+  int ngal, prog, i, j;
   double previousMvir, previousVvir, previousVmax;
 
   ngal = ngalstart;
@@ -253,18 +247,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
 
-          Gal[ngal].Cooling = 0.0;
-          Gal[ngal].Heating = 0.0;
-          Gal[ngal].QuasarModeBHaccretionMass = 0.0;
-          Gal[ngal].OutflowRate = 0.0;
-
-          for (step = 0; step < STEPS; step++) {
-            Gal[ngal].SfrDisk[step] = Gal[ngal].SfrBulge[step] = 0.0;
-            Gal[ngal].SfrDiskColdGas[step] =
-                Gal[ngal].SfrDiskColdGasMetals[step] = 0.0;
-            Gal[ngal].SfrBulgeColdGas[step] =
-                Gal[ngal].SfrBulgeColdGasMetals[step] = 0.0;
-          }
+          /* PHYSICS DISABLED: Cooling, Heating, QuasarMode, Outflow, and SFR field resets removed */
 
           if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
             // a central galaxy
@@ -272,7 +255,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
             Gal[ngal].mergeIntoID = -1;
             Gal[ngal].MergTime = 999.9;
 
-            Gal[ngal].DiskScaleRadius = get_disk_radius(halonr, ngal);
+            /* PHYSICS DISABLED: DiskScaleRadius calculation removed */
 
             Gal[ngal].Type = 0;
           } else {
@@ -400,46 +383,22 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart) {
 /* PHYSICS DISABLED: handle_mergers() function removed */
 
 /**
- * @brief   Updates final galaxy properties and attaches galaxies to halos
+ * @brief   Attaches halo tracking structures to halos (PHYSICS DISABLED)
  *
- * @param   ngal          Total number of galaxies in this halo
- * @param   centralgal    Index of the central galaxy
+ * @param   ngal          Total number of halos in this structure
+ * @param   centralgal    Index of the central halo
  * @param   deltaT        Time interval for the entire timestep
  *
- * This function finalizes galaxy properties after all physical processes and
- * merger events have been applied. It:
+ * This function attaches halo tracking structures to halos for output.
+ * All physics calculations have been removed.
  *
- * 1. Converts accumulated values to rates (e.g., cooling, heating, outflow)
- * 2. Calculates the total baryon mass in satellite galaxies
- * 3. Updates merger information for galaxies that have merged
- * 4. Copies surviving galaxies to the permanent galaxy array (HaloGal)
- *
- * This function is called at the end of the time integration to prepare
- * galaxies for output and further processing in subsequent snapshots.
+ * PHYSICS DISABLED: No rate conversions, baryon calculations, or merger
+ * processing. Simply copies halo structures to output array (HaloGal).
  */
 void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
   int p, i, currenthalo, offset;
 
-  /* Reset total satellite baryons counter for the central galaxy */
-  Gal[centralgal].TotalSatelliteBaryons = 0.0;
-
-  /* Calculate rates and update satellite baryons */
-  for (p = 0; p < ngal; p++) {
-    /* Skip galaxies that have already merged */
-    if (Gal[p].mergeType > 0)
-      continue;
-
-    /* Convert accumulated values to rates by dividing by the time interval */
-    Gal[p].Cooling /= deltaT;
-    Gal[p].Heating /= deltaT;
-    Gal[p].OutflowRate /= deltaT;
-
-    /* For satellite galaxies, add their baryon mass to the central's counter */
-    if (p != centralgal)
-      Gal[centralgal].TotalSatelliteBaryons +=
-          (Gal[p].StellarMass + Gal[p].BlackHoleMass + Gal[p].ColdGas +
-           Gal[p].HotGas);
-  }
+  /* PHYSICS DISABLED: All baryon calculations and rate conversions removed */
 
   /* Attach final galaxy list to halos */
   offset = 0;
@@ -499,33 +458,25 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
 }
 
 /**
- * @brief   Main function to evolve galaxies through time
+ * @brief   Updates halo properties (PHYSICS DISABLED)
  *
  * @param   halonr    Index of the FOF-background subhalo (main halo)
- * @param   ngal      Total number of galaxies to evolve
+ * @param   ngal      Total number of halos to process
  * @param   tree      Index of the current merger tree
  *
- * This function implements the time integration of galaxy properties between
- * two consecutive snapshots. It:
+ * This function updates halo properties and prepares them for output.
+ * All physics integration has been removed.
  *
- * 1. Calculates the total infalling gas for the central galaxy
- * 2. Integrates forward in time using a series of substeps (STEPS)
- * 3. For each substep:
- *    a. Applies physical processes (infall, cooling, star formation)
- *    b. Handles merger and disruption events
- * 4. Updates final galaxy properties and attaches them to halos
- *
- * This is the core evolution function that coordinates all the physical
- * processes in the semi-analytic model.
+ * PHYSICS DISABLED: No gas infall, cooling, star formation, or merger
+ * processing. Simply updates halo properties and attaches to output structures.
  */
 void evolve_galaxies(int halonr, int ngal,
                      int tree) /* Note: halonr is here the FOF-background
                                   subhalo (i.e. main halo) */
 {
-  int step;
   double deltaT;
   int centralgal;
-  /* PHYSICS DISABLED: double infallingGas; - no longer needed */
+  /* PHYSICS DISABLED: double infallingGas; and int step; - no longer needed */
 
   /* Identify the central galaxy for this halo */
   centralgal = Gal[0].CentralGal;
@@ -533,14 +484,9 @@ void evolve_galaxies(int halonr, int ngal,
 
   /* PHYSICS DISABLED: Infalling gas calculation removed */
 
-  /* Integrate forward in time using STEPS intervals */
-  for (step = 0; step < STEPS; step++) {
-    /* Apply physical processes (infall, cooling, star formation) */
-    /* PHYSICS DISABLED: apply_physical_processes(ngal, centralgal, halonr, infallingGas, step); */
-
-    /* Handle mergers and disruption events */
-    /* PHYSICS DISABLED: handle_mergers(ngal, centralgal, halonr, step); */
-  }
+  /* PHYSICS DISABLED: Time integration loop removed - no physics to integrate */
+  /* PHYSICS DISABLED: apply_physical_processes() removed */
+  /* PHYSICS DISABLED: handle_mergers() removed */
 
   /* Update final galaxy properties and attach them to halos */
   deltaT = Age[Gal[0].SnapNum] - Age[Halo[halonr].SnapNum];

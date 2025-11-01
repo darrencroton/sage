@@ -39,41 +39,41 @@
 void init_halo(int p, int halonr) {
   int j;
 
-  assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
+  assert(halonr == TreeHalos[halonr].FirstHaloInFOFgroup);
 
-  Gal[p].Type = 0;
+  WorkingHalos[p].Type = 0;
 
-  Gal[p].GalaxyNr = GalaxyCounter;
-  GalaxyCounter++;
+  WorkingHalos[p].HaloNr = HaloCounter;
+  HaloCounter++;
 
-  Gal[p].HaloNr = halonr;
-  Gal[p].MostBoundID = Halo[halonr].MostBoundID;
-  Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
+  WorkingHalos[p].HaloNr = halonr;
+  WorkingHalos[p].MostBoundID = TreeHalos[halonr].MostBoundID;
+  WorkingHalos[p].SnapNum = TreeHalos[halonr].SnapNum - 1;
 
-  Gal[p].MergeStatus = 0;
-  Gal[p].mergeIntoID = -1;
-  Gal[p].mergeIntoSnapNum = -1;
-  Gal[p].dT = -1.0;
+  WorkingHalos[p].MergeStatus = 0;
+  WorkingHalos[p].mergeIntoID = -1;
+  WorkingHalos[p].mergeIntoSnapNum = -1;
+  WorkingHalos[p].dT = -1.0;
 
   for (j = 0; j < 3; j++) {
-    Gal[p].Pos[j] = Halo[halonr].Pos[j];
-    Gal[p].Vel[j] = Halo[halonr].Vel[j];
+    WorkingHalos[p].Pos[j] = TreeHalos[halonr].Pos[j];
+    WorkingHalos[p].Vel[j] = TreeHalos[halonr].Vel[j];
   }
 
-  Gal[p].Len = Halo[halonr].Len;
-  Gal[p].Vmax = Halo[halonr].Vmax;
-  Gal[p].Vvir = get_virial_velocity(halonr);
-  Gal[p].Mvir = get_virial_mass(halonr);
-  Gal[p].Rvir = get_virial_radius(halonr);
+  WorkingHalos[p].Len = TreeHalos[halonr].Len;
+  WorkingHalos[p].Vmax = TreeHalos[halonr].Vmax;
+  WorkingHalos[p].Vvir = get_virial_velocity(halonr);
+  WorkingHalos[p].Mvir = get_virial_mass(halonr);
+  WorkingHalos[p].Rvir = get_virial_radius(halonr);
 
-  Gal[p].deltaMvir = 0.0;
+  WorkingHalos[p].deltaMvir = 0.0;
 
-  Gal[p].MergTime = 999.9;
+  WorkingHalos[p].MergTime = 999.9;
 
   // infall properties
-  Gal[p].infallMvir = -1.0;
-  Gal[p].infallVvir = -1.0;
-  Gal[p].infallVmax = -1.0;
+  WorkingHalos[p].infallMvir = -1.0;
+  WorkingHalos[p].infallVvir = -1.0;
+  WorkingHalos[p].infallVmax = -1.0;
 }
 
 /**
@@ -92,10 +92,10 @@ void init_halo(int p, int halonr) {
  * mass.
  */
 double get_virial_mass(int halonr) {
-  if (halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
-    return Halo[halonr].Mvir; /* take spherical overdensity mass estimate */
+  if (halonr == TreeHalos[halonr].FirstHaloInFOFgroup && TreeHalos[halonr].Mvir >= 0.0)
+    return TreeHalos[halonr].Mvir; /* take spherical overdensity mass estimate */
   else
-    return Halo[halonr].Len * SageConfig.PartMass;
+    return TreeHalos[halonr].Len * SageConfig.PartMass;
 }
 
 /**
@@ -109,7 +109,7 @@ double get_virial_mass(int halonr) {
  * Vvir = sqrt(G * Mvir / Rvir)
  *
  * The virial velocity represents the circular velocity at the virial radius
- * and is an important parameter for many galaxy formation processes.
+ * and is an important parameter for many halo formation processes.
  *
  * Returns 0.0 if the virial radius is zero or negative.
  */
@@ -145,11 +145,11 @@ double get_virial_velocity(int halonr) {
  * halo catalog could be used directly instead of this calculation.
  */
 double get_virial_radius(int halonr) {
-  // return Halo[halonr].Rvir;  // Used for Bolshoi
+  // return TreeHalos[halonr].Rvir;  // Used for Bolshoi
 
   double zplus1, hubble_of_z_sq, rhocrit, fac;
 
-  zplus1 = 1 + ZZ[Halo[halonr].SnapNum];
+  zplus1 = 1 + ZZ[TreeHalos[halonr].SnapNum];
   hubble_of_z_sq =
       Hubble * Hubble *
       (SageConfig.Omega * zplus1 * zplus1 * zplus1 +

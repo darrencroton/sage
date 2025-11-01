@@ -63,7 +63,7 @@ static IOBuffer *write_buffer = NULL;
  * 1. Calls the appropriate format-specific loader based on tree type
  * 2. Allocates memory for tracking galaxies per tree for each output snapshot
  * 3. Creates empty output files for each requested snapshot
- * 4. Initializes galaxy counters
+ * 4. Initializes halo counters
  *
  * The function supports different tree formats (binary, HDF5) through a
  * dispatching mechanism to format-specific implementations.
@@ -91,28 +91,28 @@ void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType) {
   }
 
   for (n = 0; n < NOUT; n++) {
-    TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
-    if (TreeNgals[n] == NULL) {
-      FATAL_ERROR("Memory allocation failed for TreeNgals[%d] array (%d trees, "
+    TreeHalosPerSnap[n] = mymalloc(sizeof(int) * Ntrees);
+    if (TreeHalosPerSnap[n] == NULL) {
+      FATAL_ERROR("Memory allocation failed for TreeHalosPerSnap[%d] array (%d trees, "
                   "%zu bytes)",
                   n, Ntrees, Ntrees * sizeof(int));
     }
-    SimState.TreeNgals[n] = TreeNgals[n]; /* Update SimState pointer directly */
+    SimState.TreeHalosPerSnap[n] = TreeHalosPerSnap[n]; /* Update SimState pointer directly */
 
     for (i = 0; i < Ntrees; i++)
-      TreeNgals[n][i] = 0;
+      TreeHalosPerSnap[n][i] = 0;
 
     snprintf(buf, MAX_BUF_SIZE, "%s/%s_z%1.3f_%d", SageConfig.OutputDir,
              SageConfig.FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if (!(fd = fopen(buf, "w"))) {
-      FATAL_ERROR("Failed to create output galaxy file '%s' for snapshot %d "
+      FATAL_ERROR("Failed to create output halo file '%s' for snapshot %d "
                   "(filenr %d)",
                   buf, ListOutputSnaps[n], filenr);
     }
     fclose(fd);
-    TotGalaxies[n] = 0;
-    SimState.TotGalaxies[n] = 0; /* Update SimState directly */
+    TotHalosPerSnap[n] = 0;
+    SimState.TotHalosPerSnap[n] = 0; /* Update SimState directly */
   }
 }
 
@@ -136,9 +136,9 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType) {
   int n;
 
   for (n = NOUT - 1; n >= 0; n--) {
-    myfree(TreeNgals[n]);
-    TreeNgals[n] = NULL;
-    SimState.TreeNgals[n] = NULL; /* Update SimState pointer */
+    myfree(TreeHalosPerSnap[n]);
+    TreeHalosPerSnap[n] = NULL;
+    SimState.TreeHalosPerSnap[n] = NULL; /* Update SimState pointer */
   }
 
   myfree(TreeFirstHalo);
@@ -182,7 +182,7 @@ void free_tree_table(enum Valid_TreeTypes my_TreeType) {
  * 1. Calls the appropriate format-specific loader based on tree type
  * 2. Calculates the maximum number of galaxies for this tree
  * 3. Allocates memory for halo auxiliary data
- * 4. Allocates memory for galaxy data structures
+ * 4. Allocates memory for halo data structures
  * 5. Initializes the halo auxiliary data
  *
  * The memory allocation is proportional to the number of halos in the tree,
@@ -209,58 +209,58 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
                 my_TreeType);
   }
 
-  /* Calculate MaxGals based on number of halos with a sensible minimum */
-  MaxGals = (int)(MAXGALFAC * TreeNHalos[treenr]);
-  if (MaxGals < MIN_GALAXY_ARRAY_GROWTH)
-    MaxGals = MIN_GALAXY_ARRAY_GROWTH;
+  /* Calculate MaxCurrentTreeHalos based on number of halos with a sensible minimum */
+  MaxCurrentTreeHalos = (int)(MAXHALOFAC * TreeNHalos[treenr]);
+  if (MaxCurrentTreeHalos < MIN_HALO_ARRAY_GROWTH)
+    MaxCurrentTreeHalos = MIN_HALO_ARRAY_GROWTH;
 
-  /* Start with a reasonable size for FoF_MaxGals based on tree characteristics
+  /* Start with a reasonable size for MaxWorkingHalos based on tree characteristics
    */
-  FoF_MaxGals = INITIAL_FOF_GALAXIES;
-  if ((int)(0.1 * MaxGals) > FoF_MaxGals)
-    FoF_MaxGals = (int)(0.1 * MaxGals);
+  MaxWorkingHalos = INITIAL_FOF_HALOS;
+  if ((int)(0.1 * MaxCurrentTreeHalos) > MaxWorkingHalos)
+    MaxWorkingHalos = (int)(0.1 * MaxCurrentTreeHalos);
 
   /* Update SimulationState */
-  SimState.MaxGals = MaxGals;
-  SimState.FoF_MaxGals = FoF_MaxGals;
+  SimState.MaxCurrentTreeHalos = MaxCurrentTreeHalos;
+  SimState.MaxWorkingHalos = MaxWorkingHalos;
   sync_sim_state_to_globals();
 
-  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[treenr]);
+  HaloAux = mymalloc(sizeof(struct HaloAuxData) * TreeNHalos[treenr]);
   if (HaloAux == NULL) {
     FATAL_ERROR(
         "Memory allocation failed for HaloAux array (%d halos, %zu bytes)",
-        TreeNHalos[treenr], TreeNHalos[treenr] * sizeof(struct halo_aux_data));
+        TreeNHalos[treenr], TreeNHalos[treenr] * sizeof(struct HaloAuxData));
   }
 
-  HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
-  if (HaloGal == NULL) {
+  CurrentTreeHalos = mymalloc(sizeof(struct Halo) * MaxCurrentTreeHalos);
+  if (CurrentTreeHalos == NULL) {
     FATAL_ERROR(
-        "Memory allocation failed for HaloGal array (%d galaxies, %zu bytes)",
-        MaxGals, MaxGals * sizeof(struct GALAXY));
+        "Memory allocation failed for CurrentTreeHalos array (%d halos, %zu bytes)",
+        MaxCurrentTreeHalos, MaxCurrentTreeHalos * sizeof(struct Halo));
   }
 
-  Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-  if (Gal == NULL) {
+  WorkingHalos = mymalloc(sizeof(struct Halo) * MaxWorkingHalos);
+  if (WorkingHalos == NULL) {
     FATAL_ERROR(
-        "Memory allocation failed for Gal array (%d galaxies, %zu bytes)",
-        FoF_MaxGals, FoF_MaxGals * sizeof(struct GALAXY));
+        "Memory allocation failed for WorkingHalos array (%d halos, %zu bytes)",
+        MaxWorkingHalos, MaxWorkingHalos * sizeof(struct Halo));
   }
 
   for (i = 0; i < TreeNHalos[treenr]; i++) {
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
-    HaloAux[i].NGalaxies = 0;
+    HaloAux[i].NHalos = 0;
   }
 }
 
 /**
  * @brief   Frees memory allocated for galaxies and the current merger tree
  *
- * This function releases all memory allocated for galaxy and halo data
+ * This function releases all memory allocated for halo and halo data
  * structures after a merger tree has been processed. It frees:
  *
- * 1. The temporary galaxy array used during processing (Gal)
- * 2. The permanent galaxy array for output (HaloGal)
+ * 1. The temporary halo array used during processing (Gal)
+ * 2. The permanent halo array for output (HaloGal)
  * 3. The halo auxiliary data array (HaloAux)
  * 4. The halo data array (Halo)
  *
@@ -268,10 +268,10 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
  * the memory to be reused for the next tree.
  */
 void free_halos_and_tree(void) {
-  myfree(Gal);
-  myfree(HaloGal);
+  myfree(WorkingHalos);
+  myfree(CurrentTreeHalos);
   myfree(HaloAux);
-  myfree(Halo);
+  myfree(TreeHalos);
 }
 
 /**

@@ -53,8 +53,8 @@ def get_dtype():
     galdesc_full = [
         ("SnapNum", np.int32),
         ("Type", np.int32),
-        ("GalaxyIndex", np.int64),
-        ("CentralGalaxyIndex", np.int64),
+        ("HaloIndex", np.int64),
+        ("CentralHaloIndex", np.int64),
         ("SAGEHaloIndex", np.int32),
         ("SAGETreeIndex", np.int32),
         ("SimulationHaloIndex", np.int64),

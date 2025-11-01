@@ -24,8 +24,8 @@ void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
 void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
 void save_halos(int filenr, int tree);
 
-void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
-                             struct GALAXY_OUTPUT *o);
+void prepare_halo_for_output(int filenr, int tree, struct Halo *g,
+                             struct HaloOutput *o);
 
 void free_halos_and_tree(void);
 void free_tree_table(enum Valid_TreeTypes TreeType);

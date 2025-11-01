@@ -1,10 +1,10 @@
 /**
  * @file    io/io_save_hdf5.c
- * @brief   Functions for saving galaxy data to HDF5 output files
+ * @brief   Functions for saving halo data to HDF5 output files
  *
- * This file implements functionality for writing galaxy data to HDF5 format
+ * This file implements functionality for writing halo data to HDF5 format
  * output files. It handles the creation of HDF5 file structures, the definition
- * of galaxy property tables, and the writing of galaxy data and metadata.
+ * of halo property tables, and the writing of halo data and metadata.
  *
  * The HDF5 format provides several advantages over plain binary files:
  * - Self-describing data with attributes and metadata
@@ -13,9 +13,9 @@
  * - Support for direct access to specific data elements
  *
  * Key functions:
- * - calc_hdf5_props(): Defines the HDF5 table structure for galaxy properties
+ * - calc_hdf5_props(): Defines the HDF5 table structure for halo properties
  * - prep_hdf5_file(): Creates and initializes an HDF5 output file
- * - write_hdf5_galaxy(): Writes a single galaxy to an HDF5 file
+ * - write_hdf5_halo(): Writes a single halo to an HDF5 file
  * - write_hdf5_attrs(): Writes metadata attributes to an HDF5 file
  * - write_master_file(): Creates a master file with links to all output files
  */
@@ -36,34 +36,34 @@
 #define FALSE 0
 
 /**
- * @brief   Defines the HDF5 table structure for galaxy properties
+ * @brief   Defines the HDF5 table structure for halo properties
  *
- * This function sets up the HDF5 table structure for storing galaxy properties
+ * This function sets up the HDF5 table structure for storing halo properties
  * in the output files. It:
- * 1. Defines the total number of galaxy properties to be saved
+ * 1. Defines the total number of halo properties to be saved
  * 2. Allocates memory for property metadata arrays
- * 3. Calculates memory offsets for each property in the GALAXY_OUTPUT struct
+ * 3. Calculates memory offsets for each property in the halo_OUTPUT struct
  * 4. Defines field names and data types for each property
  *
- * The function handles all galaxy properties, including scalars (masses, rates)
+ * The function handles all halo properties, including scalars (masses, rates)
  * and arrays (positions, velocities, spins). It configures the HDF5 table
- * to match the layout of the GALAXY_OUTPUT struct for efficient I/O.
+ * to match the layout of the halo_OUTPUT struct for efficient I/O.
  */
 void calc_hdf5_props(void) {
 
   /*
-   * Prepare an HDF5 to receive the output galaxy data.
+   * Prepare an HDF5 to receive the output halo data.
    * Here we store the data in an hdf5 table for easily appending new data.
    */
 
-  struct GALAXY_OUTPUT galout;
+  struct HaloOutput galout;
 
   int i; // dummy
 
   HDF5_n_props = 24; // Reduced from 36 to only halo properties
 
-  // Size of a single galaxy entry.
-  HDF5_dst_size = sizeof(struct GALAXY_OUTPUT);
+  // Size of a single halo entry.
+  HDF5_dst_size = sizeof(struct HaloOutput);
 
   // Create datatypes for different size arrays
   hid_t array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
@@ -72,131 +72,131 @@ void calc_hdf5_props(void) {
   HDF5_dst_offsets = mymalloc(sizeof(size_t) * HDF5_n_props);
   // Calculate the sizes of our struct members in memory.
   HDF5_dst_sizes = mymalloc(sizeof(size_t) * HDF5_n_props);
-  // Give each galaxy property a field name in the table
+  // Give each halo property a field name in the table
   HDF5_field_names = mymalloc(sizeof(const char *) * HDF5_n_props);
-  // Assign a type to each galaxy property field in the table.
+  // Assign a type to each halo property field in the table.
   HDF5_field_types = mymalloc(sizeof(hid_t) * HDF5_n_props);
 
   i = 0; // Initialise dummy counter
 
   // Go through each halo property and calculate everything we need...
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SnapNum);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, SnapNum);
   HDF5_dst_sizes[i] = sizeof(galout.SnapNum);
   HDF5_field_names[i] = "SnapNum";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Type);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Type);
   HDF5_dst_sizes[i] = sizeof(galout.Type);
   HDF5_field_names[i] = "Type";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, GalaxyIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.GalaxyIndex);
-  HDF5_field_names[i] = "GalaxyIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, haloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.haloIndex);
+  HDF5_field_names[i] = "haloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralGalaxyIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.CentralGalaxyIndex);
-  HDF5_field_names[i] = "CentralGalaxyIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, CentralhaloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.CentralhaloIndex);
+  HDF5_field_names[i] = "CentralhaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGEHaloIndex);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, SAGEHaloIndex);
   HDF5_dst_sizes[i] = sizeof(galout.SAGEHaloIndex);
   HDF5_field_names[i] = "SAGEHaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGETreeIndex);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, SAGETreeIndex);
   HDF5_dst_sizes[i] = sizeof(galout.SAGETreeIndex);
   HDF5_field_names[i] = "SAGETreeIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SimulationHaloIndex);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, SimulationHaloIndex);
   HDF5_dst_sizes[i] = sizeof(galout.SimulationHaloIndex);
   HDF5_field_names[i] = "SimulationHaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MergeStatus);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, MergeStatus);
   HDF5_dst_sizes[i] = sizeof(galout.MergeStatus);
   HDF5_field_names[i] = "MergeStatus";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeIntoID);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, mergeIntoID);
   HDF5_dst_sizes[i] = sizeof(galout.mergeIntoID);
   HDF5_field_names[i] = "mergeIntoID";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeIntoSnapNum);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, mergeIntoSnapNum);
   HDF5_dst_sizes[i] = sizeof(galout.mergeIntoSnapNum);
   HDF5_field_names[i] = "mergeIntoSnapNum";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, dT);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, dT);
   HDF5_dst_sizes[i] = sizeof(galout.dT);
   HDF5_field_names[i] = "dT";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Pos);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Pos);
   HDF5_dst_sizes[i] = sizeof(galout.Pos);
   HDF5_field_names[i] = "Pos";
   HDF5_field_types[i++] = array3f_tid;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Vel);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Vel);
   HDF5_dst_sizes[i] = sizeof(galout.Vel);
   HDF5_field_names[i] = "Vel";
   HDF5_field_types[i++] = array3f_tid;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Spin);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Spin);
   HDF5_dst_sizes[i] = sizeof(galout.Spin);
   HDF5_field_names[i] = "Spin";
   HDF5_field_types[i++] = array3f_tid;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Len);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Len);
   HDF5_dst_sizes[i] = sizeof(galout.Len);
   HDF5_field_names[i] = "Len";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Mvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Mvir);
   HDF5_dst_sizes[i] = sizeof(galout.Mvir);
   HDF5_field_names[i] = "Mvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralMvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, CentralMvir);
   HDF5_dst_sizes[i] = sizeof(galout.CentralMvir);
   HDF5_field_names[i] = "CentralMvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Rvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Rvir);
   HDF5_dst_sizes[i] = sizeof(galout.Rvir);
   HDF5_field_names[i] = "Rvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Vvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Vvir);
   HDF5_dst_sizes[i] = sizeof(galout.Vvir);
   HDF5_field_names[i] = "Vvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Vmax);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, Vmax);
   HDF5_dst_sizes[i] = sizeof(galout.Vmax);
   HDF5_field_names[i] = "Vmax";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, VelDisp);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, VelDisp);
   HDF5_dst_sizes[i] = sizeof(galout.VelDisp);
   HDF5_field_names[i] = "VelDisp";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallMvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, infallMvir);
   HDF5_dst_sizes[i] = sizeof(galout.infallMvir);
   HDF5_field_names[i] = "infallMvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallVvir);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, infallVvir);
   HDF5_dst_sizes[i] = sizeof(galout.infallVvir);
   HDF5_field_names[i] = "infallVvir";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, infallVmax);
+  HDF5_dst_offsets[i] = HOFFSET(struct HaloOutput, infallVmax);
   HDF5_dst_sizes[i] = sizeof(galout.infallVmax);
   HDF5_field_names[i] = "infallVmax";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
@@ -214,15 +214,15 @@ void calc_hdf5_props(void) {
  *
  * @param   fname   Path to the output file
  *
- * This function creates and initializes a new HDF5 file for galaxy output.
+ * This function creates and initializes a new HDF5 file for halo output.
  * It:
  * 1. Creates the file with default HDF5 properties
  * 2. Creates a group for each output snapshot
- * 3. Creates a table within each group to store galaxy data
+ * 3. Creates a table within each group to store halo data
  * 4. Configures table properties like chunking for optimal performance
  *
  * The created file structure allows easy organization of galaxies by snapshot,
- * and efficient appending of new galaxy records as they are processed.
+ * and efficient appending of new halo records as they are processed.
  */
 void prep_hdf5_file(char *fname) {
 
@@ -245,7 +245,7 @@ void prep_hdf5_file(char *fname) {
 
     // Make the table
     status =
-        H5TBmake_table("Galaxy Table", snap_group_id, "Galaxies", HDF5_n_props,
+        H5TBmake_table("halo Table", snap_group_id, "Galaxies", HDF5_n_props,
                        0, HDF5_dst_size, HDF5_field_names, HDF5_dst_offsets,
                        HDF5_field_types, chunk_size, fill_data, 0, NULL);
 
@@ -257,27 +257,27 @@ void prep_hdf5_file(char *fname) {
 }
 
 /**
- * @brief   Writes a single galaxy to an HDF5 file
+ * @brief   Writes a single halo to an HDF5 file
  *
- * @param   galaxy_output   Pointer to galaxy data to write
+ * @param   halo_output   Pointer to halo data to write
  * @param   n               Snapshot index in ListOutputSnaps
  * @param   filenr          File number to write to
  *
- * This function writes a single galaxy to the appropriate HDF5 file.
+ * This function writes a single halo to the appropriate HDF5 file.
  * It:
  * 1. Opens the target HDF5 file
  * 2. Navigates to the correct snapshot group
- * 3. Appends the galaxy record to the galaxy table
+ * 3. Appends the halo record to the halo table
  * 4. Properly closes all HDF5 objects
  *
- * The function is designed to be called for each individual galaxy
+ * The function is designed to be called for each individual halo
  * as it is processed, enabling incremental output without requiring
  * all galaxies to be held in memory.
  */
-void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
+void write_hdf5_halo(struct HaloOutput *halo_output, int n, int filenr) {
 
   /*
-   * Write a single galaxy to the hdf5 file table.
+   * Write a single halo to the hdf5 file table.
    */
 
   herr_t status;
@@ -288,7 +288,7 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
   // Generate the filename to be opened.
   sprintf(fname, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies, filenr);
 
-  DEBUG_LOG("Opening HDF5 file '%s' for writing galaxy data", fname);
+  DEBUG_LOG("Opening HDF5 file '%s' for writing halo data", fname);
   // Open the file.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
@@ -296,9 +296,9 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
   sprintf(target_group, "Snap%03d", ListOutputSnaps[n]);
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
-  // Write the galaxy.
+  // Write the halo.
   status = H5TBappend_records(group_id, "Galaxies", 1, HDF5_dst_size,
-                              HDF5_dst_offsets, HDF5_dst_sizes, galaxy_output);
+                              HDF5_dst_offsets, HDF5_dst_sizes, halo_output);
 
   // Close the group
   status = H5Gclose(group_id);
@@ -330,11 +330,11 @@ void write_hdf5_galsnap_data(int n, int filenr) {
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   // Write the galaxies.
-  if (TotGalaxies[n] > 0) {
+  if (TotHalosPerSnap[n] > 0) {
     status = H5TBappend_records(
-        group_id, "Galaxies", (hsize_t)(TotGalaxies[n]), HDF5_dst_size,
+        group_id, "Galaxies", (hsize_t)(TotHalosPerSnap[n]), HDF5_dst_size,
         HDF5_dst_offsets, HDF5_dst_sizes,
-        (struct GALAXY_OUTPUT *)(ptr_galsnapdata[n] + offset_galsnapdata[n]));
+        (struct HaloOutput *)(ptr_galsnapdata[n] + offset_galsnapdata[n]));
   }
 
   // Close the group.
@@ -356,10 +356,10 @@ void write_hdf5_galsnap_data(int n, int filenr) {
  * 1. Opens the target HDF5 file
  * 2. Navigates to the correct snapshot group
  * 3. Adds attributes such as number of trees and number of galaxies
- * 4. Creates and writes the TreeNgals dataset (galaxies per tree)
+ * 4. Creates and writes the TreeHalosPerSnap dataset (galaxies per tree)
  *
  * These attributes are essential for readers to understand the file structure
- * and for tools to navigate and process the galaxy data efficiently.
+ * and for tools to navigate and process the halo data efficiently.
  */
 void write_hdf5_attrs(int n, int filenr) {
 
@@ -376,7 +376,7 @@ void write_hdf5_attrs(int n, int filenr) {
   // Generate the filename to be opened.
   sprintf(fname, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies, filenr);
 
-  // Open the output file and galaxy dataset.
+  // Open the output file and halo dataset.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
   // Open the relevant group.
@@ -396,9 +396,9 @@ void write_hdf5_attrs(int n, int filenr) {
   status = H5Aclose(attribute_id);
 
   // Write the total number of galaxies.
-  attribute_id = H5Acreate(dataset_id, "TotGalaxies", H5T_NATIVE_INT,
+  attribute_id = H5Acreate(dataset_id, "TotHalosPerSnap", H5T_NATIVE_INT,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &TotGalaxies[n]);
+  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &TotHalosPerSnap[n]);
   status = H5Aclose(attribute_id);
 
   // Close the dataspace.
@@ -416,7 +416,7 @@ void write_hdf5_attrs(int n, int filenr) {
                 (int)dims, ListOutputSnaps[n], filenr);
   }
   dataspace_id = H5Screate_simple(1, &dims, NULL);
-  dataset_id = H5Dcreate(group_id, "TreeNgals", H5T_NATIVE_INT, dataspace_id,
+  dataset_id = H5Dcreate(group_id, "TreeHalosPerSnap", H5T_NATIVE_INT, dataspace_id,
                          H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   status = H5Dclose(dataset_id);
 
@@ -613,9 +613,9 @@ void write_master_file(void) {
 
       // Create a dataset which will act as the soft link to the array storing
       // the number of galaxies per tree for this file.
-      sprintf(target_group, "Snap%03d/File%03d/TreeNgals", ListOutputSnaps[n],
+      sprintf(target_group, "Snap%03d/File%03d/TreeHalosPerSnap", ListOutputSnaps[n],
               filenr);
-      sprintf(source_ds, "Snap%03d/TreeNgals", ListOutputSnaps[n]);
+      sprintf(source_ds, "Snap%03d/TreeHalosPerSnap", ListOutputSnaps[n]);
       DEBUG_LOG("Creating external DS link - %s", target_group);
       status = H5Lcreate_external(target_file, source_ds, master_file_id,
                                   target_group, H5P_DEFAULT, H5P_DEFAULT);
@@ -626,7 +626,7 @@ void write_master_file(void) {
       target_file_id = H5Fopen(target_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       sprintf(source_ds, "Snap%03d/Galaxies", ListOutputSnaps[n]);
       dataset_id = H5Dopen(target_file_id, source_ds, H5P_DEFAULT);
-      attribute_id = H5Aopen(dataset_id, "TotGalaxies", H5P_DEFAULT);
+      attribute_id = H5Aopen(dataset_id, "TotHalosPerSnap", H5P_DEFAULT);
       status = H5Aread(attribute_id, H5T_NATIVE_INT, &ngal_in_core);
       status = H5Aclose(attribute_id);
       status = H5Dclose(dataset_id);
@@ -638,7 +638,7 @@ void write_master_file(void) {
       dataspace_id = H5Screate_simple(1, &dims, NULL);
       sprintf(target_group, "Snap%03d/File%03d", ListOutputSnaps[n], filenr);
       group_id = H5Gopen(master_file_id, target_group, H5P_DEFAULT);
-      attribute_id = H5Acreate(group_id, "TotGalaxies", H5T_NATIVE_INT,
+      attribute_id = H5Acreate(group_id, "TotHalosPerSnap", H5T_NATIVE_INT,
                                dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
       status = H5Awrite(attribute_id, H5T_NATIVE_INT, &ngal_in_file);
       status = H5Aclose(attribute_id);

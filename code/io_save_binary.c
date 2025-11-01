@@ -55,9 +55,9 @@ FILE *save_fd[ABSOLUTEMAXSNAPS] = {0};
  * 1. Opens the output file if not already open
  * 2. Writes placeholder headers to be filled later
  * 3. Processes galaxies belonging to that snapshot
- * 4. Converts internal galaxy structures to output format
+ * 4. Converts internal halo structures to output format
  * 5. Writes galaxies to the file
- * 6. Updates galaxy counts for the file and tree
+ * 6. Updates halo counts for the file and tree
  *
  * The function also handles the indexing system that allows cross-referencing
  * between galaxies (e.g., for tracking merger destinations) across different
@@ -71,32 +71,32 @@ void save_halos(int filenr, int tree) {
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder, nwritten;
 
-  OutputGalOrder = (int *)malloc(NumGals * sizeof(int));
+  OutputGalOrder = (int *)malloc(NumCurrentTreeHalos * sizeof(int));
   if (OutputGalOrder == NULL) {
     FATAL_ERROR("Memory allocation failed for OutputGalOrder array (%d "
                 "elements, %zu bytes)",
-                NumGals, NumGals * sizeof(int));
+                NumCurrentTreeHalos, NumCurrentTreeHalos * sizeof(int));
   }
 
-  // reset the output galaxy count and order
+  // reset the output halo count and order
   for (i = 0; i < MAXSNAPS; i++)
     OutputGalCount[i] = 0;
-  for (i = 0; i < NumGals; i++)
+  for (i = 0; i < NumCurrentTreeHalos; i++)
     OutputGalOrder[i] = -1;
 
-  // first update mergeIntoID to point to the correct galaxy in the output
+  // first update mergeIntoID to point to the correct halo in the output
   for (n = 0; n < SageConfig.NOUT; n++) {
-    for (i = 0; i < NumGals; i++) {
-      if (HaloGal[i].SnapNum == ListOutputSnaps[n]) {
+    for (i = 0; i < NumCurrentTreeHalos; i++) {
+      if (CurrentTreeHalos[i].SnapNum == ListOutputSnaps[n]) {
         OutputGalOrder[i] = OutputGalCount[n];
         OutputGalCount[n]++;
       }
     }
   }
 
-  for (i = 0; i < NumGals; i++)
-    if (HaloGal[i].mergeIntoID > -1)
-      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];
+  for (i = 0; i < NumCurrentTreeHalos; i++)
+    if (CurrentTreeHalos[i].mergeIntoID > -1)
+      CurrentTreeHalos[i].mergeIntoID = OutputGalOrder[CurrentTreeHalos[i].mergeIntoID];
 
   // now prepare and write galaxies
   for (n = 0; n < SageConfig.NOUT; n++) {
@@ -108,7 +108,7 @@ void save_halos(int filenr, int tree) {
       /* Open in binary mode with update permissions */
       save_fd[n] = fopen(buf, "wb+");
       if (save_fd[n] == NULL) {
-        FATAL_ERROR("Failed to open output galaxy file '%s' for snapshot %d "
+        FATAL_ERROR("Failed to open output halo file '%s' for snapshot %d "
                     "(filenr %d)",
                     buf, ListOutputSnaps[n], filenr);
       }
@@ -147,28 +147,28 @@ void save_halos(int filenr, int tree) {
       free(tmp_buf);
     }
 
-    for (i = 0; i < NumGals; i++) {
-      if (HaloGal[i].SnapNum == ListOutputSnaps[n]) {
+    for (i = 0; i < NumCurrentTreeHalos; i++) {
+      if (CurrentTreeHalos[i].SnapNum == ListOutputSnaps[n]) {
         /* Use stack allocation instead of dynamic allocation */
-        struct GALAXY_OUTPUT galaxy_output = {0}; /* Zero-initialize */
+        struct HaloOutput halo_output = {0}; /* Zero-initialize */
 
-        /* Convert internal galaxy to output format */
-        prepare_halo_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
+        /* Convert internal halo to output format */
+        prepare_halo_for_output(filenr, tree, &CurrentTreeHalos[i], &halo_output);
 
         /* Write using direct file I/O */
-        size_t galaxy_size = sizeof(struct GALAXY_OUTPUT);
-        nwritten = fwrite(&galaxy_output, galaxy_size, 1, save_fd[n]);
+        size_t halo_size = sizeof(struct HaloOutput);
+        nwritten = fwrite(&halo_output, halo_size, 1, save_fd[n]);
 
         if (nwritten != 1) {
-          FATAL_ERROR("Failed to write galaxy data for galaxy %d (tree %d, "
+          FATAL_ERROR("Failed to write halo data for halo %d (tree %d, "
                       "filenr %d, snapshot %d)",
                       i, tree, filenr, ListOutputSnaps[n]);
         }
 
-        /* Increment galaxy counters right after successful write */
-        TotGalaxies[n]++;
-        SimState.TotGalaxies[n]++; /* Update SimState directly */
-        TreeNgals[n][tree]++;
+        /* Increment halo counters right after successful write */
+        TotHalosPerSnap[n]++;
+        SimState.TotHalosPerSnap[n]++; /* Update SimState directly */
+        TreeHalosPerSnap[n][tree]++;
       }
     }
   }
@@ -185,8 +185,8 @@ void save_halos(int filenr, int tree) {
  * @param   g         Pointer to the internal halo tracking structure
  * @param   o         Pointer to the output halo structure to be filled
  *
- * This function transforms the internal halo representation (GALAXY struct)
- * to the output format (GALAXY_OUTPUT struct). It:
+ * This function transforms the internal halo representation (halo struct)
+ * to the output format (halo_OUTPUT struct). It:
  *
  * 1. Copies basic halo properties (type, position, velocities, masses)
  * 2. Creates a unique halo index that encodes file, tree, and halo number
@@ -194,8 +194,8 @@ void save_halos(int filenr, int tree) {
  *
  * Note: Only halo properties from merger trees are output (no physics).
  */
-void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
-                             struct GALAXY_OUTPUT *o) {
+void prepare_halo_for_output(int filenr, int tree, struct Halo *g,
+                             struct HaloOutput *o) {
   int j;
 
   o->SnapNum = g->SnapNum;
@@ -204,45 +204,45 @@ void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
   // assume that because there are so many files, the trees per file will be
   // less than 100000 required for limits of long long
   if (SageConfig.LastFile >= 10000) {
-    assert(g->GalaxyNr < TREE_MUL_FAC); // breaking tree size assumption
+    assert(g->HaloNr < TREE_MUL_FAC); // breaking tree size assumption
     assert(tree < (FILENR_MUL_FAC / 10) / TREE_MUL_FAC);
-    o->GalaxyIndex =
-        g->GalaxyNr + TREE_MUL_FAC * tree + (FILENR_MUL_FAC / 10) * filenr;
-    assert((o->GalaxyIndex - g->GalaxyNr - TREE_MUL_FAC * tree) /
+    o->HaloIndex =
+        g->HaloNr + TREE_MUL_FAC * tree + (FILENR_MUL_FAC / 10) * filenr;
+    assert((o->HaloIndex - g->HaloNr - TREE_MUL_FAC * tree) /
                (FILENR_MUL_FAC / 10) ==
            filenr);
-    assert((o->GalaxyIndex - g->GalaxyNr - (FILENR_MUL_FAC / 10) * filenr) /
+    assert((o->HaloIndex - g->HaloNr - (FILENR_MUL_FAC / 10) * filenr) /
                TREE_MUL_FAC ==
            tree);
-    assert(o->GalaxyIndex - TREE_MUL_FAC * tree -
+    assert(o->HaloIndex - TREE_MUL_FAC * tree -
                (FILENR_MUL_FAC / 10) * filenr ==
-           g->GalaxyNr);
-    o->CentralGalaxyIndex =
-        HaloGal[HaloAux[Halo[g->HaloNr].FirstHaloInFOFgroup].FirstGalaxy]
-            .GalaxyNr +
+           g->HaloNr);
+    o->CentralHaloIndex =
+        CurrentTreeHalos[HaloAux[TreeHalos[g->HaloNr].FirstHaloInFOFgroup].FirstHalo]
+            .HaloNr +
         TREE_MUL_FAC * tree + (FILENR_MUL_FAC / 10) * filenr;
   } else {
-    assert(g->GalaxyNr < TREE_MUL_FAC); // breaking tree size assumption
+    assert(g->HaloNr < TREE_MUL_FAC); // breaking tree size assumption
     assert(tree < FILENR_MUL_FAC / TREE_MUL_FAC);
-    o->GalaxyIndex =
-        g->GalaxyNr + TREE_MUL_FAC * tree + FILENR_MUL_FAC * filenr;
-    assert((o->GalaxyIndex - g->GalaxyNr - TREE_MUL_FAC * tree) /
+    o->HaloIndex =
+        g->HaloNr + TREE_MUL_FAC * tree + FILENR_MUL_FAC * filenr;
+    assert((o->HaloIndex - g->HaloNr - TREE_MUL_FAC * tree) /
                FILENR_MUL_FAC ==
            filenr);
-    assert((o->GalaxyIndex - g->GalaxyNr - FILENR_MUL_FAC * filenr) /
+    assert((o->HaloIndex - g->HaloNr - FILENR_MUL_FAC * filenr) /
                TREE_MUL_FAC ==
            tree);
-    assert(o->GalaxyIndex - TREE_MUL_FAC * tree - FILENR_MUL_FAC * filenr ==
-           g->GalaxyNr);
-    o->CentralGalaxyIndex =
-        HaloGal[HaloAux[Halo[g->HaloNr].FirstHaloInFOFgroup].FirstGalaxy]
-            .GalaxyNr +
+    assert(o->HaloIndex - TREE_MUL_FAC * tree - FILENR_MUL_FAC * filenr ==
+           g->HaloNr);
+    o->CentralHaloIndex =
+        CurrentTreeHalos[HaloAux[TreeHalos[g->HaloNr].FirstHaloInFOFgroup].FirstHalo]
+            .HaloNr +
         TREE_MUL_FAC * tree + FILENR_MUL_FAC * filenr;
   }
 
   o->SAGEHaloIndex = g->HaloNr;
   o->SAGETreeIndex = tree;
-  o->SimulationHaloIndex = Halo[g->HaloNr].MostBoundID;
+  o->SimulationHaloIndex = TreeHalos[g->HaloNr].MostBoundID;
 
   o->MergeStatus = g->MergeStatus;
   o->mergeIntoID = g->mergeIntoID;
@@ -252,18 +252,18 @@ void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
   for (j = 0; j < 3; j++) {
     o->Pos[j] = g->Pos[j];
     o->Vel[j] = g->Vel[j];
-    o->Spin[j] = Halo[g->HaloNr].Spin[j];
+    o->Spin[j] = TreeHalos[g->HaloNr].Spin[j];
   }
 
   o->Len = g->Len;
   o->Mvir = g->Mvir;
-  o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
+  o->CentralMvir = get_virial_mass(TreeHalos[g->HaloNr].FirstHaloInFOFgroup);
   o->Rvir = get_virial_radius(
       g->HaloNr); // output the actual Rvir, not the maximum Rvir
   o->Vvir = get_virial_velocity(
       g->HaloNr); // output the actual Vvir, not the maximum Vvir
   o->Vmax = g->Vmax;
-  o->VelDisp = Halo[g->HaloNr].VelDisp;
+  o->VelDisp = TreeHalos[g->HaloNr].VelDisp;
 
   // infall properties
   if (g->Type != 0) {
@@ -278,11 +278,11 @@ void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
 }
 
 /**
- * @brief   Finalizes galaxy output files by writing header information
+ * @brief   Finalizes halo output files by writing header information
  *
  * @param   filenr    Current file number being processed
  *
- * This function completes the galaxy output files after all galaxies have
+ * This function completes the halo output files after all galaxies have
  * been written. For each output snapshot, it:
  *
  * 1. Seeks to the beginning of the file
@@ -320,17 +320,17 @@ void finalize_halo_file(int filenr) {
     }
 
     // Write the total number of galaxies (second header field)
-    nwritten = fwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
+    nwritten = fwrite(&TotHalosPerSnap[n], sizeof(int), 1, save_fd[n]);
     if (nwritten != 1) {
       FATAL_ERROR(
-          "Failed to write total galaxy count to header of file %d (filenr %d)",
+          "Failed to write total halo count to header of file %d (filenr %d)",
           n, filenr);
     }
 
     // Write galaxies per tree (array of integers)
-    nwritten = fwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
+    nwritten = fwrite(TreeHalosPerSnap[n], sizeof(int), Ntrees, save_fd[n]);
     if (nwritten != Ntrees) {
-      FATAL_ERROR("Failed to write galaxy counts per tree to header of file %d "
+      FATAL_ERROR("Failed to write halo counts per tree to header of file %d "
                   "(filenr %d)",
                   n, filenr);
     }

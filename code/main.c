@@ -364,8 +364,8 @@ int main(int argc, char **argv) {
       /* Random seed setting removed - not actually used in computation */
 
       /* Reset galaxy counters */
-      SimState.NumGals = 0;
-      SimState.GalaxyCounter = 0;
+      SimState.NumCurrentTreeHalos = 0;
+      SimState.HaloCounter = 0;
       sync_sim_state_to_globals(); /* Update galaxy counter globals */
 
       /* Construct galaxies for each unprocessed halo in the tree */

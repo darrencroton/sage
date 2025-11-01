@@ -47,16 +47,16 @@
  * used throughout the rest of the code.
  */
 void sync_sim_state_to_globals(void) {
-  /* Tree and galaxy counts */
+  /* Tree and halo counts */
   Ntrees = SimState.Ntrees;
-  NumGals = SimState.NumGals;
-  MaxGals = SimState.MaxGals;
-  FoF_MaxGals = SimState.FoF_MaxGals;
-  GalaxyCounter = SimState.GalaxyCounter;
+  NumCurrentTreeHalos = SimState.NumCurrentTreeHalos;
+  MaxCurrentTreeHalos = SimState.MaxCurrentTreeHalos;
+  MaxWorkingHalos = SimState.MaxWorkingHalos;
+  HaloCounter = SimState.HaloCounter;
   TotHalos = SimState.TotHalos;
 
   /* Copy array values */
-  memcpy(TotGalaxies, SimState.TotGalaxies, sizeof(int) * ABSOLUTEMAXSNAPS);
+  memcpy(TotHalosPerSnap, SimState.TotHalosPerSnap, sizeof(int) * ABSOLUTEMAXSNAPS);
 
   /* File and tree identifiers */
   FileNum = SimState.FileNum;
@@ -73,7 +73,7 @@ void sync_sim_state_to_globals(void) {
   /* Pointers - these need special care */
   for (int i = 0; i < ABSOLUTEMAXSNAPS; i++) {
     if (i < NOUT) {
-      TreeNgals[i] = SimState.TreeNgals[i];
+      TreeHalosPerSnap[i] = SimState.TreeHalosPerSnap[i];
     }
   }
   FirstHaloInSnap = SimState.FirstHaloInSnap;
@@ -100,16 +100,16 @@ void sync_sim_state_to_globals(void) {
  * single, self-contained structure.
  */
 void sync_globals_to_sim_state(void) {
-  /* Tree and galaxy counts */
+  /* Tree and halo counts */
   SimState.Ntrees = Ntrees;
-  SimState.NumGals = NumGals;
-  SimState.MaxGals = MaxGals;
-  SimState.FoF_MaxGals = FoF_MaxGals;
-  SimState.GalaxyCounter = GalaxyCounter;
+  SimState.NumCurrentTreeHalos = NumCurrentTreeHalos;
+  SimState.MaxCurrentTreeHalos = MaxCurrentTreeHalos;
+  SimState.MaxWorkingHalos = MaxWorkingHalos;
+  SimState.HaloCounter = HaloCounter;
   SimState.TotHalos = TotHalos;
 
   /* Copy array values */
-  memcpy(SimState.TotGalaxies, TotGalaxies, sizeof(int) * ABSOLUTEMAXSNAPS);
+  memcpy(SimState.TotHalosPerSnap, TotHalosPerSnap, sizeof(int) * ABSOLUTEMAXSNAPS);
 
   /* File and tree identifiers */
   SimState.FileNum = FileNum;
@@ -125,9 +125,9 @@ void sync_globals_to_sim_state(void) {
   /* Pointers - these need special care */
   for (int i = 0; i < ABSOLUTEMAXSNAPS; i++) {
     if (i < NOUT) {
-      SimState.TreeNgals[i] = TreeNgals[i];
+      SimState.TreeHalosPerSnap[i] = TreeHalosPerSnap[i];
     } else {
-      SimState.TreeNgals[i] = NULL;
+      SimState.TreeHalosPerSnap[i] = NULL;
     }
   }
   SimState.FirstHaloInSnap = FirstHaloInSnap;

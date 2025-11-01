@@ -16,23 +16,23 @@ extern int ThisTask, NTask, nodeNameLen;
 extern char *ThisNode;
 #endif
 
-/* galaxy data pointers */
-extern struct GALAXY *Gal, *HaloGal;
-extern struct halo_data *Halo;
-extern struct halo_aux_data *HaloAux;
+/* halo data pointers */
+extern struct Halo *WorkingHalos, *CurrentTreeHalos;
+extern struct RawHalo *TreeHalos;
+extern struct HaloAuxData *HaloAux;
 
 /* runtime file information */
 extern int Ntrees;  /* number of trees in current file  */
-extern int NumGals; /* Total number of galaxies stored for current tree */
-extern int MaxGals; /* Maximum number of galaxies allowed for current tree */
-extern int FoF_MaxGals;
+extern int NumCurrentTreeHalos; /* Total number of halos stored for current tree */
+extern int MaxCurrentTreeHalos; /* Maximum number of halos allowed for current tree */
+extern int MaxWorkingHalos;
 extern int
-    GalaxyCounter; /* unique galaxy ID for main progenitor line in tree */
+    HaloCounter; /* unique halo ID for main progenitor line in tree */
 
 /* halo information */
 extern int TotHalos;
-extern int TotGalaxies[ABSOLUTEMAXSNAPS];
-extern int *TreeNgals[ABSOLUTEMAXSNAPS];
+extern int TotHalosPerSnap[ABSOLUTEMAXSNAPS];
+extern int *TreeHalosPerSnap[ABSOLUTEMAXSNAPS];
 extern int *FirstHaloInSnap;
 extern int *TreeNHalos;
 extern int *TreeFirstHalo;

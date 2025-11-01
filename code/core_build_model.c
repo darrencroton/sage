@@ -33,20 +33,20 @@
 #include "util_numeric.h"
 
 /**
- * @brief   Recursively constructs galaxies by traversing the merger tree
+ * @brief   Recursively constructs halos by traversing the merger tree
  *
  * @param   halonr    Index of the current halo in the Halo array
  * @param   tree      Index of the current merger tree
  *
  * This function traverses the merger tree in a depth-first manner to ensure
- * that galaxies are constructed from their progenitors before being evolved.
+ * that halos are constructed from their progenitors before being evolved.
  * It follows these steps:
  *
  * 1. First processes all progenitors of the current halo
  * 2. Then processes all halos in the same FOF group
- * 3. Finally, joins progenitor galaxies and evolves them forward in time
+ * 3. Finally, joins progenitor halos and evolves them forward in time
  *
- * The recursive approach ensures that galaxies are built in the correct
+ * The recursive approach ensures that halos are built in the correct
  * chronological order, preserving the flow of mass and properties from
  * high redshift to low redshift.
  */
@@ -55,45 +55,45 @@ void build_halo_tree(int halonr, int tree) {
 
   HaloAux[halonr].DoneFlag = 1;
 
-  prog = Halo[halonr].FirstProgenitor;
+  prog = TreeHalos[halonr].FirstProgenitor;
   while (prog >= 0) {
     if (HaloAux[prog].DoneFlag == 0)
       build_halo_tree(prog, tree);
-    prog = Halo[prog].NextProgenitor;
+    prog = TreeHalos[prog].NextProgenitor;
   }
 
-  fofhalo = Halo[halonr].FirstHaloInFOFgroup;
+  fofhalo = TreeHalos[halonr].FirstHaloInFOFgroup;
   if (HaloAux[fofhalo].HaloFlag == 0) {
     HaloAux[fofhalo].HaloFlag = 1;
     while (fofhalo >= 0) {
-      prog = Halo[fofhalo].FirstProgenitor;
+      prog = TreeHalos[fofhalo].FirstProgenitor;
       while (prog >= 0) {
         if (HaloAux[prog].DoneFlag == 0)
           build_halo_tree(prog, tree);
-        prog = Halo[prog].NextProgenitor;
+        prog = TreeHalos[prog].NextProgenitor;
       }
 
-      fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
+      fofhalo = TreeHalos[fofhalo].NextHaloInFOFgroup;
     }
   }
 
-  // At this point, the galaxies for all progenitors of this halo have been
-  // properly constructed. Also, the galaxies of the progenitors of all other
+  // At this point, the halos for all progenitors of this halo have been
+  // properly constructed. Also, the halos of the progenitors of all other
   // halos in the same FOF group have been constructed as well. We can hence go
-  // ahead and construct all galaxies for the subhalos in this FOF halo, and
+  // ahead and construct all halos for the subhalos in this FOF halo, and
   // evolve them in time.
 
-  fofhalo = Halo[halonr].FirstHaloInFOFgroup;
+  fofhalo = TreeHalos[halonr].FirstHaloInFOFgroup;
   if (HaloAux[fofhalo].HaloFlag == 1) {
     ngal = 0;
     HaloAux[fofhalo].HaloFlag = 2;
 
     while (fofhalo >= 0) {
       ngal = join_progenitor_halos(fofhalo, ngal);
-      fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
+      fofhalo = TreeHalos[fofhalo].NextHaloInFOFgroup;
     }
 
-    process_halo_evolution(Halo[halonr].FirstHaloInFOFgroup, ngal, tree);
+    process_halo_evolution(TreeHalos[halonr].FirstHaloInFOFgroup, ngal, tree);
   }
 }
 
@@ -105,7 +105,7 @@ void build_halo_tree(int halonr, int tree) {
  *
  * This function scans all progenitors of a halo to find the most massive one
  * that actually contains a galaxy. This is important because not all dark
- * matter halos necessarily host galaxies, and we need to identify the main
+ * matter halos necessarily host halos, and we need to identify the main
  * branch for inheriting galaxy properties.
  *
  * Two criteria are tracked:
@@ -121,49 +121,49 @@ int find_most_massive_progenitor(int halonr) {
 
   lenmax = 0;
   lenoccmax = 0;
-  first_occupied = Halo[halonr].FirstProgenitor;
-  prog = Halo[halonr].FirstProgenitor;
+  first_occupied = TreeHalos[halonr].FirstProgenitor;
+  prog = TreeHalos[halonr].FirstProgenitor;
 
   if (prog >= 0)
-    if (HaloAux[prog].NGalaxies > 0)
+    if (HaloAux[prog].NHalos > 0)
       lenoccmax = -1;
 
   // Find most massive progenitor that contains an actual galaxy
   // Maybe FirstProgenitor never was FirstHaloInFOFGroup and thus has no galaxy
   while (prog >= 0) {
-    if (Halo[prog].Len > lenmax) {
-      lenmax = Halo[prog].Len;
+    if (TreeHalos[prog].Len > lenmax) {
+      lenmax = TreeHalos[prog].Len;
       /* mother_halo = prog; */
     }
-    if (lenoccmax != -1 && Halo[prog].Len > lenoccmax &&
-        HaloAux[prog].NGalaxies > 0) {
-      lenoccmax = Halo[prog].Len;
+    if (lenoccmax != -1 && TreeHalos[prog].Len > lenoccmax &&
+        HaloAux[prog].NHalos > 0) {
+      lenoccmax = TreeHalos[prog].Len;
       first_occupied = prog;
     }
-    prog = Halo[prog].NextProgenitor;
+    prog = TreeHalos[prog].NextProgenitor;
   }
 
   return first_occupied;
 }
 
 /**
- * @brief   Copies and updates galaxies from progenitor halos to the current
+ * @brief   Copies and updates halos from progenitor halos to the current
  * snapshot
  *
  * @param   halonr          Index of the current halo in the Halo array
- * @param   ngalstart       Starting index for galaxies in the Gal array
- * @param   first_occupied  Index of the most massive progenitor with galaxies
- * @return  Updated number of galaxies after copying
+ * @param   ngalstart       Starting index for halos in the Gal array
+ * @param   first_occupied  Index of the most massive progenitor with halos
+ * @return  Updated number of halos after copying
  *
- * This function transfers galaxies from progenitor halos to the current
+ * This function transfers halos from progenitor halos to the current
  * snapshot, updating their properties based on the new halo structure. It
  * handles:
  *
- * 1. Copying galaxies from all progenitors to the temporary Gal array
+ * 1. Copying halos from all progenitors to the temporary Gal array
  * 2. Updating galaxy properties based on their new host halo
  * 3. Handling type transitions (central → satellite → orphan)
  * 4. Setting appropriate merger times for satellites
- * 5. Creating new galaxies when a halo has no progenitor galaxies
+ * 5. Creating new halos when a halo has no progenitor halos
  *
  * The function maintains the continuity of galaxy evolution by preserving
  * their properties while updating their status based on the evolving
@@ -174,133 +174,133 @@ int copy_progenitor_halos(int halonr, int ngalstart, int first_occupied) {
   double previousMvir, previousVvir, previousVmax;
 
   ngal = ngalstart;
-  prog = Halo[halonr].FirstProgenitor;
+  prog = TreeHalos[halonr].FirstProgenitor;
 
   while (prog >= 0) {
-    for (i = 0; i < HaloAux[prog].NGalaxies; i++) {
-      if (ngal == (FoF_MaxGals - 1)) {
+    for (i = 0; i < HaloAux[prog].NHalos; i++) {
+      if (ngal == (MaxWorkingHalos - 1)) {
         /* Calculate new size using growth factor */
-        int new_size = (int)(FoF_MaxGals * GALAXY_ARRAY_GROWTH_FACTOR);
+        int new_size = (int)(MaxWorkingHalos * HALO_ARRAY_GROWTH_FACTOR);
 
         /* Ensure minimum growth to prevent too-frequent reallocations */
-        if (new_size - FoF_MaxGals < MIN_GALAXY_ARRAY_GROWTH)
-          new_size = FoF_MaxGals + MIN_GALAXY_ARRAY_GROWTH;
+        if (new_size - MaxWorkingHalos < MIN_HALO_ARRAY_GROWTH)
+          new_size = MaxWorkingHalos + MIN_HALO_ARRAY_GROWTH;
 
         /* Cap maximum size to prevent excessive memory usage */
         if (new_size > MAX_GALAXY_ARRAY_SIZE)
           new_size = MAX_GALAXY_ARRAY_SIZE;
 
-        INFO_LOG("Growing galaxy array from %d to %d elements", FoF_MaxGals,
+        INFO_LOG("Growing galaxy array from %d to %d elements", MaxWorkingHalos,
                  new_size);
 
         /* Reallocate with new size */
-        FoF_MaxGals = new_size;
-        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
-        SimState.FoF_MaxGals = FoF_MaxGals; /* Update SimState directly */
+        MaxWorkingHalos = new_size;
+        WorkingHalos = myrealloc(WorkingHalos, MaxWorkingHalos * sizeof(struct Halo));
+        SimState.MaxWorkingHalos = MaxWorkingHalos; /* Update SimState directly */
       }
-      assert(ngal < FoF_MaxGals);
+      assert(ngal < MaxWorkingHalos);
 
       // This is the crucial line in which the properties of the progenitor
-      // galaxies are copied over (as a whole) to the (temporary) galaxies
-      // Gal[xxx] in the current snapshot After updating their properties and
+      // halos are copied over (as a whole) to the (temporary) halos
+      // WorkingHalos[xxx] in the current snapshot After updating their properties and
       // evolving them they are copied to the end of the list of permanent
-      // galaxies HaloGal[xxx]
-      Gal[ngal] = HaloGal[HaloAux[prog].FirstGalaxy + i];
-      Gal[ngal].HaloNr = halonr;
-      Gal[ngal].dT = -1.0;
+      // halos CurrentTreeHalos[xxx]
+      WorkingHalos[ngal] = CurrentTreeHalos[HaloAux[prog].FirstHalo + i];
+      WorkingHalos[ngal].HaloNr = halonr;
+      WorkingHalos[ngal].dT = -1.0;
 
-      // this deals with the central galaxies of (sub)halos
-      if (Gal[ngal].Type == 0 || Gal[ngal].Type == 1) {
+      // this deals with the central halos of (sub)halos
+      if (WorkingHalos[ngal].Type == 0 || WorkingHalos[ngal].Type == 1) {
         // this halo shouldn't hold a galaxy that has already merged; remove it
         // from future processing
-        if (Gal[ngal].MergeStatus != 0) {
-          Gal[ngal].Type = 3;
+        if (WorkingHalos[ngal].MergeStatus != 0) {
+          WorkingHalos[ngal].Type = 3;
           continue;
         }
 
         // remember properties from the last snapshot
-        previousMvir = Gal[ngal].Mvir;
-        previousVvir = Gal[ngal].Vvir;
-        previousVmax = Gal[ngal].Vmax;
+        previousMvir = WorkingHalos[ngal].Mvir;
+        previousVvir = WorkingHalos[ngal].Vvir;
+        previousVmax = WorkingHalos[ngal].Vmax;
 
         if (prog == first_occupied) {
           // update properties of this galaxy with physical properties of halo
-          Gal[ngal].MostBoundID = Halo[halonr].MostBoundID;
+          WorkingHalos[ngal].MostBoundID = TreeHalos[halonr].MostBoundID;
 
           for (j = 0; j < 3; j++) {
-            Gal[ngal].Pos[j] = Halo[halonr].Pos[j];
-            Gal[ngal].Vel[j] = Halo[halonr].Vel[j];
+            WorkingHalos[ngal].Pos[j] = TreeHalos[halonr].Pos[j];
+            WorkingHalos[ngal].Vel[j] = TreeHalos[halonr].Vel[j];
           }
 
-          Gal[ngal].Len = Halo[halonr].Len;
-          Gal[ngal].Vmax = Halo[halonr].Vmax;
+          WorkingHalos[ngal].Len = TreeHalos[halonr].Len;
+          WorkingHalos[ngal].Vmax = TreeHalos[halonr].Vmax;
 
-          Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
+          WorkingHalos[ngal].deltaMvir = get_virial_mass(halonr) - WorkingHalos[ngal].Mvir;
 
-          if (is_greater(get_virial_mass(halonr), Gal[ngal].Mvir)) {
-            Gal[ngal].Rvir =
+          if (is_greater(get_virial_mass(halonr), WorkingHalos[ngal].Mvir)) {
+            WorkingHalos[ngal].Rvir =
                 get_virial_radius(halonr); // use the maximum Rvir in model
-            Gal[ngal].Vvir =
+            WorkingHalos[ngal].Vvir =
                 get_virial_velocity(halonr); // use the maximum Vvir in model
           }
-          Gal[ngal].Mvir = get_virial_mass(halonr);
+          WorkingHalos[ngal].Mvir = get_virial_mass(halonr);
 
-          if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
+          if (halonr == TreeHalos[halonr].FirstHaloInFOFgroup) {
             // a central galaxy
-            Gal[ngal].MergeStatus = 0;
-            Gal[ngal].mergeIntoID = -1;
-            Gal[ngal].MergTime = 999.9;
+            WorkingHalos[ngal].MergeStatus = 0;
+            WorkingHalos[ngal].mergeIntoID = -1;
+            WorkingHalos[ngal].MergTime = 999.9;
 
-            Gal[ngal].Type = 0;
+            WorkingHalos[ngal].Type = 0;
           } else {
             // a satellite with subhalo
-            Gal[ngal].MergeStatus = 0;
-            Gal[ngal].mergeIntoID = -1;
+            WorkingHalos[ngal].MergeStatus = 0;
+            WorkingHalos[ngal].mergeIntoID = -1;
 
-            if (Gal[ngal].Type ==
+            if (WorkingHalos[ngal].Type ==
                 0) // remember the infall properties before becoming a subhalo
             {
-              Gal[ngal].infallMvir = previousMvir;
-              Gal[ngal].infallVvir = previousVvir;
-              Gal[ngal].infallVmax = previousVmax;
+              WorkingHalos[ngal].infallMvir = previousMvir;
+              WorkingHalos[ngal].infallVvir = previousVvir;
+              WorkingHalos[ngal].infallVmax = previousVmax;
             }
 
-            if (Gal[ngal].Type == 0 || is_greater(Gal[ngal].MergTime, 999.0))
+            if (WorkingHalos[ngal].Type == 0 || is_greater(WorkingHalos[ngal].MergTime, 999.0))
               // here the galaxy has gone from type 1 to type 2 or otherwise
               // doesn't have a merging time.
-              Gal[ngal].MergTime = 999.9; /* No merging without physics */
+              WorkingHalos[ngal].MergTime = 999.9; /* No merging without physics */
 
-            Gal[ngal].Type = 1;
+            WorkingHalos[ngal].Type = 1;
           }
         } else {
           // an orphan satellite galaxy - these will merge or disrupt within the
           // current timestep
-          Gal[ngal].deltaMvir = -1.0 * Gal[ngal].Mvir;
-          Gal[ngal].Mvir = 0.0;
+          WorkingHalos[ngal].deltaMvir = -1.0 * WorkingHalos[ngal].Mvir;
+          WorkingHalos[ngal].Mvir = 0.0;
 
-          if (is_greater(Gal[ngal].MergTime, 999.0) || Gal[ngal].Type == 0) {
+          if (is_greater(WorkingHalos[ngal].MergTime, 999.0) || WorkingHalos[ngal].Type == 0) {
             // here the galaxy has gone from type 0 to type 2 - merge it!
-            Gal[ngal].MergTime = 0.0;
+            WorkingHalos[ngal].MergTime = 0.0;
 
-            Gal[ngal].infallMvir = previousMvir;
-            Gal[ngal].infallVvir = previousVvir;
-            Gal[ngal].infallVmax = previousVmax;
+            WorkingHalos[ngal].infallMvir = previousMvir;
+            WorkingHalos[ngal].infallVvir = previousVvir;
+            WorkingHalos[ngal].infallVmax = previousVmax;
           }
 
-          Gal[ngal].Type = 2;
+          WorkingHalos[ngal].Type = 2;
         }
       }
 
       ngal++;
     }
 
-    prog = Halo[prog].NextProgenitor;
+    prog = TreeHalos[prog].NextProgenitor;
   }
 
   if (ngal == ngalstart) {
-    // We have no progenitors with galaxies. This means we create a new galaxy.
+    // We have no progenitors with halos. This means we create a new galaxy.
     // init_galaxy requires halonr to be the main subhalo
-    if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
+    if (halonr == TreeHalos[halonr].FirstHaloInFOFgroup) {
       init_halo(ngal, halonr);
       ngal++;
     }
@@ -312,15 +312,15 @@ int copy_progenitor_halos(int halonr, int ngalstart, int first_occupied) {
 }
 
 /**
- * @brief   Sets the central galaxy reference for all galaxies in a halo
+ * @brief   Sets the central galaxy reference for all halos in a halo
  *
- * @param   ngalstart    Starting index of galaxies for this halo
- * @param   ngal         Ending index (exclusive) of galaxies for this halo
+ * @param   ngalstart    Starting index of halos for this halo
+ * @param   ngal         Ending index (exclusive) of halos for this halo
  *
  * This function identifies the central galaxy (Type 0 or 1) for a halo
- * and sets all galaxies in the halo to reference this central galaxy.
+ * and sets all halos in the halo to reference this central galaxy.
  * Each halo can have only one Type 0 or Type 1 galaxy, with all others
- * being Type 2 (orphan) galaxies.
+ * being Type 2 (orphan) halos.
  */
 void set_halo_centrals(int ngalstart, int ngal) {
   int i, centralgal;
@@ -328,41 +328,41 @@ void set_halo_centrals(int ngalstart, int ngal) {
   /* Per Halo there can be only one Type 0 or 1 galaxy, all others are Type 2
    * (orphan) Find the central galaxy for this halo */
   for (i = ngalstart, centralgal = -1; i < ngal; i++) {
-    if (Gal[i].Type == 0 || Gal[i].Type == 1) {
+    if (WorkingHalos[i].Type == 0 || WorkingHalos[i].Type == 1) {
       assert(centralgal == -1); /* Ensure only one central galaxy per halo */
       centralgal = i;
     }
   }
 
-  /* Set all galaxies to point to the central galaxy */
+  /* Set all halos to point to the central galaxy */
   for (i = ngalstart; i < ngal; i++)
-    Gal[i].CentralGal = centralgal;
+    WorkingHalos[i].CentralHalo = centralgal;
 }
 
 /**
- * @brief   Main function to join galaxies from progenitor halos
+ * @brief   Main function to join halos from progenitor halos
  *
  * @param   halonr       Index of the current halo in the Halo array
- * @param   ngalstart    Starting index for galaxies in the Gal array
- * @return  Updated number of galaxies after joining
+ * @param   ngalstart    Starting index for halos in the Gal array
+ * @return  Updated number of halos after joining
  *
- * This function coordinates the process of integrating galaxies from
+ * This function coordinates the process of integrating halos from
  * progenitor halos into the current halo. It performs three main steps:
  *
- * 1. Identifies the most massive progenitor with galaxies
- * 2. Copies and updates galaxies from all progenitors
- * 3. Establishes relationships between galaxies (central/satellite)
+ * 1. Identifies the most massive progenitor with halos
+ * 2. Copies and updates halos from all progenitors
+ * 3. Establishes relationships between halos (central/satellite)
  *
  * The function ensures proper inheritance of galaxy properties while
- * maintaining the hierarchy of central and satellite galaxies.
+ * maintaining the hierarchy of central and satellite halos.
  */
 int join_progenitor_halos(int halonr, int ngalstart) {
   int ngal, first_occupied;
 
-  /* Find the most massive progenitor with galaxies */
+  /* Find the most massive progenitor with halos */
   first_occupied = find_most_massive_progenitor(halonr);
 
-  /* Copy galaxies from progenitors to the current snapshot */
+  /* Copy halos from progenitors to the current snapshot */
   ngal = copy_progenitor_halos(halonr, ngalstart, first_occupied);
 
   /* Set up central galaxy relationships */
@@ -389,32 +389,32 @@ void update_halo_properties(int ngal, int centralgal, double deltaT) {
   offset = 0;
   for (p = 0, currenthalo = -1; p < ngal; p++) {
     /* When processing a new halo, update its galaxy pointers */
-    if (Gal[p].HaloNr != currenthalo) {
-      currenthalo = Gal[p].HaloNr;
-      HaloAux[currenthalo].FirstGalaxy =
-          NumGals; /* Index of first galaxy in this halo */
-      HaloAux[currenthalo].NGalaxies = 0; /* Reset galaxy counter */
+    if (WorkingHalos[p].HaloNr != currenthalo) {
+      currenthalo = WorkingHalos[p].HaloNr;
+      HaloAux[currenthalo].FirstHalo =
+          NumCurrentTreeHalos; /* Index of first galaxy in this halo */
+      HaloAux[currenthalo].NHalos = 0; /* Reset galaxy counter */
     }
 
-    /* Calculate offset for merger target IDs due to galaxies that won't be
+    /* Calculate offset for merger target IDs due to halos that won't be
      * output */
     offset = 0;
     i = p - 1;
     while (i >= 0) {
-      if (Gal[i].MergeStatus > 0)
-        if (Gal[p].mergeIntoID > Gal[i].mergeIntoID)
-          offset++; /* These galaxies won't be kept, so offset mergeIntoID */
+      if (WorkingHalos[i].MergeStatus > 0)
+        if (WorkingHalos[p].mergeIntoID > WorkingHalos[i].mergeIntoID)
+          offset++; /* These halos won't be kept, so offset mergeIntoID */
       i--;
     }
 
-    /* Handle merged galaxies - update their merger info in the previous
+    /* Handle merged halos - update their merger info in the previous
      * snapshot */
     i = -1;
-    if (Gal[p].MergeStatus > 0) {
+    if (WorkingHalos[p].MergeStatus > 0) {
       /* Find this galaxy in the previous snapshot's array */
-      i = HaloAux[currenthalo].FirstGalaxy - 1;
+      i = HaloAux[currenthalo].FirstHalo - 1;
       while (i >= 0) {
-        if (HaloGal[i].GalaxyNr == Gal[p].GalaxyNr)
+        if (CurrentTreeHalos[i].UniqueHaloID == WorkingHalos[p].UniqueHaloID)
           break;
         else
           i--;
@@ -423,21 +423,21 @@ void update_halo_properties(int ngal, int centralgal, double deltaT) {
       assert(i >= 0); /* Galaxy should always be found */
 
       /* Update merger information in the previous snapshot's entry */
-      HaloGal[i].MergeStatus = Gal[p].MergeStatus;
-      HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
-      HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
+      CurrentTreeHalos[i].MergeStatus = WorkingHalos[p].MergeStatus;
+      CurrentTreeHalos[i].mergeIntoID = WorkingHalos[p].mergeIntoID - offset;
+      CurrentTreeHalos[i].mergeIntoSnapNum = TreeHalos[currenthalo].SnapNum;
     }
 
-    /* Copy non-merged galaxies to the permanent array */
-    if (Gal[p].MergeStatus == 0) {
-      assert(NumGals < MaxGals); /* Ensure we don't exceed array bounds */
+    /* Copy non-merged halos to the permanent array */
+    if (WorkingHalos[p].MergeStatus == 0) {
+      assert(NumCurrentTreeHalos < MaxCurrentTreeHalos); /* Ensure we don't exceed array bounds */
 
-      Gal[p].SnapNum = Halo[currenthalo].SnapNum; /* Update snapshot number */
-      HaloGal[NumGals++] =
-          Gal[p]; /* Copy to permanent array and increment counter */
-      SimState.NumGals = NumGals; /* Update SimState after increment */
+      WorkingHalos[p].SnapNum = TreeHalos[currenthalo].SnapNum; /* Update snapshot number */
+      CurrentTreeHalos[NumCurrentTreeHalos++] =
+          WorkingHalos[p]; /* Copy to permanent array and increment counter */
+      SimState.NumCurrentTreeHalos = NumCurrentTreeHalos; /* Update SimState after increment */
       HaloAux[currenthalo]
-          .NGalaxies++; /* Increment galaxy count for this halo */
+          .NHalos++; /* Increment galaxy count for this halo */
     }
   }
 }
@@ -461,10 +461,10 @@ void process_halo_evolution(int halonr, int ngal,
   int centralgal;
 
   /* Identify the central galaxy for this halo */
-  centralgal = Gal[0].CentralGal;
-  assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
+  centralgal = WorkingHalos[0].CentralHalo;
+  assert(WorkingHalos[centralgal].Type == 0 && WorkingHalos[centralgal].HaloNr == halonr);
 
   /* Update final galaxy properties and attach them to halos */
-  deltaT = Age[Gal[0].SnapNum] - Age[Halo[halonr].SnapNum];
+  deltaT = Age[WorkingHalos[0].SnapNum] - Age[TreeHalos[halonr].SnapNum];
   update_halo_properties(ngal, centralgal, deltaT);
 }

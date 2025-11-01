@@ -1,5 +1,5 @@
 
-struct halo_data {
+struct RawHalo {
   // merger tree pointers
   int Descendant;
   int FirstProgenitor;
@@ -24,4 +24,4 @@ struct halo_data {
   int FileNr;
   int SubhaloIndex;
   float SubHalfMass;
-} *Halo;
+};

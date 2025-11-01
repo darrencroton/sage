@@ -144,7 +144,7 @@ void load_tree_table_hdf5(int filenr) {
       ABORT(0);                                                                \
     }                                                                          \
     for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx) {               \
-      Halo[halo_idx].sage_name = ((data_type *)buffer)[halo_idx];              \
+      TreeHalos[halo_idx].sage_name = ((data_type *)buffer)[halo_idx];              \
     }                                                                          \
   }
 
@@ -160,7 +160,7 @@ void load_tree_table_hdf5(int filenr) {
     }                                                                          \
     for (halo_idx = 0; halo_idx < NHalos_ThisTree; ++halo_idx) {               \
       for (dim = 0; dim < NDIM; ++dim) {                                       \
-        Halo[halo_idx].sage_name[dim] =                                        \
+        TreeHalos[halo_idx].sage_name[dim] =                                        \
             ((data_type *)buffer_multipledim)[halo_idx * NDIM + dim];          \
       }                                                                        \
     }                                                                          \
@@ -208,7 +208,7 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
 
   NHalos_ThisTree = TreeNHalos[treenr];
 
-  Halo = mymalloc(sizeof(struct halo_data) * NHalos_ThisTree);
+  Halo = mymalloc(sizeof(struct RawHalo) * NHalos_ThisTree);
 
   buffer = calloc(NHalos_ThisTree, sizeof(*(buffer)));
   if (buffer == NULL) {
@@ -270,8 +270,8 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
   int32_t i;
   for (i = 0; i < 20; ++i) {
     DEBUG_LOG("halo %d: Descendant %d FirstProg %d x %.4f y %.4f z %.4f", i,
-              Halo[i].Descendant, Halo[i].FirstProgenitor, Halo[i].Pos[0],
-              Halo[i].Pos[1], Halo[i].Pos[2]);
+              TreeHalos[i].Descendant, TreeHalos[i].FirstProgenitor, TreeHalos[i].Pos[0],
+              TreeHalos[i].Pos[1], TreeHalos[i].Pos[2]);
   }
   // Debug exit point
   FATAL_ERROR("Debug exit after showing first 20 halos");

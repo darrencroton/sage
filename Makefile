@@ -37,7 +37,6 @@ INCL := ./code/core_allvars.h  \
         ./code/util_version.h \
 	./code/io_util.h \
 	./code/core_proto.h  \
-	./code/core_simulation.h  \
 	./code/util_parameters.h \
 	./code/util_error.h \
 	./code/config.h \

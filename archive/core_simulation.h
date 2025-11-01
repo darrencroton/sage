@@ -1,3 +1,9 @@
+/*
+ * Archived header: core_simulation.h
+ *
+ * This file has been archived. The RawHalo structure has moved to code/types.h.
+ * This header is kept for historical reference only and is not used by the build.
+ */
 
 struct RawHalo {
   // merger tree pointers

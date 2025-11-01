@@ -77,7 +77,7 @@ def plot(
         return output_path
 
     # Get only valid halo indices
-    halo_indices = np.unique(galaxies.CentralGalaxyIndex)
+    halo_indices = np.unique(galaxies.CentralHaloIndex)
     valid_indices = halo_indices[halo_indices >= 0]
     
     if verbose:
@@ -96,7 +96,7 @@ def plot(
         central_index_to_pos[idx] = i
     
     # Count all galaxies belonging to each halo in one vectorized operation
-    unique_indices, counts = np.unique(galaxies.CentralGalaxyIndex, return_counts=True)
+    unique_indices, counts = np.unique(galaxies.CentralHaloIndex, return_counts=True)
     
     # Filter out invalid indices and update occupation counts
     for i, idx in enumerate(unique_indices):
@@ -105,12 +105,12 @@ def plot(
             occupation_all[pos] = counts[i]
     
     # Count central galaxies (Type == 0) and get their halo masses
-    central_mask = (galaxies.Type == 0) & np.isin(galaxies.CentralGalaxyIndex, valid_indices)
+    central_mask = (galaxies.Type == 0) & np.isin(galaxies.CentralHaloIndex, valid_indices)
     central_galaxies = galaxies[central_mask]
     
     for i, gal in enumerate(central_galaxies):
-        if gal.CentralGalaxyIndex in central_index_to_pos:
-            pos = central_index_to_pos[gal.CentralGalaxyIndex]
+        if gal.CentralHaloIndex in central_index_to_pos:
+            pos = central_index_to_pos[gal.CentralHaloIndex]
             occupation_central[pos] = 1  # Should be only one central per halo
             halo_mass[pos] = gal.Mvir * 1.0e10 / hubble_h  # Convert to physical units (Msun)
     

@@ -2,7 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**PHYSICS DISABLED**: This version of SAGE has been converted to a **dark matter (DM) halo tracker only**. All baryonic physics has been removed.
 
 ## Quick Setup
 
@@ -94,17 +93,8 @@ deactivate
 - **main.c**: Program entry point, handles initialization, file processing loop, and cleanup
 - **core_init.c**: System initialization, memory setup, parameter validation
 - **core_read_parameter_file.c**: Parameter file parsing and configuration setup
-- **core_build_model.c**: Halo tracking and property updates (PHYSICS DISABLED)
-
-### Physical Models (model_*.c files) - **PHYSICS DISABLED**
-These files remain in the codebase but their physics functions are no longer called:
-- **model_cooling_heating.c**: Gas cooling and heating processes (disabled)
-- **model_starformation_and_feedback.c**: Star formation and supernova feedback (disabled)
-- **model_mergers.c**: Galaxy merger handling and black hole growth (disabled)
-- **model_infall.c**: Gas infall calculations (disabled)
-- **model_reincorporation.c**: Gas reincorporation from hot to cold phase (disabled)
-- **model_disk_instability.c**: Disk instability and bulge formation (disabled)
-- **model_misc.c**: Halo initialization (active, physics-related functions removed)
+- **core_build_model.c**: Halo tracking and property updates through merger trees
+- **model_misc.c**: Halo initialization and virial property calculations
 
 ### I/O System
 - **io_tree.c**: Master tree loading interface
@@ -130,7 +120,6 @@ These files remain in the codebase but their physics functions are no longer cal
 - **config.h**: Compile-time configuration options
 
 ### Key Design Patterns
-1. **Modular Physics**: Each physical process is isolated in its own module (PHYSICS DISABLED - modules remain but are not called)
 2. **Memory Categories**: Memory allocation is tracked by category (halos, trees, parameters, etc.)
 3. **Error Propagation**: Consistent error handling with context preservation throughout the call stack
 4. **Format Abstraction**: I/O operations abstracted to support multiple tree and output formats
@@ -154,12 +143,10 @@ These files remain in the codebase but their physics functions are no longer cal
 Parameter files use a key-value format with sections for:
 - File information (FirstFile, LastFile, OutputDir)
 - Simulation parameters (BoxSize, Hubble_h, Omega, PartMass)
-- **PHYSICS DISABLED**: All recipe flags and physical parameters removed (SFprescription, AGNrecipeOn, etc.)
 
 ### Tree Processing Flow
 1. **load_tree_table()**: Load tree metadata and structure
 2. **construct_galaxies()**: Initialize halo tracking structures from merger trees
-3. **evolve_galaxies()**: Update halo properties (PHYSICS DISABLED - no physics models applied)
 4. **save_galaxies()**: Write halo properties to output files
 5. **free_galaxies_and_tree()**: Clean up memory
 

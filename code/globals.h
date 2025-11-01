@@ -43,13 +43,10 @@ extern char ParamTag[MAXTAGS][50];
 extern int ParamID[MAXTAGS];
 extern void *ParamAddr[MAXTAGS];
 
-/* PHYSICS DISABLED: EnergySNcode, EtaSNcode removed */
-
 /* units */
 extern double UnitLength_in_cm, UnitTime_in_s, UnitVelocity_in_cm_per_s,
     UnitMass_in_g, RhoCrit, UnitPressure_in_cgs, UnitDensity_in_cgs,
     UnitCoolingRate_in_cgs, UnitEnergy_in_cgs, UnitTime_in_Megayears, G, Hubble;
-    /* PHYSICS DISABLED: a0, ar removed */
 
 /* output snapshots - kept for backward compatibility */
 extern int ListOutputSnaps[ABSOLUTEMAXSNAPS];

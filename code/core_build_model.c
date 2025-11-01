@@ -1,17 +1,16 @@
 /**
  * @file    core_build_model.c
- * @brief   Core functions for dark matter halo tracking (PHYSICS DISABLED)
  *
  * This file contains the core algorithms for tracking dark matter halos from
  * merger trees. All baryonic physics has been removed.
  *
  * Key functions:
- * - construct_galaxies(): Recursive function to build halo tracking structures
- * - join_galaxies_of_progenitors(): Integrates halos from progenitor structures
- * - evolve_galaxies(): Updates halo properties (no physics applied)
+ * - build_halo_tree(): Recursive function to build halo tracking structures
+ * - join_progenitor_halos(): Integrates halos from progenitor structures
+ * - process_halo_evolution(): Updates halo properties (no physics applied)
  *
- * PHYSICS DISABLED: All physical processes removed (cooling, star formation,
- * feedback, mergers). This code now only tracks dark matter halo properties.
+ * All physical processes removed (cooling, star formation, feedback, mergers).
+ * This code now only tracks dark matter halo properties.
  *
  * References:
  * - Croton et al. (2006) - Original semi-analytic model framework
@@ -51,7 +50,7 @@
  * chronological order, preserving the flow of mass and properties from
  * high redshift to low redshift.
  */
-void construct_galaxies(int halonr, int tree) {
+void build_halo_tree(int halonr, int tree) {
   int prog, fofhalo, ngal;
 
   HaloAux[halonr].DoneFlag = 1;
@@ -59,7 +58,7 @@ void construct_galaxies(int halonr, int tree) {
   prog = Halo[halonr].FirstProgenitor;
   while (prog >= 0) {
     if (HaloAux[prog].DoneFlag == 0)
-      construct_galaxies(prog, tree);
+      build_halo_tree(prog, tree);
     prog = Halo[prog].NextProgenitor;
   }
 
@@ -70,7 +69,7 @@ void construct_galaxies(int halonr, int tree) {
       prog = Halo[fofhalo].FirstProgenitor;
       while (prog >= 0) {
         if (HaloAux[prog].DoneFlag == 0)
-          construct_galaxies(prog, tree);
+          build_halo_tree(prog, tree);
         prog = Halo[prog].NextProgenitor;
       }
 
@@ -90,11 +89,11 @@ void construct_galaxies(int halonr, int tree) {
     HaloAux[fofhalo].HaloFlag = 2;
 
     while (fofhalo >= 0) {
-      ngal = join_galaxies_of_progenitors(fofhalo, ngal);
+      ngal = join_progenitor_halos(fofhalo, ngal);
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
-    evolve_galaxies(Halo[halonr].FirstHaloInFOFgroup, ngal, tree);
+    process_halo_evolution(Halo[halonr].FirstHaloInFOFgroup, ngal, tree);
   }
 }
 
@@ -170,8 +169,7 @@ int find_most_massive_progenitor(int halonr) {
  * their properties while updating their status based on the evolving
  * dark matter structures.
  */
-int copy_galaxies_from_progenitors(int halonr, int ngalstart,
-                                   int first_occupied) {
+int copy_progenitor_halos(int halonr, int ngalstart, int first_occupied) {
   int ngal, prog, i, j;
   double previousMvir, previousVvir, previousVmax;
 
@@ -215,7 +213,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
       if (Gal[ngal].Type == 0 || Gal[ngal].Type == 1) {
         // this halo shouldn't hold a galaxy that has already merged; remove it
         // from future processing
-        if (Gal[ngal].mergeType != 0) {
+        if (Gal[ngal].MergeStatus != 0) {
           Gal[ngal].Type = 3;
           continue;
         }
@@ -247,20 +245,16 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
 
-          /* PHYSICS DISABLED: Cooling, Heating, QuasarMode, Outflow, and SFR field resets removed */
-
           if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
             // a central galaxy
-            Gal[ngal].mergeType = 0;
+            Gal[ngal].MergeStatus = 0;
             Gal[ngal].mergeIntoID = -1;
             Gal[ngal].MergTime = 999.9;
-
-            /* PHYSICS DISABLED: DiskScaleRadius calculation removed */
 
             Gal[ngal].Type = 0;
           } else {
             // a satellite with subhalo
-            Gal[ngal].mergeType = 0;
+            Gal[ngal].MergeStatus = 0;
             Gal[ngal].mergeIntoID = -1;
 
             if (Gal[ngal].Type ==
@@ -274,7 +268,6 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
             if (Gal[ngal].Type == 0 || is_greater(Gal[ngal].MergTime, 999.0))
               // here the galaxy has gone from type 1 to type 2 or otherwise
               // doesn't have a merging time.
-              /* PHYSICS DISABLED: estimate_merging_time() removed */
               Gal[ngal].MergTime = 999.9; /* No merging without physics */
 
             Gal[ngal].Type = 1;
@@ -308,7 +301,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
     // We have no progenitors with galaxies. This means we create a new galaxy.
     // init_galaxy requires halonr to be the main subhalo
     if (halonr == Halo[halonr].FirstHaloInFOFgroup) {
-      init_galaxy(ngal, halonr);
+      init_halo_tracker(ngal, halonr);
       ngal++;
     }
     // If not the main subhalo, we don't create a galaxy - this seems to be
@@ -329,7 +322,7 @@ int copy_galaxies_from_progenitors(int halonr, int ngalstart,
  * Each halo can have only one Type 0 or Type 1 galaxy, with all others
  * being Type 2 (orphan) galaxies.
  */
-void set_galaxy_centrals(int ngalstart, int ngal) {
+void set_halo_centrals(int ngalstart, int ngal) {
   int i, centralgal;
 
   /* Per Halo there can be only one Type 0 or 1 galaxy, all others are Type 2
@@ -363,42 +356,34 @@ void set_galaxy_centrals(int ngalstart, int ngal) {
  * The function ensures proper inheritance of galaxy properties while
  * maintaining the hierarchy of central and satellite galaxies.
  */
-int join_galaxies_of_progenitors(int halonr, int ngalstart) {
+int join_progenitor_halos(int halonr, int ngalstart) {
   int ngal, first_occupied;
 
   /* Find the most massive progenitor with galaxies */
   first_occupied = find_most_massive_progenitor(halonr);
 
   /* Copy galaxies from progenitors to the current snapshot */
-  ngal = copy_galaxies_from_progenitors(halonr, ngalstart, first_occupied);
+  ngal = copy_progenitor_halos(halonr, ngalstart, first_occupied);
 
   /* Set up central galaxy relationships */
-  set_galaxy_centrals(ngalstart, ngal);
+  set_halo_centrals(ngalstart, ngal);
 
   return ngal;
 }
 
-/* PHYSICS DISABLED: apply_physical_processes() function removed */
-
-/* PHYSICS DISABLED: handle_mergers() function removed */
-
 /**
- * @brief   Attaches halo tracking structures to halos (PHYSICS DISABLED)
+ * @brief   Attaches halo tracking structures to halos for output
  *
  * @param   ngal          Total number of halos in this structure
  * @param   centralgal    Index of the central halo
  * @param   deltaT        Time interval for the entire timestep
  *
  * This function attaches halo tracking structures to halos for output.
- * All physics calculations have been removed.
- *
- * PHYSICS DISABLED: No rate conversions, baryon calculations, or merger
- * processing. Simply copies halo structures to output array (HaloGal).
+ * All physics calculations have been removed. Simply copies halo structures
+ * to output array (HaloGal).
  */
-void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
+void update_halo_properties(int ngal, int centralgal, double deltaT) {
   int p, i, currenthalo, offset;
-
-  /* PHYSICS DISABLED: All baryon calculations and rate conversions removed */
 
   /* Attach final galaxy list to halos */
   offset = 0;
@@ -416,7 +401,7 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
     offset = 0;
     i = p - 1;
     while (i >= 0) {
-      if (Gal[i].mergeType > 0)
+      if (Gal[i].MergeStatus > 0)
         if (Gal[p].mergeIntoID > Gal[i].mergeIntoID)
           offset++; /* These galaxies won't be kept, so offset mergeIntoID */
       i--;
@@ -425,7 +410,7 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
     /* Handle merged galaxies - update their merger info in the previous
      * snapshot */
     i = -1;
-    if (Gal[p].mergeType > 0) {
+    if (Gal[p].MergeStatus > 0) {
       /* Find this galaxy in the previous snapshot's array */
       i = HaloAux[currenthalo].FirstGalaxy - 1;
       while (i >= 0) {
@@ -438,13 +423,13 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
       assert(i >= 0); /* Galaxy should always be found */
 
       /* Update merger information in the previous snapshot's entry */
-      HaloGal[i].mergeType = Gal[p].mergeType;
+      HaloGal[i].MergeStatus = Gal[p].MergeStatus;
       HaloGal[i].mergeIntoID = Gal[p].mergeIntoID - offset;
       HaloGal[i].mergeIntoSnapNum = Halo[currenthalo].SnapNum;
     }
 
     /* Copy non-merged galaxies to the permanent array */
-    if (Gal[p].mergeType == 0) {
+    if (Gal[p].MergeStatus == 0) {
       assert(NumGals < MaxGals); /* Ensure we don't exceed array bounds */
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum; /* Update snapshot number */
@@ -458,37 +443,28 @@ void update_galaxy_properties(int ngal, int centralgal, double deltaT) {
 }
 
 /**
- * @brief   Updates halo properties (PHYSICS DISABLED)
+ * @brief   Updates halo properties for output
  *
  * @param   halonr    Index of the FOF-background subhalo (main halo)
  * @param   ngal      Total number of halos to process
  * @param   tree      Index of the current merger tree
  *
  * This function updates halo properties and prepares them for output.
- * All physics integration has been removed.
- *
- * PHYSICS DISABLED: No gas infall, cooling, star formation, or merger
- * processing. Simply updates halo properties and attaches to output structures.
+ * All physics integration has been removed. Simply updates halo properties
+ * and attaches to output structures.
  */
-void evolve_galaxies(int halonr, int ngal,
-                     int tree) /* Note: halonr is here the FOF-background
-                                  subhalo (i.e. main halo) */
+void process_halo_evolution(int halonr, int ngal,
+                            int tree) /* Note: halonr is here the FOF-background
+                                         subhalo (i.e. main halo) */
 {
   double deltaT;
   int centralgal;
-  /* PHYSICS DISABLED: double infallingGas; and int step; - no longer needed */
 
   /* Identify the central galaxy for this halo */
   centralgal = Gal[0].CentralGal;
   assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
 
-  /* PHYSICS DISABLED: Infalling gas calculation removed */
-
-  /* PHYSICS DISABLED: Time integration loop removed - no physics to integrate */
-  /* PHYSICS DISABLED: apply_physical_processes() removed */
-  /* PHYSICS DISABLED: handle_mergers() removed */
-
   /* Update final galaxy properties and attach them to halos */
   deltaT = Age[Gal[0].SnapNum] - Age[Halo[halonr].SnapNum];
-  update_galaxy_properties(ngal, centralgal, deltaT);
+  update_halo_properties(ngal, centralgal, deltaT);
 }

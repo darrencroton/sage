@@ -58,14 +58,11 @@ static ParameterDefinition ParameterTable[] = {
     {"NumOutputs", "Number of outputs (-1 for all snapshots)", INT,
      &SageConfig.NOUT, 1, -1.0, ABSOLUTEMAXSNAPS},
 
-    /* PHYSICS DISABLED: Merger parameter declarations removed */
-
     // Cosmology parameters
     {"Omega", "Matter density parameter", DOUBLE, &SageConfig.Omega, 1, 0.0,
      1.0},
     {"OmegaLambda", "Dark energy density parameter", DOUBLE,
      &SageConfig.OmegaLambda, 1, 0.0, 1.0},
-    /* PHYSICS DISABLED: BaryonFrac removed - only used in infall_recipe */
     {"Hubble_h", "Hubble parameter (H0/100)", DOUBLE, &SageConfig.Hubble_h, 1,
      0.0, 0.0},
     {"PartMass", "Particle mass in simulation", DOUBLE, &SageConfig.PartMass, 1,
@@ -79,7 +76,6 @@ static ParameterDefinition ParameterTable[] = {
     {"UnitMass_in_g", "Mass unit in g", DOUBLE, &SageConfig.UnitMass_in_g, 1,
      0.0, 0.0},
 
-    /* PHYSICS DISABLED: All physics flags and model parameters removed */
 };
 
 static int NParameters = sizeof(ParameterTable) / sizeof(ParameterDefinition);

@@ -2,7 +2,6 @@
 
 [![DOI](https://zenodo.org/badge/13542/darrencroton/sage.svg)](https://zenodo.org/badge/latestdoi/13542/darrencroton/sage)
 
-**PHYSICS DISABLED**: This version of SAGE has been converted to a **dark matter (DM) halo tracker only**. All baryonic physics, galaxy formation processes, and stellar evolution have been removed. SAGE now provides a computationally efficient framework for tracking the hierarchical growth and properties of dark matter halos from N-body simulation merger trees.
 
 For the full semi-analytic galaxy formation model with baryonic physics, see the main SAGE repository at [github.com/darrencroton/sage](https://github.com/darrencroton/sage).
 
@@ -203,7 +202,6 @@ Hubble_h               0.73
 PartMass               0.0860657
 
 %------------------------------------------
-%----- PHYSICS DISABLED -------------------
 %------------------------------------------
 % All baryonic physics parameters removed.
 % SAGE now operates as a DM-only halo tracker.
@@ -217,23 +215,15 @@ The SAGE codebase is organized around these key components:
 
 - **Core Files**: Main model framework and execution flow
   - `main.c`: Program entry point and core execution
-  - `core_build_model.c`: Halo tracking and property updates (PHYSICS DISABLED)
   - `core_init.c`: Initialization routines
   - `core_read_parameter_file.c`: Parameter handling
-
-- **Model Files**: **PHYSICS DISABLED** - These files remain in the codebase but their physics functions are no longer called
-  - `model_cooling_heating.c`: Gas cooling and heating (disabled)
-  - `model_disk_instability.c`: Disk instability (disabled)
-  - `model_infall.c`: Gas infall (disabled)
-  - `model_mergers.c`: Galaxy mergers (disabled)
-  - `model_reincorporation.c`: Gas reincorporation (disabled)
-  - `model_starformation_and_feedback.c`: Star formation and feedback (disabled)
-  - `model_misc.c`: Halo initialization (active, physics-related functions removed)
+  - `core_build_model.c`: Halo tracking and property updates
+  - `model_misc.c`: Halo initialization and virial property calculations
 
 - **I/O Files**: Input/output operations
   - `io_tree.c`: Tree loading and management
-  - `io_save_binary.c`: Binary output format (halo properties only)
-  - `io_save_hdf5.c`: HDF5 output format (halo properties only)
+  - `io_save_binary.c`: Binary output format
+  - `io_save_hdf5.c`: HDF5 output format
 
 - **Utility Files**: Helper functions
   - `util_numeric.c`: Numerical stability utilities
@@ -242,8 +232,8 @@ The SAGE codebase is organized around these key components:
   - `util_parameters.c`: Parameter processing
 
 - **Header Files**: Declarations and configurations
-  - `constants.h`: Numerical constants (physics constants removed)
-  - `types.h`: Structure definitions (halo properties only, physics fields removed)
+  - `constants.h`: Numerical constants
+  - `types.h`: Structure definitions for halo properties
   - `globals.h`: Global variable declarations
   - `config.h`: Configuration parameters
 

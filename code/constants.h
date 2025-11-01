@@ -8,7 +8,6 @@
 
 /* Numerical constants for the simulation */
 #define NDIM 3
-/* PHYSICS DISABLED: STEPS removed - was only used for SFR time integration */
 #define MAXGALFAC 5
 #define ALLOCPARAMETER 10.0
 #define MAX_NODE_NAME_LEN 50

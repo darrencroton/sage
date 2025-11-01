@@ -1,10 +1,10 @@
 /**
- * @file    core_io_tree.c
+ * @file    io_tree.c
  * @brief   Functions for loading and managing merger trees
  *
  * This file contains the core functionality for loading merger trees from
  * various file formats, managing the tree data in memory, and preparing
- * output files for galaxy data. It serves as a central hub for different
+ * output files for halo data. It serves as a central hub for different
  * tree file formats (binary, HDF5) and handles the allocation/deallocation
  * of tree-related data structures.
  *
@@ -12,7 +12,7 @@
  * - load_tree_table(): Loads tree metadata from input files
  * - load_tree(): Loads a specific merger tree into memory
  * - free_tree_table(): Frees memory allocated for tree metadata
- * - free_galaxies_and_tree(): Cleans up galaxy and tree data structures
+ * - free_halos_and_tree(): Cleans up halo and tree data structures
  *
  * The code supports different tree formats through a plugin architecture,
  * with format-specific implementations in the io/ directory.
@@ -267,7 +267,7 @@ void load_tree(int filenr, int treenr, enum Valid_TreeTypes my_TreeType) {
  * This cleanup is performed after each tree is fully processed, allowing
  * the memory to be reused for the next tree.
  */
-void free_galaxies_and_tree(void) {
+void free_halos_and_tree(void) {
   myfree(Gal);
   myfree(HaloGal);
   myfree(HaloAux);

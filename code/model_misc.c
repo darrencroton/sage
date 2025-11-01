@@ -8,7 +8,7 @@
  * radius) and initializing halo tracking structures.
  *
  * Key functions:
- * - init_galaxy(): Initializes a new halo tracking object
+ * - init_halo_tracker(): Initializes a new halo tracking object
  * - get_virial_mass/velocity/radius(): Calculate halo virial properties
  */
 
@@ -36,7 +36,7 @@
  * Note: The array is still called "Gal" and objects "galaxies" for code
  * compatibility, but these now track dark matter halos only.
  */
-void init_galaxy(int p, int halonr) {
+void init_halo_tracker(int p, int halonr) {
   int j;
 
   assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
@@ -50,7 +50,7 @@ void init_galaxy(int p, int halonr) {
   Gal[p].MostBoundID = Halo[halonr].MostBoundID;
   Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
 
-  Gal[p].mergeType = 0;
+  Gal[p].MergeStatus = 0;
   Gal[p].mergeIntoID = -1;
   Gal[p].mergeIntoSnapNum = -1;
   Gal[p].dT = -1.0;
@@ -68,8 +68,6 @@ void init_galaxy(int p, int halonr) {
 
   Gal[p].deltaMvir = 0.0;
 
-  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk field initializations removed */
-
   Gal[p].MergTime = 999.9;
 
   // infall properties
@@ -77,8 +75,6 @@ void init_galaxy(int p, int halonr) {
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
 }
-
-/* PHYSICS DISABLED: get_disk_radius(), get_metallicity() and dmax() functions removed - only used by physics code */
 
 /**
  * @brief   Returns the virial mass of a halo

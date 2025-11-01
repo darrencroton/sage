@@ -5,7 +5,7 @@
 void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
 void load_tree_table(int filenr, enum Valid_TreeTypes my_TreeType);
 void free_tree_table(enum Valid_TreeTypes my_TreeType);
-void free_galaxies_and_tree(void);
+void free_halos_and_tree(void);
 
 /* I/O wrapper functions with endianness handling and buffering */
 void set_file_endianness(int endianness);

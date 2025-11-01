@@ -48,7 +48,7 @@ from snapshot_redshift_mapper import SnapshotRedshiftMapper
 
 
 # Halo data structure definition (PHYSICS DISABLED: galaxy properties removed)
-def get_galaxy_dtype():
+def get_dtype():
     """Return the NumPy dtype for SAGE halo data (DM-only tracker)."""
     galdesc_full = [
         ("SnapNum", np.int32),
@@ -58,7 +58,7 @@ def get_galaxy_dtype():
         ("SAGEHaloIndex", np.int32),
         ("SAGETreeIndex", np.int32),
         ("SimulationHaloIndex", np.int64),
-        ("mergeType", np.int32),
+        ("MergeStatus", np.int32),
         ("mergeIntoID", np.int32),
         ("mergeIntoSnapNum", np.int32),
         ("dT", np.float32),
@@ -264,7 +264,7 @@ def setup_matplotlib(use_tex=False):
     plt.rcParams["mathtext.default"] = "regular"
 
 
-def read_galaxies(model_path, first_file, last_file, params=None):
+def read_data(model_path, first_file, last_file, params=None):
     """
     Read galaxy data from SAGE output files.
 
@@ -352,7 +352,7 @@ def read_galaxies(model_path, first_file, last_file, params=None):
         print(f"No files found matching the pattern {base_name}_*")
 
     # Get the galaxy data dtype
-    galdesc = get_galaxy_dtype()
+    galdesc = get_dtype()
 
     # Initialize variables
     tot_ntrees = 0
@@ -762,7 +762,7 @@ def main():
 
         # Read galaxy data
         try:
-            galaxies, volume, metadata = read_galaxies(
+            galaxies, volume, metadata = read_data(
                 model_path=base_model_file,
                 first_file=first_file,
                 last_file=last_file,
@@ -940,7 +940,7 @@ def main():
                 sys.exit(1)
 
             try:
-                galaxies, volume, metadata = read_galaxies(
+                galaxies, volume, metadata = read_data(
                     model_path=model_file_base,
                     first_file=first_file,
                     last_file=last_file,

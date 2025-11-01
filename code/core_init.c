@@ -67,9 +67,6 @@ void init(void) {
     Age[i] = time_to_present(SageConfig.ZZ[i]);
     ZZ[i] = SageConfig.ZZ[i]; // Sync with global for backward compatibility
   }
-
-  /* PHYSICS DISABLED: Reionization parameter initialization removed */
-  /* PHYSICS DISABLED: read_cooling_functions() removed */
 }
 
 /**
@@ -108,8 +105,6 @@ void set_units(void) {
                                  pow(SageConfig.UnitLength_in_cm, 2) /
                                  pow(SageConfig.UnitTime_in_s, 2);
 
-  /* PHYSICS DISABLED: Supernova energy parameter calculation removed */
-
   // Convert some physical input parameters to internal units
   SageConfig.Hubble = HUBBLE * SageConfig.UnitTime_in_s;
 
@@ -128,7 +123,6 @@ void set_units(void) {
   UnitPressure_in_cgs = SageConfig.UnitPressure_in_cgs;
   UnitCoolingRate_in_cgs = SageConfig.UnitCoolingRate_in_cgs;
   UnitEnergy_in_cgs = SageConfig.UnitEnergy_in_cgs;
-  /* PHYSICS DISABLED: EnergySNcode and EtaSNcode sync removed */
   Hubble = SageConfig.Hubble;
   RhoCrit = SageConfig.RhoCrit;
 }

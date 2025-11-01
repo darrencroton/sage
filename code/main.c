@@ -1,15 +1,15 @@
 /**
  * @file    main.c
- * @brief   Main entry point for the SAGE semi-analytic galaxy evolution model
+ * @brief   Main entry point for the SAGE dark matter halo tracker
  *
  * This file contains the main program flow for SAGE, handling initialization,
- * file processing, and the galaxy evolution loop. It coordinates the overall
+ * file processing, and the halo tracking loop. It coordinates the overall
  * execution of the model, including:
  * - Parameter file reading and initialization
  * - Command-line argument processing
  * - Error handling setup
  * - Tree file loading and traversal
- * - Galaxy construction and evolution
+ * - Halo tracking through merger trees
  * - Output file generation
  *
  * Key functions:
@@ -371,15 +371,15 @@ int main(int argc, char **argv) {
       /* Construct galaxies for each unprocessed halo in the tree */
       for (halonr = 0; halonr < TreeNHalos[treenr]; halonr++)
         if (HaloAux[halonr].DoneFlag == 0)
-          construct_galaxies(halonr, treenr);
+          build_halo_tree(halonr, treenr);
 
       /* Save the processed galaxies and free memory */
-      save_galaxies(filenr, treenr);
-      free_galaxies_and_tree();
+      save_halos(filenr, treenr);
+      free_halos_and_tree();
     }
 
     /* Finalize output files and free memory */
-    finalize_galaxy_file(filenr);
+    finalize_halo_file(filenr);
     free_tree_table(SageConfig.TreeType);
 
     INFO_LOG("Completed processing file %d", filenr);

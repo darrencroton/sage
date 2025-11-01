@@ -81,13 +81,10 @@ char ParamTag[MAXTAGS][50];
 int ParamID[MAXTAGS];
 void *ParamAddr[MAXTAGS];
 
-/* PHYSICS DISABLED: EnergySNcode, EtaSNcode removed */
-
 /*  more misc - kept for backward compatibility */
 double UnitLength_in_cm, UnitTime_in_s, UnitVelocity_in_cm_per_s, UnitMass_in_g,
     RhoCrit, UnitPressure_in_cgs, UnitDensity_in_cgs, UnitCoolingRate_in_cgs,
     UnitEnergy_in_cgs, UnitTime_in_Megayears, G, Hubble;
-    /* PHYSICS DISABLED: a0, ar removed */
 
 int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 double ZZ[ABSOLUTEMAXSNAPS];
@@ -97,8 +94,6 @@ double *Age;
 int MAXSNAPS;
 int NOUT;
 int Snaplistlen;
-
-/* PHYSICS DISABLED: Duplicate EnergySNcode, EtaSNcode removed */
 
 /* Random number generator removed - not used in computation */
 

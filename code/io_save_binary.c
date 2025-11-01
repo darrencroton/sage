@@ -1,22 +1,22 @@
 /**
- * @file    core_save.c
- * @brief   Functions for saving galaxy data to output files
+ * @file    io_save_binary.c
+ * @brief   Functions for saving halo data to output files
  *
- * This file contains the functionality for writing simulated galaxies to output
- * files. It handles the conversion of internal galaxy data structures to the
- * output format, manages file I/O operations, and ensures consistent galaxy
- * indexing across files. The code supports writing galaxy data for multiple
- * snapshots and maintains proper cross-references between galaxies.
+ * This file contains the functionality for writing tracked halos to output
+ * files. It handles the conversion of internal halo tracking structures to the
+ * output format, manages file I/O operations, and ensures consistent halo
+ * indexing across files. The code supports writing halo data for multiple
+ * snapshots and maintains proper cross-references between halos.
  *
  * Key functions:
- * - save_galaxies(): Writes galaxies to output files for all requested
+ * - save_halos(): Writes halos to output files for all requested
  * snapshots
- * - prepare_galaxy_for_output(): Converts internal galaxy format to output
+ * - prepare_halo_for_output(): Converts internal halo format to output
  * format
- * - finalize_galaxy_file(): Completes file writing by updating headers
+ * - finalize_halo_file(): Completes file writing by updating headers
  *
- * The output files include headers with tree counts and galaxy counts per tree,
- * followed by the galaxy data for the corresponding snapshot.
+ * The output files include headers with tree counts and halo counts per tree,
+ * followed by the halo data for the corresponding snapshot.
  */
 
 #include <assert.h>
@@ -63,7 +63,7 @@ FILE *save_fd[ABSOLUTEMAXSNAPS] = {0};
  * between galaxies (e.g., for tracking merger destinations) across different
  * trees and files.
  */
-void save_galaxies(int filenr, int tree) {
+void save_halos(int filenr, int tree) {
   char buf[MAX_BUF_SIZE + 1];
   int i, n;
   /* No need for static output structure anymore since we use dynamic allocation
@@ -153,7 +153,7 @@ void save_galaxies(int filenr, int tree) {
         struct GALAXY_OUTPUT galaxy_output = {0}; /* Zero-initialize */
 
         /* Convert internal galaxy to output format */
-        prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
+        prepare_halo_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
 
         /* Write using direct file I/O */
         size_t galaxy_size = sizeof(struct GALAXY_OUTPUT);
@@ -178,7 +178,7 @@ void save_galaxies(int filenr, int tree) {
 }
 
 /**
- * @brief   Converts internal halo structure to output format (PHYSICS DISABLED)
+ * @brief   Converts internal halo structure to output format
  *
  * @param   filenr    Current file number being processed
  * @param   tree      Current tree number being processed
@@ -192,11 +192,10 @@ void save_galaxies(int filenr, int tree) {
  * 2. Creates a unique halo index that encodes file, tree, and halo number
  * 3. Converts units from internal simulation units to physical units
  *
- * PHYSICS DISABLED: No derived properties like SFR or metallicities computed.
- * Only halo properties from merger trees are output.
+ * Note: Only halo properties from merger trees are output (no physics).
  */
-void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
-                               struct GALAXY_OUTPUT *o) {
+void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
+                             struct GALAXY_OUTPUT *o) {
   int j;
 
   o->SnapNum = g->SnapNum;
@@ -245,7 +244,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
   o->SAGETreeIndex = tree;
   o->SimulationHaloIndex = Halo[g->HaloNr].MostBoundID;
 
-  o->mergeType = g->mergeType;
+  o->MergeStatus = g->MergeStatus;
   o->mergeIntoID = g->mergeIntoID;
   o->mergeIntoSnapNum = g->mergeIntoSnapNum;
   o->dT = g->dT * UnitTime_in_s / SEC_PER_MEGAYEAR;
@@ -265,8 +264,6 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
       g->HaloNr); // output the actual Vvir, not the maximum Vvir
   o->Vmax = g->Vmax;
   o->VelDisp = Halo[g->HaloNr].VelDisp;
-
-  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, heating, disk, and merger time field copies removed */
 
   // infall properties
   if (g->Type != 0) {
@@ -297,7 +294,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
  * This header information is essential for readers to navigate the file
  * structure and access specific trees or galaxies efficiently.
  */
-void finalize_galaxy_file(int filenr) {
+void finalize_halo_file(int filenr) {
   int n, nwritten;
 
   for (n = 0; n < SageConfig.NOUT; n++) {

@@ -32,13 +32,10 @@ struct SageConfig {
   double OmegaLambda;
   double PartMass;
   double Hubble_h;
-  /* PHYSICS DISABLED: EnergySN and EtaSN removed */
-
-  /* PHYSICS DISABLED: All recipe parameters removed */
 
   /* flags */
-  /* PHYSICS DISABLED: Physics flag parameters removed */
-  int OverwriteOutputFiles; // Flag: 1=overwrite (default), 0=skip existing files
+  int OverwriteOutputFiles; // Flag: 1=overwrite (default), 0=skip existing
+                            // files
 
   /* output parameters */
   int NOUT;
@@ -63,7 +60,6 @@ struct SageConfig {
   double RhoCrit;
   double G;
   double Hubble;
-  /* PHYSICS DISABLED: a0, ar, EnergySNcode, EtaSNcode removed */
 
   /* Tree type */
   enum Valid_TreeTypes TreeType;
@@ -80,8 +76,7 @@ struct GALAXY_OUTPUT {
   int SAGETreeIndex;
   long long SimulationHaloIndex;
 
-  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=unused (was disk instability);
-                    4=disrupt to ICS (PHYSICS DISABLED) */
+  int MergeStatus; /* 0=halo is active; 1=halo has merged and is no longer tracked */
   int mergeIntoID;
   int mergeIntoSnapNum;
   float dT;
@@ -97,8 +92,6 @@ struct GALAXY_OUTPUT {
   float Vvir;
   float Vmax;
   float VelDisp;
-
-  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, heating, and disk fields removed */
 
   /* infall properties */
   float infallMvir;
@@ -116,8 +109,7 @@ struct GALAXY {
   int HaloNr;
   long long MostBoundID;
 
-  int mergeType; /* 0=none; 1=minor merger; 2=major merger; 3=unused (was disk instability);
-                    4=disrupt to ICS (PHYSICS DISABLED) */
+  int MergeStatus; /* 0=halo is active; 1=halo has merged and is no longer tracked */
   int mergeIntoID;
   int mergeIntoSnapNum;
   float dT;
@@ -132,8 +124,6 @@ struct GALAXY {
   float Rvir;
   float Vvir;
   float Vmax;
-
-  /* PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk fields removed */
 
   /* misc */
   float MergTime;

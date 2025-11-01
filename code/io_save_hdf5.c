@@ -60,8 +60,7 @@ void calc_hdf5_props(void) {
 
   int i; // dummy
 
-  // PHYSICS DISABLED: Only halo properties are output now
-  HDF5_n_props = 24;  // Reduced from 36 to only halo properties
+  HDF5_n_props = 24; // Reduced from 36 to only halo properties
 
   // Size of a single galaxy entry.
   HDF5_dst_size = sizeof(struct GALAXY_OUTPUT);
@@ -81,7 +80,6 @@ void calc_hdf5_props(void) {
   i = 0; // Initialise dummy counter
 
   // Go through each halo property and calculate everything we need...
-  // PHYSICS DISABLED: All baryonic, metal, SFR, cooling, and disk fields removed
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SnapNum);
   HDF5_dst_sizes[i] = sizeof(galout.SnapNum);
@@ -118,9 +116,9 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "SimulationHaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeType);
-  HDF5_dst_sizes[i] = sizeof(galout.mergeType);
-  HDF5_field_names[i] = "mergeType";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MergeStatus);
+  HDF5_dst_sizes[i] = sizeof(galout.MergeStatus);
+  HDF5_field_names[i] = "MergeStatus";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, mergeIntoID);

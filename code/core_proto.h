@@ -10,25 +10,24 @@ size_t myfread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 size_t myfwrite(void *ptr, size_t size, size_t nmemb, FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
 
-void construct_galaxies(int halonr, int tree);
-void evolve_galaxies(int halonr, int ngal, int tree);
-/* PHYSICS DISABLED: apply_physical_processes() and handle_mergers() removed */
-void update_galaxy_properties(int ngal, int centralgal, double deltaT);
-int join_galaxies_of_progenitors(int halonr, int nstart);
+void build_halo_tree(int halonr, int tree);
+void process_halo_evolution(int halonr, int ngal, int tree);
+void update_halo_properties(int ngal, int centralgal, double deltaT);
+int join_progenitor_halos(int halonr, int nstart);
 int find_most_massive_progenitor(int halonr);
-int copy_galaxies_from_progenitors(int halonr, int nstart, int first_occupied);
-void set_galaxy_centrals(int ngalstart, int ngal);
+int copy_progenitor_halos(int halonr, int nstart, int first_occupied);
+void set_halo_centrals(int ngalstart, int ngal);
 void init(void);
 void set_units(void);
 
 void load_tree_table(int filenr, enum Valid_TreeTypes TreeType);
 void load_tree(int filenr, int treenr, enum Valid_TreeTypes TreeType);
-void save_galaxies(int filenr, int tree);
+void save_halos(int filenr, int tree);
 
-void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g,
-                               struct GALAXY_OUTPUT *o);
+void prepare_halo_for_output(int filenr, int tree, struct GALAXY *g,
+                             struct GALAXY_OUTPUT *o);
 
-void free_galaxies_and_tree(void);
+void free_halos_and_tree(void);
 void free_tree_table(enum Valid_TreeTypes TreeType);
 void print_allocated(void);
 
@@ -49,24 +48,19 @@ int validate_all_memory(void);
 void cleanup_memory_system(void);
 void myexit(int signum);
 
-void finalize_galaxy_file(int filenr);
+void finalize_halo_file(int filenr);
 
-/* PHYSICS DISABLED: All physics function declarations removed */
-void init_galaxy(int p, int halonr);
+void init_halo_tracker(int p, int halonr);
 
 double get_virial_velocity(int halonr);
 double get_virial_radius(int halonr);
 double get_virial_mass(int halonr);
-/* PHYSICS DISABLED: get_disk_radius() removed */
 
 void read_output_snaps(void);
 void read_snap_list(void);
-/* PHYSICS DISABLED: Cooling function declarations removed */
 
 double time_to_present(double z);
 double integrand_time_to_present(double a, void *param);
-
-/* PHYSICS DISABLED: Unused star formation function declarations removed */
 
 /* Simulation state functions */
 void initialize_sim_state(void);

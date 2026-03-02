@@ -299,7 +299,6 @@ void prep_hdf5_file(char *fname) {
   int *fill_data = NULL;
   hid_t file_id, snap_group_id;
   char target_group[100];
-  hid_t status;
   int i_snap;
 
   DEBUG_LOG("Creating new HDF5 file '%s'", fname);
@@ -312,17 +311,15 @@ void prep_hdf5_file(char *fname) {
         H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     // Make the table
-    status =
-        H5TBmake_table("Galaxy Table", snap_group_id, "Galaxies", HDF5_n_props,
-                       0, HDF5_dst_size, HDF5_field_names, HDF5_dst_offsets,
-                       HDF5_field_types, chunk_size, fill_data, 0, NULL);
+    H5TBmake_table("Galaxy Table", snap_group_id, "Galaxies", HDF5_n_props,
+                   0, HDF5_dst_size, HDF5_field_names, HDF5_dst_offsets,
+                   HDF5_field_types, chunk_size, fill_data, 0, NULL);
 
     H5Gclose(snap_group_id);
   }
 
   // Close the HDF5 file.
-  status = H5Fclose(file_id);
-  (void)status;
+  H5Fclose(file_id);
 }
 
 /**
@@ -349,7 +346,6 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
    * Write a single galaxy to the hdf5 file table.
    */
 
-  herr_t status;
   hid_t file_id, group_id;
   char target_group[100];
   char fname[1000];
@@ -366,15 +362,14 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   // Write the galaxy.
-  status = H5TBappend_records(group_id, "Galaxies", 1, HDF5_dst_size,
-                              HDF5_dst_offsets, HDF5_dst_sizes, galaxy_output);
+  H5TBappend_records(group_id, "Galaxies", 1, HDF5_dst_size,
+                     HDF5_dst_offsets, HDF5_dst_sizes, galaxy_output);
 
-  // Close the group
-  status = H5Gclose(group_id);
+  // Close the group.
+  H5Gclose(group_id);
 
   // Close the file.
-  status = H5Fclose(file_id);
-  (void)status;
+  H5Fclose(file_id);
 }
 
 #ifdef MINIMIZE_IO
@@ -384,7 +379,6 @@ void write_hdf5_galsnap_data(int n, int filenr) {
    * Write a batch of galaxies to the output HDF5 table.
    */
 
-  herr_t status;
   hid_t file_id, group_id;
   char target_group[100];
   char fname[1000];
@@ -401,17 +395,17 @@ void write_hdf5_galsnap_data(int n, int filenr) {
 
   // Write the galaxies.
   if (TotGalaxies[n] > 0) {
-    status = H5TBappend_records(
+    H5TBappend_records(
         group_id, "Galaxies", (hsize_t)(TotGalaxies[n]), HDF5_dst_size,
         HDF5_dst_offsets, HDF5_dst_sizes,
         (struct GALAXY_OUTPUT *)(ptr_galsnapdata[n] + offset_galsnapdata[n]));
   }
 
   // Close the group.
-  status = H5Gclose(group_id);
+  H5Gclose(group_id);
 
   // Close the file.
-  status = H5Fclose(file_id);
+  H5Fclose(file_id);
 }
 #endif //  MINIMIZE_IO
 
@@ -437,7 +431,6 @@ void write_hdf5_attrs(int n, int filenr) {
    * Write the HDF5 file attributes.
    */
 
-  herr_t status;
   hid_t file_id, dataset_id, attribute_id, dataspace_id, group_id;
   hsize_t dims;
   char target_group[100];
@@ -462,20 +455,20 @@ void write_hdf5_attrs(int n, int filenr) {
   // Write the number of trees
   attribute_id = H5Acreate(dataset_id, "Ntrees", H5T_NATIVE_INT, dataspace_id,
                            H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &Ntrees);
-  status = H5Aclose(attribute_id);
+  H5Awrite(attribute_id, H5T_NATIVE_INT, &Ntrees);
+  H5Aclose(attribute_id);
 
   // Write the total number of galaxies.
   attribute_id = H5Acreate(dataset_id, "TotGalaxies", H5T_NATIVE_INT,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &TotGalaxies[n]);
-  status = H5Aclose(attribute_id);
+  H5Awrite(attribute_id, H5T_NATIVE_INT, &TotGalaxies[n]);
+  H5Aclose(attribute_id);
 
   // Close the dataspace.
-  status = H5Sclose(dataspace_id);
+  H5Sclose(dataspace_id);
 
   // Close to the dataset.
-  status = H5Dclose(dataset_id);
+  H5Dclose(dataset_id);
 
   // Create an array dataset to hold the number of galaxies per tree and write
   // it.
@@ -488,14 +481,13 @@ void write_hdf5_attrs(int n, int filenr) {
   dataspace_id = H5Screate_simple(1, &dims, NULL);
   dataset_id = H5Dcreate(group_id, "TreeNgals", H5T_NATIVE_INT, dataspace_id,
                          H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Dclose(dataset_id);
+  H5Dclose(dataset_id);
 
   // Close the group.
-  status = H5Gclose(group_id);
+  H5Gclose(group_id);
 
   // Close the file.
-  status = H5Fclose(file_id);
-  (void)status;
+  H5Fclose(file_id);
 }
 
 /**
@@ -518,7 +510,6 @@ void write_hdf5_attrs(int n, int filenr) {
 static void store_run_properties(hid_t master_file_id) {
   hid_t props_group_id, dataspace_id, attribute_id, str_type;
   hsize_t dims;
-  herr_t status;
   time_t t;
   struct tm *local;
   int i;
@@ -537,7 +528,7 @@ static void store_run_properties(hid_t master_file_id) {
   dims = 1;
   dataspace_id = H5Screate_simple(1, &dims, NULL);
   str_type = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(str_type, MAX_STRING_LEN);
+  H5Tset_size(str_type, MAX_STRING_LEN);
 
   /* Store all parameters from the parameter table */
   for (i = 0; i < num_params; i++) {
@@ -548,17 +539,16 @@ static void store_run_properties(hid_t master_file_id) {
         attribute_id =
             H5Acreate(props_group_id, param_table[i].name, H5T_NATIVE_INT,
                       dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-        status = H5Awrite(attribute_id, H5T_NATIVE_INT, param_table[i].address);
-        status = H5Aclose(attribute_id);
+        H5Awrite(attribute_id, H5T_NATIVE_INT, param_table[i].address);
+        H5Aclose(attribute_id);
         break;
 
       case DOUBLE:
         attribute_id =
             H5Acreate(props_group_id, param_table[i].name, H5T_NATIVE_DOUBLE,
                       dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-        status =
-            H5Awrite(attribute_id, H5T_NATIVE_DOUBLE, param_table[i].address);
-        status = H5Aclose(attribute_id);
+        H5Awrite(attribute_id, H5T_NATIVE_DOUBLE, param_table[i].address);
+        H5Aclose(attribute_id);
         break;
 
       case STRING:
@@ -578,14 +568,14 @@ static void store_run_properties(hid_t master_file_id) {
           attribute_id =
               H5Acreate(props_group_id, param_table[i].name, str_type,
                         dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-          status = H5Awrite(attribute_id, str_type, tree_type_str);
-          status = H5Aclose(attribute_id);
+          H5Awrite(attribute_id, str_type, tree_type_str);
+          H5Aclose(attribute_id);
         } else if (param_table[i].address != NULL) {
           attribute_id =
               H5Acreate(props_group_id, param_table[i].name, str_type,
                         dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-          status = H5Awrite(attribute_id, str_type, param_table[i].address);
-          status = H5Aclose(attribute_id);
+          H5Awrite(attribute_id, str_type, param_table[i].address);
+          H5Aclose(attribute_id);
         }
         break;
       }
@@ -596,32 +586,31 @@ static void store_run_properties(hid_t master_file_id) {
   attribute_id = H5Acreate(props_group_id, "NCores", H5T_NATIVE_INT,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
 #ifdef MPI
-  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &NTask);
+  H5Awrite(attribute_id, H5T_NATIVE_INT, &NTask);
 #else
   int default_ntask = 1;
-  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &default_ntask);
+  H5Awrite(attribute_id, H5T_NATIVE_INT, &default_ntask);
 #endif
-  status = H5Aclose(attribute_id);
+  H5Aclose(attribute_id);
 
   time(&t);
   local = localtime(&t);
   attribute_id = H5Acreate(props_group_id, "RunEndTime", str_type, dataspace_id,
                            H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, str_type, asctime(local));
-  status = H5Aclose(attribute_id);
+  H5Awrite(attribute_id, str_type, asctime(local));
+  H5Aclose(attribute_id);
 
   /* Add input simulation info if defined */
 #ifdef INPUTSIM
   attribute_id = H5Acreate(props_group_id, "InputSimulation", str_type,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, str_type, INPUTSIM);
-  status = H5Aclose(attribute_id);
+  H5Awrite(attribute_id, str_type, INPUTSIM);
+  H5Aclose(attribute_id);
 #endif
 
   /* Clean up */
-  status = H5Sclose(dataspace_id);
-  status = H5Gclose(props_group_id);
-  (void)status;
+  H5Sclose(dataspace_id);
+  H5Gclose(props_group_id);
 }
 
 void write_master_file(void) {
@@ -636,7 +625,6 @@ void write_master_file(void) {
   char target_group[100], source_ds[100];
   hid_t master_file_id, dataset_id, attribute_id, dataspace_id, group_id,
       target_file_id;
-  herr_t status;
   hsize_t dims;
   float redshift;
 
@@ -662,10 +650,10 @@ void write_master_file(void) {
     attribute_id = H5Acreate(group_id, "Redshift", H5T_NATIVE_FLOAT,
                              dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
     redshift = (float)(ZZ[ListOutputSnaps[n]]);
-    status = H5Awrite(attribute_id, H5T_NATIVE_FLOAT, &redshift);
-    status = H5Aclose(attribute_id);
-    status = H5Sclose(dataspace_id);
-    status = H5Gclose(group_id);
+    H5Awrite(attribute_id, H5T_NATIVE_FLOAT, &redshift);
+    H5Aclose(attribute_id);
+    H5Sclose(dataspace_id);
+    H5Gclose(group_id);
 
     // Loop through each file for this snapshot.
     for (filenr = SageConfig.FirstFile; filenr <= SageConfig.LastFile; filenr++) {
@@ -673,7 +661,7 @@ void write_master_file(void) {
       sprintf(target_group, "Snap%03d/File%03d", ListOutputSnaps[n], filenr);
       group_id = H5Gcreate(master_file_id, target_group, H5P_DEFAULT,
                            H5P_DEFAULT, H5P_DEFAULT);
-      status = H5Gclose(group_id);
+      H5Gclose(group_id);
 
       ngal_in_file = 0;
       // Generate the *relative* path to the actual output file.
@@ -685,8 +673,8 @@ void write_master_file(void) {
               filenr);
       sprintf(source_ds, "Snap%03d/Galaxies", ListOutputSnaps[n]);
       DEBUG_LOG("Creating external DS link - %s", target_group);
-      status = H5Lcreate_external(target_file, source_ds, master_file_id,
-                                  target_group, H5P_DEFAULT, H5P_DEFAULT);
+      H5Lcreate_external(target_file, source_ds, master_file_id,
+                         target_group, H5P_DEFAULT, H5P_DEFAULT);
 
       // Create a dataset which will act as the soft link to the array storing
       // the number of galaxies per tree for this file.
@@ -694,8 +682,8 @@ void write_master_file(void) {
               filenr);
       sprintf(source_ds, "Snap%03d/TreeNgals", ListOutputSnaps[n]);
       DEBUG_LOG("Creating external DS link - %s", target_group);
-      status = H5Lcreate_external(target_file, source_ds, master_file_id,
-                                  target_group, H5P_DEFAULT, H5P_DEFAULT);
+      H5Lcreate_external(target_file, source_ds, master_file_id,
+                         target_group, H5P_DEFAULT, H5P_DEFAULT);
 
       // Increment the total number of galaxies for this file.
       sprintf(target_file, "%s/%s_%03d.hdf5", SageConfig.OutputDir,
@@ -704,10 +692,10 @@ void write_master_file(void) {
       sprintf(source_ds, "Snap%03d/Galaxies", ListOutputSnaps[n]);
       dataset_id = H5Dopen(target_file_id, source_ds, H5P_DEFAULT);
       attribute_id = H5Aopen(dataset_id, "TotGalaxies", H5P_DEFAULT);
-      status = H5Aread(attribute_id, H5T_NATIVE_INT, &ngal_in_core);
-      status = H5Aclose(attribute_id);
-      status = H5Dclose(dataset_id);
-      status = H5Fclose(target_file_id);
+      H5Aread(attribute_id, H5T_NATIVE_INT, &ngal_in_core);
+      H5Aclose(attribute_id);
+      H5Dclose(dataset_id);
+      H5Fclose(target_file_id);
       ngal_in_file += ngal_in_core;
 
       // Save the total number of galaxies in this file.
@@ -717,10 +705,10 @@ void write_master_file(void) {
       group_id = H5Gopen(master_file_id, target_group, H5P_DEFAULT);
       attribute_id = H5Acreate(group_id, "TotGalaxies", H5T_NATIVE_INT,
                                dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-      status = H5Awrite(attribute_id, H5T_NATIVE_INT, &ngal_in_file);
-      status = H5Aclose(attribute_id);
-      status = H5Gclose(group_id);
-      status = H5Sclose(dataspace_id);
+      H5Awrite(attribute_id, H5T_NATIVE_INT, &ngal_in_file);
+      H5Aclose(attribute_id);
+      H5Gclose(group_id);
+      H5Sclose(dataspace_id);
     }
   }
 
@@ -730,21 +718,21 @@ void write_master_file(void) {
 
   dims = 1;
   hid_t str_type = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(str_type, 45);
+  H5Tset_size(str_type, 45);
   dataspace_id = H5Screate_simple(1, &dims, NULL);
 
   sprintf(tempstr, GITREF_STR);
   attribute_id = H5Acreate(master_file_id, "GitRef", str_type, dataspace_id,
                            H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, str_type, tempstr);
+  H5Awrite(attribute_id, str_type, tempstr);
 
   sprintf(tempstr, MODELNAME);
   attribute_id = H5Acreate(master_file_id, "Model", str_type, dataspace_id,
                            H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attribute_id, str_type, tempstr);
+  H5Awrite(attribute_id, str_type, tempstr);
 
-  status = H5Aclose(attribute_id);
-  status = H5Sclose(dataspace_id);
+  H5Aclose(attribute_id);
+  H5Sclose(dataspace_id);
 #endif
 
   // Finally - store the properites of the run...
@@ -752,7 +740,6 @@ void write_master_file(void) {
 
   // Close the master file.
   H5Fclose(master_file_id);
-  (void)status;
 }
 
 void free_hdf5_ids(void) {

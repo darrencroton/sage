@@ -1,11 +1,11 @@
 # USE-MPI = yes  # set this if you want to run in embarrassingly parallel
-# USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
+USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
 LIBS :=
 CFLAGS :=
-OPT := 
+OPT :=
 
-EXEC := sage 
+EXEC := sage
 OBJS := ./code/main.o \
         ./code/util_parameters.o \
         ./code/util_error.o \
@@ -48,26 +48,26 @@ INCL := ./code/core_allvars.h  \
 	./code/globals.h \
 	./code/types.h \
 	./code/io_tree_binary.h \
-	./Makefile 
+	./Makefile
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
-    CC = cc  # sets the C-compiler
+    CC = gcc  # sets the C-compiler
 endif
 
 ifdef USE-HDF5
-    HDF5DIR := usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm
+    HDF5DIR := /opt/homebrew/opt/hdf5
     HDF5INCL := -I$(HDF5DIR)/include
-    HDF5LIB := -L$(HDF5DIR)/lib -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
+    HDF5LIB := -L$(HDF5DIR)/lib -lhdf5_hl -lhdf5 -Xlinker -rpath -Xlinker $(HDF5DIR)/lib
 
     OBJS += ./code/io_tree_hdf5.o ./code/io_save_hdf5.o
     INCL += ./code/io_tree_hdf5.h ./code/io_save_hdf5.h
 
     OPT += -DHDF5
     LIBS += $(HDF5LIB)
-    CFLAGS += $(HDF5INCL) 
+    CFLAGS += $(HDF5INCL)
 endif
 
 # Path to the Git version header files
@@ -106,5 +106,5 @@ clean:
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
-all:  $(EXEC) 
+all:  $(EXEC)
 

@@ -32,6 +32,7 @@
 #include "globals.h"
 #include "io_save_hdf5.h"
 #include "util_error.h"
+#include "util_parameters.h"
 
 #define TRUE 1
 #define FALSE 0

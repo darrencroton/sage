@@ -29,6 +29,7 @@
 #include <time.h>
 
 #include "core_proto.h"
+#include "globals.h"
 #include "io_save_hdf5.h"
 #include "util_error.h"
 
@@ -62,7 +63,7 @@ void calc_hdf5_props(void) {
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  HDF5_n_props = 36;
+  HDF5_n_props = 37;
 
   // Size of a single galaxy entry.
   HDF5_dst_size = sizeof(struct GALAXY_OUTPUT);
@@ -92,19 +93,19 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "GalaxyIndex";
   HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, HaloIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.HaloIndex);
-  HDF5_field_names[i] = "HaloIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGEHaloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SAGEHaloIndex);
+  HDF5_field_names[i] = "SAGEHaloIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, FOFHaloIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.FOFHaloIndex);
-  HDF5_field_names[i] = "FOFHaloIndex";
-  HDF5_field_types[i++] = H5T_NATIVE_INT;
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SimulationHaloIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SimulationHaloIndex);
+  HDF5_field_names[i] = "SimulationHaloIndex";
+  HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, TreeIndex);
-  HDF5_dst_sizes[i] = sizeof(galout.TreeIndex);
-  HDF5_field_names[i] = "TreeIndex";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SAGETreeIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.SAGETreeIndex);
+  HDF5_field_names[i] = "SAGETreeIndex";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SnapNum);
@@ -112,10 +113,10 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "SnapNum";
   HDF5_field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralGal);
-  HDF5_dst_sizes[i] = sizeof(galout.CentralGal);
-  HDF5_field_names[i] = "CentralGal";
-  HDF5_field_types[i++] = H5T_NATIVE_INT;
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralGalaxyIndex);
+  HDF5_dst_sizes[i] = sizeof(galout.CentralGalaxyIndex);
+  HDF5_field_names[i] = "CentralGalaxyIndex";
+  HDF5_field_types[i++] = H5T_NATIVE_LLONG;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, CentralMvir);
   HDF5_dst_sizes[i] = sizeof(galout.CentralMvir);
@@ -232,9 +233,9 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "MetalsICS";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Sfr);
-  HDF5_dst_sizes[i] = sizeof(galout.Sfr);
-  HDF5_field_names[i] = "Sfr";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrDisk);
+  HDF5_dst_sizes[i] = sizeof(galout.SfrDisk);
+  HDF5_field_names[i] = "SfrDisk";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrBulge);
@@ -242,9 +243,14 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "SfrBulge";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrICS);
-  HDF5_dst_sizes[i] = sizeof(galout.SfrICS);
-  HDF5_field_names[i] = "SfrICS";
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrDiskZ);
+  HDF5_dst_sizes[i] = sizeof(galout.SfrDiskZ);
+  HDF5_field_names[i] = "SfrDiskZ";
+  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, SfrBulgeZ);
+  HDF5_dst_sizes[i] = sizeof(galout.SfrBulgeZ);
+  HDF5_field_names[i] = "SfrBulgeZ";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, DiskScaleRadius);
@@ -346,8 +352,8 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
   char target_group[100];
   char fname[1000];
 
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies, filenr);
+  sprintf(fname, "%s/%s_%03d.hdf5", SageConfig.OutputDir,
+          SageConfig.FileNameGalaxies, filenr);
 
   DEBUG_LOG("Opening HDF5 file '%s' for writing galaxy data", fname);
   // Open the file.
@@ -380,8 +386,8 @@ void write_hdf5_galsnap_data(int n, int filenr) {
   char target_group[100];
   char fname[1000];
 
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies, filenr);
+  sprintf(fname, "%s/%s_%03d.hdf5", SageConfig.OutputDir,
+          SageConfig.FileNameGalaxies, filenr);
 
   // Open the file.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -434,8 +440,8 @@ void write_hdf5_attrs(int n, int filenr) {
   char target_group[100];
   char fname[1000];
 
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies, filenr);
+  sprintf(fname, "%s/%s_%03d.hdf5", SageConfig.OutputDir,
+          SageConfig.FileNameGalaxies, filenr);
 
   // Open the output file and galaxy dataset.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -585,7 +591,12 @@ static void store_run_properties(hid_t master_file_id) {
   /* Add extra properties */
   attribute_id = H5Acreate(props_group_id, "NCores", H5T_NATIVE_INT,
                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+#ifdef MPI
   status = H5Awrite(attribute_id, H5T_NATIVE_INT, &NTask);
+#else
+  int default_ntask = 1;
+  status = H5Awrite(attribute_id, H5T_NATIVE_INT, &default_ntask);
+#endif
   status = H5Aclose(attribute_id);
 
   time(&t);
@@ -624,8 +635,8 @@ void write_master_file(void) {
   hsize_t dims;
   float redshift;
 
-  // Open the master file.
-  sprintf(master_file, "%s/%s.hdf5", OutputDir, FileNameGalaxies);
+  sprintf(master_file, "%s/%s.hdf5", SageConfig.OutputDir,
+          SageConfig.FileNameGalaxies);
   DEBUG_LOG("Creating master HDF5 file '%s'", master_file);
   master_file_id =
       H5Fcreate(master_file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -652,7 +663,7 @@ void write_master_file(void) {
     status = H5Gclose(group_id);
 
     // Loop through each file for this snapshot.
-    for (filenr = FirstFile; filenr <= LastFile; filenr++) {
+    for (filenr = SageConfig.FirstFile; filenr <= SageConfig.LastFile; filenr++) {
       // Create a group to hold this snapshot's data
       sprintf(target_group, "Snap%03d/File%03d", ListOutputSnaps[n], filenr);
       group_id = H5Gcreate(master_file_id, target_group, H5P_DEFAULT,
@@ -661,7 +672,7 @@ void write_master_file(void) {
 
       ngal_in_file = 0;
       // Generate the *relative* path to the actual output file.
-      sprintf(target_file, "%s_%03d.hdf5", FileNameGalaxies, filenr);
+      sprintf(target_file, "%s_%03d.hdf5", SageConfig.FileNameGalaxies, filenr);
 
       // Create a dataset which will act as the soft link to the output
       // galaxies.
@@ -682,8 +693,8 @@ void write_master_file(void) {
                                   target_group, H5P_DEFAULT, H5P_DEFAULT);
 
       // Increment the total number of galaxies for this file.
-      sprintf(target_file, "%s/%s_%03d.hdf5", OutputDir, FileNameGalaxies,
-              filenr);
+      sprintf(target_file, "%s/%s_%03d.hdf5", SageConfig.OutputDir,
+              SageConfig.FileNameGalaxies, filenr);
       target_file_id = H5Fopen(target_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       sprintf(source_ds, "Snap%03d/Galaxies", ListOutputSnaps[n]);
       dataset_id = H5Dopen(target_file_id, source_ds, H5P_DEFAULT);

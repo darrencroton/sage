@@ -8,6 +8,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 code/git_version.h
+scrap/
+obsidian-inbox
 
 # Claude Code session data
 .claude/

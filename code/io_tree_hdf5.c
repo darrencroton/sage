@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "core_allvars.h"
 #include "core_proto.h"
 #include "globals.h"
 #include "io_tree_hdf5.h"
@@ -85,17 +86,17 @@ void load_tree_table_hdf5(int filenr) {
 
   struct METADATA_NAMES metadata_names;
 
-  snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr,
-           TreeExtension);
+  snprintf(buf, MAX_STRING_LEN, "%s/%s.%d%s", SageConfig.SimulationDir, SageConfig.TreeName, filenr,
+           SageConfig.TreeExtension);
   hdf5_file = H5Fopen(buf, H5F_ACC_RDONLY, H5P_DEFAULT);
 
   if (hdf5_file < 0) {
     FATAL_ERROR("Failed to open HDF5 tree file '%s'", buf);
   }
 
-  status = fill_metadata_names(&metadata_names, TreeType);
+  status = fill_metadata_names(&metadata_names, SageConfig.TreeType);
   if (status != EXIT_SUCCESS) {
-    FATAL_ERROR("Failed to fill metadata names for tree type %d", TreeType);
+    FATAL_ERROR("Failed to fill metadata names for tree type %d", SageConfig.TreeType);
   }
 
   status = read_attribute_int(hdf5_file, "/Header", metadata_names.name_NTrees,
@@ -104,6 +105,7 @@ void load_tree_table_hdf5(int filenr) {
     FATAL_ERROR("Error %d while reading NTrees attribute from file '%s'",
                 status, buf);
   }
+  SimState.Ntrees = Ntrees;
 
   status = read_attribute_int(hdf5_file, "/Header",
                               metadata_names.name_totNHalos, &totNHalos);
@@ -111,10 +113,12 @@ void load_tree_table_hdf5(int filenr) {
     FATAL_ERROR("Error %d while reading totNHalos attribute from file '%s'",
                 status, buf);
   }
+  SimState.TotHalos = totNHalos;
 
   printf("There are %d trees and %d total halos\n", Ntrees, totNHalos);
 
   TreeNHalos = mymalloc(sizeof(int) * Ntrees);
+  SimState.TreeNHalos = TreeNHalos;
 
   status = read_attribute_int(hdf5_file, "/Header",
                               metadata_names.name_TreeNHalos, TreeNHalos);
@@ -125,8 +129,9 @@ void load_tree_table_hdf5(int filenr) {
   }
 
   TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
+  SimState.TreeFirstHalo = TreeFirstHalo;
 
-  for (i = 0; i < 20; ++i)
+  for (i = 0; i < (Ntrees < 20 ? Ntrees : 20); ++i)
     printf("Tree %d: NHalos %d\n", i, TreeNHalos[i]);
 
   if (Ntrees)

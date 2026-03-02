@@ -32,6 +32,7 @@
 #include "globals.h"
 #include "io_save_hdf5.h"
 #include "util_error.h"
+#include "util_parameters.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -321,6 +322,7 @@ void prep_hdf5_file(char *fname) {
 
   // Close the HDF5 file.
   status = H5Fclose(file_id);
+  (void)status;
 }
 
 /**
@@ -372,6 +374,7 @@ void write_hdf5_galaxy(struct GALAXY_OUTPUT *galaxy_output, int n, int filenr) {
 
   // Close the file.
   status = H5Fclose(file_id);
+  (void)status;
 }
 
 #ifdef MINIMIZE_IO
@@ -492,6 +495,7 @@ void write_hdf5_attrs(int n, int filenr) {
 
   // Close the file.
   status = H5Fclose(file_id);
+  (void)status;
 }
 
 /**
@@ -617,6 +621,7 @@ static void store_run_properties(hid_t master_file_id) {
   /* Clean up */
   status = H5Sclose(dataspace_id);
   status = H5Gclose(props_group_id);
+  (void)status;
 }
 
 void write_master_file(void) {
@@ -747,6 +752,7 @@ void write_master_file(void) {
 
   // Close the master file.
   H5Fclose(master_file_id);
+  (void)status;
 }
 
 void free_hdf5_ids(void) {

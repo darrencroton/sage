@@ -205,8 +205,8 @@ void load_tree_hdf5(int32_t filenr, int32_t treenr) {
     char err_msg[MAX_STRING_LEN + 1];
     snprintf(err_msg, MAX_STRING_LEN,
              "The HDF5 file should still be opened when reading the halos in "
-             "tree %d. Error code: %d",
-             treenr, hdf5_file);
+             "tree %d. Error code: %lld",
+             treenr, (long long)hdf5_file);
     fprintf(stderr, "%s\n", err_msg);
     ABORT(0);
   }

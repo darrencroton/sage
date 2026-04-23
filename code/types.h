@@ -48,6 +48,9 @@ struct SageConfig {
   double RadioModeEfficiency;
   double QuasarModeEfficiency;
   double BlackHoleGrowthRate;
+  double BlackHoleSpinCoherence;
+  double BlackHoleSpinTargetPrograde;
+  double SpinJetEfficiencyBoost;
   double Reionization_z0;
   double Reionization_zr;
   double ThresholdSatDisruption;
@@ -127,6 +130,7 @@ struct GALAXY_OUTPUT {
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;
+  float BlackHoleSpin;
   float ICS;
 
   /* metals */
@@ -192,6 +196,7 @@ struct GALAXY {
   float HotGas;
   float EjectedMass;
   float BlackHoleMass;
+  float BlackHoleSpin;
   float ICS;
 
   /* metals */

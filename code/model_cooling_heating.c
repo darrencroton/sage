@@ -169,6 +169,13 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x,
 
   /* Calculate the new heating rate from black hole accretion */
   if (is_greater(Gal[centralgal].HotGas, 0.0)) {
+    /* Calculate spin-dependent jet efficiency boost
+     * Jet power scales with spin as: P_jet ~ (1 + boost * a*^2)
+     * This models the Blandford-Znajek mechanism efficiency */
+    double a_star = Gal[centralgal].BlackHoleSpin;
+    double spin_efficiency_factor =
+        1.0 + SageConfig.SpinJetEfficiencyBoost * a_star * a_star;
+
     /* Choose accretion model based on configuration */
     if (SageConfig.AGNrecipeOn == 2) {
       /* Bondi-Hoyle accretion recipe
@@ -179,7 +186,8 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x,
        *        M_BH = black hole mass
        *        RadioModeEfficiency = overall efficiency parameter */
       AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) *
-                Gal[centralgal].BlackHoleMass * SageConfig.RadioModeEfficiency;
+                Gal[centralgal].BlackHoleMass * SageConfig.RadioModeEfficiency *
+                spin_efficiency_factor;
     } else if (SageConfig.AGNrecipeOn == 3) {
       /* Cold cloud accretion model
        * Triggered when BH mass exceeds threshold related to cooling properties
@@ -189,7 +197,8 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x,
               0.0001 * Gal[centralgal].Mvir *
                   pow(safe_div(rcool, Gal[centralgal].Rvir, EPSILON_SMALL),
                       3.0)))
-        AGNrate = 0.0001 * safe_div(coolingGas, dt, EPSILON_SMALL);
+        AGNrate =
+            0.0001 * safe_div(coolingGas, dt, EPSILON_SMALL) * spin_efficiency_factor;
       else
         AGNrate = 0.0;
     } else {
@@ -204,12 +213,13 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x,
                   pow(Gal[centralgal].Vvir / 200.0, 3.0) *
                   (safe_div(Gal[centralgal].HotGas, Gal[centralgal].Mvir,
                             EPSILON_SMALL) /
-                   0.1);
+                   0.1) *
+                  spin_efficiency_factor;
       else
         AGNrate = SageConfig.RadioModeEfficiency /
                   (UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) *
                   (Gal[centralgal].BlackHoleMass / 0.01) *
-                  pow(Gal[centralgal].Vvir / 200.0, 3.0);
+                  pow(Gal[centralgal].Vvir / 200.0, 3.0) * spin_efficiency_factor;
     }
 
     /* Calculate Eddington accretion rate limit
@@ -250,7 +260,39 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x,
     /* Update galaxy properties based on black hole accretion */
     metallicity =
         get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
+
+    double old_bh_mass = Gal[centralgal].BlackHoleMass;
     Gal[centralgal].BlackHoleMass += AGNaccreted; /* Grow the black hole */
+
+    /* Evolve black hole spin during radio-mode accretion */
+    if (is_greater(old_bh_mass, 0.0) && is_greater(AGNaccreted, 0.0)) {
+      double mass_fraction = safe_div(AGNaccreted, old_bh_mass, EPSILON_SMALL);
+
+      /* Spin-up from accretion (coherent and chaotic components) */
+      double coherent_component = SageConfig.BlackHoleSpinCoherence *
+                                  (SageConfig.BlackHoleSpinTargetPrograde -
+                                   Gal[centralgal].BlackHoleSpin) *
+                                  mass_fraction;
+      double chaotic_component = (1.0 - SageConfig.BlackHoleSpinCoherence) *
+                                 0.1 * mass_fraction;
+
+      /* Spin-down from Blandford-Znajek jet extraction in radio mode
+       * High-spin BHs lose more angular momentum through powerful jets
+       * Spin-down rate scales with accretion rate and current spin */
+      double spin_down = 0.1 * mass_fraction * Gal[centralgal].BlackHoleSpin;
+
+      /* Net spin change: spin-up from accretion minus spin-down from jets */
+      Gal[centralgal].BlackHoleSpin +=
+          coherent_component + chaotic_component - spin_down;
+
+      /* Enforce physical limits: 0 <= a* <= 1 */
+      if (Gal[centralgal].BlackHoleSpin > 1.0)
+        Gal[centralgal].BlackHoleSpin = 1.0;
+      else if (Gal[centralgal].BlackHoleSpin < 0.05)
+        Gal[centralgal].BlackHoleSpin =
+            0.05; /* Minimum spin from MAD simulations */
+    }
+
     Gal[centralgal].HotGas -=
         AGNaccreted; /* Remove accreted gas from hot phase */
     Gal[centralgal].MetalsHotGas -=

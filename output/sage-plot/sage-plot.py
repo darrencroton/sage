@@ -78,6 +78,7 @@ def get_galaxy_dtype():
         ("HotGas", np.float32),
         ("EjectedMass", np.float32),
         ("BlackHoleMass", np.float32),
+        ("BlackHoleSpin", np.float32),
         ("IntraClusterStars", np.float32),
         ("MetalsColdGas", np.float32),
         ("MetalsStellarMass", np.float32),

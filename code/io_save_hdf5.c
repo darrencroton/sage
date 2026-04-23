@@ -197,6 +197,11 @@ void calc_hdf5_props(void) {
   HDF5_field_names[i] = "BlackHoleMass";
   HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
 
+  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, BlackHoleSpin);
+  HDF5_dst_sizes[i] = sizeof(galout.BlackHoleSpin);
+  HDF5_field_names[i] = "BlackHoleSpin";
+  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+
   HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, ICS);
   HDF5_dst_sizes[i] = sizeof(galout.ICS);
   HDF5_field_names[i] = "ICS";

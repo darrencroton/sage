@@ -195,7 +195,29 @@ void grow_black_hole(int merger_centralgal, double mass_ratio) {
                                   Gal[merger_centralgal].MetalsColdGas);
 
     /* Update galaxy properties */
+    double old_bh_mass = Gal[merger_centralgal].BlackHoleMass;
     Gal[merger_centralgal].BlackHoleMass += BHaccrete; /* Grow the black hole */
+
+    /* Evolve black hole spin during accretion */
+    if (is_greater(old_bh_mass, 0.0)) {
+      double mass_fraction = safe_div(BHaccrete, old_bh_mass, EPSILON_SMALL);
+      double coherent_component = SageConfig.BlackHoleSpinCoherence *
+                                  (SageConfig.BlackHoleSpinTargetPrograde -
+                                   Gal[merger_centralgal].BlackHoleSpin) *
+                                  mass_fraction;
+      /* Chaotic component: random walk with small amplitude */
+      double chaotic_component = (1.0 - SageConfig.BlackHoleSpinCoherence) *
+                                 0.1 * mass_fraction;
+
+      Gal[merger_centralgal].BlackHoleSpin += coherent_component + chaotic_component;
+
+      /* Enforce physical limits: 0 <= a* <= 1 */
+      if (Gal[merger_centralgal].BlackHoleSpin > 1.0)
+        Gal[merger_centralgal].BlackHoleSpin = 1.0;
+      else if (Gal[merger_centralgal].BlackHoleSpin < 0.0)
+        Gal[merger_centralgal].BlackHoleSpin = 0.0;
+    }
+
     Gal[merger_centralgal].ColdGas -=
         BHaccrete; /* Remove gas that was accreted */
     Gal[merger_centralgal].MetalsColdGas -=
@@ -303,8 +325,26 @@ void add_galaxies_together(int t, int p) {
   Gal[t].ICS += Gal[p].ICS;
   Gal[t].MetalsICS += Gal[p].MetalsICS;
 
-  /* Add black hole mass */
+  /* Add black hole mass and merge spins */
+  double M1 = Gal[t].BlackHoleMass;
+  double M2 = Gal[p].BlackHoleMass;
+  double a1 = Gal[t].BlackHoleSpin;
+  double a2 = Gal[p].BlackHoleSpin;
+
   Gal[t].BlackHoleMass += Gal[p].BlackHoleMass;
+
+  /* Calculate remnant spin using mass-weighted average (simplified merger formula)
+   * This assumes aligned spins; more complex formulas exist but require orbital
+   * angular momentum information not tracked in semi-analytic models */
+  if (is_greater(Gal[t].BlackHoleMass, 0.0)) {
+    Gal[t].BlackHoleSpin = safe_div(a1 * M1 + a2 * M2, Gal[t].BlackHoleMass,
+                                     EPSILON_SMALL);
+    /* Enforce physical limits */
+    if (Gal[t].BlackHoleSpin > 1.0)
+      Gal[t].BlackHoleSpin = 1.0;
+    else if (Gal[t].BlackHoleSpin < 0.0)
+      Gal[t].BlackHoleSpin = 0.0;
+  }
 
   /* Add satellite's stellar mass to the bulge component
    * This models the morphological transformation during mergers */

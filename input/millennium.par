@@ -3,7 +3,7 @@
 %------------------------------------------
 
 FileNameGalaxies       model 
-OutputDir              ./output/results/millennium/
+OutputDir              /Users/dcroton/Local/git-repos/cnc/sage/output/results/millennium/
 
 FirstFile         0
 LastFile          7
@@ -26,8 +26,8 @@ NumOutputs        8   ; sets the desired number of galaxy outputs; use -1 for al
 TreeName                    trees_063   ; assumes the trees are named TreeName.n where n is the file number
 TreeType                    lhalo_binary ; either 'genesis_lhalo_hdf5' or 'lhalo_binary'
 
-SimulationDir               ./input/data/millennium/
-FileWithSnapList            ./input/data/millennium/millennium.a_list
+SimulationDir               /Users/dcroton/Local/git-repos/cnc/sage/input/data/millennium/
+FileWithSnapList            /Users/dcroton/Local/git-repos/cnc/sage/input/data/millennium/millennium.a_list
 LastSnapshotNr              63
 NumSimulationTreeFiles      8     ; not used but needed for plotting
 BoxSize                     62.5  ; in Mpc/h - not used but needed for plotting
@@ -65,6 +65,10 @@ ReIncorporationFactor   0.15    ;fraction of ejected mass reincorporated per dyn
 RadioModeEfficiency     0.08  ;AGN radio mode efficiency (AGNrecipeOn=2)
 QuasarModeEfficiency    0.005 ;AGN quasar mode wind heating efficiency (AGNrecipeOn>0)
 BlackHoleGrowthRate     0.015 ;fraction of cold gas added to the BH during mergers (AGNrecipeOn>0)
+
+BlackHoleSpinCoherence      0.5   ;coherence of BH gas accretion (0=chaotic, 1=coherent)
+BlackHoleSpinTargetPrograde 0.95  ;target spin for coherent prograde accretion
+SpinJetEfficiencyBoost      1.5   ;factor by which a*=1 boosts jet power vs a*=0
 
 ThreshMajorMerger       0.3   ;major merger when mass ratio greater than this
 ThresholdSatDisruption  1.0   ;Mvir-to-baryonic mass ratio threshold for satellite merger or disruption

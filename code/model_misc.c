@@ -82,6 +82,7 @@ void init_galaxy(int p, int halonr) {
   Gal[p].HotGas = 0.0;
   Gal[p].EjectedMass = 0.0;
   Gal[p].BlackHoleMass = 0.0;
+  Gal[p].BlackHoleSpin = 0.2; // Initialize with low spin for seed black holes
   Gal[p].ICS = 0.0;
 
   Gal[p].MetalsColdGas = 0.0;

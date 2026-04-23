@@ -20,11 +20,14 @@ For new repository clones, use the automated setup script:
 # Basic compilation
 make
 
-# With HDF5 support for HDF5 tree format
+# With HDF5 support for HDF5 tree format (Genesis format)
 make USE-HDF5=yes
 
-# With MPI support for parallel processing
+# With MPI support for parallel file processing
 make USE-MPI=yes
+
+# Combine options
+make USE-HDF5=yes USE-MPI=yes
 
 # Clean build artifacts
 make clean
@@ -53,12 +56,13 @@ make tidy
 ./sage input/millennium.par
 
 # With command-line options
-./sage --verbose input/millennium.par
-./sage --quiet input/millennium.par
-./sage --skip input/millennium.par
+./sage --verbose input/millennium.par  # Show debug messages
+./sage --quiet input/millennium.par    # Show only warnings and errors
+./sage --skip input/millennium.par     # Skip existing output files
+./sage --help                           # Display help message
 ```
 
-## Testing
+## Testing and Validation
 
 ```bash
 # Test the plotting system (activate virtual environment first)
@@ -132,8 +136,8 @@ deactivate
 
 ### Plotting System (output/sage-plot/)
 - **sage-plot.py**: Central plotting script with enhanced command-line interface
-- **figures/**: Modular plot implementations (21 different plot types)
-  - 17 snapshot plots (including stellar/halo mass functions, galaxy properties, halo properties, kinematics, spatial distributions)
+- **figures/**: Modular plot implementations (24 different plot types)
+  - 20 snapshot plots (stellar/halo mass functions, galaxy properties, halo properties, kinematics, spatial distributions)
   - 4 evolution plots (stellar mass function, halo mass function, SFR density, stellar mass density)
 - **snapshot_redshift_mapper.py**: Handles snapshot-redshift conversions with robust path resolution
 - **Enhanced Features**:
@@ -145,10 +149,13 @@ deactivate
 
 ### Parameter File Structure
 Parameter files use a key-value format with sections for:
-- File information (FirstFile, LastFile, OutputDir)
-- Simulation parameters (BoxSize, Hubble_h, Omega)
-- Recipe flags (SFprescription, AGNrecipeOn, ReionizationOn)
-- Physical parameters (SfrEfficiency, FeedbackReheatingEpsilon)
+- **File information**: FirstFile, LastFile, OutputDir, FileNameGalaxies
+- **Simulation parameters**: BoxSize, Hubble_h, Omega, OmegaLambda, BaryonFrac, PartMass
+- **Tree information**: TreeName, TreeType (lhalo_binary or genesis_lhalo_hdf5), SimulationDir, FileWithSnapList
+- **Recipe flags**: SFprescription, AGNrecipeOn, SupernovaRecipeOn, ReionizationOn, DiskInstabilityOn
+- **Physical parameters**: SfrEfficiency, FeedbackReheatingEpsilon, RadioModeEfficiency, etc.
+
+Lines starting with `%` are comments. List values use arrow notation: `-> value1 value2 value3`
 
 ### Tree Processing Flow
 1. **load_tree_table()**: Load tree metadata and structure
@@ -163,11 +170,44 @@ Uses custom allocator with categorized tracking:
 - MEMORY_TREE: Merger tree data
 - MEMORY_PARAMETER: Configuration data
 - MEMORY_UTIL: Utility arrays and buffers
+
 Call `print_allocated()` to check for memory leaks.
+
+### Error Handling
+SAGE uses a comprehensive error handling system with five severity levels (see `code/error_handling_guidelines.md`):
+- **FATAL_ERROR**: Unrecoverable errors requiring immediate termination
+- **ERROR_LOG**: Recoverable errors where processing can continue
+- **WARNING_LOG**: Potential issues that don't affect correctness
+- **INFO_LOG**: Important operational information
+- **DEBUG_LOG**: Detailed debugging information (use with `--verbose` flag)
+
+Always include sufficient context in error messages (variable values, file names, etc.).
 
 ### Documentation Standards
 Follow the documentation template in `code/doc_standards.md`:
 - Function headers with @brief, @param, @return
 - File headers explaining purpose and key functions
 - Inline comments for complex calculations
-- Units explicitly stated for physical quantities
+- Units explicitly stated for physical quantities (e.g., Msun/h, Mpc/h, km/s)
+
+### Adding New Physical Models
+When adding or modifying physical models:
+1. Place implementation in appropriate `model_*.c` file
+2. Add function prototypes to `core_proto.h`
+3. Update `core_build_model.c` to integrate into evolution loop
+4. Add new parameters to parameter file if needed
+5. Update `core_read_parameter_file.c` to parse new parameters
+6. Follow documentation standards for all new functions
+7. Use appropriate error handling macros
+8. Ensure numerical stability (check for division by zero, use safe math operations)
+
+### Adding New Plots
+To add a new plot type to the plotting system:
+1. Create a new module in `output/sage-plot/figures/`
+2. Implement `plot()` function with standard interface
+3. Use consistent styling from `figures/__init__.py`
+4. Add module to `figures/__init__.py` in SNAPSHOT_PLOTS or EVOLUTION_PLOTS list
+5. Add to PLOT_FUNCS mapping
+6. Test with: `python sage-plot.py --param-file=params.par --plots=new_plot_type --verbose`
+
+See `output/sage-plot/README.md` for detailed instructions.
